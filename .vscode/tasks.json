@@ -11,6 +11,18 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "make test",
+            "group": {
+                "kind": "run",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$pester"
+            ]
         }
     ]
 } 

@@ -1,5 +1,6 @@
 #include <conio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "congui.h"
 
 char dbgOut[16];
@@ -13,5 +14,5 @@ void dbgMem(unsigned int size, void *addr, char *type)
 	cputs(type);
 	cputs(" bytes at $");
 	itoa((unsigned int)addr, dbgOut, 16);
-	cg_println(dbgOut);
+	puts(dbgOut);
 }

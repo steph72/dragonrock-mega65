@@ -13,17 +13,18 @@ void initGuildMem(void);
 
 void initGuild(void)
 {
+    puts("initGuild");
     initGuildMem();
 }
 
 void initGuildMem(void)
 {
-    int sizeBytes = 0;
+    unsigned int sizeBytes = 0;
     sizeBytes = GUILDSIZE * sizeof(character);
     guild = (character *)malloc(sizeBytes);
     if (guild == NULL)
     {
-        cg_println("???fatal: no memory for guild");
+        puts("???fatal: no memory for guild");
         exit(0);
     }
     dbgMem(sizeBytes, guild, "guild");
@@ -31,7 +32,7 @@ void initGuildMem(void)
     party = (character *)malloc(sizeBytes);
     if (party == NULL)
     {
-        cg_println("???fatal: no memory for party");
+        puts("???fatal: no memory for party");
         exit(0);
     }
     dbgMem(sizeBytes, party, "party");

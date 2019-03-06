@@ -21,5 +21,3 @@
 
 void cg_init(void);
 void cg_titlec(byte lcol, byte tcol, char *t);
-void cg_println(char *p);
-void cg_lower(char *p);

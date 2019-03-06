@@ -24,21 +24,35 @@
 #include "congui.h"
 #include "debug.h"
 #include "guild.h"
-
+#include "config.h"
 
 void initEngine(void);
 
 void initEngine(void)
 {
 	cg_init();
-	cg_println("ARCHAIC(tm) engine v0.1");
-	cg_println("Written by Stephan Kleinert");
-	cg_println("Seven Turtles Software, 2019");
+	puts("ARCHAIC(tm) engine v0.1");
+	puts("Written by Stephan Kleinert");
+	puts("Seven Turtles Software, 2019");
 	initGuild();
+	puts("Press any key to start");
+	cgetc();
 }
 
 int main()
 {
+	char choice;
 	initEngine();
+	clrscr();
+	chlinexy(0, 0, 40);
+	chlinexy(0, 24, 40);
+	cputsxy(0, 12, "1 - load saved game");
+	cputsxy(0, 13, "2 - start in ");
+	cputs(gCities[0]);
+	do
+	{
+		choice = cgetc();
+	} while (choice != '1' && choice != '2');
+
 	return 0;
 }

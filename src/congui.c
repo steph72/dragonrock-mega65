@@ -48,8 +48,4 @@ void cg_titlec(byte lcol, byte tcol, char *t)
 	gotoxy(0, 3);
 }
 
-void cg_println(char *p)
-{
-	cputs(p);
-	cputs("\r\n");
-}
+
