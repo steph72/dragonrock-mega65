@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"ca65.buildenv": "linux",
+		"ca65.cc65": "/usr/bin",
+		"ca65.cl65.target": "c128",
+		"ca65.emulatorPath": "x128",
+		"ca65.testenv": "linux",
+		"ca65.vscodeenv": "linux",
+		"files.associations": {
+			"types.h": "c"
+		}
+	}
+}
