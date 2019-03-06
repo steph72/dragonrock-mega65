@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <string.h>
 
 #include "types.h"
 #include "congui.h"
@@ -26,7 +27,25 @@
 #include "guild.h"
 #include "config.h"
 
+unsigned char currentCity;
+
 void initEngine(void);
+void runCity(unsigned char);
+void loadSaved(void);
+
+void loadSaved(void)
+{
+	puts("loadSaved not implemented yet");
+	exit(0);
+}
+
+void runCity(unsigned char cityIdx)
+{
+	char title[40] = "Welcome to ";
+	strcat(title,gCities[cityIdx]);
+	cg_titlec(6,5,title);
+	exit(0);
+}
 
 void initEngine(void)
 {
@@ -35,8 +54,6 @@ void initEngine(void)
 	puts("Written by Stephan Kleinert");
 	puts("Seven Turtles Software, 2019");
 	initGuild();
-	puts("Press any key to start");
-	cgetc();
 }
 
 int main()
@@ -44,15 +61,20 @@ int main()
 	char choice;
 	initEngine();
 	clrscr();
-	chlinexy(0, 0, 40);
-	chlinexy(0, 24, 40);
-	cputsxy(0, 12, "1 - load saved game");
-	cputsxy(0, 13, "2 - start in ");
+	cg_borders();
+	cputsxy(2, 12, "1 - load saved game");
+	cputsxy(2, 13, "2 - start in ");
 	cputs(gCities[0]);
 	do
 	{
 		choice = cgetc();
 	} while (choice != '1' && choice != '2');
+	if (choice == '1')
+	{
+		loadSaved();
+	}
+
+	runCity(currentCity);
 
 	return 0;
 }

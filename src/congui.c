@@ -19,7 +19,7 @@
 
 #include <conio.h>
 #include <cbm.h>
-#include <ctype.h>
+#include <string.h>
 #include "types.h"
 
 void cg_init()
@@ -27,25 +27,24 @@ void cg_init()
 	bgcolor(0);
 	bordercolor(0);
 	textcolor(5);
-	cbm_k_bsout(9);  // disable shift+cmd
+	cbm_k_bsout(11);  // disable shift+cmd
 	cbm_k_bsout(14); // lowercase charset
 	clrscr();
 }
 
-void cg_tlines(void)
+void cg_borders(void)
 {
 	chlinexy(0, 0, 40);
-	chlinexy(0, 2, 40);
+	chlinexy(0, 24, 40);
 }
 
 void cg_titlec(byte lcol, byte tcol, char *t)
 {
 	clrscr();
 	textcolor(lcol);
-	cg_tlines();
+	cg_borders();
+	chlinexy(0,2,40);
 	textcolor(tcol);
-	cputsxy(0, 1, t);
+	cputsxy(20-(strlen(t)/2), 1, t);
 	gotoxy(0, 3);
 }
-
-

@@ -21,3 +21,4 @@
 
 void cg_init(void);
 void cg_titlec(byte lcol, byte tcol, char *t);
+void cg_borders(void);
