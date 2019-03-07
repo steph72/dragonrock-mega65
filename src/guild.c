@@ -13,21 +13,28 @@ character *guild;
 character *party;
 
 void initGuildMem(void);
-char nextFreeGuildSlot(void);
+signed char nextFreeGuildSlot(void);
 void newGuildMember(void);
-
-void initGuild(void)
-{
-    initGuildMem();
-}
 
 void newGuildMember(void)
 {
     byte i;
     byte race;
     byte class;
+    signed char slot;
 
     cg_titlec(8, 5, 0, "New Guild Member");
+
+    slot = nextFreeGuildSlot();
+    if (slot == -1)
+    {
+        textcolor(2);
+        puts("\nSorry, the guild is full.");
+        puts("\nPlease purge some inactive members");
+        puts("before creating new ones.\n\n--key--");
+        cgetc();
+        return;
+    }
 
     cputsxy(2, 3, " Race:");
     for (i = 0; i < NUM_RACES; i++)
@@ -64,7 +71,7 @@ void newGuildMember(void)
     cgetc();
 }
 
-char nextFreeGuildSlot(void)
+signed char nextFreeGuildSlot(void)
 {
     unsigned char idx = -1;
     while (++idx < GUILDSIZE)
@@ -75,6 +82,11 @@ char nextFreeGuildSlot(void)
         }
     }
     return -1;
+}
+
+void initGuild(void)
+{
+    initGuildMem();
 }
 
 void initGuildMem(void)
