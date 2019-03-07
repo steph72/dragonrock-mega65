@@ -2,5 +2,6 @@
 #define __guild
 
 void initGuild(void);
+void newGuildMember(void);
 
 #endif

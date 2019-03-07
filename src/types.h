@@ -20,11 +20,16 @@
 #ifndef __drtypes
 #define __drtypes
 
+
 typedef unsigned char byte;
 
 typedef byte  raceT;
 typedef byte  classT;
 typedef byte  attrT;
+
+typedef enum _cstateType {
+	deleted=0, dead, alive
+} characterStateT;
 
 typedef enum _itemType {
 	armor, shield, weapon, potion, special 
@@ -39,6 +44,8 @@ typedef struct _item {
 } item;
 
 typedef struct _character {
+	characterStateT status;
+	unsigned char guildslot;
 	char	name[16];
 	raceT	aRace;
 	classT	aClass;
@@ -52,6 +59,7 @@ typedef struct _character {
 	int		aMaxMP;
 	int		aHP;
 	int		aMP;
+	int		gold;
 	byte	inventory[12];
 	byte    weapon;
 	byte    shield;

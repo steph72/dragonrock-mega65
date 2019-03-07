@@ -27,7 +27,7 @@ void cg_init()
 	bgcolor(0);
 	bordercolor(0);
 	textcolor(5);
-	cbm_k_bsout(11);  // disable shift+cmd
+	cbm_k_bsout(11); // disable shift+cmd on c128 & 364
 	cbm_k_bsout(14); // lowercase charset
 	clrscr();
 }
@@ -38,13 +38,14 @@ void cg_borders(void)
 	chlinexy(0, 24, 40);
 }
 
-void cg_titlec(byte lcol, byte tcol, char *t)
+void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t)
 {
 	clrscr();
 	textcolor(lcol);
 	cg_borders();
-	chlinexy(0,12,40);
+	if (splitScreen)
+		chlinexy(0, 12, 40);
 	textcolor(tcol);
-	cputsxy(20-(strlen(t)/2), 1, t);
+	cputsxy(20 - (strlen(t) / 2), 1, t);
 	gotoxy(0, 3);
 }

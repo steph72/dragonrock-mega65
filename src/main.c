@@ -28,31 +28,70 @@
 #include "config.h"
 
 unsigned char currentCity;
+unsigned char outbuf[80];
+
+raceT test;
 
 void initEngine(void);
-void runCity(unsigned char);
+void runCityMenu(void);
+void runGuildMenu(void);
 void loadSaved(void);
 
 void loadSaved(void)
 {
-	puts("loadSaved not implemented yet");
+	puts("\n\nloadSaved not implemented yet");
 	exit(0);
 }
 
-void runCity(unsigned char cityIdx)
+void runGuildMenu(void)
+{
+	unsigned char cmd = 0;
+	unsigned char quitGuild = 0;
+	strcpy(outbuf, gCities[currentCity]);
+	strcat(outbuf, " Guild");
+	while (!quitGuild)
+	{
+		cg_titlec(8, 5, 1, outbuf);
+		cputsxy(2, 14, "L)ist guild members       T)raining");
+		cputsxy(2, 15, "N)ew guild member         S)pells");
+		cputsxy(2, 16, "P)urge guild member");
+		cputsxy(2, 17, "A)dd to party");
+		cputsxy(2, 18, "D)rop from party");
+		cputsxy(2, 19, "eX)it guild");
+		cputsxy(2, 21, "Command:");
+		cursor(1);
+		do
+		{
+			cmd = cgetc();
+		} while (strchr("lnpadxts", cmd) == NULL);
+		switch (cmd)
+		{
+		case 'n':
+			newGuildMember();
+			break;
+
+		case 'x':
+			return;
+			break;
+
+		default:
+			break;
+		}
+	}
+}
+
+void runCityMenu(void)
 {
 	unsigned char cmd = 0;
 	unsigned char quitCity = 0;
-	char title[40] = "";
 	char num[5] = " (1)";
-
-	num[2] = '1' + cityIdx;
-	strcat(title, gCities[cityIdx]);
-	strcat(title, num);
 
 	while (!quitCity)
 	{
-		cg_titlec(6, 5, title);
+		num[2] = '1' + currentCity;
+		strcpy(outbuf, gCities[currentCity]);
+		strcat(outbuf, num);
+		cg_titlec(6, 5, 1, outbuf);
 		cputsxy(2, 14, "Go to");
 		cputsxy(9, 14, "A)rmory  G)uild  M)ystic");
 		cputsxy(9, 15, "In)n     B)ank   L)eave town");
@@ -67,10 +106,16 @@ void runCity(unsigned char cityIdx)
 			cmd = cgetc();
 		} while (strchr("agmiblcus", cmd) == NULL);
 
+		cursor(0);
+
 		switch (cmd)
 		{
 		case 'l':
 			quitCity = 1;
+			break;
+
+		case 'g':
+			runGuildMenu();
 			break;
 
 		default:
@@ -97,16 +142,22 @@ int main()
 	cputsxy(2, 12, "1 - load saved game");
 	cputsxy(2, 14, "2 - start in ");
 	cputs(gCities[0]);
+
 	do
 	{
 		choice = cgetc();
-	} while (strchr("12",choice)==NULL);
+	} while (strchr("12", choice) == NULL);
+
 	if (choice == '1')
 	{
 		loadSaved();
 	}
+	else
+	{
+		currentCity = 0;
+	}
 
-	runCity(currentCity);
+	runCityMenu();
 
 	return 0;
 }
