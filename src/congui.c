@@ -43,7 +43,7 @@ void cg_titlec(byte lcol, byte tcol, char *t)
 	clrscr();
 	textcolor(lcol);
 	cg_borders();
-	chlinexy(0,2,40);
+	chlinexy(0,12,40);
 	textcolor(tcol);
 	cputsxy(20-(strlen(t)/2), 1, t);
 	gotoxy(0, 3);
