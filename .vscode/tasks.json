@@ -17,12 +17,9 @@
             "type": "shell",
             "command": "make test",
             "group": {
-                "kind": "run",
+                "kind": "test",
                 "isDefault": true
-            },
-            "problemMatcher": [
-                "$pester"
-            ]
+            }
         }
     ]
 } 

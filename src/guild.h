@@ -3,5 +3,6 @@
 
 void initGuild(void);
 void newGuildMember(void);
+void listGuildMembers(void);
 
 #endif

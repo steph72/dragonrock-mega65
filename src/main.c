@@ -64,10 +64,16 @@ void runGuildMenu(void)
 		{
 			cmd = cgetc();
 		} while (strchr("lnpadxts", cmd) == NULL);
+		cursor(0);
+		
 		switch (cmd)
 		{
 		case 'n':
 			newGuildMember();
+			break;
+
+		case 'l':
+			listGuildMembers();
 			break;
 
 		case 'x':
