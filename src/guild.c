@@ -7,7 +7,6 @@
 #include "congui.h"
 #include "types.h"
 #include "config.h"
-#include "debug.h"
 
 character *guild;
 character *party;
@@ -20,18 +19,16 @@ void listGuildMembers(void);
 void listGuildMembers(void)
 {
     byte i;
-    char num[3];
     cg_titlec(8, 5, 0, "Guild Members");
-
     for (i = 0; i < GUILDSIZE; ++i)
     {
-        itoa(i, num, 10);
         if (guild[i].status != deleted)
         {
-            cputsxy(2 + 18 * (i / 20), 4 + (i % 20), num);
-            cputsxy(5 + 18 * (i / 20), 4 + (i % 20), guild[i].name);
+            gotoxy(2+(18*(i/20)),4+(i%20));
+            cprintf("%2d %s",i+1,guild[i].name);
         }
     }
+    cputsxy(0,23,"-- key --");
     cgetc();
 }
 
@@ -44,7 +41,6 @@ void newGuildMember(void)
     signed char slot;
     int tempHP;
     int tempMP;
-    char attrVal[4]; // temp var for displaying attribute values
     char cname[17];
     character *newC;
 
@@ -71,9 +67,8 @@ void newGuildMember(void)
     cputsxy(2, top, "      Race:");
     for (i = 0; i < NUM_RACES; i++)
     {
-        cputcxy(margin, top + i, '1' + i);
-        cputsxy(margin + 1, top + i, " - ");
-        cputs(gRaces[i]);
+        gotoxy(margin,top+i);
+        cprintf("%d - %s",i+1,gRaces[i]);
     }
     cputsxy(margin, top + 1 + i, "Your choice: ");
     do
@@ -89,9 +84,8 @@ void newGuildMember(void)
     cputsxy(2, top, "     Class:");
     for (i = 0; i < NUM_CLASSES; i++)
     {
-        cputcxy(margin, top + i, '1' + i);
-        cputsxy(margin + 1, top + i, " - ");
-        cputs(gClasses[i]);
+        gotoxy(margin,top+i);
+        cprintf("%d - %s",i+1,gClasses[i]);
     }
     cputsxy(margin, top + 1 + i, "Your choice:");
     do
@@ -110,29 +104,19 @@ void newGuildMember(void)
         for (i = 0; i < 6; i++)
         {
             tempAttr[i] = 3 + (rand() % 16) + gRaceModifiers[race][i];
-            itoa(tempAttr[i], attrVal, 10);
             cputsxy(margin, top + i, gAttributes[i]);
-            cputsxy(margin + 13, top + i, attrVal);
-            cputs("  ");
+            gotoxy(margin+13,top+i);
+            cprintf("%2d",tempAttr[i]);
         }
         tempHP = 3 + (rand() % 8);
         tempMP = 3 + (rand() % 8);
-        gotoxy(margin, top + i + 1);
-        cprintf("Hit points  %d", tempHP);
 
-        /* cputsxy(margin, top + i + 1, "Hit points   ");
-        itoa(tempHP, attrVal, 10);
-        cputs(attrVal);
-        cputs("  ");
-        */
+        gotoxy(margin, top + i + 1);
+        cprintf("Hit points   %2d", tempHP);
+
         gotoxy(margin, top + i + 2);
-        cprintf("Magic points %d", tempMP);
-        /*
-        cputsxy(margin, top + i + 2, "Magic points ");
-        itoa(tempMP, attrVal, 10);
-        cputs(attrVal);
-        cputs("  ");
-        */
+        cprintf("Magic points %2d", tempMP);
+
         cputsxy(margin, top + i + 4, "Re-roll? (y/n) ");
         c = cgetc();
     } while (c != 'n');

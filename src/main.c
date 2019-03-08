@@ -23,12 +23,11 @@
 
 #include "types.h"
 #include "congui.h"
-#include "debug.h"
 #include "guild.h"
 #include "config.h"
 
 unsigned char currentCity;
-unsigned char outbuf[80];
+unsigned char outbuf[80]; 
 
 raceT test;
 
@@ -47,8 +46,8 @@ void runGuildMenu(void)
 {
 	unsigned char cmd = 0;
 	unsigned char quitGuild = 0;
-	strcpy(outbuf, gCities[currentCity]);
-	strcat(outbuf, " Guild");
+	sprintf(outbuf,"%s Guild",gCities[currentCity]);
+
 	while (!quitGuild)
 	{
 		cg_titlec(8, 5, 1, outbuf);
@@ -90,13 +89,10 @@ void runCityMenu(void)
 {
 	unsigned char cmd = 0;
 	unsigned char quitCity = 0;
-	char num[5] = " (1)";
 
 	while (!quitCity)
 	{
-		num[2] = '1' + currentCity;
-		strcpy(outbuf, gCities[currentCity]);
-		strcat(outbuf, num);
+		sprintf(outbuf,"%s (%d)",gCities[currentCity],currentCity+1);
 		cg_titlec(6, 5, 1, outbuf);
 		cputsxy(2, 14, "Go to");
 		cputsxy(9, 14, "A)rmory  G)uild  M)ystic");
