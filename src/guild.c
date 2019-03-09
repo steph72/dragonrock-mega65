@@ -9,7 +9,7 @@
 #include "config.h"
 
 character *guild;
-character *party;
+character *party[PARTYSIZE];
 
 void initGuildMem(void);
 signed char nextFreeGuildSlot(void);
@@ -18,17 +18,17 @@ void listGuildMembers(void);
 
 void listGuildMembers(void)
 {
-    byte i;
+    byte i = 0;
     cg_titlec(8, 5, 0, "Guild Members");
     for (i = 0; i < GUILDSIZE; ++i)
     {
         if (guild[i].status != deleted)
         {
-            gotoxy(2+(18*(i/20)),4+(i%20));
-            cprintf("%2d %s",i+1,guild[i].name);
+            gotoxy(2 + (18 * (i / 20)), 4 + (i % 20));
+            cprintf("%2d %s", i + 1, guild[i].name);
         }
     }
-    cputsxy(0,23,"-- key --");
+    cputsxy(0, 23, "-- key --");
     cgetc();
 }
 
@@ -67,8 +67,8 @@ void newGuildMember(void)
     cputsxy(2, top, "      Race:");
     for (i = 0; i < NUM_RACES; i++)
     {
-        gotoxy(margin,top+i);
-        cprintf("%d - %s",i+1,gRaces[i]);
+        gotoxy(margin, top + i);
+        cprintf("%d - %s", i + 1, gRaces[i]);
     }
     cputsxy(margin, top + 1 + i, "Your choice: ");
     do
@@ -84,8 +84,8 @@ void newGuildMember(void)
     cputsxy(2, top, "     Class:");
     for (i = 0; i < NUM_CLASSES; i++)
     {
-        gotoxy(margin,top+i);
-        cprintf("%d - %s",i+1,gClasses[i]);
+        gotoxy(margin, top + i);
+        cprintf("%d - %s", i + 1, gClasses[i]);
     }
     cputsxy(margin, top + 1 + i, "Your choice:");
     do
@@ -105,8 +105,8 @@ void newGuildMember(void)
         {
             tempAttr[i] = 3 + (rand() % 16) + gRaceModifiers[race][i];
             cputsxy(margin, top + i, gAttributes[i]);
-            gotoxy(margin+13,top+i);
-            cprintf("%2d",tempAttr[i]);
+            gotoxy(margin + 13, top + i);
+            cprintf("%2d", tempAttr[i]);
         }
         tempHP = 3 + (rand() % 8);
         tempMP = 3 + (rand() % 8);
@@ -117,11 +117,19 @@ void newGuildMember(void)
         gotoxy(margin, top + i + 2);
         cprintf("Magic points %2d", tempMP);
 
-        cputsxy(margin, top + i + 4, "Re-roll? (y/n) ");
-        c = cgetc();
-    } while (c != 'n');
+        cputsxy(margin, top + i + 4, "k)eep, r)eroll or q)uit? ");
+        do
+        {
+            c = cgetc();
+        } while (!strchr("rkq", c));
+    } while (c == 'r');
+
+    if (c == 'q')
+        return;
+
     top = top + i + 4;
     cclearxy(0, top, 40);
+    cputsxy(18,top+1,"----------------");
     cputsxy(2, top, "Character name: ");
     fgets(cname, 16, stdin);
 
@@ -172,12 +180,4 @@ void initGuildMem(void)
     }
     bzero(guild, sizeBytes);
 
-    sizeBytes = PARTYSIZE * sizeof(character);
-    party = (character *)malloc(sizeBytes);
-    if (party == NULL)
-    {
-        puts("???fatal: no memory for party");
-        exit(0);
-    }
-    bzero(party, sizeBytes);
 }

@@ -13,7 +13,7 @@ TARGETS := c128
 
 # Name of the final, single-file executable.
 # Default: name of the current dir with target name appended
-PROGRAM := drmain
+PROGRAM := bin/drmain
 
 # Path(s) to additional libraries required for linking the program
 # Use only if you don't want to place copies of the libraries in SRCDIR
@@ -56,7 +56,7 @@ EMUCMD :=
 #PREEMUCMD := osascript -e "tell application \"X11\" to activate"
 #POSTEMUCMD := osascript -e "tell application \"System Events\" to tell process \"X11\" to set visible to false"
 #POSTEMUCMD := osascript -e "tell application \"Terminal\" to activate"
-PREEMUCMD :=
+PREEMUCMD := /bin/bash buildDisc.sh
 POSTEMUCMD :=
 
 # On Windows machines VICE emulators may not be available in the PATH by default.
@@ -304,7 +304,7 @@ $(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
 
 test: $(PROGRAM)
 	$(PREEMUCMD)
-	$(EMUCMD) $<
+	$(EMUCMD) disc/drock.d64
 	$(POSTEMUCMD)
 
 clean:

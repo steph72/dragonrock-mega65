@@ -29,8 +29,6 @@
 unsigned char currentCity;
 unsigned char outbuf[80]; 
 
-raceT test;
-
 void initEngine(void);
 void runCityMenu(void);
 void runGuildMenu(void);
