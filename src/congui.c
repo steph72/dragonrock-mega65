@@ -36,6 +36,7 @@ void cg_borders(void)
 {
 	chlinexy(0, 0, 40);
 	chlinexy(0, 24, 40);
+	gotoxy(0,1);
 }
 
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t)

@@ -2,7 +2,8 @@
 #define __guild
 
 void initGuild(void);
-void newGuildMember(void);
+void newGuildMember(byte city);
 void listGuildMembers(void);
+void saveGuild(void);
 
 #endif

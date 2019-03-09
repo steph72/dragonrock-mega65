@@ -45,7 +45,7 @@ typedef struct _item {
 
 typedef struct _character {
 	characterStateT status;
-	unsigned char guildslot;
+	byte    city;
 	char	name[16];
 	raceT	aRace;
 	classT	aClass;
@@ -60,7 +60,7 @@ typedef struct _character {
 	int		aHP;
 	int		aMP;
 	int		gold;
-	byte	inventory[12];
+	item*	inventory[12];
 	byte    weapon;
 	byte    shield;
 	byte    armor;

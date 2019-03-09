@@ -66,7 +66,7 @@ void runGuildMenu(void)
 		switch (cmd)
 		{
 		case 'n':
-			newGuildMember();
+			newGuildMember(currentCity);
 			break;
 
 		case 'l':
@@ -118,6 +118,10 @@ void runCityMenu(void)
 			runGuildMenu();
 			break;
 
+		case 's':
+			saveGuild();
+			break;
+
 		default:
 			break;
 		}
@@ -127,6 +131,9 @@ void runCityMenu(void)
 void initEngine(void)
 {
 	cg_init();
+	puts("ARCHAIC(tm) engine version 0.1alpha");
+	puts("Written by Stephan Kleinert");
+	puts("Copyright (c) 2019 7Turtles Software");
 	initGuild();
 }
 

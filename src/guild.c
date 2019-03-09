@@ -12,12 +12,13 @@ character *guild;
 character *party[PARTYSIZE];
 
 void initGuildMem(void);
+void loadGuild(void);
 signed char nextFreeGuildSlot(void);
-void newGuildMember(void);
+void newGuildMember(byte city);
 void listGuildMembers(void);
 
 void listGuildMembers(void)
-{
+{    
     byte i = 0;
     cg_titlec(8, 5, 0, "Guild Members");
     for (i = 0; i < GUILDSIZE; ++i)
@@ -32,7 +33,7 @@ void listGuildMembers(void)
     cgetc();
 }
 
-void newGuildMember(void)
+void newGuildMember(byte city)
 {
     byte i, c; // loop and input temp vars
     byte race;
@@ -163,9 +164,32 @@ signed char nextFreeGuildSlot(void)
     return -1;
 }
 
+void saveGuild(void) {
+    FILE *outfile;
+    clrscr();
+    cg_borders();
+    puts("Saving...");
+    outfile = fopen("guild","w");
+    fwrite(guild,GUILDSIZE*sizeof(character),1,outfile);
+    fclose(outfile);
+    puts("done.");
+    cgetc();
+}
+
+void loadGuild(void) {
+    FILE *infile;
+    infile = fopen("guild","r");
+    if (!infile) {
+        return;
+    }
+    fread(guild,GUILDSIZE*sizeof(character),1,infile);
+    fclose(infile);
+}
+
 void initGuild(void)
 {
     initGuildMem();
+    loadGuild();
 }
 
 void initGuildMem(void)
