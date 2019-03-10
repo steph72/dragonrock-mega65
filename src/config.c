@@ -8,6 +8,8 @@ char *gAttributes[] = {"Strength", "Intelligence", "Wisdom",
                        
 char *gAttributesS[] = {"STR", "INT", "WIS", "DEX", "CON", "CHR"};
 
+char *gStateDesc[] = {"deleted","dead","ok"};
+
 int gRaceModifiers[NUM_RACES][6] = {
     {0, 0, 0, 0, 0, 0},   // human
     {2, 0, 0, -1, 0, 0},  // dwarf
@@ -17,7 +19,7 @@ int gRaceModifiers[NUM_RACES][6] = {
 };
 
 char *gClasses[NUM_CLASSES] = {"Fighter", "Ranger", "Priest", "Wizard", "Thief"};
-char *gClassesS[NUM_CLASSES] = {"FIG", "RAN", "PRI", "WIZ", "THF"};
+char *gClassesS[NUM_CLASSES] = {"FG", "RG", "PR", "WZ", "TH"};
 
 char *gCities[NUM_CITIES] = {"Foxhome", "King's Winter", "Dohlem", "Tia's Grove",
                              "Modder", "Foodim"};

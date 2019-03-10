@@ -3,7 +3,7 @@
 
 // these may change...
 
-#define GUILDSIZE 40
+#define GUILDSIZE 36
 #define PARTYSIZE 6
 
 #define NUM_CITIES 6
@@ -22,6 +22,7 @@ extern char *gAttributes[NUM_ATTRS];
 extern char *gAttributesS[NUM_ATTRS];
 
 extern char *gCities[NUM_CITIES];
+extern char *gStateDesc[];
 
 extern int gRaceModifiers[NUM_RACES][6];
 

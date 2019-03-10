@@ -8,4 +8,5 @@ c1541 <<EOF
 attach disc/drock.d64
 delete drmain
 write bin/drmain.c128 drmain
+write drivers/c128-ram2.emd em 
 EOF
