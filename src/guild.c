@@ -13,15 +13,17 @@ character *guild;
 character *party[PARTYSIZE];
 
 void initGuildMem(void);
-void loadGuild(void);
-signed char nextFreeGuildSlot(void);
-signed char nextFreePartySlot(void);
+byte loadGuild(void);
 
 void newGuildMember(byte city);
 void _listGuildMembers(void);
 void listGuildMembers(void);
 
 void flagError(char *e);
+
+// clang-format off
+#pragma code-name(push, "OVERLAY1");
+// clang-format on
 
 void _listGuildMembers(void)
 {
@@ -52,15 +54,57 @@ void listGuildMembers(void)
     cgetc();
 }
 
+void showCurrentParty(void)
+{
+	static byte i, y;
+	static character *c;
+	gotoxy(0, 2);
+	y = 2;
+	for (i = 0; i < PARTYSIZE; i++)
+	{
+		if (party[i])
+		{
+			c = party[i];
+			++y;
+			gotoxy(0, y);
+			cprintf("%d %s", i + 1, c->name);
+			cputsxy(20, y, gRacesS[c->aRace]);
+			cputsxy(24, y, gClassesS[c->aClass]);
+			cputsxy(34, y, gStateDesc[c->status]);
+		}
+	}
+}
+
 void flagError(char *e)
 {
     textcolor(2);
     cursor(0);
-    cclearxy(0,22,40);
-    cputsxy(2,22,e);
+    cclearxy(0, 22, 40);
+    cputsxy(2, 22, e);
     textcolor(8);
-    cputsxy(2,23, "-- key --"); 
+    cputsxy(2, 23, "-- key --");
     cgetc();
+}
+
+void dropFromParty(void)
+{
+    static char inbuf[3];
+    static byte pm;
+
+    cclearxy(0, 22, 40);
+    cputsxy(2, 22, "Remove whom (0=cancel)");
+    cursor(1);
+    fgets(inbuf, 3, stdin);
+    pm = atoi(inbuf);
+    if (pm == 0)
+        return;
+    --pm;
+    if (pm >= PARTYSIZE)
+    {
+        flagError("You wish!");
+        return;
+    }
+    party[pm] = NULL;
 }
 
 void addToParty(void)
@@ -87,7 +131,7 @@ void addToParty(void)
     --gmIndex;
     if (gmIndex >= GUILDSIZE)
     {
-        flagError("you wish");
+        flagError("What is it with you?!");
         return;
     }
     if (guild[gmIndex].status == deleted)
@@ -111,6 +155,7 @@ void purgeGuildMember(void)
 {
     static char cnum[5];
     static byte idx;
+    static byte i;
     cg_titlec(8, 2, 0, "Purge guild member");
     textcolor(8);
     _listGuildMembers();
@@ -123,129 +168,20 @@ void purgeGuildMember(void)
         return;
     }
     idx--;
-    guild[idx].status = deleted;
-}
-
-void newGuildMember(byte city)
-{
-    static byte i, c; // loop and input temp vars
-    static byte race;
-    static byte class;
-    static attrT tempAttr[6];
-    static attrT current;
-    static signed char slot;
-    static int tempHP;
-    static int tempMP;
-    static char cname[17];
-    static character *newC;
-
-    static char top; // screen top margin
-
-    const char margin = 14;
-    const char delSpaces = 40 - margin;
-
-    cg_titlec(8, 5, 0, "New Guild Member");
-
-    slot = nextFreeGuildSlot();
-    if (slot == -1)
+    if (idx >= GUILDSIZE)
     {
-        textcolor(2);
-        puts("\nSorry, the guild is full."
-             "\nPlease purge some inactive members"
-             "before creating new ones.\n\n--key--");
-        cgetc();
+        flagError("Are you working in QA?");
         return;
     }
-
-    top = 5;
-    newC = &guild[slot];
-
-    cputsxy(2, top, "      Race:");
-    for (i = 0; i < NUM_RACES; i++)
+    for (i = 0; i < PARTYSIZE; i++)
     {
-        gotoxy(margin, top + i);
-        cprintf("%d - %s", i + 1, gRaces[i]);
-    }
-    cputsxy(margin, top + 1 + i, "Your choice: ");
-    do
-    {
-        race = cgetc() - '1';
-    } while (race >= NUM_RACES);
-    for (i = top - 1; i < NUM_RACES + top + 3; cclearxy(margin, ++i, delSpaces))
-        ;
-    cputsxy(margin, top, gRaces[race]);
-
-    ++top;
-
-    cputsxy(2, top, "     Class:");
-    for (i = 0; i < NUM_CLASSES; i++)
-    {
-        gotoxy(margin, top + i);
-        cprintf("%d - %s", i + 1, gClasses[i]);
-    }
-    cputsxy(margin, top + 1 + i, "Your choice:");
-    do
-    {
-        class = cgetc() - '1';
-    } while (class >= NUM_CLASSES);
-    for (i = top - 1; i < NUM_CLASSES + top + 3; cclearxy(margin, ++i, delSpaces))
-        ;
-    cputsxy(margin, top, gClasses[class]);
-
-    top += 2;
-
-    cputsxy(2, top, "Attributes:");
-    do
-    {
-        for (i = 0; i < 6; i++)
+        if (party[i] == &guild[idx])
         {
-            current = 7 + (rand() % 12) + gRaceModifiers[race][i];
-            tempAttr[i] = current;
-            cputsxy(margin, top + i, gAttributes[i]);
-            gotoxy(margin + 13, top + i);
-            cprintf("%2d %s", current, bonusStrForAttribute(current));
+            flagError("Member is currently in the party!");
+            return;
         }
-        tempHP = 3 + (rand() % 8) + bonusValueForAttribute(tempAttr[0]);
-        tempMP = 3 + (rand() % 8) + bonusValueForAttribute(tempAttr[1]);
-
-        gotoxy(margin, top + i + 1);
-        cprintf("Hit points   %2d", tempHP);
-
-        gotoxy(margin, top + i + 2);
-        cprintf("Magic points %2d", tempMP);
-
-        cputsxy(margin, top + i + 4, "k)eep, r)eroll or q)uit? ");
-        do
-        {
-            c = cgetc();
-        } while (!strchr("rkq", c));
-    } while (c == 'r');
-
-    if (c == 'q')
-        return;
-
-    top = top + i + 4;
-    cclearxy(0, top, 40);
-    cputsxy(18, top + 1, "----------------");
-    cputsxy(2, top, "Character name: ");
-    fgets(cname, 16, stdin);
-
-    // copy temp char to guild
-    newC->city = city;
-    newC->status = alive;
-    newC->aRace = race;
-    newC->aClass = class;
-    newC->aSTR = tempAttr[0];
-    newC->aINT = tempAttr[1];
-    newC->aWIS = tempAttr[2];
-    newC->aDEX = tempAttr[3];
-    newC->aCON = tempAttr[4];
-    newC->aCHR = tempAttr[5];
-    newC->aMaxHP = tempHP;
-    newC->aHP = tempHP;
-    newC->aMaxMP = tempMP;
-    newC->aMP = tempMP;
-    strcpy(newC->name, cname);
+    }
+    guild[idx].status = deleted;
 }
 
 signed char nextFreePartySlot(void)
@@ -277,32 +213,56 @@ signed char nextFreeGuildSlot(void)
 void saveGuild(void)
 {
     static FILE *outfile;
+    static byte i;
     clrscr();
     cg_borders();
-    puts("Saving...");
+    puts("\nPlease wait, "
+         "saving the game...");
     outfile = fopen("guild", "w");
     fwrite(guild, GUILDSIZE * sizeof(character), 1, outfile);
+    for (i = 0; i < PARTYSIZE; i++)
+    {
+        if (party[i])
+        {
+            fputc(party[i]->guildSlot, outfile);
+        }
+        else
+        {
+            fputc(99, outfile);
+        }
+    }
     fclose(outfile);
-    puts("done.");
+    puts("\n\n...done.");
     cgetc();
 }
 
-void loadGuild(void)
+byte loadGuild(void)
 {
     static FILE *infile;
+    static byte i;
+    static byte slot;
     infile = fopen("guild", "r");
     if (!infile)
     {
-        return;
+        return false;
     }
     fread(guild, GUILDSIZE * sizeof(character), 1, infile);
+    for (i = 0; i < PARTYSIZE; i++)
+    {
+        slot = fgetc(infile);
+        if (slot != 99)
+        {
+            party[i] = &guild[slot];
+        }
+    }
     fclose(infile);
+    return true;
 }
 
-void initGuild(void)
+byte initGuild()
 {
     initGuildMem();
-    loadGuild();
+    return loadGuild();
 }
 
 void initGuildMem(void)
@@ -317,6 +277,11 @@ void initGuildMem(void)
     }
     bzero(guild, sizeBytes);
 }
+
+
+// clang-format off
+#pragma code-name(pop);
+// clang-format on
 
 signed char bonusValueForAttribute(attrT a)
 {

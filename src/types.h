@@ -20,6 +20,8 @@
 #ifndef __drtypes
 #define __drtypes
 
+#define true   1
+#define false  0
 
 typedef unsigned char byte;
 
@@ -45,6 +47,7 @@ typedef struct _item {
 
 typedef struct _character {
 	characterStateT status;
+	byte	guildSlot;
 	byte    city;
 	char	name[16];
 	raceT	aRace;

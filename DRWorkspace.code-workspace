@@ -12,7 +12,8 @@
 		"ca65.testenv": "linux",
 		"ca65.vscodeenv": "linux",
 		"files.associations": {
-			"types.h": "c"
+			"types.h": "c",
+			"device.h": "c"
 		}
 	}
 }

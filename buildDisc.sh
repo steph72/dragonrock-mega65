@@ -6,7 +6,14 @@ fi
 
 c1541 <<EOF
 attach disc/drock.d64
-delete drmain
-write bin/drmain.c128 drmain
+delete main
+delete city
+delete dungeon
+delete outdoor
+delete em
+write bin/drmain.c128 main
+write bin/drmain.c128.1 city
+write bin/drmain.c128.2 dungeon
+write bin/drmain.c128.3 outdoor
 write drivers/c128-ram2.emd em 
 EOF
