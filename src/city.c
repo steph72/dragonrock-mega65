@@ -8,6 +8,7 @@
 #include "config.h"
 #include "congui.h"
 #include "guild.h"
+#include "character.h"
 #include "types.h"
 
 extern byte currentCity;
@@ -233,6 +234,7 @@ void newGuildMember(byte city) {
     newC->aHP= tempHP;
     newC->aMaxMP= tempMP;
     newC->aMP= tempMP;
+    newC->level= 1;
     strcpy(newC->name, cname);
 }
 

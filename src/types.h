@@ -49,6 +49,7 @@ typedef struct _character {
 	characterStateT status;
 	byte	guildSlot;
 	byte    city;
+	byte	level;
 	char	name[16];
 	raceT	aRace;
 	classT	aClass;

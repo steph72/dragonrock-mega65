@@ -1,13 +1,13 @@
 
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>
 #include <string.h>
 
-#include "congui.h"
-#include "types.h"
 #include "config.h"
+#include "congui.h"
 #include "guild.h"
+#include "types.h"
 
 character *guild;
 character *party[PARTYSIZE];
@@ -25,19 +25,16 @@ void flagError(char *e);
 #pragma code-name(push, "OVERLAY1");
 // clang-format on
 
-void _listGuildMembers(void)
-{
+void _listGuildMembers(void) {
     static byte i, x, y;
-    static byte charsPerRow = GUILDSIZE / 2;
+    static byte charsPerRow= GUILDSIZE / 2;
     character *tempChar;
 
-    for (i = 0; i < GUILDSIZE; ++i)
-    {
-        if (guild[i].status != deleted)
-        {
-            tempChar = &guild[i];
-            x = (20 * (i / charsPerRow));
-            y = (4 + (i % charsPerRow));
+    for (i= 0; i < GUILDSIZE; ++i) {
+        if (guild[i].status != deleted) {
+            tempChar= &guild[i];
+            x= (20 * (i / charsPerRow));
+            y= (4 + (i % charsPerRow));
             gotoxy(x, y);
             cprintf("%2d %.10s", i + 1, tempChar->name);
             gotoxy(x + 14, y);
@@ -46,37 +43,32 @@ void _listGuildMembers(void)
     }
 }
 
-void listGuildMembers(void)
-{
+void listGuildMembers(void) {
     cg_titlec(8, 5, 0, "Guild Members");
     _listGuildMembers();
     cputsxy(0, 23, "-- key --");
     cgetc();
 }
 
-void showCurrentParty(void)
-{
-	static byte i, y;
-	static character *c;
-	gotoxy(0, 2);
-	y = 2;
-	for (i = 0; i < PARTYSIZE; i++)
-	{
-		if (party[i])
-		{
-			c = party[i];
-			++y;
-			gotoxy(0, y);
-			cprintf("%d %s", i + 1, c->name);
-			cputsxy(20, y, gRacesS[c->aRace]);
-			cputsxy(24, y, gClassesS[c->aClass]);
-			cputsxy(34, y, gStateDesc[c->status]);
-		}
-	}
+void showCurrentParty(void) {
+    static byte i, y;
+    static character *c;
+    gotoxy(0, 2);
+    y= 2;
+    for (i= 0; i < PARTYSIZE; i++) {
+        if (party[i]) {
+            c= party[i];
+            ++y;
+            gotoxy(0, y);
+            cprintf("%d %s", i + 1, c->name);
+            cputsxy(20, y, gRacesS[c->aRace]);
+            cputsxy(24, y, gClassesS[c->aClass]);
+            cputsxy(34, y, gStateDesc[c->status]);
+        }
+    }
 }
 
-void flagError(char *e)
-{
+void flagError(char *e) {
     textcolor(2);
     cursor(0);
     cclearxy(0, 22, 40);
@@ -86,8 +78,7 @@ void flagError(char *e)
     cgetc();
 }
 
-void dropFromParty(void)
-{
+void dropFromParty(void) {
     static char inbuf[3];
     static byte pm;
 
@@ -95,64 +86,62 @@ void dropFromParty(void)
     cputsxy(2, 22, "Remove whom (0=cancel)");
     cursor(1);
     fgets(inbuf, 3, stdin);
-    pm = atoi(inbuf);
+    pm= atoi(inbuf);
     if (pm == 0)
         return;
     --pm;
-    if (pm >= PARTYSIZE)
-    {
+    if (pm >= PARTYSIZE) {
         flagError("You wish!");
         return;
     }
-    party[pm] = NULL;
+    party[pm]= NULL;
 }
 
-void addToParty(void)
-{
+byte isInParty(byte guildIdx) {
+    static byte i;
+    for (i= 0; i < PARTYSIZE; i++) {
+        if (party[i] == &guild[guildIdx]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void addToParty(void) {
     static char inbuf[3];
     signed char slot;
-    static byte i;
     unsigned char gmIndex;
     cclearxy(0, 22, 40);
-    slot = nextFreePartySlot();
-    if (slot == -1)
-    {
+    slot= nextFreePartySlot();
+    if (slot == -1) {
         flagError("no room in party");
         return;
     }
     cputsxy(2, 22, "Add which guild member (0=cancel)?");
     cursor(1);
     fgets(inbuf, 3, stdin);
-    gmIndex = atoi(inbuf);
-    if (gmIndex == 0)
-    {
+    gmIndex= atoi(inbuf);
+    if (gmIndex == 0) {
         return;
     }
     --gmIndex;
-    if (gmIndex >= GUILDSIZE)
-    {
+    if (gmIndex >= GUILDSIZE) {
         flagError("What is it with you?!");
         return;
     }
-    if (guild[gmIndex].status == deleted)
-    {
+    if (guild[gmIndex].status == deleted) {
         flagError("nobody there");
         return;
     }
-    for (i = 0; i < PARTYSIZE; ++i)
-    {
-        if (party[i] == &guild[gmIndex])
-        {
-            flagError("already in party");
-            return;
-        }
+    if (isInParty(gmIndex)) {
+        flagError("already in party");
+        return;
     }
 
-    party[slot] = &guild[gmIndex];
+    party[slot]= &guild[gmIndex];
 }
 
-void purgeGuildMember(void)
-{
+void purgeGuildMember(void) {
     static char cnum[5];
     static byte idx;
     static byte i;
@@ -162,72 +151,55 @@ void purgeGuildMember(void)
     textcolor(2);
     cputsxy(0, 22, "Purge which member (0=cancel)? ");
     fgets(cnum, 16, stdin);
-    idx = atoi(cnum);
-    if (idx == 0)
-    {
+    idx= atoi(cnum);
+    if (idx == 0) {
         return;
     }
     idx--;
-    if (idx >= GUILDSIZE)
-    {
+    if (idx >= GUILDSIZE) {
         flagError("Are you working in QA?");
         return;
     }
-    for (i = 0; i < PARTYSIZE; i++)
-    {
-        if (party[i] == &guild[idx])
-        {
-            flagError("Member is currently in the party!");
-            return;
-        }
+    if (isInParty(idx)) {
+        flagError("Member is currently in the party!");
+        return;
     }
-    guild[idx].status = deleted;
+    guild[idx].status= deleted;
 }
 
-signed char nextFreePartySlot(void)
-{
-    signed char idx = -1;
-    while (++idx < PARTYSIZE)
-    {
-        if (party[idx] == NULL)
-        {
+signed char nextFreePartySlot(void) {
+    signed char idx= -1;
+    while (++idx < PARTYSIZE) {
+        if (party[idx] == NULL) {
             return idx;
         }
     }
     return -1;
 }
 
-signed char nextFreeGuildSlot(void)
-{
-    signed char idx = -1;
-    while (++idx < GUILDSIZE)
-    {
-        if (guild[idx].status == deleted)
-        {
+signed char nextFreeGuildSlot(void) {
+    signed char idx= -1;
+    while (++idx < GUILDSIZE) {
+        if (guild[idx].status == deleted) {
             return idx;
         }
     }
     return -1;
 }
 
-void saveGuild(void)
-{
+void saveGuild(void) {
     static FILE *outfile;
     static byte i;
     clrscr();
     cg_borders();
     puts("\nPlease wait, "
          "saving the game...");
-    outfile = fopen("guild", "w");
+    outfile= fopen("guild", "w");
     fwrite(guild, GUILDSIZE * sizeof(character), 1, outfile);
-    for (i = 0; i < PARTYSIZE; i++)
-    {
-        if (party[i])
-        {
+    for (i= 0; i < PARTYSIZE; i++) {
+        if (party[i]) {
             fputc(party[i]->guildSlot, outfile);
-        }
-        else
-        {
+        } else {
             fputc(99, outfile);
         }
     }
@@ -236,70 +208,41 @@ void saveGuild(void)
     cgetc();
 }
 
-byte loadGuild(void)
-{
+byte loadGuild(void) {
     static FILE *infile;
     static byte i;
     static byte slot;
-    infile = fopen("guild", "r");
-    if (!infile)
-    {
+    infile= fopen("guild", "r");
+    if (!infile) {
         return false;
     }
     fread(guild, GUILDSIZE * sizeof(character), 1, infile);
-    for (i = 0; i < PARTYSIZE; i++)
-    {
-        slot = fgetc(infile);
-        if (slot != 99)
-        {
-            party[i] = &guild[slot];
+    for (i= 0; i < PARTYSIZE; i++) {
+        slot= fgetc(infile);
+        if (slot != 99) {
+            party[i]= &guild[slot];
         }
     }
     fclose(infile);
     return true;
 }
 
-byte initGuild()
-{
+byte initGuild() {
     initGuildMem();
     return loadGuild();
 }
 
-void initGuildMem(void)
-{
-    static unsigned int sizeBytes = 0;
-    sizeBytes = GUILDSIZE * sizeof(character);
-    guild = (character *)malloc(sizeBytes);
-    if (guild == NULL)
-    {
+void initGuildMem(void) {
+    static unsigned int sizeBytes= 0;
+    sizeBytes= GUILDSIZE * sizeof(character);
+    guild= (character *)malloc(sizeBytes);
+    if (guild == NULL) {
         puts("???fatal: no memory for guild");
         exit(0);
     }
     bzero(guild, sizeBytes);
 }
 
-
 // clang-format off
 #pragma code-name(pop);
 // clang-format on
-
-signed char bonusValueForAttribute(attrT a)
-{
-    return -3 + (a / 3);
-}
-
-char *bonusStrForAttribute(attrT a)
-{
-    static char ret[6];
-    signed char b = bonusValueForAttribute(a);
-    strcpy(ret, "     ");
-    if (b > 0)
-    {
-        sprintf(ret, "(+%d)", b);
-    }
-    else if (b < 0)
-    {
-        sprintf(ret, "(%d)", b);
-    }
-    return ret;
-}

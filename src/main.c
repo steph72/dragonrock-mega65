@@ -27,6 +27,7 @@
 
 #include "config.h"
 #include "congui.h"
+#include "dungeon.h"
 #include "guild.h"
 #include "types.h"
 
@@ -53,13 +54,14 @@ unsigned char loademdriver(void);
 unsigned char loadoverlay(unsigned char num);
 
 void initEngine(void) {
-    const char prompt[]= "ARCHAIC(tm) engine v0.1alpha\n"
+    const char prompt[]= "ARCHAIC(tm) engine for the C128\n"
+                         "Version 0.1 alpha\n"
                          "Written by Stephan Kleinert\n"
-                         "Copyright (c) 2019 7Turtles Software";
+                         "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
 
-    cputs("\r\nloading em driver...");
+    cputs("loading em driver... ");
     if (loademdriver()) {
         cputs("ok\r\n");
     } else {
@@ -67,7 +69,7 @@ void initEngine(void) {
         exit(0);
     }
 
-   cputs("\r\nloading city... ");
+    cputs("loading city... ");
     if (loadoverlay(1)) {
         cputs("ok\r\n");
     } else {
@@ -75,19 +77,18 @@ void initEngine(void) {
         exit(0);
     }
 
-    cputs("\r\nloading guild... ");
-    hasLoadedGame= initGuild();
-    if (!hasLoadedGame) {
+    cputs("loading guild... ");
+    hasLoadedGame= initGuild(); // need to load guild here
+    if (!hasLoadedGame) {       // since initGuild() is in city overlay
         cputs("not found\r\n");
     } else {
         cputs("ok\r\n");
     }
-
- 
 }
 
 int main() {
     static char choice;
+    unsigned char x, y;
 
     initEngine();
     clrscr();
@@ -120,6 +121,10 @@ int main() {
 
     runCityMenu();
 
+    for (x= 0; x < 128; x++) {
+        blitmap(x, x, 3, 3);
+        cgetc();
+    }
     return 0;
 }
 
