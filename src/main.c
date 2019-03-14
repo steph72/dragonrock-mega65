@@ -69,6 +69,9 @@ void initEngine(void) {
         exit(0);
     }
 
+        test_em();
+
+
     cputs("loading city... ");
     if (loadoverlay(1)) {
         cputs("ok\r\n");
@@ -88,7 +91,6 @@ void initEngine(void) {
 
 int main() {
     static char choice;
-    unsigned char x, y;
 
     initEngine();
     clrscr();
@@ -121,19 +123,14 @@ int main() {
 
     runCityMenu();
 
-    for (x= 0; x < 128; x++) {
-        blitmap(x, x, 3, 3);
-        cgetc();
-    }
     return 0;
 }
 
 unsigned char loademdriver(void) {
     if (em_load_driver("em") == EM_ERR_OK) {
-    } else {
-        return 0;
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 unsigned char loadoverlay(unsigned char num) {
