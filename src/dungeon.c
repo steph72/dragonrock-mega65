@@ -32,7 +32,7 @@ void test_em(void) {
 
     for (adr= 0; adr < 8192; adr+= 32) {
         for (i= 0; i < 32; i++) {
-            lineBuf[i]= HIGHBYTE(adr);
+            lineBuf[i]= i;
         }
         emc.page= 2 + HIGHBYTE(adr);
         emc.offs= LOWBYTE(adr);

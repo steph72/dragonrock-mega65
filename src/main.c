@@ -60,6 +60,7 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
+    printf("item  size is %d",sizeof(item));
 
     cputs("loading em driver... ");
     if (loademdriver()) {
@@ -68,9 +69,6 @@ void initEngine(void) {
         cputs("error!\r\n");
         exit(0);
     }
-
-        test_em();
-
 
     cputs("loading city... ");
     if (loadoverlay(1)) {

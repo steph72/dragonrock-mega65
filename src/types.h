@@ -20,6 +20,9 @@
 #ifndef __drtypes
 #define __drtypes
 
+#define NUM_ATTRS 6
+#define INV_SIZE 12
+
 #define true   1
 #define false  0
 
@@ -34,12 +37,13 @@ typedef enum _cstateType {
 } characterStateT;
 
 typedef enum _itemType {
-	armor, shield, weapon, potion, special 
+	it_armor, it_shield, it_weapon, it_potion, it_scroll, it_special 
 } itemType;
 
 typedef struct _item {
-	char name[16];
-	itemType t;
+	byte id;
+	char *name;
+	byte type;
 	byte val1;
 	byte val2;
 	int price;
@@ -50,21 +54,18 @@ typedef struct _character {
 	byte	guildSlot;
 	byte    city;
 	byte	level;
+	int		age;
 	char	name[16];
 	raceT	aRace;
 	classT	aClass;
-	attrT	aSTR;
-	attrT	aINT;
-	attrT	aWIS;
-	attrT	aDEX;
-	attrT	aCON;
-	attrT	aCHR;
+	attrT   attributes[NUM_ATTRS];
 	int		aMaxHP;
 	int		aMaxMP;
 	int		aHP;
 	int		aMP;
 	int		gold;
-	item*	inventory[12];
+	int	    xp;
+	item*	inventory[INV_SIZE];
 	byte    weapon;
 	byte    shield;
 	byte    armor;

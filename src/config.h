@@ -1,6 +1,8 @@
 #ifndef __dwConfig
 #define __dwConfig
 
+#include "types.h"
+
 // these may change...
 
 #define GUILDSIZE 36
@@ -9,8 +11,6 @@
 #define NUM_CITIES 6
 #define NUM_CLASSES 5
 #define NUM_RACES 5
-
-#define NUM_ATTRS 6 // ...but change this only if you know what you're doing
 
 #define DR_GUILD_ID "**bkckkksk7t_dr**"
 
@@ -23,6 +23,8 @@ extern char *gAttributesS[NUM_ATTRS];
 
 extern char *gCities[NUM_CITIES];
 extern char *gStateDesc[];
+
+extern item gItems[];
 
 extern int gRaceModifiers[NUM_RACES][6];
 
