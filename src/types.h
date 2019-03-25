@@ -66,9 +66,9 @@ typedef struct _character {
 	int		gold;
 	int	    xp;
 	item*	inventory[INV_SIZE];
-	byte    weapon;
-	byte    shield;
-	byte    armor;
+	item*   weapon;
+	item*   shield;
+	item*   armor;
 } character;
 
 #endif

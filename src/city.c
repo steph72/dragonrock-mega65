@@ -19,6 +19,8 @@ extern char outbuf[80];
 #pragma code-name(push, "OVERLAY1");
 // clang-format on
 
+const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
+
 void inspectCharacter(byte idx);
 
 void inspectCharacter(byte idx) {
@@ -55,18 +57,17 @@ void inspectCharacter(byte idx) {
     printf("    XP: %d", ic->xp);
     gotoxy(16, 6);
     printf(" Coins: %d", ic->gold);
-    ic->weapon= 0;
     gotoxy(16, 8);
-    printf("Weapon: %s", ic->inventory[ic->weapon]->name);
+    printf("Weapon: %s", nameOfInventoryItem(ic->weapon));
     gotoxy(16, 9);
-    printf(" Armor: %s", ic->inventory[ic->armor]->name);
+    printf(" Armor: %s", nameOfInventoryItem(ic->armor));
     gotoxy(16, 10);
-    printf("Shield: %s", ic->inventory[ic->shield]->name);
+    printf("Shield: %s", nameOfInventoryItem(ic->shield));
     gotoxy(0, 13);
     printf("Inventory:\n");
     for (i= 0; i < INV_SIZE; i++) {
         gotoxy(20 * (i / (INV_SIZE / 2)), 15 + (i % (INV_SIZE / 2)));
-        printf("%2d : %s", i, ic->inventory[i]->name);
+        printf("%c : %s", 'A'+i, nameOfInventoryItem(ic->inventory[i]));
     }
     cgetc();
 }
@@ -197,6 +198,8 @@ void newGuildMember(byte city) {
 
     static char top; // screen top margin
 
+    item *anItem;
+
     const char margin= 14;
     const char delSpaces= 40 - margin;
 
@@ -290,8 +293,20 @@ void newGuildMember(byte city) {
         newC->attributes[i]= tempAttr[i];
     }
     for (i= 0; i < INV_SIZE; i++) {
-        newC->inventory[i]= &gItems[0]; // "empty" item
+        newC->inventory[i]= NULL;
     }
+    anItem= addInventoryItemByID(0x01, newC); // add club
+    if (!anItem) {
+        printf(invError, 0x01);
+        exit(0);
+    }
+    newC->weapon= anItem;
+    anItem= addInventoryItemByID(0x80, newC); // add robes
+    if (!anItem) {
+        printf(invError, 0x02);
+        exit(0);
+    }
+    newC->armor= anItem;
     newC->aMaxHP= tempHP;
     newC->aHP= tempHP;
     newC->aMaxMP= tempMP;
