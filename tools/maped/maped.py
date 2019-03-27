@@ -4,6 +4,7 @@ import locale
 import curses
 import curses.textpad
 import collections
+import os
 
 from copy import deepcopy
 
@@ -59,6 +60,7 @@ class mapEditor():
                 self.map[y].append(newtuple)
 
     def showHelp(self):
+        self.helpwin.erase()
         self.helpwin.addstr("editor commands:\n\n"
                             "SPC  : plot current element\n"
                             "+/-  : increase/decrease current element\n"
@@ -69,6 +71,7 @@ class mapEditor():
                             " x   : export map for ingame use\n"
                             "\n"
                             "Use cursor keys to navigate the map.\n")
+        self.helpwin.refresh()
 
     def refreshStatus(self):
         e = self.getCurrentMapEntry()
@@ -134,6 +137,59 @@ class mapEditor():
             self.stdscr.move(self.kLowerTop+i, 0)
             self.stdscr.clrtoeol()
 
+    def feelsBytes(self):
+        arr = bytearray()
+        arr.extend(map(ord, "FEELS"))
+        arr.append(len(self.feels))
+        for i in self.feels:
+            bytes = bytearray()
+            bytes.extend(map(ord, i))
+            bytes.append(0)
+            arr.extend(bytes)
+        return arr
+
+    def opcodeBytes(self):
+        arr = bytearray()
+        arr.extend(map(ord,"OPCS"))
+        arr.append(0)
+        return arr
+
+
+    def mapBytes(self):
+        mapbytes = bytearray()
+        mapbytes.extend(map(ord, "DR0"))
+        mapbytes.append(self.kMapWidth)
+        mapbytes.append(self.kMapHeight)
+        for y in range(self.kMapHeight):
+            mapbytes.append(0xff)
+            for x in range(self.kMapWidth):
+                currentMapElem = self.map[x][y]
+                mID = currentMapElem.mapElementID
+                fID = currentMapElem.feelID
+                outbyte1 = mID or (fID << 3)
+                outbyte2 = 0
+                mapbytes.append(outbyte1)
+                mapbytes.append(outbyte2)
+        return mapbytes
+
+    def export(self, filename):
+        self.helpwin.erase()
+        self.helpwin.addstr("### MAP EXPORT ###\n\n(1) Exporting mapbytes...\n")
+        self.helpwin.refresh()
+        outfile = open(filename, "wb")
+        outfile.write(self.mapBytes())
+        self.helpwin.addstr("(2) Exporting feelbytes...\n")
+        self.helpwin.refresh()
+        outfile.write(self.feelsBytes())
+        self.helpwin.addstr("(3) Exporting opcodebytes...\n")
+        self.helpwin.refresh()
+        outfile.write(self.opcodeBytes())
+        outfile.close()
+        self.helpwin.addstr("\nDone. Press any key.")
+        self.helpwin.refresh()
+        self.helpwin.getch()
+        self.showHelp()
+
     ###################### editor commands ########################
 
     def cursorUp(self):
@@ -183,6 +239,9 @@ class mapEditor():
             self.getCurrentMapEntry().feelID = self.copytuple.feelID
             self.getCurrentMapEntry().opcodeList = self.copytuple.opcodeList
 
+    def exportMap(self):
+        self.export("data/testmap")
+
     def runEditor(self):
 
         edcmds = {
@@ -194,7 +253,8 @@ class mapEditor():
             '-': self.decreaseCurrentElementID,
             ' ': self.pasteElem,
             'N': self.newFeelForCurrentElement,
-            'c': self.copyElem
+            'c': self.copyElem,
+            'x': self.exportMap
         }
 
         stopEd = 0
