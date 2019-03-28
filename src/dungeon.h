@@ -5,7 +5,7 @@
 
 extern byte gMap[];
 
-void test_em(void);
+void testMap(void);
 void blitmap(byte mapX, byte mapY, byte screenX, byte screenY);
 
 #endif

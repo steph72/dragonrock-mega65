@@ -69,6 +69,9 @@ void initEngine(void) {
         exit(0);
     }
 
+    testMap();
+    exit(0);
+
     cputs("loading city... ");
     if (loadoverlay(1)) {
         cputs("ok\r\n");

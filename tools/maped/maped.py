@@ -5,6 +5,7 @@ import curses
 import curses.textpad
 import collections
 import os
+import json
 
 from copy import deepcopy
 
@@ -150,10 +151,9 @@ class mapEditor():
 
     def opcodeBytes(self):
         arr = bytearray()
-        arr.extend(map(ord,"OPCS"))
+        arr.extend(map(ord, "OPCS"))
         arr.append(0)
         return arr
-
 
     def mapBytes(self):
         mapbytes = bytearray()
@@ -161,7 +161,6 @@ class mapEditor():
         mapbytes.append(self.kMapWidth)
         mapbytes.append(self.kMapHeight)
         for y in range(self.kMapHeight):
-            mapbytes.append(0xff)
             for x in range(self.kMapWidth):
                 currentMapElem = self.map[x][y]
                 mID = currentMapElem.mapElementID
@@ -174,7 +173,8 @@ class mapEditor():
 
     def export(self, filename):
         self.helpwin.erase()
-        self.helpwin.addstr("### MAP EXPORT ###\n\n(1) Exporting mapbytes...\n")
+        self.helpwin.addstr(
+            "### MAP EXPORT ###\n\n(1) Exporting mapbytes...\n")
         self.helpwin.refresh()
         outfile = open(filename, "wb")
         outfile.write(self.mapBytes())
@@ -242,6 +242,31 @@ class mapEditor():
     def exportMap(self):
         self.export("data/testmap")
 
+    def saveMap(self):
+        self.clearLower()
+        self.stdscr.addstr(self.kLowerTop, 0, "Save file:")
+        curses.echo()
+        self.stdscr.refresh()
+        saveFilename = self.stdscr.getstr(32)
+        curses.noecho()
+        self.stdscr.addstr(self.kLowerTop+1, 0, "Saving...")
+        mdata = {
+            "width": self.kMapWidth,
+            "heigth": self.kMapHeight,
+            "map": self.map,
+            "feels": self.feels,
+            "routines": self.routines
+        }
+        outfile = open(saveFilename,"tw")
+        json.dump(mdata, outfile)
+        outfile.close()
+        self.stdscr.addstr("\ndone.\n- press any key -")
+        self.stdscr.refresh()
+        self.stdscr.getch()
+
+    def loadMap(self):
+        pass
+
     def runEditor(self):
 
         edcmds = {
@@ -254,7 +279,9 @@ class mapEditor():
             ' ': self.pasteElem,
             'N': self.newFeelForCurrentElement,
             'c': self.copyElem,
-            'x': self.exportMap
+            'x': self.exportMap,
+            's': self.saveMap,
+            'l': self.loadMap
         }
 
         stopEd = 0
