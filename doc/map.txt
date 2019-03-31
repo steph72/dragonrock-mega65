@@ -1,0 +1,52 @@
+** dragon rock map format **
+
+
+1.
+
+"DR0" - map data segment
+
+offset  bits        meaning         possible values
+----------------------------------------------------------
+
+0-2     0-7         "DR0" map file & version identification
+
+3       0-7         map width       8 - 32
+
+4       0-7         map height      8 - 32
+
+5       ------ map element 1 ------
+
+5       0-2         map element 1   0 = empty space
+                                    1 = item of interest
+                                    2 = horizontal door
+                                    3 = vertical door
+                                    4 = solid wall
+                                    5 = secret door
+                                    6 = reserved
+                                    7 = reserved
+
+        3-7         feel ID for element 1
+
+6       0-6         start opcode ID for element 1
+
+        7           "element explored" flag for element 1
+
+7       ------ map element 2 ------
+
+
+"FEELS" - dungeon feeling description segment
+
+offset  bits        meaning         possible values
+----------------------------------------------------------
+0-4     "FEELS" 
+5       0-7         number of feeling strings
+6-x                 list of zero-terminated feelings strings
+
+
+"OPCS" - dungeon element copcodes
+
+offset  bits        meaning         possible values
+----------------------------------------------------------
+
+0-3     "OPCS"
+0       0-7         number of opcodes      

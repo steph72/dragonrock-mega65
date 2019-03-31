@@ -16,6 +16,6 @@ write bin/drmain.c128 main
 write bin/drmain.c128.1 city
 write bin/drmain.c128.2 dungeon
 write bin/drmain.c128.3 outdoor
-write data/testmap map0
-write drivers/c128-ram2.emd em 
+write mapdata/testmap.drm map0
+write drivers/c128-ram2.emd em
 EOF

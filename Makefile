@@ -79,6 +79,8 @@ STATEFILE := Makefile.options
 ### valid for 2.14.x. Consult the documentation of your cc65 version before use ###
 ###################################################################################
 
+CFLAGS += -DDEBUG
+
 # Compiler flags used to tell the compiler to optimise for SPEED
 define _optspeed_
   CFLAGS += -Oris

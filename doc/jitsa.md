@@ -13,7 +13,7 @@ JITSA is the abbreviation for "**J**ust **I**mplement **T**hat **S**hit **A**lre
 
 It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. SCRUM & Co. are nice ideas, but unfortunately they encourage such behaviour.
 
-If you, like me, have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of work can be exhilerating to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with SCRUM.
+If you, like me, have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of work can be depressing to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with SCRUM.
 
 Here they are:
 
@@ -23,7 +23,7 @@ Here they are:
 
 2. Requirement changes late in development are a sure sign of business people being involved in our shit. We don't want business people involved in our shit (see: 4)
 
-3. Delivering working shit when it's fucking ready.
+3. We deliver working shit when it's fucking ready.
 
 4. Absolutely no effing cooperation between business people and developers, because nobody needs business people.
 

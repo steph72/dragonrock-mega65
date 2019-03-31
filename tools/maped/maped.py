@@ -5,9 +5,13 @@ import curses
 import curses.textpad
 import collections
 import os
-import json
+import pickle
 
 from copy import deepcopy
+
+
+class mapElement:
+    pass
 
 
 class mapEditor():
@@ -22,9 +26,10 @@ class mapEditor():
     kScrollMargin = 2
 
     kDisplayCharacters = ['.',       # space/floor
-                          u"\u25c6",  # item = diamond
-                          'd',       # door = d
-                          u"\u2588"  # wall = solid block
+                          u"\u25c6", # item = diamond
+                          u"\u007C", # vertical line (door)
+                          u"\u2015",  # horizontal line (door)
+                          u"\u2588",  # wall = solid block
                           ]
 
     def __init__(self, outwin):
@@ -48,17 +53,17 @@ class mapEditor():
         self.map = []
         self.feels = [""]
         self.routines = []
-        self.copytuple = 0
+        self.copyMapElement = 0
+        self.currentFilename = ""
 
         for y in range(self.kMapWidth):
             self.map.append([])
             for x in range(self.kMapHeight):
-                newtuple = collections.namedtuple(
-                    'mapElement', 'mapElementID,feelID,opcodeList')
-                newtuple.mapElementID = 3
-                newtuple.feelID = 0
-                newtuple.opcodeList = []
-                self.map[y].append(newtuple)
+                newMapElement = mapElement()
+                newMapElement.mapElementID = 4
+                newMapElement.feelID = 0
+                newMapElement.opcodeList = []
+                self.map[y].append(newMapElement)
 
     def showHelp(self):
         self.helpwin.erase()
@@ -68,7 +73,7 @@ class mapEditor():
                             " E   : edit feeling\n"
                             " N   : create & set new feel ID\n"
                             " l   : load map\n"
-                            " s   : save map\n"
+                            "s/S  : save map / save map as\n"
                             " x   : export map for ingame use\n"
                             "\n"
                             "Use cursor keys to navigate the map.\n")
@@ -79,7 +84,9 @@ class mapEditor():
         self.clearLower()
         self.stdscr.move(0, 0)
         self.stdscr.clrtoeol()
-        self.stdscr.addstr(0, 0, "maped 1.0 ")
+        self.stdscr.addstr(0, 0, "maped 1.0 <")
+        self.stdscr.addstr(self.currentFilename)
+        self.stdscr.addstr("> ")
         x = self.originX + self.cursorX
         y = self.originY + self.cursorY
         self.stdscr.addstr(" x: "+str(x))
@@ -171,24 +178,28 @@ class mapEditor():
                 mapbytes.append(outbyte2)
         return mapbytes
 
-    def export(self, filename):
-        self.helpwin.erase()
-        self.helpwin.addstr(
-            "### MAP EXPORT ###\n\n(1) Exporting mapbytes...\n")
-        self.helpwin.refresh()
-        outfile = open(filename, "wb")
+    def export(self):
+        self.stdscr.addstr("\nExporting map to mapdata/")
+        self.stdscr.addstr(self.currentFilename)
+        self.stdscr.addstr(".drm")
+        self.stdscr.refresh()
+        outfile = open(b"mapdata/"+self.currentFilename+b".drm", "wb")
         outfile.write(self.mapBytes())
-        self.helpwin.addstr("(2) Exporting feelbytes...\n")
-        self.helpwin.refresh()
         outfile.write(self.feelsBytes())
-        self.helpwin.addstr("(3) Exporting opcodebytes...\n")
-        self.helpwin.refresh()
         outfile.write(self.opcodeBytes())
         outfile.close()
-        self.helpwin.addstr("\nDone. Press any key.")
-        self.helpwin.refresh()
-        self.helpwin.getch()
-        self.showHelp()
+        self.stdscr.addstr("\nDone. Press any key.")
+        self.stdscr.refresh()
+        self.stdscr.getch()
+
+    def getUserInput(self, prompt):
+        self.clearLower()
+        self.stdscr.addstr(self.kLowerTop, 0, prompt)
+        curses.echo()
+        self.stdscr.refresh()
+        userInput = self.stdscr.getstr(32)
+        curses.noecho()
+        return userInput
 
     ###################### editor commands ########################
 
@@ -231,41 +242,71 @@ class mapEditor():
         e.feelID = len(self.feels)-1
 
     def copyElem(self):
-        self.copytuple = deepcopy(self.getCurrentMapEntry())
+        self.copyMapElement = deepcopy(self.getCurrentMapEntry())
 
     def pasteElem(self):
-        if self.copytuple != 0:
-            self.getCurrentMapEntry().mapElementID = self.copytuple.mapElementID
-            self.getCurrentMapEntry().feelID = self.copytuple.feelID
-            self.getCurrentMapEntry().opcodeList = self.copytuple.opcodeList
+        if self.copyMapElement != 0:
+            self.getCurrentMapEntry().mapElementID = self.copyMapElement.mapElementID
+            self.getCurrentMapEntry().feelID = self.copyMapElement.feelID
+            self.getCurrentMapEntry().opcodeList = self.copyMapElement.opcodeList
 
     def exportMap(self):
-        self.export("data/testmap")
+        if (not self.currentFilename):
+            self.clearLower()
+            self.stdscr.addstr(self.kLowerTop, 0, "No current filename\n"
+                               "Please s)ave the mapfile before exporting.\n"
+                               "- press any key -")
+            self.stdscr.getch()
+            self.clearLower()
+        else:
+            self.export()
 
-    def saveMap(self):
-        self.clearLower()
-        self.stdscr.addstr(self.kLowerTop, 0, "Save file:")
-        curses.echo()
+    def loadMap(self):
+        loadFilename = self.getUserInput("Load file:")
+        self.stdscr.addstr("\nLoading...")
+        infile = open(b"mapsrc/"+loadFilename+b".ds", "br")
+        self.currentFilename = loadFilename
+        mdata = pickle.load(infile)
+        self.kMapWidth = mdata["width"]
+        self.kMapHeight = mdata["height"]
+        self.map = mdata["map"]
+        self.feels = mdata["feels"]
+        self.routines = mdata["routines"]
+        self.refreshMap()
+        infile.close()
+        self.stdscr.addstr("\ndone.\n- press any key -")
         self.stdscr.refresh()
-        saveFilename = self.stdscr.getstr(32)
-        curses.noecho()
-        self.stdscr.addstr(self.kLowerTop+1, 0, "Saving...")
+        self.stdscr.getch()
+
+    def _saveMap(self, fname=""):
+        if (fname):
+            saveFilename = fname
+        else:
+            saveFilename = self.getUserInput("Save file:")
+        self.currentFilename = saveFilename
+        self.stdscr.addstr("\nSaving...")
         mdata = {
             "width": self.kMapWidth,
-            "heigth": self.kMapHeight,
+            "height": self.kMapHeight,
             "map": self.map,
             "feels": self.feels,
             "routines": self.routines
         }
-        outfile = open(saveFilename,"tw")
-        json.dump(mdata, outfile)
+        outfile = open(b"mapsrc/"+saveFilename+b".ds", "bw")
+        pickle.dump(mdata, outfile)
         outfile.close()
         self.stdscr.addstr("\ndone.\n- press any key -")
         self.stdscr.refresh()
         self.stdscr.getch()
 
-    def loadMap(self):
-        pass
+    def saveMap(self):
+        if (self.currentFilename):
+            self._saveMap(self.currentFilename)
+        else:
+            self._saveMap("")
+
+    def saveMapAs(self):
+        self._saveMap("")
 
     def runEditor(self):
 
@@ -281,6 +322,7 @@ class mapEditor():
             'c': self.copyElem,
             'x': self.exportMap,
             's': self.saveMap,
+            'S': self.saveMapAs,
             'l': self.loadMap
         }
 

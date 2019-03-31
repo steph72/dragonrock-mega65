@@ -31,6 +31,8 @@
 #include "guild.h"
 #include "types.h"
 
+#define debug 1
+
 extern void _OVERLAYADDR__[], _OVERLAYSIZE__[];
 
 byte currentCity;
