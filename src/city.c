@@ -11,6 +11,8 @@
 #include "guild.h"
 #include "types.h"
 
+#include "dungeon.h"
+
 extern byte currentCity;
 extern byte hasLoadedGame;
 extern char outbuf[80];
@@ -157,7 +159,7 @@ void runCityMenu(void) {
 
         do {
             cmd= cgetc();
-        } while (strchr("agmiblcus123456", cmd) == NULL);
+        } while (strchr("agtmiblcus123456", cmd) == NULL);
 
         cursor(0);
 
@@ -177,6 +179,13 @@ void runCityMenu(void) {
         case 's':
             saveGuild();
             break;
+        
+        case 't':
+           clrscr();
+           printf("**mapdebug**\n");
+           testMap();
+           cgetc();
+           break;
 
         default:
             break;

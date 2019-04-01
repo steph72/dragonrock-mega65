@@ -9,15 +9,11 @@ import pickle
 
 from copy import deepcopy
 
-
 class mapElement:
     pass
 
-
 class mapEditor():
 
-    kMapWidth = 32
-    kMapHeight = 32
     kMapWinWidth = 20
     kMapWinHeight = 12
 
@@ -26,11 +22,29 @@ class mapEditor():
     kScrollMargin = 2
 
     kDisplayCharacters = ['.',       # space/floor
-                          u"\u25c6", # item = diamond
-                          u"\u007C", # vertical line (door)
+                          u"\u25c6",  # item = diamond
+                          u"\u007C",  # vertical line (door)
                           u"\u2015",  # horizontal line (door)
                           u"\u2588",  # wall = solid block
                           ]
+
+    def setupEmptyMap(self):
+
+        self.map = []
+        self.feels = [""]
+        self.routines = []
+        self.copyMapElement = 0
+        self.currentFilename = ""
+
+        for y in range(self.mapWidth):
+            self.map.append([])
+            for x in range(self.mapHeight):
+                newMapElement = mapElement()
+                newMapElement.mapElementID = 4
+                newMapElement.feelID = 0
+                newMapElement.opcodeList = []
+                self.map[y].append(newMapElement)
+
 
     def __init__(self, outwin):
 
@@ -39,7 +53,7 @@ class mapEditor():
             self.kMapWinHeight+2, self.kMapWinWidth+2, 2, 1)
 
         self.helpwin = self.stdscr.subwin(
-            12, 50, 2, self.kMapWinWidth+4)
+            15, 50, 3, self.kMapWinWidth+4)
 
         self.mapwin.keypad(True)
 
@@ -47,36 +61,29 @@ class mapEditor():
         self.cursorY = 0
         self.originX = 0
         self.originY = 0
+        self.startX = 0
+        self.startY = 0
+
+        self.mapWidth = 32
+        self.mapHeight = 32
 
         # init map structure
 
-        self.map = []
-        self.feels = [""]
-        self.routines = []
-        self.copyMapElement = 0
-        self.currentFilename = ""
-
-        for y in range(self.kMapWidth):
-            self.map.append([])
-            for x in range(self.kMapHeight):
-                newMapElement = mapElement()
-                newMapElement.mapElementID = 4
-                newMapElement.feelID = 0
-                newMapElement.opcodeList = []
-                self.map[y].append(newMapElement)
+        self.setupEmptyMap()
 
     def showHelp(self):
         self.helpwin.erase()
         self.helpwin.addstr("editor commands:\n\n"
                             "SPC  : plot current element\n"
                             "+/-  : increase/decrease current element\n"
+                            " c   : copy current element\n"
                             " E   : edit feeling\n"
                             " N   : create & set new feel ID\n"
                             " l   : load map\n"
+                            " p   : set start position\n"
                             "s/S  : save map / save map as\n"
                             " x   : export map for ingame use\n"
-                            "\n"
-                            "Use cursor keys to navigate the map.\n")
+                            "\nUse cursor keys to navigate the map.\n")
         self.helpwin.refresh()
 
     def refreshStatus(self):
@@ -89,9 +96,9 @@ class mapEditor():
         self.stdscr.addstr("> ")
         x = self.originX + self.cursorX
         y = self.originY + self.cursorY
-        self.stdscr.addstr(" x: "+str(x))
-        self.stdscr.addstr(" y: "+str(y))
+        self.stdscr.addstr(" x,y: "+str(x)+","+str(y))
         self.stdscr.addstr(" fID: "+str(e.feelID))
+        self.stdscr.addstr(" startX,Y: "+str(self.startX)+","+str(self.startY))
         # refresh current feel
         self.stdscr.move(self.kLowerTop, 0)
         self.stdscr.clrtoeol()
@@ -99,11 +106,11 @@ class mapEditor():
 
     def checkScrollMap(self):
         if self.cursorX > self.kMapWinWidth-self.kScrollMargin:
-            if self.originX + self.kMapWinWidth < self.kMapWidth:
+            if self.originX + self.kMapWinWidth < self.mapWidth:
                 self.originX += 1
                 self.cursorX -= 1
         if self.cursorY > self.kMapWinHeight-self.kScrollMargin:
-            if self.originY + self.kMapWinHeight < self.kMapHeight:
+            if self.originY + self.kMapWinHeight < self.mapHeight:
                 self.originY += 1
                 self.cursorY -= 1
         if self.cursorX < self.kScrollMargin+1:
@@ -151,7 +158,7 @@ class mapEditor():
         arr.append(len(self.feels))
         for i in self.feels:
             bytes = bytearray()
-            bytes.extend(map(ord, i))
+            bytes.extend(map(ord, i.swapcase()))
             bytes.append(0)
             arr.extend(bytes)
         return arr
@@ -165,10 +172,12 @@ class mapEditor():
     def mapBytes(self):
         mapbytes = bytearray()
         mapbytes.extend(map(ord, "DR0"))
-        mapbytes.append(self.kMapWidth)
-        mapbytes.append(self.kMapHeight)
-        for y in range(self.kMapHeight):
-            for x in range(self.kMapWidth):
+        mapbytes.append(self.mapWidth)
+        mapbytes.append(self.mapHeight)
+        mapbytes.append(self.startX)
+        mapbytes.append(self.startY)
+        for y in range(self.mapHeight):
+            for x in range(self.mapWidth):
                 currentMapElem = self.map[x][y]
                 mID = currentMapElem.mapElementID
                 fID = currentMapElem.feelID
@@ -214,6 +223,10 @@ class mapEditor():
 
     def cursorRight(self):
         self.cursorX += 1
+
+    def setStartPosition(self):
+        self.startX = self.cursorX
+        self.startY = self.cursorY
 
     def increaseCurrentElementID(self):
         e = self.getCurrentMapEntry()
@@ -267,8 +280,10 @@ class mapEditor():
         infile = open(b"mapsrc/"+loadFilename+b".ds", "br")
         self.currentFilename = loadFilename
         mdata = pickle.load(infile)
-        self.kMapWidth = mdata["width"]
-        self.kMapHeight = mdata["height"]
+        self.mapWidth = mdata["width"]
+        self.mapHeight = mdata["height"]
+        self.startX = mdata["startX"]
+        self.startY = mdata["startY"]
         self.map = mdata["map"]
         self.feels = mdata["feels"]
         self.routines = mdata["routines"]
@@ -286,8 +301,10 @@ class mapEditor():
         self.currentFilename = saveFilename
         self.stdscr.addstr("\nSaving...")
         mdata = {
-            "width": self.kMapWidth,
-            "height": self.kMapHeight,
+            "width": self.mapWidth,
+            "height": self.mapHeight,
+            "startX": self.startX,
+            "startY": self.startY,
             "map": self.map,
             "feels": self.feels,
             "routines": self.routines
@@ -308,6 +325,37 @@ class mapEditor():
     def saveMapAs(self):
         self._saveMap("")
 
+    def newMap(self):
+        width = 0
+        height = 0
+        while (width < 16 or width > 128 or height < 16 or height > 128):
+            self.stdscr.erase()
+            self.stdscr.addstr("\n\n** new map **\n")
+            self.stdscr.addstr("Width (16-128): ")
+            self.stdscr.refresh()
+            curses.echo()
+            width = int(self.stdscr.getstr(4))
+            self.stdscr.addstr("Height (16-128): ")
+            height = int(self.stdscr.getstr(4))
+            curses.noecho()
+        self.mapHeight = height
+        self.mapWidth = width
+        self.setupEmptyMap()
+
+    def userStartup(self):
+        self.stdscr.erase()
+        self.stdscr.addstr("### maped v0.1a ###\n"
+                           "stephan kleinert, 7turtles software, 2019\n\n"
+                           "n)ew map or l)oad existing map?")
+        self.stdscr.refresh()
+        choice = ""
+        while choice != ord('l') and choice != ord('n'):
+            choice = self.stdscr.getch()
+        if choice == ord('l'):
+            self.loadMap()
+        else:
+            self.newMap()
+
     def runEditor(self):
 
         edcmds = {
@@ -323,12 +371,17 @@ class mapEditor():
             'x': self.exportMap,
             's': self.saveMap,
             'S': self.saveMapAs,
-            'l': self.loadMap
+            'l': self.loadMap,
+            'p': self.setStartPosition
         }
 
         stopEd = 0
         self.cursorX = 1
         self.cursorY = 1
+
+        self.userStartup()
+        self.stdscr.erase()
+
         self.mapwin.border()
         self.mapwin.addstr(0, 1, "Map")
         self.showHelp()

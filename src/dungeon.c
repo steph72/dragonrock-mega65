@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFSIZE 64
+#define BUFSIZE 128
 
 #define LOWBYTE(v) ((unsigned char)(v))
 #define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
@@ -25,6 +25,8 @@ byte linebuf[BUFSIZE];
 byte numFeels;
 byte dungeonMapWidth;
 byte dungeonMapHeight;
+byte startX;
+byte startY;
 
 unsigned int *feelTbl; // pointer to bank 1 feel addresses
 
@@ -34,6 +36,44 @@ unsigned int *feelTbl; // pointer to bank 1 feel addresses
 
 const byte mapWindowSize= 15;
 const byte screenWidth= 40;
+
+unsigned int dungeonItemAtPos(byte x, byte y) {
+    struct em_copy emc;
+    unsigned int exAdr;
+    exAdr = (x*2)+(dungeonMapWidth*y*2);
+    emc.buf= linebuf;
+    emc.count= 2;
+    emc.page= 2 + HIGHBYTE(exAdr);
+    emc.offs= LOWBYTE(exAdr);
+    em_copyfrom(&emc);
+    return *linebuf;
+}
+
+void dumpMap(void) {
+    unsigned int x,y;
+    unsigned int c;
+    for (x=0;x<dungeonMapWidth;x++) {
+        for (y=0;y<24;y++) {
+            gotoxy(x,y);
+            c=dungeonItemAtPos(x,y);
+            cputcxy(x,y,signs[c&7]);
+        }
+    }
+}
+
+char *feelForIndex(byte idx) {
+    struct em_copy emc;
+    unsigned int exAdr;
+
+    exAdr= feelTbl[idx];
+
+    emc.buf= linebuf;
+    emc.count= BUFSIZE;
+    emc.page= 2 + HIGHBYTE(exAdr);
+    emc.offs= LOWBYTE(exAdr);
+    em_copyfrom(&emc);
+    return linebuf;
+}
 
 void buildFeelsTable(unsigned int startAddr) {
     byte found;
@@ -69,14 +109,10 @@ void buildFeelsTable(unsigned int startAddr) {
             currentBufOffset= 0;
             while (currentBufOffset < BUFSIZE &&
                    *(linebuf + currentBufOffset) != 0) {
-                /* printf("%4x (%2x) : %c %d\n", linebuf + currentBufOffset,
-                       currentBufOffset, *(linebuf + currentBufOffset),
-                       *(linebuf + currentBufOffset));
-                cgetc();*/
+
                 ++currentBufOffset;
             }
             found= *(linebuf + currentBufOffset) == 0;
-            // printf("found %d\n", found);
             if (found) {
                 ++currentBufOffset;
                 ++currentFeelIdx;
@@ -88,7 +124,6 @@ void buildFeelsTable(unsigned int startAddr) {
 
 void loadMap(char *filename) {
     unsigned int adr;
-    unsigned int mapAdr;
     unsigned int feelsAdr;
     struct em_copy emc;
     FILE *infile;
@@ -112,6 +147,8 @@ void loadMap(char *filename) {
 
     fread(&dungeonMapWidth, 1, 1, infile);
     fread(&dungeonMapHeight, 1, 1, infile);
+    fread(&startX, 1, 1, infile);
+    fread(&startY, 1, 1, infile);
 
 #ifdef DEBUG
     printf("map format is %s, width %d, height %d.\n", linebuf, dungeonMapWidth,
@@ -156,17 +193,18 @@ void loadMap(char *filename) {
 
     feelsAdr= adr + 6;
     buildFeelsTable(feelsAdr);
-
-#ifdef DEBUG
-    printf("\npress any key to start.");
-    cgetc();
-#endif
 }
 
 void testMap(void) {
 
     int x;
     loadMap("map0");
+    /*
+    for (x= 0; x < numFeels; ++x) {
+        printf("Feel %d:\n%s\n", x, feelForIndex(x));
+    }*/
+    dumpMap();
+    cgetc();
 
     for (x= 0; x < 128; x++) {
         blitmap(x, 0, 3, 3);
