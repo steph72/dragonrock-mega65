@@ -28,6 +28,9 @@ byte dungeonMapHeight;
 byte startX;
 byte startY;
 
+byte offsetX;
+byte offsetY;
+
 unsigned int *feelTbl; // pointer to bank 1 feel addresses
 
 // clang-format off
@@ -36,11 +39,13 @@ unsigned int *feelTbl; // pointer to bank 1 feel addresses
 
 const byte mapWindowSize= 15;
 const byte screenWidth= 40;
+const byte screenX= 2;
+const byte screenY= 2;
 
 unsigned int dungeonItemAtPos(byte x, byte y) {
     struct em_copy emc;
     unsigned int exAdr;
-    exAdr = (x*2)+(dungeonMapWidth*y*2);
+    exAdr= (x * 2) + (dungeonMapWidth * y * 2);
     emc.buf= linebuf;
     emc.count= 2;
     emc.page= 2 + HIGHBYTE(exAdr);
@@ -49,14 +54,117 @@ unsigned int dungeonItemAtPos(byte x, byte y) {
     return *linebuf;
 }
 
+void ensureSaneOffset() {
+    if (offsetX > dungeonMapWidth - mapWindowSize) {
+        offsetX= dungeonMapWidth - mapWindowSize;
+    }
+    if (offsetY > dungeonMapHeight - mapWindowSize) {
+        offsetY= dungeonMapHeight - mapWindowSize;
+    }
+}
+
+void plotDungeonItem(unsigned int dItem, byte x, byte y) {
+
+    register byte *screenPtr; // working pointer to screen
+
+    screenPtr= SCREEN + (screenWidth * screenY) + screenX - 1;
+
+    screenPtr+= x;
+    screenPtr+= (y * screenWidth);
+
+    *screenPtr= signs[dItem & 7];
+}
+
+void plotPlayer(byte x, byte y) {
+    register byte *screenPtr; // working pointer to screen
+
+    screenPtr= SCREEN + (screenWidth * screenY) + screenX - 1;
+
+    screenPtr+= x;
+    screenPtr+= (y * screenWidth);
+
+    *screenPtr= 0;
+}
+
+void dungeonLoop() {
+    byte currentX; // current coordinates inside map window
+    byte currentY;
+
+    int mposX; // current coords inside map
+    int mposY;
+
+    byte cmd;
+    byte quit;
+
+    signed char xdiff, ydiff;
+
+    unsigned int dItem;
+
+    quit= 0;
+    currentX= 0; // startX;
+    currentY= 0; // startY;
+    mposX= 0;
+    mposY= 0;
+
+    // dloop starts here
+
+    do {
+
+        ensureSaneOffset();
+
+        for (xdiff= -1; xdiff <= 1; xdiff++) {
+            for (ydiff= -1; ydiff <= 1; ydiff++) {
+                mposX= currentX + offsetX + xdiff;
+                mposY= currentY + offsetY + ydiff;
+                if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
+                    mposY < dungeonMapHeight) {
+                    dItem= dungeonItemAtPos(mposX, mposY);
+                    if (xdiff == 0 & ydiff == 0) {
+                        plotPlayer(currentX + xdiff, currentY + ydiff);
+                    } else {
+                        plotDungeonItem(dItem, currentX + xdiff,
+                                        currentY + ydiff);
+                    }
+                }
+            }
+        }
+
+        cmd= cgetc();
+        switch (cmd) {
+        case 'l':
+            currentX++;
+            break;
+
+        case 'j':
+            currentX--;
+            break;
+
+        case 'i':
+            currentY--;
+            break;
+
+        case 'k':
+            currentY++;
+            break;
+
+        case 'q':
+            quit= 1;
+
+        default:
+            break;
+        }
+        /* code */
+    } while (!quit);
+}
+
 void dumpMap(void) {
-    unsigned int x,y;
+    unsigned int x, y;
     unsigned int c;
-    for (x=0;x<dungeonMapWidth;x++) {
-        for (y=0;y<24;y++) {
-            gotoxy(x,y);
-            c=dungeonItemAtPos(x,y);
-            cputcxy(x,y,signs[c&7]);
+    for (x= 0; x < dungeonMapWidth; x++) {
+        for (y= 0; y < 24; y++) {
+            gotoxy(x, y);
+            c= dungeonItemAtPos(x, y);
+            cputcxy(x, y, signs[c & 7]);
         }
     }
 }
@@ -199,20 +307,17 @@ void testMap(void) {
 
     int x;
     loadMap("map0");
-    /*
-    for (x= 0; x < numFeels; ++x) {
-        printf("Feel %d:\n%s\n", x, feelForIndex(x));
-    }*/
-    dumpMap();
-    cgetc();
+    clrscr();
+    blitmap(0, 0, 20, screenY);
+    dungeonLoop();
 
     for (x= 0; x < 128; x++) {
-        blitmap(x, 0, 3, 3);
+        blitmap(x, 0, screenX, screenY);
         cgetc();
     }
 }
 
-void blitmap(byte mapX, byte mapY, byte screenX, byte screenY) {
+void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     register byte drm_opcode;
     register byte drm_dungeonElem;
@@ -232,7 +337,7 @@ void blitmap(byte mapX, byte mapY, byte screenX, byte screenY) {
     emc.buf= linebuf;
     emc.count= BUFSIZE;
 
-    screenPtr= SCREEN + (screenWidth * screenY) + screenX - 1;
+    screenPtr= SCREEN + (screenWidth * posY) + posX - 1;
 
     for (ys= 0; ys < mapWindowSize; ++ys) {
         emc.page= 2 + HIGHBYTE(startAddr);

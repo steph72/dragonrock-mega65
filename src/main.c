@@ -57,8 +57,10 @@ unsigned char loadoverlay(unsigned char num);
 
 void initEngine(void) {
     const char prompt[]= "ARCHAIC(tm) engine for the C128\n"
-                         "Version 0.1 alpha\n"
+                         "Version 0.1 alpha\n\n"
                          "Written by Stephan Kleinert\n"
+                         "at K-Burg, Bad Honnef, and\n"
+                         "at Hundehaus im Reinhardswald\n\n"
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
