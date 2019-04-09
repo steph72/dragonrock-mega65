@@ -28,6 +28,9 @@ byte dungeonMapHeight;
 byte startX;
 byte startY;
 
+byte currentX; // current coordinates inside map window
+byte currentY;
+
 byte offsetX;
 byte offsetY;
 
@@ -38,6 +41,7 @@ unsigned int *feelTbl; // pointer to bank 1 feel addresses
 // clang-format on
 
 const byte mapWindowSize= 15;
+const byte scrollMargin= 2;
 const byte screenWidth= 40;
 const byte screenX= 2;
 const byte screenY= 2;
@@ -54,12 +58,40 @@ unsigned int dungeonItemAtPos(byte x, byte y) {
     return *linebuf;
 }
 
+void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
+
 void ensureSaneOffset() {
-    if (offsetX > dungeonMapWidth - mapWindowSize) {
-        offsetX= dungeonMapWidth - mapWindowSize;
+
+    if (currentX > mapWindowSize - scrollMargin) {
+        if (currentX + mapWindowSize < dungeonMapWidth) {
+            ++offsetX;
+            --currentX;
+            redrawMap();
+        }
     }
-    if (offsetY > dungeonMapHeight - mapWindowSize) {
-        offsetY= dungeonMapHeight - mapWindowSize;
+
+    if (currentX < scrollMargin + 1) {
+        if (offsetX > 0) {
+            --offsetX;
+            ++currentX;
+            redrawMap();
+        }
+    }
+
+    if (currentY > mapWindowSize - scrollMargin) {
+        if (currentY + mapWindowSize < dungeonMapHeight) {
+            ++offsetY;
+            --currentY;
+            redrawMap();
+        }
+    }
+
+    if (currentY < scrollMargin + 1) {
+        if (offsetY > 0) {
+            --offsetY;
+            ++currentY;
+            redrawMap();
+        }
     }
 }
 
@@ -87,8 +119,6 @@ void plotPlayer(byte x, byte y) {
 }
 
 void dungeonLoop() {
-    byte currentX; // current coordinates inside map window
-    byte currentY;
 
     int mposX; // current coords inside map
     int mposY;
@@ -103,6 +133,8 @@ void dungeonLoop() {
     quit= 0;
     currentX= 0; // startX;
     currentY= 0; // startY;
+    offsetX= 0;
+    offsetY= 0;
     mposX= 0;
     mposY= 0;
 
@@ -332,7 +364,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     screenStride= screenWidth - mapWindowSize;
 
-    startAddr= (mapX * 2) + (dungeonMapWidth * mapY);
+    startAddr= (mapX * 2) + (dungeonMapWidth * (mapY * 2));
 
     emc.buf= linebuf;
     emc.count= BUFSIZE;

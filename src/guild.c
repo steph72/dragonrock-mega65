@@ -1,4 +1,5 @@
 
+#include <cbm.h>
 #include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -117,6 +118,10 @@ void addToParty(void) {
         flagError("no room in party");
         return;
     }
+    clrscr();
+    cg_titlec(COLOR_BROWN, COLOR_YELLOW, 0, "Add guild member");
+
+    _listGuildMembers();
     cputsxy(2, 22, "Add which guild member (0=cancel)?");
     cursor(1);
     fgets(inbuf, 3, stdin);
@@ -144,11 +149,9 @@ void addToParty(void) {
 void purgeGuildMember(void) {
     static char cnum[5];
     static byte idx;
-    static byte i;
-    cg_titlec(8, 2, 0, "Purge guild member");
-    textcolor(8);
+    cg_titlec(COLOR_ORANGE, 2, 0, "Purge guild member");
+    textcolor(COLOR_RED);
     _listGuildMembers();
-    textcolor(2);
     cputsxy(0, 22, "Purge which member (0=cancel)? ");
     fgets(cnum, 16, stdin);
     idx= atoi(cnum);
