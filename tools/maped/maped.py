@@ -225,8 +225,8 @@ class mapEditor():
         self.cursorX += 1
 
     def setStartPosition(self):
-        self.startX = self.cursorX
-        self.startY = self.cursorY
+        self.startX = self.cursorX+self.originX
+        self.startY = self.cursorY+self.originY
 
     def increaseCurrentElementID(self):
         e = self.getCurrentMapEntry()

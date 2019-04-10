@@ -55,7 +55,7 @@ unsigned int dungeonItemAtPos(byte x, byte y) {
     emc.page= 2 + HIGHBYTE(exAdr);
     emc.offs= LOWBYTE(exAdr);
     em_copyfrom(&emc);
-    *(linebuf+1) |= 128;
+    *(linebuf + 1)|= 128;
     em_copyto(&emc);
     return *linebuf;
 }
@@ -64,7 +64,7 @@ void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void ensureSaneOffset() {
 
-    if (currentX > mapWindowSize - scrollMargin-1) {
+    if (currentX > mapWindowSize - scrollMargin - 1) {
         if (currentX + mapWindowSize < dungeonMapWidth) {
             ++offsetX;
             --currentX;
@@ -80,7 +80,7 @@ void ensureSaneOffset() {
         }
     }
 
-    if (currentY > mapWindowSize - scrollMargin-1) {
+    if (currentY > mapWindowSize - scrollMargin - 1) {
         if (currentY + mapWindowSize < dungeonMapHeight) {
             ++offsetY;
             --currentY;
@@ -125,6 +125,8 @@ void dungeonLoop() {
     int mposX; // current coords inside map
     int mposY;
 
+    byte oldX, oldY;
+
     byte cmd;
     byte quit;
 
@@ -133,12 +135,22 @@ void dungeonLoop() {
     unsigned int dItem;
 
     quit= 0;
-    currentX= 0; // startX;
-    currentY= 0; // startY;
+    currentX= startX - 1;
+    currentY= startY - 1;
     offsetX= 0;
     offsetY= 0;
     mposX= 0;
     mposY= 0;
+
+    if (currentX > mapWindowSize) {
+        offsetX= currentX - (mapWindowSize / 2);
+        currentX= mapWindowSize / 2;
+    }
+
+    if (currentY > mapWindowSize) {
+        offsetY= currentY - (mapWindowSize / 2) - 1;
+        currentY= mapWindowSize / 2;
+    }
 
     redrawMap();
 
@@ -165,7 +177,11 @@ void dungeonLoop() {
             }
         }
 
+        oldX= currentX;
+        oldY= currentY;
+
         cmd= cgetc();
+
         switch (cmd) {
         case 'l':
             currentX++;
@@ -189,7 +205,28 @@ void dungeonLoop() {
         default:
             break;
         }
-        /* code */
+
+        mposX= currentX + offsetX;
+        mposY= currentY + offsetY; 
+        
+        // can we move here?
+        if (mposX < 0 || mposY < 0 || mposX > dungeonMapWidth ||
+            mposY > dungeonMapHeight) {
+            // nope, reset position
+            currentX= oldX;
+            currentY= oldY;
+        } else {
+            // what is here?
+            dItem= dungeonItemAtPos(mposX, mposY);
+            if ((dItem & 7) == 4) { // solid wall?
+                // can't go there
+                currentX= oldX;
+                currentY= oldY;
+            } else {
+                plotDungeonItem(dItem,currentX,currentY);
+            }
+        }
+
     } while (!quit);
 }
 
@@ -297,6 +334,7 @@ void loadMap(char *filename) {
 #ifdef DEBUG
     printf("map format is %s, width %d, height %d.\n", linebuf, dungeonMapWidth,
            dungeonMapHeight);
+    printf("startx: %d, starty: %d\n", startX, startY);
     printf("\nloading map...");
 #endif
 
@@ -380,7 +418,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
             if (drm_opcode & 128) {
                 *screenPtr= signs[drm_dungeonElem & 7];
             } else {
-                *screenPtr = 160;
+                *screenPtr= 160;
             }
         }
         startAddr+= (dungeonMapWidth * 2);
