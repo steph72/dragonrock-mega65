@@ -31,6 +31,7 @@ typedef unsigned char byte;
 typedef byte  raceT;
 typedef byte  classT;
 typedef byte  attrT;
+typedef byte  itemT;
 
 typedef enum _cstateType {
 	deleted=0, dead, alive
