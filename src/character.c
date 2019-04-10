@@ -7,6 +7,22 @@
 #include "config.h"
 #include "types.h"
 
+item *inventoryItemForID(itemT anItemID) {
+    register byte i;
+    item *anItem;
+    for (i= 1; i < 255; i++) {
+        anItem= &gItems[i];
+        if (anItem->id == anItemID) {
+            return anItem;
+        }
+    }
+    return NULL;
+}
+
+char *nameOfInventoryItemWithID(itemT anItemID) {
+    return nameOfInventoryItem(inventoryItemForID(anItemID));
+}
+
 char *nameOfInventoryItem(item *anItem) {
     if (!anItem) {
         return "--";
@@ -14,28 +30,17 @@ char *nameOfInventoryItem(item *anItem) {
     return anItem->name;
 }
 
-item* addInventoryItem(item *anItem, character *aCharacter) {
+itemT addInventoryItem(itemT anItemID, character *aCharacter) {
     register byte i;
     for (i= 0; i < INV_SIZE; i++) {
         if (!aCharacter->inventory[i]) {
-            aCharacter->inventory[i]= anItem;
-            return anItem;
+            aCharacter->inventory[i]= anItemID;
+            return anItemID;
         }
     }
-    return NULL;
+    return 0;
 }
 
-item *addInventoryItemByID(byte itemID, character *aCharacter) {
-    register byte i;
-    item *anItem;
-    for (i= 1; i < 255; i++) {
-        anItem= &gItems[i];
-        if (anItem->id == itemID) {
-            return addInventoryItem(anItem, aCharacter);
-        }
-    }
-    return NULL;
-}
 
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 

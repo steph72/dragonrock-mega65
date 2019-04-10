@@ -60,16 +60,16 @@ void inspectCharacter(byte idx) {
     gotoxy(16, 6);
     printf(" Coins: %d", ic->gold);
     gotoxy(16, 8);
-    printf("Weapon: %s", nameOfInventoryItem(ic->weapon));
+    printf("Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
     gotoxy(16, 9);
-    printf(" Armor: %s", nameOfInventoryItem(ic->armor));
+    printf(" Armor: %s", nameOfInventoryItemWithID(ic->armor));
     gotoxy(16, 10);
-    printf("Shield: %s", nameOfInventoryItem(ic->shield));
+    printf("Shield: %s", nameOfInventoryItemWithID(ic->shield));
     gotoxy(0, 13);
     printf("Inventory:\n");
     for (i= 0; i < INV_SIZE; i++) {
         gotoxy(20 * (i / (INV_SIZE / 2)), 15 + (i % (INV_SIZE / 2)));
-        printf("%c : %s", 'A'+i, nameOfInventoryItem(ic->inventory[i]));
+        printf("%c : %s", 'A' + i, nameOfInventoryItemWithID(ic->inventory[i]));
     }
     cgetc();
 }
@@ -159,7 +159,7 @@ void runCityMenu(void) {
 
         do {
             cmd= cgetc();
-        } while (strchr("agtmiblcus123456", cmd) == NULL);
+        } while (strchr("agmiblcus123456", cmd) == NULL);
 
         cursor(0);
 
@@ -179,13 +179,6 @@ void runCityMenu(void) {
         case 's':
             saveGuild();
             break;
-        
-        case 't':
-           clrscr();
-           printf("**mapdebug**\n");
-           testMap();
-           cgetc();
-           break;
 
         default:
             break;
@@ -206,8 +199,6 @@ void newGuildMember(byte city) {
     static character *newC; // the "cr" sign to the finished string...
 
     static char top; // screen top margin
-
-    item *anItem;
 
     const char margin= 14;
     const char delSpaces= 40 - margin;
@@ -302,20 +293,11 @@ void newGuildMember(byte city) {
         newC->attributes[i]= tempAttr[i];
     }
     for (i= 0; i < INV_SIZE; i++) {
-        newC->inventory[i]= NULL;
+        newC->inventory[i]= 0;
     }
-    anItem= addInventoryItemByID(0x01, newC); // add club
-    if (!anItem) {
-        printf(invError, 0x01);
-        exit(0);
-    }
-    newC->weapon= anItem;
-    anItem= addInventoryItemByID(0x80, newC); // add robes
-    if (!anItem) {
-        printf(invError, 0x02);
-        exit(0);
-    }
-    newC->armor= anItem;
+    addInventoryItem(0xff,newC); // add sword for testing
+    newC->weapon= 0x01; // add club
+    newC->armor= 0x80;  // add robes
     newC->aMaxHP= tempHP;
     newC->aHP= tempHP;
     newC->aMaxMP= tempMP;

@@ -55,6 +55,8 @@ unsigned int dungeonItemAtPos(byte x, byte y) {
     emc.page= 2 + HIGHBYTE(exAdr);
     emc.offs= LOWBYTE(exAdr);
     em_copyfrom(&emc);
+    *(linebuf+1) |= 128;
+    em_copyto(&emc);
     return *linebuf;
 }
 
@@ -62,7 +64,7 @@ void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void ensureSaneOffset() {
 
-    if (currentX > mapWindowSize - scrollMargin) {
+    if (currentX > mapWindowSize - scrollMargin-1) {
         if (currentX + mapWindowSize < dungeonMapWidth) {
             ++offsetX;
             --currentX;
@@ -78,7 +80,7 @@ void ensureSaneOffset() {
         }
     }
 
-    if (currentY > mapWindowSize - scrollMargin) {
+    if (currentY > mapWindowSize - scrollMargin-1) {
         if (currentY + mapWindowSize < dungeonMapHeight) {
             ++offsetY;
             --currentY;
@@ -137,6 +139,8 @@ void dungeonLoop() {
     offsetY= 0;
     mposX= 0;
     mposY= 0;
+
+    redrawMap();
 
     // dloop starts here
 
@@ -336,17 +340,11 @@ void loadMap(char *filename) {
 }
 
 void testMap(void) {
-
-    int x;
+    clrscr();
+    cprintf("**mapdebug**\r\n");
     loadMap("map0");
     clrscr();
-    blitmap(0, 0, 20, screenY);
     dungeonLoop();
-
-    for (x= 0; x < 128; x++) {
-        blitmap(x, 0, screenX, screenY);
-        cgetc();
-    }
 }
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
@@ -379,9 +377,11 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
         for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
             drm_dungeonElem= *++bufPtr;
             drm_opcode= *++bufPtr;
-            // if (drm_opcode & 128) {
-            *screenPtr= signs[drm_dungeonElem & 7];
-            //}
+            if (drm_opcode & 128) {
+                *screenPtr= signs[drm_dungeonElem & 7];
+            } else {
+                *screenPtr = 160;
+            }
         }
         startAddr+= (dungeonMapWidth * 2);
         screenPtr+= screenStride;

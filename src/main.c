@@ -106,7 +106,11 @@ int main() {
 
     do {
         choice= cgetc();
-    } while (strchr("12", choice) == NULL);
+    } while (strchr("12t", choice) == NULL);
+
+    if (choice == 't') {
+        testMap();
+    }
 
     if (choice == '1' && hasLoadedGame) {
         // determine last city from saved party

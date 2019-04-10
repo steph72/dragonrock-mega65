@@ -31,7 +31,7 @@ item gItems[]= {
 
     // --- nothing ---
 
-    {0x00, "--", it_special, 0,0,0},
+    {0x00, "--", it_special, 0, 0, 0},
 
     // --- weapons ---
 
@@ -49,5 +49,9 @@ item gItems[]= {
     // --- armor ---
 
     {0x80, "Robe", it_armor, 0, 1, 1},
+
+    // --- special ---
+
+    {0xff, "White Orb", it_special, 0, 0, 65535ul}
 
 };

@@ -4,8 +4,9 @@
 #include "types.h"
 
 char *nameOfInventoryItem(item *anItem);
-item* addInventoryItem(item *anItem, character *aCharacter);
-item* addInventoryItemByID(byte itemID, character *aCharacter);
+char *nameOfInventoryItemWithID(itemT anItemID);
+
+itemT addInventoryItem(itemT anItemID, character *aCharacter);
 
 signed char bonusValueForAttribute(attrT a);
 char* bonusStrForAttribute(attrT a);

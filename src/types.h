@@ -66,10 +66,10 @@ typedef struct _character {
 	int		aMP;
 	int		gold;
 	int	    xp;
-	item*	inventory[INV_SIZE];
-	item*   weapon;
-	item*   shield;
-	item*   armor;
+	itemT	inventory[INV_SIZE];
+	itemT   weapon;
+	itemT   shield;
+	itemT   armor;
 } character;
 
 #endif
