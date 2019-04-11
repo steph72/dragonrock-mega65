@@ -23,6 +23,7 @@ char signs[]= {
 
 byte linebuf[BUFSIZE];
 byte numFeels;
+byte numOpcs;
 byte dungeonMapWidth;
 byte dungeonMapHeight;
 byte startX;
@@ -52,7 +53,7 @@ unsigned int dungeonItemAtPos(byte x, byte y) {
     exAdr= (x * 2) + (dungeonMapWidth * y * 2);
     emc.buf= linebuf;
     emc.count= 2;
-    emc.page= 2 + HIGHBYTE(exAdr);
+    emc.page= /*2 +*/ HIGHBYTE(exAdr);
     emc.offs= LOWBYTE(exAdr);
     em_copyfrom(&emc);
     *(linebuf + 1)|= 128;
@@ -207,8 +208,8 @@ void dungeonLoop() {
         }
 
         mposX= currentX + offsetX;
-        mposY= currentY + offsetY; 
-        
+        mposY= currentY + offsetY;
+
         // can we move here?
         if (mposX < 0 || mposY < 0 || mposX > dungeonMapWidth ||
             mposY > dungeonMapHeight) {
@@ -223,7 +224,7 @@ void dungeonLoop() {
                 currentX= oldX;
                 currentY= oldY;
             } else {
-                plotDungeonItem(dItem,currentX,currentY);
+                plotDungeonItem(dItem, currentX, currentY);
             }
         }
 
@@ -250,13 +251,13 @@ char *feelForIndex(byte idx) {
 
     emc.buf= linebuf;
     emc.count= BUFSIZE;
-    emc.page= 2 + HIGHBYTE(exAdr);
+    emc.page= HIGHBYTE(exAdr);
     emc.offs= LOWBYTE(exAdr);
     em_copyfrom(&emc);
     return linebuf;
 }
 
-void buildFeelsTable(unsigned int startAddr) {
+unsigned int buildFeelsTable(unsigned int startAddr) {
     byte found;
     unsigned int currentBufOffset;
     unsigned int currentExternalAdr;
@@ -274,7 +275,7 @@ void buildFeelsTable(unsigned int startAddr) {
 
     feelTbl= (unsigned int *)malloc(numFeels);
 #ifdef DEBUG
-    printf("at %x\n", feelTbl);
+    printf("at %x in main mem.\n", feelTbl);
 #endif
 
     while (currentFeelIdx < numFeels) {
@@ -284,7 +285,7 @@ void buildFeelsTable(unsigned int startAddr) {
 #endif
         found= false;
         do {
-            emc.page= 2 + HIGHBYTE(currentExternalAdr);
+            emc.page= HIGHBYTE(currentExternalAdr);
             emc.offs= LOWBYTE(currentExternalAdr);
             em_copyfrom(&emc);
             currentBufOffset= 0;
@@ -301,13 +302,21 @@ void buildFeelsTable(unsigned int startAddr) {
             currentExternalAdr+= currentBufOffset;
         } while (found == false);
     }
+    return currentExternalAdr;
 }
 
 void loadMap(char *filename) {
+
     unsigned int adr;
     unsigned int feelsAdr;
+    unsigned int opcodesAdr;
+
     struct em_copy emc;
     FILE *infile;
+
+#ifdef DEBUG
+    printf("load map %s\n\nloading map header\n", filename);
+#endif
 
     emc.buf= linebuf;
     emc.count= BUFSIZE;
@@ -317,7 +326,7 @@ void loadMap(char *filename) {
     linebuf[3]= 0;
 
 #ifdef DEBUG
-    printf("segment: %s\n", linebuf);
+    printf("identifier segment: %s\n", linebuf);
 #endif
 
     if (strcmp(linebuf, "dr0") != 0) {
@@ -335,24 +344,24 @@ void loadMap(char *filename) {
     printf("map format is %s, width %d, height %d.\n", linebuf, dungeonMapWidth,
            dungeonMapHeight);
     printf("startx: %d, starty: %d\n", startX, startY);
-    printf("\nloading map...");
+    printf("\nloading mapdata...");
 #endif
 
     adr= 0;
     while (!feof(infile)) {
         fread(linebuf, BUFSIZE, 1, infile);
-        emc.page= 2 + HIGHBYTE(adr);
+        emc.page= HIGHBYTE(adr);
         emc.offs= LOWBYTE(adr);
         em_copyto(&emc);
         adr+= BUFSIZE;
     }
 
 #ifdef DEBUG
-    printf("\nread map up to address %d\n", adr);
+    printf("\nread map up to ext address %x\n", adr);
 #endif
 
     adr= dungeonMapWidth * dungeonMapHeight * 2; // jump to end of map
-    emc.page= 2 + HIGHBYTE(adr);
+    emc.page= HIGHBYTE(adr);
     emc.offs= LOWBYTE(adr);
     em_copyfrom(&emc);
 
@@ -374,7 +383,37 @@ void loadMap(char *filename) {
 #endif
 
     feelsAdr= adr + 6;
-    buildFeelsTable(feelsAdr);
+    opcodesAdr= buildFeelsTable(feelsAdr);
+
+    emc.page= HIGHBYTE(opcodesAdr);
+    emc.offs= LOWBYTE(opcodesAdr);
+    em_copyfrom(&emc);
+
+    numOpcs= linebuf[4];
+    linebuf[4]= 0;
+
+#ifdef DEBUG
+    printf("segment: %s\n", linebuf);
+#endif
+
+    if (strcmp(linebuf, "opcs") != 0) {
+        printf("?fatal: wrong map file format");
+        fclose(infile);
+        exit(0);
+    }
+
+    opcodesAdr += 5; // skip identifier
+    
+#ifdef DEBUG
+    printf("%d opcodes at external memory %x\n", numOpcs,opcodesAdr);
+#endif
+
+    fclose(infile);
+
+#ifdef DEBUG
+    printf("done loading map. press any key.");
+    cgetc();
+#endif
 }
 
 void testMap(void) {
@@ -408,7 +447,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     screenPtr= SCREEN + (screenWidth * posY) + posX - 1;
 
     for (ys= 0; ys < mapWindowSize; ++ys) {
-        emc.page= 2 + HIGHBYTE(startAddr);
+        emc.page= HIGHBYTE(startAddr);
         emc.offs= LOWBYTE(startAddr);
         em_copyfrom(&emc);
         bufPtr= linebuf - 1;

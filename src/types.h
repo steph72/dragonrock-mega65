@@ -50,6 +50,28 @@ typedef struct _item {
 	int price;
 } item;
 
+/*
+
+	dragon rock 1 opcodes
+	=====================
+
+	0x00	NOP
+	0x01	display feel (param1)
+
+
+*/
+
+typedef struct _opcode {
+	byte id;
+	byte param1;
+	byte param2;
+	byte param3;
+	byte param4;
+	byte param5;
+	byte param6;
+	byte nextOpcode;
+} opcode;
+
 typedef struct _character {
 	characterStateT status;
 	byte	guildSlot;
