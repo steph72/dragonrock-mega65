@@ -35,7 +35,8 @@ byte currentY;
 byte offsetX;
 byte offsetY;
 
-unsigned int *feelTbl; // pointer to bank 1 feel addresses
+unsigned int *feelTbl;   // pointer to bank 1 feel addresses
+unsigned int opcodesAdr; // external address of 1st opcode
 
 // clang-format off
 #pragma codesize(push, 300);
@@ -47,18 +48,23 @@ const byte screenWidth= 40;
 const byte screenX= 2;
 const byte screenY= 2;
 
+opcode *opcodeForIndex(byte idx);
+
 unsigned int dungeonItemAtPos(byte x, byte y) {
+    unsigned int *inbuf;
     struct em_copy emc;
     unsigned int exAdr;
+
+    inbuf= (unsigned int *)linebuf;
     exAdr= (x * 2) + (dungeonMapWidth * y * 2);
     emc.buf= linebuf;
     emc.count= 2;
-    emc.page= /*2 +*/ HIGHBYTE(exAdr);
+    emc.page= HIGHBYTE(exAdr);
     emc.offs= LOWBYTE(exAdr);
     em_copyfrom(&emc);
-    *(linebuf + 1)|= 128;
+    *(linebuf)|= 128;
     em_copyto(&emc);
-    return *linebuf;
+    return *inbuf;
 }
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
@@ -125,6 +131,8 @@ void dungeonLoop() {
 
     int mposX; // current coords inside map
     int mposY;
+
+    opcode *op; // current opcode
 
     byte oldX, oldY;
 
@@ -224,7 +232,16 @@ void dungeonLoop() {
                 currentX= oldX;
                 currentY= oldY;
             } else {
-                plotDungeonItem(dItem, currentX, currentY);
+#ifdef DEBUG
+                gotoxy(0, 22);
+                cprintf("dItem: %04x", dItem);
+                op= opcodeForIndex(HIGHBYTE(dItem));
+                gotoxy(0, 23);
+                cprintf("%x %x %x %x %x %x %x %x", op->id, op->param1,
+                        op->param2, op->param3, op->param4, op->param5,
+                        op->param6, op->nextOpcode);
+#endif
+                // plotDungeonItem(dItem, currentX, currentY);
             }
         }
 
@@ -241,6 +258,20 @@ void dumpMap(void) {
             cputcxy(x, y, signs[c & 7]);
         }
     }
+}
+
+opcode *opcodeForIndex(byte idx) {
+    struct em_copy emc;
+    unsigned int exAdr;
+
+    exAdr= opcodesAdr + (8 * idx);
+
+    emc.buf= linebuf;
+    emc.count= BUFSIZE;
+    emc.page= HIGHBYTE(exAdr);
+    emc.offs= LOWBYTE(exAdr);
+    em_copyfrom(&emc);
+    return (opcode *)linebuf;
 }
 
 char *feelForIndex(byte idx) {
@@ -265,7 +296,7 @@ unsigned int buildFeelsTable(unsigned int startAddr) {
     struct em_copy emc;
 
 #ifdef DEBUG
-    printf("\nbuilding feels table ");
+    printf("\nbuilding feels tbl ");
 #endif
 
     emc.buf= linebuf;
@@ -275,13 +306,13 @@ unsigned int buildFeelsTable(unsigned int startAddr) {
 
     feelTbl= (unsigned int *)malloc(numFeels);
 #ifdef DEBUG
-    printf("at %x in main mem.\n", feelTbl);
+    printf("at %x in main mem\n", feelTbl);
 #endif
 
     while (currentFeelIdx < numFeels) {
         feelTbl[currentFeelIdx]= currentExternalAdr;
 #ifdef DEBUG
-        printf("feel %x at address %x\n", currentFeelIdx, currentExternalAdr);
+        printf("feel %x at %x\n", currentFeelIdx, currentExternalAdr);
 #endif
         found= false;
         do {
@@ -309,7 +340,6 @@ void loadMap(char *filename) {
 
     unsigned int adr;
     unsigned int feelsAdr;
-    unsigned int opcodesAdr;
 
     struct em_copy emc;
     FILE *infile;
@@ -373,7 +403,7 @@ void loadMap(char *filename) {
 #endif
 
     if (strcmp(linebuf, "feels") != 0) {
-        printf("?fatal: wrong map file format");
+        printf("?fatal: feels segment marker not found");
         fclose(infile);
         exit(0);
     }
@@ -397,15 +427,15 @@ void loadMap(char *filename) {
 #endif
 
     if (strcmp(linebuf, "opcs") != 0) {
-        printf("?fatal: wrong map file format");
+        printf("?fatal: opcs segment marker not found");
         fclose(infile);
         exit(0);
     }
 
-    opcodesAdr += 5; // skip identifier
-    
+    opcodesAdr+= 5; // skip identifier
+
 #ifdef DEBUG
-    printf("%d opcodes at external memory %x\n", numOpcs,opcodesAdr);
+    printf("%d opcodes at external memory %x\n", numOpcs, opcodesAdr);
 #endif
 
     fclose(infile);
@@ -454,7 +484,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
         for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
             drm_dungeonElem= *++bufPtr;
             drm_opcode= *++bufPtr;
-            if (drm_opcode & 128) {
+            if (drm_dungeonElem & 128) {
                 *screenPtr= signs[drm_dungeonElem & 7];
             } else {
                 *screenPtr= 160;

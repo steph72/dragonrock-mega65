@@ -25,16 +25,16 @@ offset  bits        meaning         possible values
                                     6 = reserved
                                     7 = reserved
 
-        3-7         feel ID for element 1
+        3-6         reserved
+         7          map visited flag for automap
 
-6       0-6         start opcode ID for element 1
+6       0-7         start opcode ID for element 1
 
-        7           "element explored" flag for element 1
 
 7       ------ map element 2 ------
 
 
-"FEELS" - dungeon feeling description segment
+"FEELS" - dungeon feeling / strings description segment
 
 offset  bits        meaning         possible values
 ----------------------------------------------------------

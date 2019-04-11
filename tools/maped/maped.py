@@ -9,8 +9,10 @@ import pickle
 
 from copy import deepcopy
 
+
 class mapElement:
     pass
+
 
 class mapEditor():
 
@@ -32,7 +34,7 @@ class mapEditor():
 
         self.map = []
         self.feels = [""]
-        self.routines = []
+        self.routines = [[0, 0, 0, 0, 0, 0, 0, 0]]
         self.copyMapElement = 0
         self.currentFilename = ""
 
@@ -42,9 +44,8 @@ class mapEditor():
                 newMapElement = mapElement()
                 newMapElement.mapElementID = 4
                 newMapElement.feelID = 0
-                newMapElement.opcodeList = []
+                newMapElement.startOpcodeIndex = 0
                 self.map[y].append(newMapElement)
-
 
     def __init__(self, outwin):
 
@@ -78,13 +79,26 @@ class mapEditor():
                             "+/-  : increase/decrease current element\n"
                             " c   : copy current element\n"
                             " E   : edit feeling\n"
-                            " N   : create & set new feel ID\n"
+                            " N   : create & set new DISP opcode & string\n"
                             " l   : load map\n"
                             " p   : set start position\n"
                             "s/S  : save map / save map as\n"
                             " x   : export map for ingame use\n"
                             "\nUse cursor keys to navigate the map.\n")
         self.helpwin.refresh()
+
+    def feelForElement(self, elem):
+        if (elem.startOpcodeIndex == 0):
+            return "" # opcode 0 is always nop
+        else:
+            currentOpcode = self.routines[elem.startOpcodeIndex]
+            while currentOpcode[7] != 0:
+                currentOpcode = self.routines[currentOpcode[7]]
+
+        if currentOpcode[0] == 1:
+            return self.feels[currentOpcode[1]]
+        else:
+            return ""
 
     def refreshStatus(self):
         e = self.getCurrentMapEntry()
@@ -99,10 +113,18 @@ class mapEditor():
         self.stdscr.addstr(" x,y: "+str(x)+","+str(y))
         self.stdscr.addstr(" fID: "+str(e.feelID))
         self.stdscr.addstr(" startX,Y: "+str(self.startX)+","+str(self.startY))
+        self.stdscr.addstr(" startOpcode: "+str(e.startOpcodeIndex))
         # refresh current feel
         self.stdscr.move(self.kLowerTop, 0)
         self.stdscr.clrtoeol()
-        self.stdscr.addstr(self.kLowerTop, 0, self.feels[e.feelID])
+        #self.stdscr.addstr(self.kLowerTop, 0, self.feels[e.feelID])
+        self.stdscr.addstr(self.kLowerTop, 0, self.feelForElement(e))
+        self.stdscr.move(1,0)
+        self.stdscr.addstr("opcode: [")
+        for i in self.routines[e.startOpcodeIndex]:
+            self.stdscr.addstr(" "+str(i))
+        self.stdscr.addstr(" ]")
+
 
     def checkScrollMap(self):
         if self.cursorX > self.kMapWinWidth-self.kScrollMargin:
@@ -166,7 +188,10 @@ class mapEditor():
     def opcodeBytes(self):
         arr = bytearray()
         arr.extend(map(ord, "OPCS"))
-        arr.append(0)
+        arr.append(len(self.routines))
+        for i in self.routines:
+            bytes = bytearray(i)
+            arr.extend(bytes)
         return arr
 
     def mapBytes(self):
@@ -180,9 +205,8 @@ class mapEditor():
             for x in range(self.mapWidth):
                 currentMapElem = self.map[x][y]
                 mID = currentMapElem.mapElementID
-                fID = currentMapElem.feelID
-                outbyte1 = mID or (fID << 3)
-                outbyte2 = 0
+                outbyte1 = currentMapElem.mapElementID
+                outbyte2 = currentMapElem.startOpcodeIndex
                 mapbytes.append(outbyte1)
                 mapbytes.append(outbyte2)
         return mapbytes
@@ -238,6 +262,15 @@ class mapEditor():
         if e.mapElementID > 0:
             e.mapElementID -= 1
 
+    def addOpcodeToElement(self, opcodeIndex, elem):
+        if elem.startOpcodeIndex == 0:
+            elem.startOpcodeIndex = opcodeIndex
+        else:
+            currentOpcode = self.routines[elem.startOpcodeIndex]
+            while currentOpcode[7] != 0:
+                currentOpcode = self.routines[currentOpcode[7]]
+            currentOpcode[7] = opcodeIndex
+
     def newFeelForCurrentElement(self):
         e = self.getCurrentMapEntry()
         self.stdscr.move(self.kLowerTop, 0)
@@ -252,7 +285,9 @@ class mapEditor():
         del inTextbox
         del inWin
         self.feels.append(aFeel)
-        e.feelID = len(self.feels)-1
+        newFeelID = len(self.feels)-1
+        self.routines.append([1, newFeelID, 0, 0, 0, 0, 0, 0])
+        self.addOpcodeToElement(len(self.routines)-1, e)
 
     def copyElem(self):
         self.copyMapElement = deepcopy(self.getCurrentMapEntry())
@@ -261,7 +296,7 @@ class mapEditor():
         if self.copyMapElement != 0:
             self.getCurrentMapEntry().mapElementID = self.copyMapElement.mapElementID
             self.getCurrentMapEntry().feelID = self.copyMapElement.feelID
-            self.getCurrentMapEntry().opcodeList = self.copyMapElement.opcodeList
+            self.getCurrentMapEntry().startOpcodeIndex = self.copyMapElement.startOpcodeIndex
 
     def exportMap(self):
         if (not self.currentFilename):
