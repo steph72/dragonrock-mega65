@@ -29,6 +29,8 @@ byte dungeonMapHeight;
 byte startX;
 byte startY;
 
+byte lastFeelIndex;
+
 byte currentX; // current coordinates inside map window
 byte currentY;
 
@@ -49,6 +51,7 @@ const byte screenX= 2;
 const byte screenY= 2;
 
 opcode *opcodeForIndex(byte idx);
+char *feelForIndex(byte idx);
 
 unsigned int dungeonItemAtPos(byte x, byte y) {
     unsigned int *inbuf;
@@ -127,6 +130,30 @@ void plotPlayer(byte x, byte y) {
     *screenPtr= 0;
 }
 
+void performDisplayFeelOpcode(opcode *anOpcode) {
+    byte i;
+    byte feelIndex;
+
+    feelIndex = anOpcode->param1;
+    if (feelIndex==lastFeelIndex) {
+        return;
+    }
+
+    for (i=20;i<24;++i) {
+        cclearxy(0,i,40);
+    }
+    gotoxy(0, 20);
+    cprintf(feelForIndex(anOpcode->param1));
+    lastFeelIndex = feelIndex;
+}
+
+void performOpcode(opcode *anOpcode) {
+
+    if (anOpcode->id == 0x01) {
+        performDisplayFeelOpcode(anOpcode);
+    }
+}
+
 void dungeonLoop() {
 
     int mposX; // current coords inside map
@@ -142,6 +169,7 @@ void dungeonLoop() {
     signed char xdiff, ydiff;
 
     unsigned int dItem;
+    unsigned int currentItem;
 
     quit= 0;
     currentX= startX - 1;
@@ -177,6 +205,7 @@ void dungeonLoop() {
                     mposY < dungeonMapHeight) {
                     dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 & ydiff == 0) {
+                        currentItem= dItem;
                         plotPlayer(currentX + xdiff, currentY + ydiff);
                     } else {
                         plotDungeonItem(dItem, currentX + xdiff,
@@ -185,6 +214,9 @@ void dungeonLoop() {
                 }
             }
         }
+
+        op= opcodeForIndex(HIGHBYTE(currentItem));
+        performOpcode(op);
 
         oldX= currentX;
         oldY= currentY;
@@ -232,16 +264,7 @@ void dungeonLoop() {
                 currentX= oldX;
                 currentY= oldY;
             } else {
-#ifdef DEBUG
-                gotoxy(0, 22);
-                cprintf("dItem: %04x", dItem);
-                op= opcodeForIndex(HIGHBYTE(dItem));
-                gotoxy(0, 23);
-                cprintf("%x %x %x %x %x %x %x %x", op->id, op->param1,
-                        op->param2, op->param3, op->param4, op->param5,
-                        op->param6, op->nextOpcode);
-#endif
-                // plotDungeonItem(dItem, currentX, currentY);
+
             }
         }
 
@@ -438,6 +461,7 @@ void loadMap(char *filename) {
     printf("%d opcodes at external memory %x\n", numOpcs, opcodesAdr);
 #endif
 
+    lastFeelIndex = 0;
     fclose(infile);
 
 #ifdef DEBUG
