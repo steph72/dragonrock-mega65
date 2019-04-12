@@ -23,11 +23,15 @@ class mapEditor():
 
     kScrollMargin = 2
 
-    kDisplayCharacters = ['.',       # space/floor
-                          u"\u25c6",  # item = diamond
-                          u"\u007C",  # vertical line (door)
-                          u"\u2015",  # horizontal line (door)
-                          u"\u2588",  # wall = solid block
+    kDisplayCharacters = ['.',        # 0 : space/floor
+                          u"\u25c6",  # 1 : item = diamond
+                          u"\u007C",  # 2 : vertical line (door)
+                          u"\u2015",  # 3 : horizontal line (door)
+                          u"\u2588",  # 4 : wall = solid block
+                          "t",        # 5 : impassable trees
+                          "^",        # 6 : impassable rocks
+                          "w",        # 7 : water
+                          ","         # 8 : grass/earth/ground
                           ]
 
     def setupEmptyMap(self):
@@ -179,10 +183,16 @@ class mapEditor():
         arr.extend(map(ord, "FEELS"))
         arr.append(len(self.feels))
         for i in self.feels:
-            bytes = bytearray()
-            bytes.extend(map(ord, i.swapcase()))
-            bytes.append(0)
-            arr.extend(bytes)
+            commobytes = bytearray()
+            unixbytes = bytearray()
+            unixbytes.extend(map(ord, i.swapcase()))
+            for p in unixbytes: # lf -> cr
+                if (p==10):
+                    commobytes.append(13)
+                else:
+                    commobytes.append(p)
+            commobytes.append(0)
+            arr.extend(commobytes)
         return arr
 
     def opcodeBytes(self):
@@ -375,6 +385,8 @@ class mapEditor():
             curses.noecho()
         self.mapHeight = height
         self.mapWidth = width
+        if (width<self.kMapWinWidth):
+            self.kMapWinWidth = width
         self.setupEmptyMap()
 
     def userStartup(self):

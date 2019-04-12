@@ -19,6 +19,10 @@ char signs[]= {
     0x5d, // vertical door
     0x40, // horizontal door
     0xe0, // filled space
+    30,   // arrowup -> impassable tree
+    52,   // asterisk -> impassable rock
+    23,   // 'w' -> water
+    44,   // ',' -> patch of grass
 };
 
 byte linebuf[BUFSIZE];
@@ -74,8 +78,8 @@ void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void ensureSaneOffset() {
 
-    if (currentX > mapWindowSize - scrollMargin - 1) {
-        if (currentX + mapWindowSize < dungeonMapWidth) {
+    if (currentX > (mapWindowSize - scrollMargin-1)) {
+       if (offsetX + mapWindowSize < dungeonMapWidth) {
             ++offsetX;
             --currentX;
             redrawMap();
@@ -91,7 +95,7 @@ void ensureSaneOffset() {
     }
 
     if (currentY > mapWindowSize - scrollMargin - 1) {
-        if (currentY + mapWindowSize < dungeonMapHeight) {
+        if (offsetY + mapWindowSize < dungeonMapHeight) {
             ++offsetY;
             --currentY;
             redrawMap();
@@ -143,12 +147,11 @@ void performDisplayFeelOpcode(opcode *anOpcode) {
         cclearxy(0,i,40);
     }
     gotoxy(0, 20);
-    cprintf(feelForIndex(anOpcode->param1));
+    puts(feelForIndex(anOpcode->param1));
     lastFeelIndex = feelIndex;
 }
 
 void performOpcode(opcode *anOpcode) {
-
     if (anOpcode->id == 0x01) {
         performDisplayFeelOpcode(anOpcode);
     }
@@ -179,10 +182,10 @@ void dungeonLoop() {
     mposX= 0;
     mposY= 0;
 
-    if (currentX > mapWindowSize) {
+    //if (currentX > mapWindowSize) {
         offsetX= currentX - (mapWindowSize / 2);
         currentX= mapWindowSize / 2;
-    }
+    //}
 
     if (currentY > mapWindowSize) {
         offsetY= currentY - (mapWindowSize / 2) - 1;
@@ -480,7 +483,6 @@ void testMap(void) {
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
-    register byte drm_opcode;
     register byte drm_dungeonElem;
 
     register byte *screenPtr; // working pointer to screen
@@ -507,7 +509,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
         bufPtr= linebuf - 1;
         for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
             drm_dungeonElem= *++bufPtr;
-            drm_opcode= *++bufPtr;
+            ++bufPtr;
             if (drm_dungeonElem & 128) {
                 *screenPtr= signs[drm_dungeonElem & 7];
             } else {
