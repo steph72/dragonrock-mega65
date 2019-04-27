@@ -33,6 +33,7 @@
 
 #define debug 1
 
+extern void c128ram2[];
 extern void _OVERLAYADDR__[], _OVERLAYSIZE__[];
 
 byte currentCity;
@@ -64,14 +65,7 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
-
-    cputs("loading em driver... ");
-    if (loademdriver()) {
-        cputs("ok\r\n");
-    } else {
-        cputs("error!\r\n");
-        exit(0);
-    }
+    em_install(c128ram2);
 
     cputs("loading city... ");
     if (loadoverlay(1)) {
@@ -95,6 +89,7 @@ int main() {
 
     initEngine();
     clrscr();
+    testMap(); // DEBUG!
     cg_borders();
     cputsxy(2, 4, "Welcome to");
     cputsxy(5, 6, "Dragon Rock 1 - The Escape");
@@ -106,11 +101,7 @@ int main() {
 
     do {
         choice= cgetc();
-    } while (strchr("12t", choice) == NULL);
-
-    if (choice == 't') {
-        testMap();
-    }
+    } while (strchr("12", choice) == NULL);
 
     if (choice == '1' && hasLoadedGame) {
         // determine last city from saved party
@@ -128,13 +119,6 @@ int main() {
 
     runCityMenu();
 
-    return 0;
-}
-
-unsigned char loademdriver(void) {
-    if (em_load_driver("em") == EM_ERR_OK) {
-        return 1;
-    }
     return 0;
 }
 

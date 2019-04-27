@@ -41,6 +41,8 @@ LDFLAGS =
 # Default: src
 SRCDIR :=
 
+DRVDIR := drivers
+
 # Path to the directory where object files are to be stored (inside respective target subdirectories).
 # Default: obj
 OBJDIR :=

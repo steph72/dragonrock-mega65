@@ -16,17 +16,19 @@ offset  bits        meaning         possible values
 
 5       ------ map element 1 ------
 
-5       0-2         map element 1   0 = empty space
+5       0-3         map element 1   0 = empty space
                                     1 = item of interest
                                     2 = horizontal door
                                     3 = vertical door
                                     4 = solid wall
-                                    5 = secret door
+                                    5 = reserved
                                     6 = reserved
                                     7 = reserved
 
-        3-6         reserved
-         7          map visited flag for automap
+         4          reserved
+         5          space impassable
+         6          reserved
+         7          "place seen" flag for automap
 
 6       0-7         start opcode ID for element 1
 

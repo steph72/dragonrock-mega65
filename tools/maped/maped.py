@@ -28,10 +28,6 @@ class mapEditor():
                           u"\u007C",  # 2 : vertical line (door)
                           u"\u2015",  # 3 : horizontal line (door)
                           u"\u2588",  # 4 : wall = solid block
-                          "t",        # 5 : impassable trees
-                          "^",        # 6 : impassable rocks
-                          "w",        # 7 : water
-                          ","         # 8 : grass/earth/ground
                           ]
 
     def setupEmptyMap(self):
@@ -48,6 +44,7 @@ class mapEditor():
                 newMapElement = mapElement()
                 newMapElement.mapElementID = 4
                 newMapElement.feelID = 0
+                newMapElement.initiallyVisible = False
                 newMapElement.startOpcodeIndex = 0
                 self.map[y].append(newMapElement)
 
@@ -72,9 +69,53 @@ class mapEditor():
         self.mapWidth = 32
         self.mapHeight = 32
 
+        curses.init_pair(1,curses.COLOR_GREEN,curses.COLOR_BLACK)
+        curses.init_pair(2,curses.COLOR_CYAN,curses.COLOR_BLACK)
+
         # init map structure
 
         self.setupEmptyMap()
+
+    def feelEditMode(self):
+        quitFeelEdit = 0
+        edFeelIdx = 1
+        self.stdscr.erase()
+        self.clearLower()
+        self.stdscr.move(0, 0)
+        self.stdscr.clrtoeol()
+        self.stdscr.addstr(0, 0, "maped 1.0 - ** MESSAGE EDIT MODE **")
+        self.helpwin.erase()
+        self.stdscr.move(3,0);
+        self.stdscr.addstr("== message editor ==\n\n"
+                            "+/- : choose msg to edit\n"
+                            "RET : edit chosen message\n"
+                            " x  : exit msg editor\n"
+                            )
+
+        while quitFeelEdit == 0:
+            self.clearLower()
+            self.stdscr.addstr(self.kLowerTop, 0, self.feels[edFeelIdx])
+            self.stdscr.move(1, 0)
+            self.stdscr.clrtoeol()
+            self.stdscr.addstr(1,0,"Editing feel ID "+str(edFeelIdx))
+            self.stdscr.move(self.kLowerTop, 0)
+            self.stdscr.refresh()
+
+            c=self.stdscr.getch()
+            if c == ord('+'):
+                edFeelIdx += 1
+            elif c == ord('-'):
+                edFeelIdx -= 1
+            elif c == ord('x'):
+                self.redrawStdEditorScreen()
+                return
+            if edFeelIdx < 1:
+                edFeelIdx=1
+            if edFeelIdx > len(self.feels)-1:
+                edFeelIdx=len(self.feels)-1
+
+            if c == 10:
+                self.editFeel(edFeelIdx)
 
     def showHelp(self):
         self.helpwin.erase()
@@ -93,11 +134,11 @@ class mapEditor():
 
     def feelForElement(self, elem):
         if (elem.startOpcodeIndex == 0):
-            return "" # opcode 0 is always nop
+            return ""  # opcode 0 is always nop
         else:
-            currentOpcode = self.routines[elem.startOpcodeIndex]
+            currentOpcode=self.routines[elem.startOpcodeIndex]
             while currentOpcode[7] != 0:
-                currentOpcode = self.routines[currentOpcode[7]]
+                currentOpcode=self.routines[currentOpcode[7]]
 
         if currentOpcode[0] == 1:
             return self.feels[currentOpcode[1]]
@@ -105,15 +146,15 @@ class mapEditor():
             return ""
 
     def refreshStatus(self):
-        e = self.getCurrentMapEntry()
+        e=self.getCurrentMapEntry()
         self.clearLower()
         self.stdscr.move(0, 0)
         self.stdscr.clrtoeol()
         self.stdscr.addstr(0, 0, "maped 1.0 <")
         self.stdscr.addstr(self.currentFilename)
         self.stdscr.addstr("> ")
-        x = self.originX + self.cursorX
-        y = self.originY + self.cursorY
+        x=self.originX + self.cursorX
+        y=self.originY + self.cursorY
         self.stdscr.addstr(" x,y: "+str(x)+","+str(y))
         self.stdscr.addstr(" fID: "+str(e.feelID))
         self.stdscr.addstr(" startX,Y: "+str(self.startX)+","+str(self.startY))
@@ -121,14 +162,13 @@ class mapEditor():
         # refresh current feel
         self.stdscr.move(self.kLowerTop, 0)
         self.stdscr.clrtoeol()
-        #self.stdscr.addstr(self.kLowerTop, 0, self.feels[e.feelID])
+        # self.stdscr.addstr(self.kLowerTop, 0, self.feels[e.feelID])
         self.stdscr.addstr(self.kLowerTop, 0, self.feelForElement(e))
-        self.stdscr.move(1,0)
+        self.stdscr.move(1, 0)
         self.stdscr.addstr("opcode: [")
         for i in self.routines[e.startOpcodeIndex]:
             self.stdscr.addstr(" "+str(i))
         self.stdscr.addstr(" ]")
-
 
     def checkScrollMap(self):
         if self.cursorX > self.kMapWinWidth-self.kScrollMargin:
@@ -150,27 +190,32 @@ class mapEditor():
 
     def checkBounds(self):
         if self.cursorX < 1:
-            self.cursorX = 1
+            self.cursorX=1
         elif self.cursorX > self.kMapWinWidth:
-            self.cursorX = self.kMapWinWidth
+            self.cursorX=self.kMapWinWidth
         if self.cursorY < 1:
-            self.cursorY = 1
+            self.cursorY=1
         elif self.cursorY > self.kMapWinHeight:
-            self.cursorY = self.kMapWinHeight
+            self.cursorY=self.kMapWinHeight
 
     def refreshMap(self):
         for x in range(self.kMapWinWidth):
             for y in range(self.kMapWinHeight):
-                gX = x + self.originX
-                gY = y + self.originY
-                d = self.map[gX][gY].mapElementID
+                gX=x + self.originX
+                gY=y + self.originY
+                v=self.map[gX][gY].initiallyVisible
+                d=self.map[gX][gY].mapElementID
+                if (v==True):
+                    cp = 2
+                else:
+                    cp = 1
                 self.mapwin.addstr(
-                    y+1, x+1, self.kDisplayCharacters[d])
+                    y+1, x+1, self.kDisplayCharacters[d],curses.color_pair(cp))
 
     def getCurrentMapEntry(self):
-        x = self.originX + self.cursorX - 1
-        y = self.originY + self.cursorY - 1
-        e = self.map[x][y]
+        x=self.originX + self.cursorX - 1
+        y=self.originY + self.cursorY - 1
+        e=self.map[x][y]
         return e
 
     def clearLower(self):
@@ -179,15 +224,15 @@ class mapEditor():
             self.stdscr.clrtoeol()
 
     def feelsBytes(self):
-        arr = bytearray()
+        arr=bytearray()
         arr.extend(map(ord, "FEELS"))
         arr.append(len(self.feels))
         for i in self.feels:
-            commobytes = bytearray()
-            unixbytes = bytearray()
+            commobytes=bytearray()
+            unixbytes=bytearray()
             unixbytes.extend(map(ord, i.swapcase()))
-            for p in unixbytes: # lf -> cr
-                if (p==10):
+            for p in unixbytes:  # lf -> cr
+                if (p == 10):
                     commobytes.append(13)
                 else:
                     commobytes.append(p)
@@ -196,16 +241,16 @@ class mapEditor():
         return arr
 
     def opcodeBytes(self):
-        arr = bytearray()
+        arr=bytearray()
         arr.extend(map(ord, "OPCS"))
         arr.append(len(self.routines))
         for i in self.routines:
-            bytes = bytearray(i)
+            bytes=bytearray(i)
             arr.extend(bytes)
         return arr
 
     def mapBytes(self):
-        mapbytes = bytearray()
+        mapbytes=bytearray()
         mapbytes.extend(map(ord, "DR0"))
         mapbytes.append(self.mapWidth)
         mapbytes.append(self.mapHeight)
@@ -213,10 +258,13 @@ class mapEditor():
         mapbytes.append(self.startY)
         for y in range(self.mapHeight):
             for x in range(self.mapWidth):
-                currentMapElem = self.map[x][y]
-                mID = currentMapElem.mapElementID
-                outbyte1 = currentMapElem.mapElementID
-                outbyte2 = currentMapElem.startOpcodeIndex
+                currentMapElem=self.map[x][y]
+                mID=currentMapElem.mapElementID
+                outbyte1=currentMapElem.mapElementID
+                if currentMapElem.initiallyVisible:
+                    outbyte1 = outbyte1 | 16
+                    outbyte1 = outbyte1 | 128
+                outbyte2=currentMapElem.startOpcodeIndex
                 mapbytes.append(outbyte1)
                 mapbytes.append(outbyte2)
         return mapbytes
@@ -226,7 +274,7 @@ class mapEditor():
         self.stdscr.addstr(self.currentFilename)
         self.stdscr.addstr(".drm")
         self.stdscr.refresh()
-        outfile = open(b"mapdata/"+self.currentFilename+b".drm", "wb")
+        outfile=open(b"mapdata/"+self.currentFilename+b".drm", "wb")
         outfile.write(self.mapBytes())
         outfile.write(self.feelsBytes())
         outfile.write(self.opcodeBytes())
@@ -240,7 +288,7 @@ class mapEditor():
         self.stdscr.addstr(self.kLowerTop, 0, prompt)
         curses.echo()
         self.stdscr.refresh()
-        userInput = self.stdscr.getstr(32)
+        userInput=self.stdscr.getstr(32)
         curses.noecho()
         return userInput
 
@@ -258,55 +306,87 @@ class mapEditor():
     def cursorRight(self):
         self.cursorX += 1
 
+    def nextLine(self):
+        self.cursorX = 0
+        self.originX = 0
+        self.cursorY += 1
+
     def setStartPosition(self):
-        self.startX = self.cursorX+self.originX
-        self.startY = self.cursorY+self.originY
+        self.startX=self.cursorX+self.originX
+        self.startY=self.cursorY+self.originY
+
+    def toggleInitiallyVisible(self):
+        e = self.getCurrentMapEntry()
+        e.initiallyVisible = not e.initiallyVisible
+        self.cursorX += 1
 
     def increaseCurrentElementID(self):
-        e = self.getCurrentMapEntry()
+        e=self.getCurrentMapEntry()
         if e.mapElementID < len(self.kDisplayCharacters)-1:
             e.mapElementID += 1
 
     def decreaseCurrentElementID(self):
-        e = self.getCurrentMapEntry()
+        e=self.getCurrentMapEntry()
         if e.mapElementID > 0:
             e.mapElementID -= 1
 
     def addOpcodeToElement(self, opcodeIndex, elem):
         if elem.startOpcodeIndex == 0:
-            elem.startOpcodeIndex = opcodeIndex
+            elem.startOpcodeIndex=opcodeIndex
         else:
-            currentOpcode = self.routines[elem.startOpcodeIndex]
+            currentOpcode=self.routines[elem.startOpcodeIndex]
             while currentOpcode[7] != 0:
-                currentOpcode = self.routines[currentOpcode[7]]
-            currentOpcode[7] = opcodeIndex
+                currentOpcode=self.routines[currentOpcode[7]]
+            currentOpcode[7]=opcodeIndex
+
+    def editFeel(self, feelIdx):
+        currentFeel=self.feels[feelIdx]
+        self.clearLower()
+        self.stdscr.move(self.kLowerTop, 0)
+        self.stdscr.addstr("Edit feel, end with CTRL+G):")
+        curses.textpad.rectangle(
+            self.stdscr, self.kLowerTop+1, 0, self.kLowerTop+5, 42)
+        inWin=self.stdscr.subwin(3, 40, self.kLowerTop+2, 1)
+        inTextbox=curses.textpad.Textbox(inWin)
+        bytes=bytearray()
+        bytes.extend(map(ord, currentFeel))
+        for i in bytes:
+            inTextbox.do_command(chr(i))
+        self.stdscr.refresh()
+        inTextbox.edit()
+        aFeel=inTextbox.gather()
+        del inTextbox
+        del inWin
+        self.feels[feelIdx]=aFeel
 
     def newFeelForCurrentElement(self):
-        e = self.getCurrentMapEntry()
+        e=self.getCurrentMapEntry()
         self.stdscr.move(self.kLowerTop, 0)
         self.stdscr.addstr("New feel (max. 3 lines, end with CTRL+G):")
         curses.textpad.rectangle(
             self.stdscr, self.kLowerTop+1, 0, self.kLowerTop+5, 42)
-        inWin = self.stdscr.subwin(3, 40, self.kLowerTop+2, 1)
-        inTextbox = curses.textpad.Textbox(inWin)
+        inWin=self.stdscr.subwin(3, 40, self.kLowerTop+2, 1)
+        inTextbox=curses.textpad.Textbox(inWin)
         self.stdscr.refresh()
         inTextbox.edit()
-        aFeel = inTextbox.gather()
+        aFeel=inTextbox.gather()
         del inTextbox
         del inWin
         self.feels.append(aFeel)
-        newFeelID = len(self.feels)-1
+        newFeelID=len(self.feels)-1
         self.routines.append([1, newFeelID, 0, 0, 0, 0, 0, 0])
         self.addOpcodeToElement(len(self.routines)-1, e)
 
     def copyElem(self):
-        self.copyMapElement = deepcopy(self.getCurrentMapEntry())
+        self.copyMapElement=deepcopy(self.getCurrentMapEntry())
 
     def pasteElem(self):
         if self.copyMapElement != 0:
-            self.getCurrentMapEntry().mapElementID = self.copyMapElement.mapElementID
-            self.getCurrentMapEntry().feelID = self.copyMapElement.feelID
-            self.getCurrentMapEntry().startOpcodeIndex = self.copyMapElement.startOpcodeIndex
+            self.getCurrentMapEntry().mapElementID=self.copyMapElement.mapElementID
+            self.getCurrentMapEntry().feelID=self.copyMapElement.feelID
+            self.getCurrentMapEntry().startOpcodeIndex=self.copyMapElement.startOpcodeIndex
+            self.getCurrentMapEntry().initiallyVisible = self.copyMapElement.initiallyVisible
+            self.cursorX+=1
 
     def exportMap(self):
         if (not self.currentFilename):
@@ -320,18 +400,18 @@ class mapEditor():
             self.export()
 
     def loadMap(self):
-        loadFilename = self.getUserInput("Load file:")
+        loadFilename=self.getUserInput("Load file:")
         self.stdscr.addstr("\nLoading...")
-        infile = open(b"mapsrc/"+loadFilename+b".ds", "br")
-        self.currentFilename = loadFilename
-        mdata = pickle.load(infile)
-        self.mapWidth = mdata["width"]
-        self.mapHeight = mdata["height"]
-        self.startX = mdata["startX"]
-        self.startY = mdata["startY"]
-        self.map = mdata["map"]
-        self.feels = mdata["feels"]
-        self.routines = mdata["routines"]
+        infile=open(b"mapsrc/"+loadFilename+b".ds", "br")
+        self.currentFilename=loadFilename
+        mdata=pickle.load(infile)
+        self.mapWidth=mdata["width"]
+        self.mapHeight=mdata["height"]
+        self.startX=mdata["startX"]
+        self.startY=mdata["startY"]
+        self.map=mdata["map"]
+        self.feels=mdata["feels"]
+        self.routines=mdata["routines"]
         self.refreshMap()
         infile.close()
         self.stdscr.addstr("\ndone.\n- press any key -")
@@ -340,12 +420,12 @@ class mapEditor():
 
     def _saveMap(self, fname=""):
         if (fname):
-            saveFilename = fname
+            saveFilename=fname
         else:
-            saveFilename = self.getUserInput("Save file:")
-        self.currentFilename = saveFilename
+            saveFilename=self.getUserInput("Save file:")
+        self.currentFilename=saveFilename
         self.stdscr.addstr("\nSaving...")
-        mdata = {
+        mdata={
             "width": self.mapWidth,
             "height": self.mapHeight,
             "startX": self.startX,
@@ -354,7 +434,7 @@ class mapEditor():
             "feels": self.feels,
             "routines": self.routines
         }
-        outfile = open(b"mapsrc/"+saveFilename+b".ds", "bw")
+        outfile=open(b"mapsrc/"+saveFilename+b".ds", "bw")
         pickle.dump(mdata, outfile)
         outfile.close()
         self.stdscr.addstr("\ndone.\n- press any key -")
@@ -371,22 +451,22 @@ class mapEditor():
         self._saveMap("")
 
     def newMap(self):
-        width = 0
-        height = 0
+        width=0
+        height=0
         while (width < 16 or width > 128 or height < 16 or height > 128):
             self.stdscr.erase()
             self.stdscr.addstr("\n\n** new map **\n")
             self.stdscr.addstr("Width (16-128): ")
             self.stdscr.refresh()
             curses.echo()
-            width = int(self.stdscr.getstr(4))
+            width=int(self.stdscr.getstr(4))
             self.stdscr.addstr("Height (16-128): ")
-            height = int(self.stdscr.getstr(4))
+            height=int(self.stdscr.getstr(4))
             curses.noecho()
-        self.mapHeight = height
-        self.mapWidth = width
-        if (width<self.kMapWinWidth):
-            self.kMapWinWidth = width
+        self.mapHeight=height
+        self.mapWidth=width
+        if (width < self.kMapWinWidth):
+            self.kMapWinWidth=width
         self.setupEmptyMap()
 
     def userStartup(self):
@@ -395,21 +475,28 @@ class mapEditor():
                            "stephan kleinert, 7turtles software, 2019\n\n"
                            "n)ew map or l)oad existing map?")
         self.stdscr.refresh()
-        choice = ""
+        choice=""
         while choice != ord('l') and choice != ord('n'):
-            choice = self.stdscr.getch()
+            choice=self.stdscr.getch()
         if choice == ord('l'):
             self.loadMap()
         else:
             self.newMap()
 
+    def redrawStdEditorScreen(self):
+        self.stdscr.erase()
+        self.mapwin.border()
+        self.mapwin.addstr(0, 1, "Map")
+        self.showHelp()
+
     def runEditor(self):
 
-        edcmds = {
+        edcmds={
             259: self.cursorUp,
             258: self.cursorDown,
             260: self.cursorLeft,
             261: self.cursorRight,
+             10: self.nextLine,
             '+': self.increaseCurrentElementID,
             '-': self.decreaseCurrentElementID,
             ' ': self.pasteElem,
@@ -419,29 +506,27 @@ class mapEditor():
             's': self.saveMap,
             'S': self.saveMapAs,
             'l': self.loadMap,
+            'E': self.feelEditMode,
+            'v': self.toggleInitiallyVisible,
             'p': self.setStartPosition
         }
 
-        stopEd = 0
-        self.cursorX = 1
-        self.cursorY = 1
+        stopEd=0
+        self.cursorX=1
+        self.cursorY=1
 
         self.userStartup()
-        self.stdscr.erase()
-
-        self.mapwin.border()
-        self.mapwin.addstr(0, 1, "Map")
-        self.showHelp()
+        self.redrawStdEditorScreen()
 
         while 0 == stopEd:
             self.refreshMap()
             self.refreshStatus()
             self.mapwin.move(self.cursorY, self.cursorX)
             self.stdscr.refresh()
-            c = self.mapwin.getch()
-            func = edcmds.get(c, 0)
+            c=self.mapwin.getch()
+            func=edcmds.get(c, 0)
             if (func == 0):
-                func = edcmds.get(chr(c), 0)
+                func=edcmds.get(chr(c), 0)
             if (func != 0):
                 func()
                 self.checkScrollMap()
@@ -451,7 +536,7 @@ class mapEditor():
 
 
 def runMaped(aWin):
-    myMaped = mapEditor(aWin)
+    myMaped=mapEditor(aWin)
     myMaped.runEditor()
 
 
