@@ -13,6 +13,10 @@
 #define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
 #define SCREEN ((unsigned char *)0x400)
 
+#define SetBit(A,k)     ( A[(k/8)] |= (1 << (k%8)) )
+#define ClearBit(A,k)   ( A[(k/8)] &= ~(1 << (k%8)) )            
+#define TestBit(A,k)    ( A[(k/8)] & (1 << (k%8)) )
+
 char signs[]= {
     0x60, // empty space
     123,  // diamond
@@ -20,6 +24,8 @@ char signs[]= {
     0x40, // horizontal door
     102   // filled space
 };
+
+byte *seenSpaces;
 
 byte linebuf[BUFSIZE];
 byte numFeels;
@@ -65,8 +71,7 @@ unsigned int dungeonItemAtPos(byte x, byte y) {
     emc.page= HIGHBYTE(exAdr);
     emc.offs= exAdr;
     em_copyfrom(&emc);
-    *(linebuf)|= 128;
-    em_copyto(&emc);
+    SetBit(seenSpaces,x+(dungeonMapWidth*y));
     return *inbuf;
 }
 
@@ -76,7 +81,7 @@ void plotDungeonItem(unsigned int dItem, byte x, byte y) {
 
     register byte *screenPtr; // working pointer to screen
 
-    screenPtr= SCREEN + (screenWidth * screenY) + screenX - 1;
+    screenPtr= SCREEN + (screenWidth * screenY) + screenX;
 
     screenPtr+= x;
     screenPtr+= (y * screenWidth);
@@ -87,7 +92,7 @@ void plotDungeonItem(unsigned int dItem, byte x, byte y) {
 void plotPlayer(byte x, byte y) {
     register byte *screenPtr; // working pointer to screen
 
-    screenPtr= SCREEN + (screenWidth * screenY) + screenX - 1;
+    screenPtr= SCREEN + (screenWidth * screenY) + screenX;
 
     screenPtr+= x;
     screenPtr+= (y * screenWidth);
@@ -165,7 +170,6 @@ void dungeonLoop() {
 
     byte cmd;
     byte quit;
-    byte displayItem;
 
     signed char xdiff, ydiff;
 
@@ -265,8 +269,10 @@ void dungeonLoop() {
         } else {
             // what is here?
             dItem= dungeonItemAtPos(mposX, mposY);
-            gotoxy(0,0);
-            printf("%04x",dItem); // DEBUG
+#ifdef DEBUG
+            gotoxy(35, 24);
+            printf("%04x", dItem); // DEBUG
+#endif
             if (dItem & 32) { // check impassable flag
                 // can't go there
                 currentX= oldX;
@@ -274,18 +280,6 @@ void dungeonLoop() {
             }
         }
     } while (!quit);
-}
-
-void dumpMap(void) {
-    unsigned int x, y;
-    unsigned int c;
-    for (x= 0; x < dungeonMapWidth; x++) {
-        for (y= 0; y < 24; y++) {
-            gotoxy(x, y);
-            c= dungeonItemAtPos(x, y);
-            cputcxy(x, y, signs[c & 15]);
-        }
-    }
 }
 
 opcode *opcodeForIndex(byte idx) {
@@ -398,6 +392,10 @@ void loadMap(char *filename) {
     fread(&startX, 1, 1, infile);
     fread(&startY, 1, 1, infile);
 
+    seenSpaces = (byte*) malloc((dungeonMapWidth*dungeonMapHeight)/8);
+    bzero(seenSpaces,((dungeonMapWidth*dungeonMapHeight)/8));
+
+
 #ifdef DEBUG
     printf("map format is %s, width %d, height %d.\n", linebuf, dungeonMapWidth,
            dungeonMapHeight);
@@ -468,11 +466,27 @@ void loadMap(char *filename) {
 
     lastFeelIndex= 0;
     fclose(infile);
+    /*
+    #ifdef DEBUG
+        printf("done loading map. press any key.");
+        cgetc();
+    #endif
+    */
+}
 
-#ifdef DEBUG
-    printf("done loading map. press any key.");
-    cgetc();
-#endif
+void setupDungeonScreen(void) {
+    clrscr();
+    textcolor(COLOR_BLUE);
+    cputcxy(screenX - 1, screenY - 1, 176);             // left upper corner
+    cputcxy(screenX + mapWindowSize, 1, 174);           // right upper corner
+    cputcxy(screenX - 1, screenY + mapWindowSize, 173); // left lower corner
+    cputcxy(screenX + mapWindowSize, screenY + mapWindowSize,
+            189); // right lower corner
+    chlinexy(screenX, screenY - 1, mapWindowSize);
+    chlinexy(screenX, screenY + mapWindowSize, mapWindowSize);
+    cvlinexy(screenX - 1, screenY, mapWindowSize);
+    cvlinexy(screenX + mapWindowSize, screenY, mapWindowSize);
+    textcolor(COLOR_BLACK);
 }
 
 void testMap(void) {
@@ -482,7 +496,7 @@ void testMap(void) {
     textcolor(COLOR_BLACK);
     bordercolor(COLOR_GRAY1);
     bgcolor(COLOR_GRAY2);
-    clrscr();
+    setupDungeonScreen();
     dungeonLoop();
 }
 
@@ -493,6 +507,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     register byte *bufPtr;    // working pointer to line buffer
     struct em_copy emc;       // external memory control block
     unsigned int startAddr;   // start address in external memory
+    unsigned int seenPlacesIdx;
     byte xs;                  // x and y counter
     byte ys;
     byte screenStride;
@@ -502,11 +517,12 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     mapStride= dungeonMapWidth * 2;
 
     startAddr= (mapX * 2) + (dungeonMapWidth * (mapY * 2));
+    seenPlacesIdx = mapX + (dungeonMapWidth*mapY);
 
     emc.buf= linebuf;
     emc.count= BUFSIZE;
 
-    screenPtr= SCREEN + (screenWidth * posY) + posX - 1;
+    screenPtr= SCREEN + (screenWidth * posY) + posX;
 
     for (ys= 0; ys < mapWindowSize; ++ys) {
         emc.page= HIGHBYTE(startAddr);
@@ -516,11 +532,12 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
         for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
             drm_dungeonElem= *++bufPtr;
             ++bufPtr; // skip opcode
-            if (drm_dungeonElem & 128) {
+            if (drm_dungeonElem & 128) { // visible/automapped?
                 *screenPtr= signs[drm_dungeonElem & 15];
             } else {
                 *screenPtr= 160;
             }
+            ++seenPlacesIdx;
         }
         startAddr+= mapStride;
         screenPtr+= screenStride;

@@ -28,7 +28,7 @@ offset  bits        meaning         possible values
          4          reserved
          5          space impassable
          6          reserved
-         7          "place seen" flag for automap
+         7          space initially known
 
 6       0-7         start opcode ID for element 1
 
