@@ -9,7 +9,7 @@
 
 #define LOWBYTE(v) ((unsigned char)(v))
 #define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
-#define SCREEN ((unsigned char *)0x800)
+#define SCREEN ((unsigned char *)0xc00)
 
 #define SetBit(A, k) (A[(k / 8)]|= (1 << (k % 8)))
 #define ClearBit(A, k) (A[(k / 8)]&= ~(1 << (k % 8)))
@@ -22,6 +22,11 @@ char signs[]= {
     0x40, // horizontal door
     102   // filled space
 };
+
+typedef struct _ditem {
+    byte opcodeID;
+    byte mapItem;
+} dungeonItem;
 
 byte *seenSpaces;
 
@@ -400,7 +405,7 @@ void loadMap(char *filename) {
     currentDungeonPtr[4]= 0;
 
 #ifdef DEBUG
-    printf("segment: %s\n", currentDungeonPtr);
+    printf("segment: '%s'\n", currentDungeonPtr);
 #endif
 
     if (strcmp(currentDungeonPtr, "opcs") != 0) {
