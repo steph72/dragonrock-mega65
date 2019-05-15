@@ -20,14 +20,15 @@
 
 #include <conio.h>
 #include <cbm.h>
+#include <plus4.h>
 #include <string.h>
 #include "types.h"
 
 void cg_init()
 {
-	bgcolor(0);
-	bordercolor(0);
-	textcolor(5);
+	bgcolor(COLOR_BLACK);
+	bordercolor(COLOR_BLACK);
+	textcolor(BCOLOR_LEMON+CATTR_LUMA5);
 	cbm_k_bsout(11); // disable shift+cmd on c128 & 364
 	cbm_k_bsout(14); // lowercase charset
 	clrscr();

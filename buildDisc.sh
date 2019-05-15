@@ -12,10 +12,6 @@ delete dungeon
 delete outdoor
 delete em
 delete map0
-write bin/drmain.c128 main
-write bin/drmain.c128.1 city
-write bin/drmain.c128.2 dungeon
-write bin/drmain.c128.3 outdoor
+write bin/drmain.plus4 main
 write mapdata/testmap.drm map0
-write drivers/c128-ram2.emd em
 EOF

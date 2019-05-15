@@ -13,7 +13,10 @@
 		"ca65.vscodeenv": "linux",
 		"files.associations": {
 			"types.h": "c",
-			"device.h": "c"
+			"device.h": "c",
+			"plus4.h": "c",
+			"cbm264.h": "c",
+			"conio.h": "c"
 		}
 	}
 }

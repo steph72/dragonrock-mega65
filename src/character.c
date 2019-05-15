@@ -10,7 +10,7 @@
 item *inventoryItemForID(itemT anItemID) {
     register byte i;
     item *anItem;
-    for (i= 1; i < 255; i++) {
+    for (i= 0; i < 255; i++) {
         anItem= &gItems[i];
         if (anItem->id == anItemID) {
             return anItem;

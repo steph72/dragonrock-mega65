@@ -33,20 +33,9 @@
 
 #define debug 1
 
-extern void c128ram2[];
-extern void _OVERLAYADDR__[], _OVERLAYSIZE__[];
-
 byte currentCity;
 byte hasLoadedGame;
 char outbuf[80];
-
-struct {
-    char *name;
-    void *addr;
-    unsigned size;
-} overlay[]= {{"city", _OVERLAYADDR__, (unsigned)_OVERLAYSIZE__},
-              {"dungeon", _OVERLAYADDR__, (unsigned)_OVERLAYSIZE__},
-              {"outdoor", _OVERLAYADDR__, (unsigned)_OVERLAYSIZE__}};
 
 void initEngine(void);
 void runCityMenu(void);
@@ -57,7 +46,7 @@ unsigned char loademdriver(void);
 unsigned char loadoverlay(unsigned char num);
 
 void initEngine(void) {
-    const char prompt[]= "ARCHAIC(tm) engine for the C128\n"
+    const char prompt[]= "ARCHAIC(tm) engine for 64K TED computers\n"
                          "Version 0.1 alpha\n\n"
                          "Written by Stephan Kleinert\n"
                          "at K-Burg, Bad Honnef, and\n"
@@ -65,15 +54,6 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
-    em_install(c128ram2);
-
-    cputs("loading city... ");
-    if (loadoverlay(1)) {
-        cputs("ok\r\n");
-    } else {
-        cputs("error!\r\n");
-        exit(0);
-    }
 
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
@@ -120,12 +100,4 @@ int main() {
     runCityMenu();
 
     return 0;
-}
-
-unsigned char loadoverlay(unsigned char num) {
-    if (cbm_load(overlay[num - 1].name, getcurrentdevice(), NULL) == 0) {
-        cputs("Loading overlay file failed");
-        return 0;
-    }
-    return 1;
 }

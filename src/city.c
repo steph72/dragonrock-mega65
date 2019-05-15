@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <plus4.h>
 
 #include "character.h"
 #include "config.h"
@@ -16,10 +17,6 @@
 extern byte currentCity;
 extern byte hasLoadedGame;
 extern char outbuf[80];
-
-// clang-format off
-#pragma code-name(push, "OVERLAY1");
-// clang-format on
 
 const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
 
@@ -89,7 +86,7 @@ void runGuildMenu(void) {
     sprintf(outbuf, "%s Guild", gCities[currentCity]);
 
     while (!quitGuild) {
-        cg_titlec(8, 5, 1, outbuf);
+        cg_titlec(BCOLOR_BROWN|CATTR_LUMA4, BCOLOR_GREEN|CATTR_LUMA5, 1, outbuf);
         showCurrentParty();
         gotoxy(0, 14);
         puts(menu);
@@ -138,11 +135,11 @@ void runGuildMenu(void) {
 }
 
 void runCityMenu(void) {
-    const char menu[]= " Go to\tA)rmory G)uild M)ystic\n"
-                       "\tI)nn    B)ank  L)eave town\n\n"
-                       "\tC)ast spell\n"
-                       "\tU)se item\n"
-                       "\tS)ave game\n";
+    const char menu[]= " Go to  A)rmory G)uild M)ystic\n"
+                       "        I)nn    B)ank  L)eave town\n\n"
+                       "  C)ast spell\n"
+                       "  U)se item\n"
+                       "  S)ave game\n";
 
     static unsigned char cmd;
     static unsigned char quitCity;
@@ -150,7 +147,7 @@ void runCityMenu(void) {
     quitCity= 0;
     while (!quitCity) {
         sprintf(outbuf, "%s (%d)", gCities[currentCity], currentCity + 1);
-        cg_titlec(6, 5, 1, outbuf);
+        cg_titlec(BCOLOR_BLUE|CATTR_LUMA3, BCOLOR_GREEN|CATTR_LUMA5, 1, outbuf);
         showCurrentParty();
         gotoxy(0, 14);
         puts(menu);
@@ -203,7 +200,7 @@ void newGuildMember(byte city) {
     const char margin= 14;
     const char delSpaces= 40 - margin;
 
-    cg_titlec(8, 5, 0, "New Guild Member");
+    cg_titlec(BCOLOR_BLUEGREEN|CATTR_LUMA2, BCOLOR_CYAN|CATTR_LUMA5, 0, "New Guild Member");
 
     slot= nextFreeGuildSlot();
     if (slot == -1) {
@@ -306,6 +303,3 @@ void newGuildMember(byte city) {
     strcpy(newC->name, cname);
 }
 
-// clang-format off
-#pragma code-name(pop);
-// clang-format on

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <plus4.h>
 
 #include "config.h"
 #include "congui.h"
@@ -21,10 +22,6 @@ void _listGuildMembers(void);
 void listGuildMembers(void);
 
 void flagError(char *e);
-
-// clang-format off
-#pragma code-name(push, "OVERLAY1");
-// clang-format on
 
 void _listGuildMembers(void) {
     static byte i, x, y;
@@ -45,7 +42,7 @@ void _listGuildMembers(void) {
 }
 
 void listGuildMembers(void) {
-    cg_titlec(8, 5, 0, "Guild Members");
+    cg_titlec(BCOLOR_CYAN|CATTR_LUMA3, BCOLOR_LEMON|CATTR_LUMA5, 0, "Guild Members");
     _listGuildMembers();
     cputsxy(0, 23, "-- key --");
     cgetc();
@@ -246,6 +243,3 @@ void initGuildMem(void) {
     bzero(guild, sizeBytes);
 }
 
-// clang-format off
-#pragma code-name(pop);
-// clang-format on

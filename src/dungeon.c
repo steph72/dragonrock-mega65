@@ -1,8 +1,6 @@
 #include "dungeon.h"
 #include "types.h"
-#include <c128.h>
 #include <conio.h>
-#include <em.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,11 +9,11 @@
 
 #define LOWBYTE(v) ((unsigned char)(v))
 #define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
-#define SCREEN ((unsigned char *)0x400)
+#define SCREEN ((unsigned char *)0x800)
 
-#define SetBit(A,k)     ( A[(k/8)] |= (1 << (k%8)) )
-#define ClearBit(A,k)   ( A[(k/8)] &= ~(1 << (k%8)) )            
-#define TestBit(A,k)    ( A[(k/8)] & (1 << (k%8)) )
+#define SetBit(A, k) (A[(k / 8)]|= (1 << (k % 8)))
+#define ClearBit(A, k) (A[(k / 8)]&= ~(1 << (k % 8)))
+#define TestBit(A, k) (A[(k / 8)] & (1 << (k % 8)))
 
 char signs[]= {
     0x60, // empty space
@@ -27,13 +25,18 @@ char signs[]= {
 
 byte *seenSpaces;
 
+byte *mapdata;
+byte *dungeon;
+byte *dungeonMapWidth;
+byte *dungeonMapHeight;
+byte *startX;
+byte *startY;
+
 byte linebuf[BUFSIZE];
 byte numFeels;
 byte numOpcs;
-byte dungeonMapWidth;
-byte dungeonMapHeight;
-byte startX;
-byte startY;
+
+unsigned int dungeonSize;
 
 byte lastFeelIndex;
 
@@ -43,8 +46,8 @@ byte currentY;
 byte offsetX;
 byte offsetY;
 
-unsigned int *feelTbl;   // pointer to bank 1 feel addresses
-unsigned int opcodesAdr; // external address of 1st opcode
+unsigned char **feelTbl; // pointer to feel addresses
+opcode *opcodesAdr;      // external address of 1st opcode
 
 // clang-format off
 #pragma codesize(push, 300);
@@ -60,19 +63,7 @@ opcode *opcodeForIndex(byte idx);
 char *feelForIndex(byte idx);
 
 unsigned int dungeonItemAtPos(byte x, byte y) {
-    unsigned int *inbuf;
-    struct em_copy emc;
-    unsigned int exAdr;
-
-    inbuf= (unsigned int *)linebuf;
-    exAdr= (x * 2) + (dungeonMapWidth * y * 2);
-    emc.buf= linebuf;
-    emc.count= 2;
-    emc.page= HIGHBYTE(exAdr);
-    emc.offs= exAdr;
-    em_copyfrom(&emc);
-    SetBit(seenSpaces,x+(dungeonMapWidth*y));
-    return *inbuf;
+    return dungeon[(x * 2) + (y * *dungeonMapWidth * 2)];
 }
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
@@ -105,6 +96,8 @@ void performDisplayFeelOpcode(opcode *anOpcode) {
     byte feelIndex;
 
     feelIndex= anOpcode->param1;
+
+    // make sure we display it only once
     if (feelIndex == lastFeelIndex) {
         return;
     }
@@ -127,7 +120,7 @@ void performOpcode(opcode *anOpcode) {
 void ensureSaneOffset() {
 
     if (currentX > (mapWindowSize - scrollMargin - 1)) {
-        if (offsetX + mapWindowSize < dungeonMapWidth) {
+        if (offsetX + mapWindowSize < *dungeonMapWidth) {
             ++offsetX;
             --currentX;
             redrawMap();
@@ -143,7 +136,7 @@ void ensureSaneOffset() {
     }
 
     if (currentY > mapWindowSize - scrollMargin - 1) {
-        if (offsetY + mapWindowSize < dungeonMapHeight) {
+        if (offsetY + mapWindowSize < *dungeonMapHeight) {
             ++offsetY;
             --currentY;
             redrawMap();
@@ -177,8 +170,8 @@ void dungeonLoop() {
     unsigned int currentItem;
 
     quit= 0;
-    currentX= startX - 1;
-    currentY= startY - 1;
+    currentX= *startX - 1;
+    currentY= *startY - 1;
     offsetX= 0;
     offsetY= 0;
     mposX= 0;
@@ -211,8 +204,8 @@ void dungeonLoop() {
             for (ydiff= -1; ydiff <= 1; ydiff++) {
                 mposX= currentX + offsetX + xdiff;
                 mposY= currentY + offsetY + ydiff;
-                if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
-                    mposY < dungeonMapHeight) {
+                if (mposX >= 0 && mposY >= 0 && mposX < *dungeonMapWidth &&
+                    mposY < *dungeonMapHeight) {
                     dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 && ydiff == 0) {
                         currentItem= dItem;
@@ -261,8 +254,8 @@ void dungeonLoop() {
         mposY= currentY + offsetY;
 
         // can we move here?
-        if (mposX < 0 || mposY < 0 || mposX > dungeonMapWidth ||
-            mposY > dungeonMapHeight) {
+        if (mposX < 0 || mposY < 0 || mposX > *dungeonMapWidth ||
+            mposY > *dungeonMapHeight) {
             // nope, reset position
             currentX= oldX;
             currentY= oldY;
@@ -282,96 +275,53 @@ void dungeonLoop() {
     } while (!quit);
 }
 
-opcode *opcodeForIndex(byte idx) {
-    struct em_copy emc;
-    unsigned int exAdr;
+opcode *opcodeForIndex(byte idx) { return opcodesAdr + (8 * idx); }
 
-    exAdr= opcodesAdr + (8 * idx);
+char *feelForIndex(byte idx) { return feelTbl[idx]; }
 
-    emc.buf= linebuf;
-    emc.count= BUFSIZE;
-    emc.page= HIGHBYTE(exAdr);
-    emc.offs= exAdr;
-    em_copyfrom(&emc);
-    return (opcode *)linebuf;
-}
-
-char *feelForIndex(byte idx) {
-    struct em_copy emc;
-    unsigned int exAdr;
-
-    exAdr= feelTbl[idx];
-
-    emc.buf= linebuf;
-    emc.count= BUFSIZE;
-    emc.page= HIGHBYTE(exAdr);
-    emc.offs= exAdr;
-    em_copyfrom(&emc);
-    return linebuf;
-}
-
-unsigned int buildFeelsTable(unsigned int startAddr) {
-    byte found;
-    unsigned int currentBufOffset;
-    unsigned int currentExternalAdr;
+byte *buildFeelsTable(byte *startAddr) {
+    byte *currentPtr; // currentExternalAdr;
     unsigned int currentFeelIdx;
-    struct em_copy emc;
 
 #ifdef DEBUG
     printf("\nbuilding feels tbl ");
 #endif
-
-    emc.buf= linebuf;
-    emc.count= BUFSIZE;
-    currentExternalAdr= startAddr;
+    currentPtr= startAddr;
     currentFeelIdx= 0;
 
-    feelTbl= (unsigned int *)malloc(numFeels);
+    feelTbl= (char **)malloc(numFeels);
+
 #ifdef DEBUG
     printf("at %x in main mem\n", feelTbl);
 #endif
 
     while (currentFeelIdx < numFeels) {
-        feelTbl[currentFeelIdx]= currentExternalAdr;
+        feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DEBUG
-        printf("feel %x at %x\n", currentFeelIdx, currentExternalAdr);
+        printf("feel %x at %x\n", currentFeelIdx, currentPtr);
 #endif
-        found= false;
-        do {
-            emc.page= HIGHBYTE(currentExternalAdr);
-            emc.offs= currentExternalAdr;
-            em_copyfrom(&emc);
-            currentBufOffset= 0;
-            while (currentBufOffset < BUFSIZE &&
-                   *(linebuf + currentBufOffset) != 0) {
+        while (*currentPtr != 0) {
+            currentPtr++;
+        }
 
-                ++currentBufOffset;
-            }
-            found= *(linebuf + currentBufOffset) == 0;
-            if (found) {
-                ++currentBufOffset;
-                ++currentFeelIdx;
-            }
-            currentExternalAdr+= currentBufOffset;
-        } while (found == false);
+        currentFeelIdx++;
+        currentPtr++;
     }
-    return currentExternalAdr;
+    return currentPtr;
 }
 
 void loadMap(char *filename) {
 
-    unsigned int adr;
-    unsigned int feelsAdr;
+    byte *currentDungeonPtr;
+    byte *feelsPtr;
 
-    struct em_copy emc;
+    byte bytesRead;
+
     FILE *infile;
 
 #ifdef DEBUG
     printf("load map %s\n\nloading map header\n", filename);
 #endif
-
-    emc.buf= linebuf;
-    emc.count= BUFSIZE;
 
     infile= fopen(filename, "rb");
     fread(linebuf, 3, 1, infile);
@@ -387,48 +337,53 @@ void loadMap(char *filename) {
         exit(0);
     }
 
-    fread(&dungeonMapWidth, 1, 1, infile);
-    fread(&dungeonMapHeight, 1, 1, infile);
-    fread(&startX, 1, 1, infile);
-    fread(&startY, 1, 1, infile);
+    fread(&dungeonSize, 2, 1, infile);
 
-    seenSpaces = (byte*) malloc((dungeonMapWidth*dungeonMapHeight)/8);
-    bzero(seenSpaces,((dungeonMapWidth*dungeonMapHeight)/8));
-
+    mapdata= (byte *)malloc(dungeonSize);
+    currentDungeonPtr= mapdata;
 
 #ifdef DEBUG
-    printf("map format is %s, width %d, height %d.\n", linebuf, dungeonMapWidth,
-           dungeonMapHeight);
-    printf("startx: %d, starty: %d\n", startX, startY);
-    printf("\nloading mapdata...");
+    printf("mapdata at %x\n", mapdata);
 #endif
 
-    adr= 0;
     while (!feof(infile)) {
-        fread(linebuf, BUFSIZE, 1, infile);
-        emc.page= HIGHBYTE(adr);
-        emc.offs= adr;
-        em_copyto(&emc);
-        adr+= BUFSIZE;
+        bytesRead= fread(currentDungeonPtr, 1, BUFSIZE, infile);
+        cputc('.');
+        currentDungeonPtr+= bytesRead;
     }
 
 #ifdef DEBUG
-    printf("\nread map up to ext address %x\n", adr);
+    printf("\nread mapdata up to %x\n", currentDungeonPtr);
 #endif
 
-    adr= dungeonMapWidth * dungeonMapHeight * 2; // jump to end of map
-    emc.page= HIGHBYTE(adr);
-    emc.offs= adr;
-    em_copyfrom(&emc);
+    dungeonMapWidth= mapdata;
+    dungeonMapHeight= mapdata + 1;
+    startX= mapdata + 2;
+    startY= mapdata + 3;
+    dungeon= mapdata + 4;
 
-    numFeels= linebuf[5];
-    linebuf[5]= 0;
+    seenSpaces= (byte *)malloc((*dungeonMapWidth * *dungeonMapHeight) / 8);
+    bzero(seenSpaces, ((*dungeonMapWidth * *dungeonMapHeight) / 8));
 
 #ifdef DEBUG
-    printf("segment: %s\n", linebuf);
+    printf("map format is %s, dungeon size %x, width %d, height %d.\n", linebuf,
+           dungeonSize, *dungeonMapWidth, *dungeonMapHeight);
+    printf("startx: %d, starty: %d\n", *startX, *startY);
 #endif
 
-    if (strcmp(linebuf, "feels") != 0) {
+    // jump to end of map
+    currentDungeonPtr= (dungeon + (*dungeonMapWidth * *dungeonMapHeight * 2));
+
+    // adr= dungeonMapWidth * dungeonMapHeight * 2;
+
+    numFeels= *(currentDungeonPtr + 5);
+    *(currentDungeonPtr + 5)= 0; // set string terminator
+
+#ifdef DEBUG
+    printf("segment: '%s'\n", currentDungeonPtr);
+#endif
+
+    if (strcmp((char *)currentDungeonPtr, "feels") != 0) {
         printf("?fatal: feels segment marker not found");
         fclose(infile);
         exit(0);
@@ -438,40 +393,36 @@ void loadMap(char *filename) {
     printf("%d feels\n", numFeels);
 #endif
 
-    feelsAdr= adr + 6;
-    opcodesAdr= buildFeelsTable(feelsAdr);
+    feelsPtr= currentDungeonPtr + 6;
+    currentDungeonPtr= buildFeelsTable(feelsPtr);
 
-    emc.page= HIGHBYTE(opcodesAdr);
-    emc.offs= opcodesAdr;
-    em_copyfrom(&emc);
-
-    numOpcs= linebuf[4];
-    linebuf[4]= 0;
+    numOpcs= currentDungeonPtr[4];
+    currentDungeonPtr[4]= 0;
 
 #ifdef DEBUG
-    printf("segment: %s\n", linebuf);
+    printf("segment: %s\n", currentDungeonPtr);
 #endif
 
-    if (strcmp(linebuf, "opcs") != 0) {
+    if (strcmp(currentDungeonPtr, "opcs") != 0) {
         printf("?fatal: opcs segment marker not found");
         fclose(infile);
         exit(0);
     }
 
-    opcodesAdr+= 5; // skip identifier
+    currentDungeonPtr+= 5; // skip identifier
+    opcodesAdr= (opcode *)currentDungeonPtr;
 
 #ifdef DEBUG
-    printf("%d opcodes at external memory %x\n", numOpcs, opcodesAdr);
+    printf("%d opcodes at %x\n", numOpcs, opcodesAdr);
 #endif
 
     lastFeelIndex= 0;
     fclose(infile);
-    /*
-    #ifdef DEBUG
-        printf("done loading map. press any key.");
-        cgetc();
-    #endif
-    */
+
+#ifdef DEBUG
+    printf("done loading map. press any key.");
+    cgetc();
+#endif
 }
 
 void setupDungeonScreen(void) {
@@ -493,6 +444,7 @@ void testMap(void) {
     clrscr();
     cprintf("**mapdebug**\r\n");
     loadMap("map0");
+    cgetc();
     textcolor(COLOR_BLACK);
     bordercolor(COLOR_GRAY1);
     bgcolor(COLOR_GRAY2);
@@ -505,33 +457,26 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     byte drm_dungeonElem;
     register byte *screenPtr; // working pointer to screen
     register byte *bufPtr;    // working pointer to line buffer
-    struct em_copy emc;       // external memory control block
     unsigned int startAddr;   // start address in external memory
     unsigned int seenPlacesIdx;
-    byte xs;                  // x and y counter
+    byte xs; // x and y counter
     byte ys;
     byte screenStride;
     byte mapStride;
 
     screenStride= screenWidth - mapWindowSize;
-    mapStride= dungeonMapWidth * 2;
+    mapStride= *dungeonMapWidth * 2;
 
-    startAddr= (mapX * 2) + (dungeonMapWidth * (mapY * 2));
-    seenPlacesIdx = mapX + (dungeonMapWidth*mapY);
-
-    emc.buf= linebuf;
-    emc.count= BUFSIZE;
+    startAddr= (mapX * 2) + (*dungeonMapWidth * (mapY * 2));
+    seenPlacesIdx= mapX + (*dungeonMapWidth * mapY);
 
     screenPtr= SCREEN + (screenWidth * posY) + posX;
 
     for (ys= 0; ys < mapWindowSize; ++ys) {
-        emc.page= HIGHBYTE(startAddr);
-        emc.offs= startAddr;
-        em_copyfrom(&emc);
         bufPtr= linebuf - 1;
         for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
             drm_dungeonElem= *++bufPtr;
-            ++bufPtr; // skip opcode
+            ++bufPtr;                    // skip opcode
             if (drm_dungeonElem & 128) { // visible/automapped?
                 *screenPtr= signs[drm_dungeonElem & 15];
             } else {
