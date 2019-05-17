@@ -1,6 +1,7 @@
 #include "dungeon.h"
 #include "types.h"
 #include <conio.h>
+#include <plus4.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,27 +12,21 @@
 #define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
 #define SCREEN ((unsigned char *)0xc00)
 
-#define SetBit(A, k) (A[(k / 8)]|= (1 << (k % 8)))
-#define ClearBit(A, k) (A[(k / 8)]&= ~(1 << (k % 8)))
-#define TestBit(A, k) (A[(k / 8)] & (1 << (k % 8)))
+#define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
+#define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
 
 char signs[]= {
     0x60, // empty space
     123,  // diamond
-    0x5d, // vertical door
+    0x5d, // vertical door<i
     0x40, // horizontal door
     102   // filled space
 };
 
-typedef struct _ditem {
-    byte opcodeID;
-    byte mapItem;
-} dungeonItem;
-
 byte *seenSpaces;
 
 byte *mapdata;
-byte *dungeon;
+dungeonItem *dungeon;
 byte *dungeonMapWidth;
 byte *dungeonMapHeight;
 byte *startX;
@@ -67,32 +62,37 @@ const byte screenY= 2;
 opcode *opcodeForIndex(byte idx);
 char *feelForIndex(byte idx);
 
-unsigned int dungeonItemAtPos(byte x, byte y) {
-    return dungeon[(x * 2) + (y * *dungeonMapWidth * 2)];
+void SetBit(byte *A, int k) {
+    byte i= k / 8;
+    byte pos= k % 8;
+
+    byte flag= 1;
+
+    flag= flag << pos;
+
+    *(A + i)= *(A + i) | flag;
+}
+
+dungeonItem *dungeonItemAtPos(byte x, byte y) {
+    return dungeon + x + (y * *dungeonMapWidth);
 }
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
-void plotDungeonItem(unsigned int dItem, byte x, byte y) {
+void plotDungeonItem(dungeonItem *item, byte x, byte y) {
 
     register byte *screenPtr; // working pointer to screen
 
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
-
-    screenPtr+= x;
-    screenPtr+= (y * screenWidth);
-
-    *screenPtr= signs[dItem & 15];
+    screenPtr+= x + (y * screenWidth);
+    *screenPtr= signs[item->mapItem & 15];
 }
 
 void plotPlayer(byte x, byte y) {
     register byte *screenPtr; // working pointer to screen
 
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
-
-    screenPtr+= x;
-    screenPtr+= (y * screenWidth);
-
+    screenPtr+= x + (y * screenWidth);
     *screenPtr= 0;
 }
 
@@ -116,6 +116,15 @@ void performDisplayFeelOpcode(opcode *anOpcode) {
 }
 
 void performOpcode(opcode *anOpcode) {
+
+#ifdef DEBUG
+    gotoxy(0, 24);
+    printf("opc%02x-%02x%02x%02x%02x%02x%02x.%02x", anOpcode->id,
+           anOpcode->param1, anOpcode->param2, anOpcode->param3,
+           anOpcode->param4, anOpcode->param5, anOpcode->param6,
+           anOpcode->nextOpcode); // DEBUG
+#endif
+
     if (anOpcode->id == 0x01) {
         performDisplayFeelOpcode(anOpcode);
     }
@@ -170,9 +179,10 @@ void dungeonLoop() {
     byte quit;
 
     signed char xdiff, ydiff;
+    unsigned int test;
 
-    unsigned int dItem;
-    unsigned int currentItem;
+    dungeonItem *dItem;
+    dungeonItem *currentItem;
 
     quit= 0;
     currentX= *startX - 1;
@@ -214,8 +224,9 @@ void dungeonLoop() {
                     dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 && ydiff == 0) {
                         currentItem= dItem;
-                        plotPlayer(currentX + xdiff, currentY + ydiff);
+                        plotPlayer(currentX, currentY);
                     } else {
+                        SetBit(seenSpaces, mposX + (*dungeonMapWidth * mposY));
                         plotDungeonItem(dItem, currentX + xdiff,
                                         currentY + ydiff);
                     }
@@ -223,7 +234,7 @@ void dungeonLoop() {
             }
         }
 
-        op= opcodeForIndex(HIGHBYTE(currentItem));
+        op= opcodeForIndex(currentItem->opcodeID);
         performOpcode(op);
 
         oldX= currentX;
@@ -232,19 +243,20 @@ void dungeonLoop() {
         cmd= cgetc();
 
         switch (cmd) {
-        case 'l':
+
+        case 29: // cursor right
             currentX++;
             break;
 
-        case 'j':
+        case 157: // cursor left
             currentX--;
             break;
 
-        case 'i':
+        case 145: // cursor up
             currentY--;
             break;
 
-        case 'k':
+        case 17: // cursor down
             currentY++;
             break;
 
@@ -259,8 +271,8 @@ void dungeonLoop() {
         mposY= currentY + offsetY;
 
         // can we move here?
-        if (mposX < 0 || mposY < 0 || mposX > *dungeonMapWidth ||
-            mposY > *dungeonMapHeight) {
+        if (mposX < 0 || mposY < 0 || mposX >= *dungeonMapWidth ||
+            mposY >= *dungeonMapHeight) {
             // nope, reset position
             currentX= oldX;
             currentY= oldY;
@@ -268,10 +280,11 @@ void dungeonLoop() {
             // what is here?
             dItem= dungeonItemAtPos(mposX, mposY);
 #ifdef DEBUG
-            gotoxy(35, 24);
-            printf("%04x", dItem); // DEBUG
+            gotoxy(27, 24);
+            printf("%2d,%2d: %02x %02x", mposX, mposY, dItem->opcodeID,
+                   dItem->mapItem); // DEBUG
 #endif
-            if (dItem & 32) { // check impassable flag
+            if (dItem->mapItem & 32) { // check impassable flag
                 // can't go there
                 currentX= oldX;
                 currentY= oldY;
@@ -280,7 +293,7 @@ void dungeonLoop() {
     } while (!quit);
 }
 
-opcode *opcodeForIndex(byte idx) { return opcodesAdr + (8 * idx); }
+opcode *opcodeForIndex(byte idx) { return opcodesAdr + idx; }
 
 char *feelForIndex(byte idx) { return feelTbl[idx]; }
 
@@ -365,7 +378,7 @@ void loadMap(char *filename) {
     dungeonMapHeight= mapdata + 1;
     startX= mapdata + 2;
     startY= mapdata + 3;
-    dungeon= mapdata + 4;
+    dungeon= (dungeonItem *)(mapdata + 4);
 
     seenSpaces= (byte *)malloc((*dungeonMapWidth * *dungeonMapHeight) / 8);
     bzero(seenSpaces, ((*dungeonMapWidth * *dungeonMapHeight) / 8));
@@ -377,9 +390,8 @@ void loadMap(char *filename) {
 #endif
 
     // jump to end of map
-    currentDungeonPtr= (dungeon + (*dungeonMapWidth * *dungeonMapHeight * 2));
-
-    // adr= dungeonMapWidth * dungeonMapHeight * 2;
+    currentDungeonPtr=
+        (mapdata + 4 + (*dungeonMapWidth * *dungeonMapHeight * 2));
 
     numFeels= *(currentDungeonPtr + 5);
     *(currentDungeonPtr + 5)= 0; // set string terminator
@@ -423,16 +435,11 @@ void loadMap(char *filename) {
 
     lastFeelIndex= 0;
     fclose(infile);
-
-#ifdef DEBUG
-    printf("done loading map. press any key.");
-    cgetc();
-#endif
 }
 
 void setupDungeonScreen(void) {
     clrscr();
-    textcolor(COLOR_BLUE);
+    textcolor(BCOLOR_BLUEGREEN | CATTR_LUMA1);
     cputcxy(screenX - 1, screenY - 1, 176);             // left upper corner
     cputcxy(screenX + mapWindowSize, 1, 174);           // right upper corner
     cputcxy(screenX - 1, screenY + mapWindowSize, 173); // left lower corner
@@ -449,48 +456,50 @@ void testMap(void) {
     clrscr();
     cprintf("**mapdebug**\r\n");
     loadMap("map0");
-    cgetc();
     textcolor(COLOR_BLACK);
-    bordercolor(COLOR_GRAY1);
-    bgcolor(COLOR_GRAY2);
+    bordercolor(BCOLOR_WHITE|CATTR_LUMA3);
+    bgcolor(BCOLOR_WHITE|CATTR_LUMA6);
     setupDungeonScreen();
     dungeonLoop();
 }
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
-    byte drm_dungeonElem;
-    register byte *screenPtr; // working pointer to screen
-    register byte *bufPtr;    // working pointer to line buffer
-    unsigned int startAddr;   // start address in external memory
-    unsigned int seenPlacesIdx;
-    byte xs; // x and y counter
-    byte ys;
+    register byte *screenPtr;     // working pointer to screen
+    register dungeonItem *bufPtr; // working pointer to line buffer
+    register dungeonItem *dunStartPtr;
+    unsigned int seenStartIdx;
+    unsigned int seenIdx;
+    unsigned int offset;
+    byte mapItem;
+    byte xs, ys;
+
     byte screenStride;
     byte mapStride;
 
     screenStride= screenWidth - mapWindowSize;
-    mapStride= *dungeonMapWidth * 2;
-
-    startAddr= (mapX * 2) + (*dungeonMapWidth * (mapY * 2));
-    seenPlacesIdx= mapX + (*dungeonMapWidth * mapY);
+    mapStride= *dungeonMapWidth;
 
     screenPtr= SCREEN + (screenWidth * posY) + posX;
+    dunStartPtr= dungeon + (mapY * *dungeonMapWidth) + mapX - 1;
+    seenStartIdx= (mapY * *dungeonMapWidth) + mapX;
+
+    offset= 0;
 
     for (ys= 0; ys < mapWindowSize; ++ys) {
-        bufPtr= linebuf - 1;
-        for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
-            drm_dungeonElem= *++bufPtr;
-            ++bufPtr;                    // skip opcode
-            if (drm_dungeonElem & 128) { // visible/automapped?
-                *screenPtr= signs[drm_dungeonElem & 15];
+        bufPtr= dunStartPtr + offset;
+        seenIdx= seenStartIdx + offset;
+        for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr, ++seenIdx) {
+            mapItem= (++bufPtr)->mapItem;
+            if ((mapItem & 128) ||
+                TestBit(seenSpaces, seenIdx)) { // visible/automapped?
+                *screenPtr= signs[mapItem & 15];
             } else {
                 *screenPtr= 160;
             }
-            ++seenPlacesIdx;
         }
-        startAddr+= mapStride;
         screenPtr+= screenStride;
+        offset+= *dungeonMapWidth;
     }
 }
 

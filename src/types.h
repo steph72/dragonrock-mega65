@@ -61,6 +61,11 @@ typedef struct _item {
 
 */
 
+typedef struct _ditem {
+    byte mapItem;
+    byte opcodeID;
+} dungeonItem;
+
 typedef struct _opcode {
 	byte id;
 	byte param1;

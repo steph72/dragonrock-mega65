@@ -10,13 +10,15 @@ offset  bits        meaning         possible values
 
 0-2     0-7         "DR0" map file & version identification
 
-3       0-7         map width       8 - 32
+3+4     0-15        size of following map data
 
-4       0-7         map height      8 - 32
+5       0-7         map width       8 - 32
 
-5       ------ map element 1 ------
+6       0-7         map height      8 - 32
 
-5       0-3         map element 1   0 = empty space
+7       ------ map element 1 ------
+
+7       0-3         map element 1   0 = empty space
                                     1 = item of interest
                                     2 = horizontal door
                                     3 = vertical door
@@ -30,10 +32,10 @@ offset  bits        meaning         possible values
          6          reserved
          7          space initially known
 
-6       0-7         start opcode ID for element 1
+8       0-7         start opcode ID for element 1
 
 
-7       ------ map element 2 ------
+9       ------ map element 2 ------
 
 
 "FEELS" - dungeon feeling / strings description segment

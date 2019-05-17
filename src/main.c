@@ -46,7 +46,7 @@ unsigned char loademdriver(void);
 unsigned char loadoverlay(unsigned char num);
 
 void initEngine(void) {
-    const char prompt[]= "ARCHAIC(tm) engine for 64K TED computers\n"
+    const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
                          "Version 0.1 alpha\n\n"
                          "Written by Stephan Kleinert\n"
                          "at K-Burg, Bad Honnef, and\n"
