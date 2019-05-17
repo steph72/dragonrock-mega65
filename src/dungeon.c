@@ -32,8 +32,6 @@ byte *dungeonMapHeight;
 byte *startX;
 byte *startY;
 
-unsigned int dungeonSize;
-
 byte lastFeelIndex;
 
 byte currentX; // current coordinates inside map window
@@ -182,7 +180,7 @@ void dungeonLoop() {
 
     quit= 0;
     lastFeelIndex = 0;
-    
+
     currentX= *startX - 1;
     currentY= *startY - 1;
     offsetX= 0;

@@ -8,8 +8,18 @@
 
 #define BUFSIZE 255
 
+typedef struct _dd {
+    dungeonItem *dungeon;    // pointer to dungeon map
+    byte *seenSpaces;        // pointer to bit array of seen spaces
+    opcode *opcodesAdr;      // pointer to opcode list
+    unsigned char **feelTbl; // pointer to message list
+    byte *dungeonMapWidth;
+    byte *dungeonMapHeight;
+    byte *startX;
+    byte *startY;
+} dungeonDescriptor;
+
 extern dungeonItem *dungeon;
-extern unsigned int dungeonSize;
 extern byte *seenSpaces;
 extern byte *dungeonMapWidth;
 extern byte *dungeonMapHeight;
@@ -18,6 +28,7 @@ extern byte *startY;
 extern opcode *opcodesAdr;      // external address of 1st opcode
 extern unsigned char **feelTbl; // pointer to feel addresses
 
+unsigned int dungeonSize;
 byte numFeels;
 byte numOpcs;
 byte *mapdata;
@@ -26,6 +37,8 @@ byte linebuf[BUFSIZE];
 byte *buildFeelsTable(byte *startAddr);
 
 void loadMap(char *filename) {
+
+    dungeonDescriptor *desc;
 
     byte *currentDungeonPtr;
     byte *feelsPtr;
@@ -51,6 +64,8 @@ void loadMap(char *filename) {
         fclose(infile);
         exit(0);
     }
+
+    desc = (dungeonDescriptor*) malloc(sizeof(dungeonDescriptor));
 
     fread(&dungeonSize, 2, 1, infile);
 
