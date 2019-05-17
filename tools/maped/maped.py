@@ -117,21 +117,6 @@ class mapEditor():
             if c == 10:
                 self.editFeel(edFeelIdx)
 
-    def showHelp(self):
-        self.helpwin.erase()
-        self.helpwin.addstr("editor commands:\n\n"
-                            "SPC  : plot current element\n"
-                            "+/-  : increase/decrease current element\n"
-                            " c   : copy current element\n"
-                            " E   : edit feeling\n"
-                            " N   : create & set new DISP opcode & string\n"
-                            " l   : load map\n"
-                            " p   : set start position\n"
-                            "s/S  : save map / save map as\n"
-                            " x   : export map for ingame use\n"
-                            "\nUse cursor keys to navigate the map.\n")
-        self.helpwin.refresh()
-
     def feelForElement(self, elem):
         if (elem.startOpcodeIndex == 0):
             return ""  # opcode 0 is always nop
@@ -356,6 +341,7 @@ class mapEditor():
             self.stdscr, self.kLowerTop+1, 0, self.kLowerTop+5, 42)
         inWin=self.stdscr.subwin(3, 40, self.kLowerTop+2, 1)
         inTextbox=curses.textpad.Textbox(inWin)
+        inTextbox.stripspaces = False
         bytes=bytearray()
         bytes.extend(map(ord, currentFeel))
         for i in bytes:
@@ -496,6 +482,22 @@ class mapEditor():
         self.mapwin.border()
         self.mapwin.addstr(0, 1, "Map")
         self.showHelp()
+
+    def showHelp(self):
+        self.helpwin.erase()
+        self.helpwin.addstr("editor commands:\n\n"
+                            "SPC  : plot current element\n"
+                            "+/-  : increase/decrease current element\n"
+                            " c   : copy current element\n"
+                            " E   : enter message editor\n"
+                            " l   : load map\n"
+                            " N   : create & set new DISP opcode & string\n"
+                            " p   : set start position\n"
+                            "s/S  : save map / save map as\n"
+                            " v   : toggle initial visibility\n"
+                            " x   : export map for ingame use\n"
+                            "\nUse cursor keys to navigate the map.\n")
+        self.helpwin.refresh()
 
     def runEditor(self):
 

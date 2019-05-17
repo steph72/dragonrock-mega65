@@ -1,4 +1,5 @@
 #include "dungeon.h"
+#include "dungeonLoader.h"
 #include "types.h"
 #include <conio.h>
 #include <plus4.h>
@@ -25,16 +26,11 @@ char signs[]= {
 
 byte *seenSpaces;
 
-byte *mapdata;
 dungeonItem *dungeon;
 byte *dungeonMapWidth;
 byte *dungeonMapHeight;
 byte *startX;
 byte *startY;
-
-byte linebuf[BUFSIZE];
-byte numFeels;
-byte numOpcs;
 
 unsigned int dungeonSize;
 
@@ -42,7 +38,6 @@ byte lastFeelIndex;
 
 byte currentX; // current coordinates inside map window
 byte currentY;
-
 byte offsetX;
 byte offsetY;
 
@@ -60,6 +55,7 @@ const byte screenX= 2;
 const byte screenY= 2;
 
 opcode *opcodeForIndex(byte idx);
+
 char *feelForIndex(byte idx);
 
 void SetBit(byte *A, int k) {
@@ -185,6 +181,8 @@ void dungeonLoop() {
     dungeonItem *currentItem;
 
     quit= 0;
+    lastFeelIndex = 0;
+    
     currentX= *startX - 1;
     currentY= *startY - 1;
     offsetX= 0;
@@ -297,145 +295,6 @@ opcode *opcodeForIndex(byte idx) { return opcodesAdr + idx; }
 
 char *feelForIndex(byte idx) { return feelTbl[idx]; }
 
-byte *buildFeelsTable(byte *startAddr) {
-    byte *currentPtr; // currentExternalAdr;
-    unsigned int currentFeelIdx;
-
-#ifdef DEBUG
-    printf("\nbuilding feels tbl ");
-#endif
-    currentPtr= startAddr;
-    currentFeelIdx= 0;
-
-    feelTbl= (char **)malloc(numFeels);
-
-#ifdef DEBUG
-    printf("at %x in main mem\n", feelTbl);
-#endif
-
-    while (currentFeelIdx < numFeels) {
-        feelTbl[currentFeelIdx]= currentPtr;
-#ifdef DEBUG
-        printf("feel %x at %x\n", currentFeelIdx, currentPtr);
-#endif
-        while (*currentPtr != 0) {
-            currentPtr++;
-        }
-
-        currentFeelIdx++;
-        currentPtr++;
-    }
-    return currentPtr;
-}
-
-void loadMap(char *filename) {
-
-    byte *currentDungeonPtr;
-    byte *feelsPtr;
-
-    byte bytesRead;
-
-    FILE *infile;
-
-#ifdef DEBUG
-    printf("load map %s\n\nloading map header\n", filename);
-#endif
-
-    infile= fopen(filename, "rb");
-    fread(linebuf, 3, 1, infile);
-    linebuf[3]= 0;
-
-#ifdef DEBUG
-    printf("identifier segment: %s\n", linebuf);
-#endif
-
-    if (strcmp(linebuf, "dr0") != 0) {
-        printf("?fatal: wrong map file format");
-        fclose(infile);
-        exit(0);
-    }
-
-    fread(&dungeonSize, 2, 1, infile);
-
-    mapdata= (byte *)malloc(dungeonSize);
-    currentDungeonPtr= mapdata;
-
-#ifdef DEBUG
-    printf("mapdata at %x\n", mapdata);
-#endif
-
-    while (!feof(infile)) {
-        bytesRead= fread(currentDungeonPtr, 1, BUFSIZE, infile);
-        cputc('.');
-        currentDungeonPtr+= bytesRead;
-    }
-
-#ifdef DEBUG
-    printf("\nread mapdata up to %x\n", currentDungeonPtr);
-#endif
-
-    dungeonMapWidth= mapdata;
-    dungeonMapHeight= mapdata + 1;
-    startX= mapdata + 2;
-    startY= mapdata + 3;
-    dungeon= (dungeonItem *)(mapdata + 4);
-
-    seenSpaces= (byte *)malloc((*dungeonMapWidth * *dungeonMapHeight) / 8);
-    bzero(seenSpaces, ((*dungeonMapWidth * *dungeonMapHeight) / 8));
-
-#ifdef DEBUG
-    printf("map format is %s, dungeon size %x, width %d, height %d.\n", linebuf,
-           dungeonSize, *dungeonMapWidth, *dungeonMapHeight);
-    printf("startx: %d, starty: %d\n", *startX, *startY);
-#endif
-
-    // jump to end of map
-    currentDungeonPtr=
-        (mapdata + 4 + (*dungeonMapWidth * *dungeonMapHeight * 2));
-
-    numFeels= *(currentDungeonPtr + 5);
-    *(currentDungeonPtr + 5)= 0; // set string terminator
-
-#ifdef DEBUG
-    printf("segment: '%s'\n", currentDungeonPtr);
-#endif
-
-    if (strcmp((char *)currentDungeonPtr, "feels") != 0) {
-        printf("?fatal: feels segment marker not found");
-        fclose(infile);
-        exit(0);
-    }
-
-#ifdef DEBUG
-    printf("%d feels\n", numFeels);
-#endif
-
-    feelsPtr= currentDungeonPtr + 6;
-    currentDungeonPtr= buildFeelsTable(feelsPtr);
-
-    numOpcs= currentDungeonPtr[4];
-    currentDungeonPtr[4]= 0;
-
-#ifdef DEBUG
-    printf("segment: '%s'\n", currentDungeonPtr);
-#endif
-
-    if (strcmp(currentDungeonPtr, "opcs") != 0) {
-        printf("?fatal: opcs segment marker not found");
-        fclose(infile);
-        exit(0);
-    }
-
-    currentDungeonPtr+= 5; // skip identifier
-    opcodesAdr= (opcode *)currentDungeonPtr;
-
-#ifdef DEBUG
-    printf("%d opcodes at %x\n", numOpcs, opcodesAdr);
-#endif
-
-    lastFeelIndex= 0;
-    fclose(infile);
-}
 
 void setupDungeonScreen(void) {
     clrscr();
@@ -497,7 +356,6 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
             } else {
                 *screenPtr= 160;
             }
-
         }
         screenPtr+= screenStride;
         offset+= *dungeonMapWidth;

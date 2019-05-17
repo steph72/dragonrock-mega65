@@ -1,0 +1,2 @@
+
+void loadMap(char *filename);
