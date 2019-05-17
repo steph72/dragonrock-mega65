@@ -497,6 +497,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
             } else {
                 *screenPtr= 160;
             }
+
         }
         screenPtr+= screenStride;
         offset+= *dungeonMapWidth;

@@ -22,3 +22,4 @@
 void cg_init(void);
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t);
 void cg_borders(void);
+
