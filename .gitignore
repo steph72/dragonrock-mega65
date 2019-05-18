@@ -1,4 +1,3 @@
 obj/*
 bin/*
-.vscode/ipch/*
-.vscode/ipch/e636fb7e24b00cc2/dungeon.ipch
+.vscode/*
