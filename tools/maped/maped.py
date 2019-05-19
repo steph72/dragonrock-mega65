@@ -18,7 +18,7 @@ class mapEditor():
 
     kMapWinWidth = 20
     kMapWinHeight = 12
-    kLowerTop = kMapWinHeight+4
+    kLowerTop = kMapWinHeight+6
     kScrollMargin = 2
 
     kOpcodes=["NOP","NSTAT","DISP","WKEY"]
@@ -51,11 +51,14 @@ class mapEditor():
     def __init__(self, outwin):
 
         self.stdscr = outwin
+
         self.mapwin = self.stdscr.subwin(
             self.kMapWinHeight+2, self.kMapWinWidth+2, 2, 1)
 
         self.helpwin = self.stdscr.subwin(
             18, 50, 3, self.kMapWinWidth+4)
+
+        self.opWin = self.stdscr.subwin(19, 80, 2, 0)
 
         self.mapwin.keypad(True)
 
@@ -80,12 +83,28 @@ class mapEditor():
         opc = entry[0]
         mnemo = self.kOpcodes[opc]
         if (opc==1):
-            mnemo = mnemo + " "+str(entry[1])
+            mnemo += " "+str(entry[1])
+            f = self.feels[entry[1]].replace("\n","")
+            if len(f)>42:
+                f = f[0:42]+"..."
+            mnemo += " ["+f+"]"
         return mnemo
+
+    def editOpcode(self,opcIdx):
+        self.opWin.erase()
+        self.opWin.move(0,0)
+        self.opWin.addstr("editing opcode #"+str(opcIdx)+"\n\n")
+        self.opWin.addstr("CURRENT opcode is: "+str(self.routines[opcIdx])+"\n\n")
+        self.opWin.addstr("Please enter new opcode with comma seperated parameters\n"
+                          "(ommitted parameter entries will be padded with '0's)\n\n")
+        curses.echo()
+        self.opWin.refresh()
+        userInput=self.opWin.getstr(32)
+        curses.noecho()
+        pass
 
     def opcodeEditMode(self):
         opcsPerPage=16
-        self.opWin = self.stdscr.subwin(19, 80, 2, 0)
         quitOpcodeEdit = 0
         currentL = 0
         numRoutines = len(self.routines)
@@ -94,11 +113,10 @@ class mapEditor():
         self.stdscr.erase()
         self.stdscr.move(0,0)
         self.stdscr.addstr(0,0,"maped 1.0 - ** OPCODE EDIT MODE **")
-        self.stdscr.addstr(21,0,"[+/-] paging | [e] edit | [n] new opc | [q] exit")
-        #self.stdscr.refresh()
         while quitOpcodeEdit == 0:
             self.opWin.erase()
             self.stdscr.addstr(20,0,"page "+str(currentPage)+" ")
+            self.stdscr.addstr(21,0,"[+/-] paging | [e] edit | [n] new opc | [q] exit")
             for i in range(0,opcsPerPage):
                 rIndex = (currentPage*opcsPerPage)+i
                 if rIndex<len(self.routines):
@@ -109,12 +127,22 @@ class mapEditor():
             c = self.stdscr.getch()
             if (c==ord('+')):
                 currentPage += 1
-            if (c==ord('-')) and currentPage>0:
+            elif (c==ord('-')) and currentPage>0:
                 currentPage -= 1
-            if (c==ord('n')):
+            elif (c==ord('n')):
                 self.routines.append([0, 0, 0, 0, 0, 0, 0, 0])
-
-
+            elif (c==ord('e')):
+                self.clearLower()
+                nrs = self.getUserInput("edit opcode #")
+                try:
+                    nr = int(nrs)
+                except:
+                    nr = 0
+                if (nr!=0):
+                    self.editOpcode(nr)
+            elif (c==ord('q')):
+                self.redrawStdEditorScreen()
+                return
 
 
     def feelEditMode(self):
@@ -249,7 +277,7 @@ class mapEditor():
         return e
 
     def clearLower(self):
-        for i in range(7):
+        for i in range(5):
             self.stdscr.move(self.kLowerTop+i, 0)
             self.stdscr.clrtoeol()
 
