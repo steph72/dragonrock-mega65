@@ -1,23 +1,14 @@
 ** dragon rock map format **
 
-
-1.
-
 "DR0" - map data segment
 
 offset  bits        meaning         possible values
 ----------------------------------------------------------
-
 0-2     0-7         "DR0" map file & version identification
-
 3+4     0-15        size of following map data
-
 5       0-7         map width       8 - 32
-
 6       0-7         map height      8 - 32
-
 7       ------ map element 1 ------
-
 7       0-3         map element 1   0 = empty space
                                     1 = item of interest
                                     2 = horizontal door
@@ -31,10 +22,7 @@ offset  bits        meaning         possible values
          5          space impassable
          6          reserved
          7          space initially known
-
 8       0-7         start opcode ID for element 1
-
-
 9       ------ map element 2 ------
 
 
@@ -51,6 +39,7 @@ offset  bits        meaning         possible values
 
 offset  bits        meaning         possible values
 ----------------------------------------------------------
-
 0-3     "OPCS"
-0       0-7         number of opcodes      
+4       0-7         number of opcodes
+5-x     0-7         opcode table (8 bytes per opcode)      
+

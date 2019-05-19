@@ -8,17 +8,7 @@
 
 #define BUFSIZE 255
 
-typedef struct _dd {
-    dungeonItem *dungeon;    // pointer to dungeon map
-    byte *seenSpaces;        // pointer to bit array of seen spaces
-    opcode *opcodesAdr;      // pointer to opcode list
-    unsigned char **feelTbl; // pointer to message list
-    byte *dungeonMapWidth;
-    byte *dungeonMapHeight;
-    byte *startX;
-    byte *startY;
-} dungeonDescriptor;
-
+/*
 extern dungeonItem *dungeon;
 extern byte *seenSpaces;
 extern byte *dungeonMapWidth;
@@ -27,6 +17,7 @@ extern byte *startX;
 extern byte *startY;
 extern opcode *opcodesAdr;      // external address of 1st opcode
 extern unsigned char **feelTbl; // pointer to feel addresses
+*/
 
 unsigned int dungeonSize;
 byte numFeels;
@@ -34,9 +25,9 @@ byte numOpcs;
 byte *mapdata;
 byte linebuf[BUFSIZE];
 
-byte *buildFeelsTable(byte *startAddr);
+byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc);
 
-void loadMap(char *filename) {
+dungeonDescriptor *loadMap(char *filename) {
 
     dungeonDescriptor *desc;
 
@@ -65,7 +56,11 @@ void loadMap(char *filename) {
         exit(0);
     }
 
-    desc = (dungeonDescriptor*) malloc(sizeof(dungeonDescriptor));
+    desc= (dungeonDescriptor *)malloc(sizeof(dungeonDescriptor) * 2);
+
+#ifdef DEBUG
+    printf("dungeon descriptor: %x\n", desc);
+#endif
 
     fread(&dungeonSize, 2, 1, infile);
 
@@ -86,24 +81,30 @@ void loadMap(char *filename) {
     printf("\nread mapdata up to %x\n", currentDungeonPtr);
 #endif
 
-    dungeonMapWidth= mapdata;
-    dungeonMapHeight= mapdata + 1;
-    startX= mapdata + 2;
-    startY= mapdata + 3;
-    dungeon= (dungeonItem *)(mapdata + 4);
+    desc->dungeonMapWidth= *mapdata;
+    desc->dungeonMapHeight= *(mapdata + 1);
+    desc->startX= *(mapdata + 2);
+    desc->startY= *(mapdata + 3);
+    desc->dungeon= (dungeonItem *)(mapdata + 4);
 
-    seenSpaces= (byte *)malloc((*dungeonMapWidth * *dungeonMapHeight) / 8);
-    bzero(seenSpaces, ((*dungeonMapWidth * *dungeonMapHeight) / 8));
+#ifdef DEBUG
+    printf("dungeon at %x\n", desc->dungeon);
+#endif
+
+    desc->seenSpaces=
+        (byte *)malloc((desc->dungeonMapWidth * desc->dungeonMapHeight) / 8);
+    bzero(desc->seenSpaces,
+          ((desc->dungeonMapWidth * desc->dungeonMapHeight) / 8));
 
 #ifdef DEBUG
     printf("map format is %s, dungeon size %x, width %d, height %d.\n", linebuf,
-           dungeonSize, *dungeonMapWidth, *dungeonMapHeight);
-    printf("startx: %d, starty: %d\n", *startX, *startY);
+           dungeonSize, desc->dungeonMapWidth, desc->dungeonMapHeight);
+    printf("startx: %d, starty: %d\n", desc->startX, desc->startY);
 #endif
 
     // jump to end of map
     currentDungeonPtr=
-        (mapdata + 4 + (*dungeonMapWidth * *dungeonMapHeight * 2));
+        (mapdata + 4 + (desc->dungeonMapWidth * desc->dungeonMapHeight * 2));
 
     numFeels= *(currentDungeonPtr + 5);
     *(currentDungeonPtr + 5)= 0; // set string terminator
@@ -123,7 +124,7 @@ void loadMap(char *filename) {
 #endif
 
     feelsPtr= currentDungeonPtr + 6;
-    currentDungeonPtr= buildFeelsTable(feelsPtr);
+    currentDungeonPtr= buildFeelsTable(feelsPtr, desc);
 
     numOpcs= currentDungeonPtr[4];
     currentDungeonPtr[4]= 0;
@@ -139,17 +140,18 @@ void loadMap(char *filename) {
     }
 
     currentDungeonPtr+= 5; // skip identifier
-    opcodesAdr= (opcode *)currentDungeonPtr;
+    desc->opcodesAdr= (opcode *)currentDungeonPtr;
 
 #ifdef DEBUG
-    printf("%d opcodes at %x\n", numOpcs, opcodesAdr);
+    printf("%d opcodes at %x\n", numOpcs, desc->opcodesAdr);
 #endif
 
     fclose(infile);
+
+    return desc;
 }
 
-
-byte *buildFeelsTable(byte *startAddr) {
+byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     byte *currentPtr; // currentExternalAdr;
     unsigned int currentFeelIdx;
 
@@ -159,16 +161,16 @@ byte *buildFeelsTable(byte *startAddr) {
     currentPtr= startAddr;
     currentFeelIdx= 0;
 
-    feelTbl= (char **)malloc(numFeels);
+    desc->feelTbl= (char **)malloc(numFeels);
 
 #ifdef DEBUG
-    printf("at %x in main mem\n", feelTbl);
+    printf("at %x in main mem\n", desc->feelTbl);
 #endif
 
     while (currentFeelIdx < numFeels) {
-        feelTbl[currentFeelIdx]= currentPtr;
+        desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DEBUG
-        printf("feel %x at %x\n", currentFeelIdx, currentPtr);
+        // printf("feel %x at %x\n", currentFeelIdx, currentPtr);
 #endif
         while (*currentPtr != 0) {
             currentPtr++;

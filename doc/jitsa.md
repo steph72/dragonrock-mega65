@@ -7,13 +7,13 @@ You may employ JITSA for your own projects free of charge. If you release a JITS
 
 ## "That's great, but just what is JITSA?"
 
-JITSA is a software development model, just like SCRUM. Or rather, not at all like SCRUM. I wouldn't go as far as to say that it's the opposite of SCRUM, because SCRUM has many good ideas... but it's certainly different.
+JITSA is a software development model, just like Scrum. Or rather, not at all like Scrum. I wouldn't go as far as to say that it's the opposite of Scrum, because Scrum has many good ideas... but it's certainly different.
 
 JITSA is the abbreviation for "**J**ust **I**mplement **T**hat **S**hit **A**lready". It was conceived during hours and hours of endless and meaningless meetings, retros, refinements and what-have-yous, burning tons of company money and getting nowhere slowly.
 
 It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. SCRUM & Co. are nice ideas, but unfortunately they encourage such behaviour.
 
-If you, like me, have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of work can be depressing to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with SCRUM.
+If you, like me, have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of work can be depressing to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with Scrum.
 
 Here they are:
 

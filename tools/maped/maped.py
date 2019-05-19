@@ -18,10 +18,10 @@ class mapEditor():
 
     kMapWinWidth = 20
     kMapWinHeight = 12
-
     kLowerTop = kMapWinHeight+4
-
     kScrollMargin = 2
+
+    kOpcodes=["NOP","NSTAT","DISP","WKEY"]
 
     kDisplayCharacters = ['.',        # 0 : space/floor
                           u"\u25c6",  # 1 : item = diamond
@@ -43,8 +43,8 @@ class mapEditor():
             for x in range(self.mapHeight):
                 newMapElement = mapElement()
                 newMapElement.mapElementID = 4
-                newMapElement.feelID = 0
                 newMapElement.initiallyVisible = False
+                newMapElement.impassable = True
                 newMapElement.startOpcodeIndex = 0
                 self.map[y].append(newMapElement)
 
@@ -55,7 +55,7 @@ class mapEditor():
             self.kMapWinHeight+2, self.kMapWinWidth+2, 2, 1)
 
         self.helpwin = self.stdscr.subwin(
-            15, 50, 3, self.kMapWinWidth+4)
+            18, 50, 3, self.kMapWinWidth+4)
 
         self.mapwin.keypad(True)
 
@@ -76,6 +76,47 @@ class mapEditor():
 
         self.setupEmptyMap()
 
+    def stringForRoutinesEntry(self,entry):
+        opc = entry[0]
+        mnemo = self.kOpcodes[opc]
+        if (opc==1):
+            mnemo = mnemo + " "+str(entry[1])
+        return mnemo
+
+    def opcodeEditMode(self):
+        opcsPerPage=16
+        self.opWin = self.stdscr.subwin(19, 80, 2, 0)
+        quitOpcodeEdit = 0
+        currentL = 0
+        numRoutines = len(self.routines)
+        numPages = numRoutines//opcsPerPage
+        currentPage = 0
+        self.stdscr.erase()
+        self.stdscr.move(0,0)
+        self.stdscr.addstr(0,0,"maped 1.0 - ** OPCODE EDIT MODE **")
+        self.stdscr.addstr(21,0,"[+/-] paging | [e] edit | [n] new opc | [q] exit")
+        #self.stdscr.refresh()
+        while quitOpcodeEdit == 0:
+            self.opWin.erase()
+            self.stdscr.addstr(20,0,"page "+str(currentPage)+" ")
+            for i in range(0,opcsPerPage):
+                rIndex = (currentPage*opcsPerPage)+i
+                if rIndex<len(self.routines):
+                    self.opWin.addstr(i,1,str(rIndex))
+                    currentEntry = self.routines[rIndex]
+                    self.opWin.addstr(i,5,self.stringForRoutinesEntry(currentEntry))
+            self.opWin.refresh()
+            c = self.stdscr.getch()
+            if (c==ord('+')):
+                currentPage += 1
+            if (c==ord('-')) and currentPage>0:
+                currentPage -= 1
+            if (c==ord('n')):
+                self.routines.append([0, 0, 0, 0, 0, 0, 0, 0])
+
+
+
+
     def feelEditMode(self):
         quitFeelEdit = 0
         edFeelIdx = 1
@@ -88,6 +129,7 @@ class mapEditor():
         self.stdscr.move(3,0);
         self.stdscr.addstr("== message editor ==\n\n"
                             "+/- : choose msg to edit\n"
+                            " N  : alloc new message\n"
                             "RET : edit chosen message\n"
                             " x  : exit msg editor\n"
                             )
@@ -109,6 +151,10 @@ class mapEditor():
             elif c == ord('x'):
                 self.redrawStdEditorScreen()
                 return
+            elif c == ord('n'):
+                self.feels.append("newFeel "+str(len(self.feels)+1))
+                edFeelIdx = len(self.feels)-1
+                
             if edFeelIdx < 1:
                 edFeelIdx=1
             if edFeelIdx > len(self.feels)-1:
@@ -141,13 +187,12 @@ class mapEditor():
         x=self.originX + self.cursorX
         y=self.originY + self.cursorY
         self.stdscr.addstr(" x,y: "+str(x)+","+str(y))
-        self.stdscr.addstr(" fID: "+str(e.feelID))
         self.stdscr.addstr(" startX,Y: "+str(self.startX)+","+str(self.startY))
         self.stdscr.addstr(" startOpcode: "+str(e.startOpcodeIndex))
+        self.stdscr.addstr(" imp: "+str(e.impassable))
         # refresh current feel
         self.stdscr.move(self.kLowerTop, 0)
         self.stdscr.clrtoeol()
-        # self.stdscr.addstr(self.kLowerTop, 0, self.feels[e.feelID])
         self.stdscr.addstr(self.kLowerTop, 0, self.feelForElement(e))
         self.stdscr.move(1, 0)
         self.stdscr.addstr("opcode: [")
@@ -213,9 +258,10 @@ class mapEditor():
         arr.extend(map(ord, "FEELS"))
         arr.append(len(self.feels))
         for i in self.feels:
+            stripped = i.rstrip()
             commobytes=bytearray()
             unixbytes=bytearray()
-            unixbytes.extend(map(ord, i.swapcase()))
+            unixbytes.extend(map(ord, stripped.swapcase()))
             for p in unixbytes:  # lf -> cr
                 if (p == 10):
                     commobytes.append(13)
@@ -246,8 +292,9 @@ class mapEditor():
                 mID=currentMapElem.mapElementID
                 outbyte1=currentMapElem.mapElementID
                 if currentMapElem.initiallyVisible:
-                    outbyte1 = outbyte1 | 16
                     outbyte1 = outbyte1 | 128
+                if currentMapElem.impassable:
+                    outbyte1 = outbyte1 | 32
                 outbyte2=currentMapElem.startOpcodeIndex
                 mapbytes.append(outbyte1)
                 mapbytes.append(outbyte2)
@@ -312,6 +359,10 @@ class mapEditor():
         e = self.getCurrentMapEntry()
         e.initiallyVisible = not e.initiallyVisible
         self.cursorX += 1
+    
+    def toggleImpassable(self):
+        e = self.getCurrentMapEntry()
+        e.impassable = not e.impassable
 
     def increaseCurrentElementID(self):
         e=self.getCurrentMapEntry()
@@ -377,9 +428,9 @@ class mapEditor():
     def pasteElem(self):
         if self.copyMapElement != 0:
             self.getCurrentMapEntry().mapElementID=self.copyMapElement.mapElementID
-            self.getCurrentMapEntry().feelID=self.copyMapElement.feelID
             self.getCurrentMapEntry().startOpcodeIndex=self.copyMapElement.startOpcodeIndex
             self.getCurrentMapEntry().initiallyVisible = self.copyMapElement.initiallyVisible
+            self.getCurrentMapEntry().impassable = self.copyMapElement.impassable
             self.cursorX+=1
 
     def exportMap(self):
@@ -485,18 +536,15 @@ class mapEditor():
 
     def showHelp(self):
         self.helpwin.erase()
-        self.helpwin.addstr("editor commands:\n\n"
-                            "SPC  : plot current element\n"
-                            "+/-  : increase/decrease current element\n"
-                            " c   : copy current element\n"
-                            " E   : enter message editor\n"
-                            " l   : load map\n"
-                            " N   : create & set new DISP opcode & string\n"
-                            " p   : set start position\n"
-                            "s/S  : save map / save map as\n"
-                            " v   : toggle initial visibility\n"
-                            " x   : export map for ingame use\n"
-                            "\nUse cursor keys to navigate the map.\n")
+        self.helpwin.addstr("moves:\n"
+                            "[c] copy  [SPC] paste  [+/-] inc/dec \n"
+                            "toggles:\n"
+                            "[g] impassable  [v] visible\n"
+                            "io:\n"
+                            "[l] load  [s] save  [S] saveAs  [x] export\n"
+                            "misc:\n"
+                            "[N] new NSTAT+msg  [e] script editor\n"
+                            "[E] msg editor  [p] start pos")
         self.helpwin.refresh()
 
     def runEditor(self):
@@ -517,7 +565,9 @@ class mapEditor():
             'S': self.saveMapAs,
             'l': self.loadMap,
             'E': self.feelEditMode,
+            'e': self.opcodeEditMode,
             'v': self.toggleInitiallyVisible,
+            'g': self.toggleImpassable,
             'p': self.setStartPosition
         }
 

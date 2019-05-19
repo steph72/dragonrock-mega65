@@ -1,2 +1,3 @@
+#include "types.h"
 
-void loadMap(char *filename);
+dungeonDescriptor* loadMap(char *filename);

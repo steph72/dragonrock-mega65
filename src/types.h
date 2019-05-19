@@ -99,4 +99,15 @@ typedef struct _character {
 	itemT   armor;
 } character;
 
+typedef struct _dungeonDescriptorS {
+    dungeonItem *dungeon;    // pointer to dungeon map
+    byte *seenSpaces;        // pointer to bit array of seen spaces
+    opcode *opcodesAdr;      // pointer to opcode list
+    unsigned char **feelTbl; // pointer to message list
+    byte dungeonMapWidth;
+    byte dungeonMapHeight;
+    byte startX;
+    byte startY;
+} dungeonDescriptor;
+
 #endif
