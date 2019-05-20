@@ -91,6 +91,7 @@ class mapEditor():
         return mnemo
 
     def editOpcode(self,opcIdx):
+        newOpc = []
         self.opWin.erase()
         self.opWin.move(0,0)
         self.opWin.addstr("editing opcode #"+str(opcIdx)+"\n\n")
@@ -100,8 +101,20 @@ class mapEditor():
         curses.echo()
         self.opWin.refresh()
         userInput=self.opWin.getstr(32)
+        userInput = userInput.decode()
         curses.noecho()
-        pass
+        elems = userInput.split(',')
+        for i in elems:
+            self.opWin.addstr(i)
+            currentNum = 0
+            try:
+                currentNum = int(i)
+            except:
+                pass
+            newOpc.append(currentNum)
+        while len(newOpc)<8:
+            newOpc.append(0)
+        self.routines[opcIdx] = newOpc
 
     def opcodeEditMode(self):
         opcsPerPage=16
