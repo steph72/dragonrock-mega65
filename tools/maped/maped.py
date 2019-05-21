@@ -176,7 +176,7 @@ class mapEditor():
                 return
         rm = self.feels[feelNo]
         self.feels.remove(rm)
-        # reorder parameters
+        # reorder pointers if needed
         for i in self.routines:
             if (i[0]==1 or i[1]==1):
                 if i[1]>feelNo:
@@ -614,7 +614,7 @@ class mapEditor():
                             "[l] load  [s] save  [S] saveAs  [x] export\n"
                             "misc:\n"
                             "[N] new NSTAT+msg  [e] script editor\n"
-                            "[E] msg editor  [p] start pos")
+                            "[m] msg editor  [p] start pos")
         self.helpwin.refresh()
 
     def runEditor(self):
@@ -634,7 +634,7 @@ class mapEditor():
             's': self.saveMap,
             'S': self.saveMapAs,
             'l': self.loadMap,
-            'E': self.feelEditMode,
+            'm': self.feelEditMode,
             'e': self.opcodeEditMode,
             'v': self.toggleInitiallyVisible,
             'g': self.toggleImpassable,
