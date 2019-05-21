@@ -82,22 +82,32 @@ class mapEditor():
     def stringForRoutinesEntry(self,entry):
         opc = entry[0]
         mnemo = self.kOpcodes[opc]
-        if (opc==1):
+        if (opc==1 or opc==2):
             mnemo += " "+str(entry[1])
             f = self.feels[entry[1]].replace("\n","")
-            if len(f)>42:
-                f = f[0:42]+"..."
+            if len(f)>40:
+                f = f[0:40]+"..."
             mnemo += " ["+f+"]"
+        lnk = entry[7]
+        if (lnk!=0):
+            mnemo += "-> "+str(lnk)
         return mnemo
 
     def editOpcode(self,opcIdx):
         newOpc = []
         self.opWin.erase()
+
         self.opWin.move(0,0)
         self.opWin.addstr("editing opcode #"+str(opcIdx)+"\n\n")
         self.opWin.addstr("CURRENT opcode is: "+str(self.routines[opcIdx])+"\n\n")
         self.opWin.addstr("Please enter new opcode with comma seperated parameters\n"
                           "(ommitted parameter entries will be padded with '0's)\n\n")
+
+        for i in range(len(self.kOpcodes)):
+            self.opWin.addstr(i+8,71,str(i))
+            self.opWin.addstr(i+8,74,self.kOpcodes[i])
+        
+        self.opWin.move(8,0)
         curses.echo()
         self.opWin.refresh()
         userInput=self.opWin.getstr(32)
@@ -158,6 +168,22 @@ class mapEditor():
                 return
 
 
+    def deleteFeel(self,feelNo):
+        for i in self.routines:
+            if (i[0]==1 and i[1]==feelNo):
+                self.stdscr.addstr("\ncan't delete. message is in use.\n-key-")
+                self.stdscr.getch()
+                return
+        rm = self.feels[feelNo]
+        self.feels.remove(rm)
+        # reorder parameters
+        for i in self.routines:
+            if (i[0]==1 or i[1]==1):
+                if i[1]>feelNo:
+                    i[1]-=1
+        self.stdscr.addstr("\nmessage deleted.\n-key-")
+        self.stdscr.getch()
+                
     def feelEditMode(self):
         quitFeelEdit = 0
         edFeelIdx = 1
@@ -170,7 +196,8 @@ class mapEditor():
         self.stdscr.move(3,0);
         self.stdscr.addstr("== message editor ==\n\n"
                             "+/- : choose msg to edit\n"
-                            " N  : alloc new message\n"
+                            " n  : alloc new message\n"
+                            " d  : delete current message\n"
                             "RET : edit chosen message\n"
                             " x  : exit msg editor\n"
                             )
@@ -192,6 +219,8 @@ class mapEditor():
             elif c == ord('x'):
                 self.redrawStdEditorScreen()
                 return
+            elif c == ord('d'):
+                self.deleteFeel(edFeelIdx)
             elif c == ord('n'):
                 self.feels.append("newFeel "+str(len(self.feels)+1))
                 edFeelIdx = len(self.feels)-1
