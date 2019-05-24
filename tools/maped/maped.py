@@ -93,11 +93,22 @@ class mapEditor():
             mnemo += "-> "+str(lnk)
         return mnemo
 
+    def opcodeListForIndex(self,opcIdx):
+        list = []
+        currentOpcode = self.routines[opcIdx]
+        while True:
+            list.append(currentOpcode)
+            if currentOpcode[7]==0:
+                break
+            currentOpcode = self.routines[currentOpcode[7]]
+        return list
+
     def editOpcode(self, opcIdx):
         newOpc = []
-        self.opWin.erase()
+        opcList = self.opcodeListForIndex(opcIdx)
 
-        self.opWin.move(0, 0)
+        self.opWin.erase()
+        self.opWin.move(0, 0)        
         self.opWin.addstr("editing opcode #"+str(opcIdx)+"\n\n")
         self.opWin.addstr("CURRENT opcode is: " +
                           str(self.routines[opcIdx])+"\n\n")
@@ -127,11 +138,21 @@ class mapEditor():
             newOpc.append(0)
         self.routines[opcIdx] = newOpc
 
-    def opcodeEditMode(self):
+    def allOpcodesList(self):
+        opcList=[]
+        for i in range(len(self.routines)):
+            opcList.append((i,self.routines[i]))
+        return opcList
+
+    def enterOpcodeEditorAt(self,startOpcode):
+        if (startOpcode==0):
+            opcList = self.allOpcodesList()
+        else:
+            opcList = self.opcodeListForIndex(startOpcode)
         opcsPerPage = 16
         quitOpcodeEdit = 0
         currentL = 0
-        numRoutines = len(self.routines)
+        numRoutines = len(opcList)
         numPages = numRoutines//opcsPerPage
         currentPage = 0
         chosenOpcode = 0
@@ -148,17 +169,19 @@ class mapEditor():
             if chosenOpcode >= opcsPerPage:
                 currentPage += 1
                 chosenOpcode = 0
+            if chosenOpcode > len(opcList)-1:
+                chosenOpcode = len(opcList)-1
             self.opWin.erase()
             self.stdscr.addstr(20, 0, "page "+str(currentPage)+" ")
             self.stdscr.addstr(21, 0, "[+/-] paging | [up/down] choose | [RETURN] edit \n"
-                               "[d] delete | [n] new opc | [x] exit")
+                               "[d] delete | [a] append new opc | [x] exit")
             for i in range(0, opcsPerPage):
                 rIndex = (currentPage*opcsPerPage)+i
-                if rIndex < len(self.routines):
-                    self.opWin.addstr(i, 2, str(rIndex))
-                    currentEntry = self.routines[rIndex]
+                if rIndex < len(opcList):
+                    currentEntry = opcList[rIndex]
+                    self.opWin.addstr(i, 2, str(currentEntry[0]))
                     self.opWin.addstr(
-                        i, 5, self.stringForRoutinesEntry(currentEntry))
+                        i, 5, self.stringForRoutinesEntry(currentEntry[1]))
                     if (i == chosenOpcode):
                         self.opWin.addstr(i, 0, "->")
             self.opWin.refresh()
@@ -171,8 +194,10 @@ class mapEditor():
                 chosenOpcode -= 1
             elif c == 258:
                 chosenOpcode += 1
-            elif (c == ord('n')):
+            elif (c == ord('a')):
+                lastOpc = opcList[chosenOpcode][1]
                 self.routines.append([0, 0, 0, 0, 0, 0, 0, 0])
+                lastOpc[7] = len(self.routines)-1
             elif (c == 10):
                 self.editOpcode(chosenOpcode)
             elif (c == ord('x')):
@@ -206,6 +231,10 @@ class mapEditor():
                 if xElems.startOpcodeIndex > opcodeNo:
                     xElems.startOpcodeIndex -= 1
                     break
+
+    def opcodeEditMode(self):
+        opcList = []
+        self.enterOpcodeEditorAt(0)
 
     def deleteFeel(self, feelNo):
         for i in self.routines:
