@@ -106,15 +106,15 @@ class mapEditor():
 
     def editOpcode(self, opcIdx):
         newOpc = []
+        oldOpc = self.routines[opcIdx]
         opcList = self.opcodeListForIndex(opcIdx)
-
         self.opWin.erase()
         self.opWin.move(0, 0)
         self.opWin.addstr("editing opcode #"+str(opcIdx)+"\n\n")
         self.opWin.addstr("CURRENT opcode is: " +
-                          str(self.routines[opcIdx])+"\n\n")
+                          str(oldOpc)+"\n\n")
         self.opWin.addstr("Please enter new opcode with comma seperated parameters\n"
-                          "(ommitted parameter entries will be padded with '0's)\n\n")
+                          "(ommitted parameter entries will be taken over from old opc)\n\n")
 
         for i in range(len(self.kOpcodes)):
             self.opWin.addstr(i+8, 71, str(i))
@@ -136,7 +136,7 @@ class mapEditor():
                 pass
             newOpc.append(currentNum)
         while len(newOpc) < 8:
-            newOpc.append(0)
+            newOpc.append(oldOpc[len(newOpc)])
         self.routines[opcIdx] = newOpc
 
     def allOpcodesList(self):
@@ -145,7 +145,7 @@ class mapEditor():
             opcList.append((i, self.routines[i]))
         return opcList
 
-    def enterOpcodeEditorAt(self, startOpcode):
+    def enterOpcodeEditorAt(self, startOpcode, rCount=0):
         opcsPerPage = 16
         quitOpcodeEdit = 0
         currentL = 0
@@ -202,7 +202,7 @@ class mapEditor():
                 self.routines.append([0, 0, 0, 0, 0, 0, 0, 0])
                 lastOpc[7] = len(self.routines)-1
             elif (c == 10):
-                self.editOpcode(rIndex)
+                self.editOpcode(opcList[rIndex][0])
             elif (c == ord('x')):
                 self.redrawStdEditorScreen()
                 return
@@ -211,7 +211,8 @@ class mapEditor():
             elif (c == 261):
                 # step into opcode
                 opcIdx = opcList[rIndex][0]
-                self.enterOpcodeEditorAt(opcIdx)
+                if (opcIdx!=0):
+                    self.enterOpcodeEditorAt(opcIdx)
             elif (c == 260):
                 if (startOpcode != 0):
                     return
@@ -219,11 +220,11 @@ class mapEditor():
     def deleteOpcode(self, opcodeNo):
         safeDelete = True
         for i in self.routines:
-            if (i[7] == opcodeNo):
+            if (i[7] == opcodeNo):      # something linking to this opc?
                 safeDelete = False
                 break
         for yElems in self.map:
-            for xElems in yElems:
+            for xElems in yElems:       # opcode used in map?
                 if xElems.startOpcodeIndex == opcodeNo:
                     safeDelete = False
                     break
@@ -233,6 +234,7 @@ class mapEditor():
             self.opWin.getch()
             return
         del self.routines[opcodeNo]
+        # fix indices
         for i in self.routines:
             if i[7] > opcodeNo:
                 i[7] -= 1
@@ -336,14 +338,13 @@ class mapEditor():
         y = self.originY + self.cursorY
         self.stdscr.addstr(" x,y: "+str(x)+","+str(y))
         self.stdscr.addstr(" startX,Y: "+str(self.startX)+","+str(self.startY))
-        self.stdscr.addstr(" startOpcode: "+str(e.startOpcodeIndex))
         self.stdscr.addstr(" imp: "+str(e.impassable))
         # refresh current feel
         self.stdscr.move(self.kLowerTop, 0)
         self.stdscr.clrtoeol()
         self.stdscr.addstr(self.kLowerTop, 0, self.feelForElement(e))
         self.stdscr.move(1, 0)
-        self.stdscr.addstr("opcode: [")
+        self.stdscr.addstr("opcode: #"+str(e.startOpcodeIndex)+" [")
         for i in self.routines[e.startOpcodeIndex]:
             self.stdscr.addstr(" "+str(i))
         self.stdscr.addstr(" ]")
@@ -554,6 +555,11 @@ class mapEditor():
         del inWin
         self.feels[feelIdx] = aFeel
 
+    def newOpcode(self):
+        e=self.getCurrentMapEntry()
+        self.routines.append([0,0,0,0,0,0,0,0])
+        self.addOpcodeToElement(len(self.routines)-1,e)
+
     def newFeelForCurrentElement(self):
         e = self.getCurrentMapEntry()
         self.stdscr.move(self.kLowerTop, 0)
@@ -695,7 +701,7 @@ class mapEditor():
                             "io:\n"
                             "[l] load  [s] save  [S] saveAs  [x] export\n"
                             "misc:\n"
-                            "[N] new NSTAT+msg  [e] script editor\n"
+                            "[n] new opcode  [N] new NSTAT+msg  [e] script editor\n"
                             "[m] msg editor  [p] start pos")
         self.helpwin.refresh()
 
@@ -711,6 +717,7 @@ class mapEditor():
             '-': self.decreaseCurrentElementID,
             ' ': self.pasteElem,
             'N': self.newFeelForCurrentElement,
+            'n': self.newOpcode,
             'c': self.copyElem,
             'x': self.exportMap,
             's': self.saveMap,
