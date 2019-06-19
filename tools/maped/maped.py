@@ -21,7 +21,7 @@ class mapEditor():
     kLowerTop = kMapWinHeight+6
     kScrollMargin = 2
 
-    kOpcodes = ["NOP", "NSTAT", "DISP", "WKEY"]
+    kOpcodes = ["NOP", "NSTAT", "DISP", "WKEY", "YESNO", "IFREG", "IFPOS", "IADD", "ALTER"]
 
     kDisplayCharacters = ['.',        # 0 : space/floor
                           u"\u25c6",  # 1 : item = diamond
@@ -93,15 +93,42 @@ class mapEditor():
             mnemo += "-> "+str(lnk)
         return mnemo
 
+    def linkedOpcodeEntriesForIndex(self,opcIdx,oldList=[]):
+        newList = []
+        tempList = []
+        opcode = self.routines[opcIdx]
+        if (opcode[7]!=0): # link
+            tempList.append(opcode[7])
+        if (opcode[0]==4): # YESNO
+            if (opcode[2]!=0):
+                tempList.append(opcode[1])
+            if (opcode[3]!=0):
+                tempList.append(opcode[2])
+        if (opcode[0]==5): # IFREG
+            if (opcode[3]!=0):
+                tempList.append(opcode[3])
+        for i in tempList:
+            if not (i in oldList):
+                newList.append(i)
+        return newList
+    
+    def allOpcodesFromIndex(self,opcodeIndexList=[]):
+        
+        for i in opcodeIndexList:
+
+
+
+
+
+
     def opcodeListForIndex(self, opcIdx):
         list = []
-        currentOpcode = self.routines[opcIdx]
         while True:
+            currentOpcode = self.routines[opcIdx]
             list.append((opcIdx,currentOpcode))
             if currentOpcode[7] == 0:
                 break
             opcIdx = currentOpcode[7]
-            currentOpcode = self.routines[opcIdx]
         return list
 
     def editOpcode(self, opcIdx):
@@ -176,7 +203,7 @@ class mapEditor():
             self.opWin.erase()
             self.stdscr.addstr(20, 0, "page "+str(currentPage)+" opc"+str(chosenOpcode))
             self.stdscr.addstr(21, 0, "[+/-] paging | [up/down] choose | [left/right] desc/asc | [RETURN] edit \n"
-                                      "[d] delete | [a] append new opc | [x] exit")
+                                      "[d] delete   | [n] new opc      | [a] append new opc    | [x] exit")
             for i in range(0, opcsPerPage):
                 rIndex = (currentPage*opcsPerPage)+i
                 if rIndex < len(opcList):
@@ -197,6 +224,8 @@ class mapEditor():
                 chosenOpcode -= 1
             elif c == 258:
                 chosenOpcode += 1
+            elif (c == ord('n')):
+                self.routines.append([0,0,0,0,0,0,0,0])
             elif (c == ord('a')):
                 lastOpc = opcList[rIndex][1]
                 self.routines.append([0, 0, 0, 0, 0, 0, 0, 0])
