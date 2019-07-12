@@ -93,16 +93,16 @@ class mapEditor():
             mnemo += "-> "+str(lnk)
         return mnemo
 
-    def linkedOpcodeEntriesForIndex(self,opcIdx,oldList=[]):
+    def linkedOpcodeEntriesForIndex(self,opcIdx,oldList):
         newList = []
         tempList = []
         opcode = self.routines[opcIdx]
         if (opcode[7]!=0): # link
             tempList.append(opcode[7])
         if (opcode[0]==4): # YESNO
-            if (opcode[2]!=0):
+            if (opcode[1]!=0):
                 tempList.append(opcode[1])
-            if (opcode[3]!=0):
+            if (opcode[2]!=0):
                 tempList.append(opcode[2])
         if (opcode[0]==5): # IFREG
             if (opcode[3]!=0):
@@ -117,9 +117,7 @@ class mapEditor():
         for i in opcodeIndexList:
             alreadyProcessed.append(i)
             currentOpcode = self.routines[i]
-            if currentOpcode[7] != 0:           # check link field
-                if not currentOpcode[7] in alreadyProcessed:
-                    newItems.append(currentOpcode[7])
+            newItems = newItems + (self.linkedOpcodeEntriesForIndex(i,alreadyProcessed))
         if (len(newItems)>0):
             self.allRelatedOpcodesForList(newItems,alreadyProcessed)
         return alreadyProcessed
