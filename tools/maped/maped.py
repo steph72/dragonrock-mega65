@@ -160,14 +160,17 @@ class mapEditor():
         userInput = userInput.decode()
         curses.noecho()
         elems = userInput.split(',')
+        num=0
         for i in elems:
             self.opWin.addstr(i)
             currentNum = 0
             try:
                 currentNum = int(i)
             except:
+                currentNum = oldOpc[num]
                 pass
             newOpc.append(currentNum)
+            num += 1
         while len(newOpc) < 8:
             newOpc.append(oldOpc[len(newOpc)])
         self.routines[opcIdx] = newOpc
