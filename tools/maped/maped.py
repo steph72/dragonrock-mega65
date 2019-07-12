@@ -112,29 +112,37 @@ class mapEditor():
                 newList.append(i)
         return newList
     
-    def allOpcodesFromIndex(self,opcodeIndexList=[]):
-        
+    def allRelatedOpcodesForList(self,opcodeIndexList,alreadyProcessed):
+        newItems = []
         for i in opcodeIndexList:
+            alreadyProcessed.append(i)
+            currentOpcode = self.routines[i]
+            if currentOpcode[7] != 0:           # check link field
+                if not currentOpcode[7] in alreadyProcessed:
+                    newItems.append(currentOpcode[7])
+        if (len(newItems)>0):
+            self.allRelatedOpcodesForList(newItems,alreadyProcessed)
+        return alreadyProcessed
+        
+    def allRelatedOpcodesFromIndex(self,opcIdx):
+        opcodes = []
+        opcodeIndexList = [opcIdx]
+        resultIndexList = self.allRelatedOpcodesForList(opcodeIndexList,[])
+        for i in resultIndexList:
+            opcodes.append((i,self.routines[i]))
+        return opcodes
+    
+    def allOpcodesList(self):
+        opcList = []
+        for i in range(len(self.routines)):
+            opcList.append((i, self.routines[i]))
+        return opcList
 
-
-
-
-
-
-    def opcodeListForIndex(self, opcIdx):
-        list = []
-        while True:
-            currentOpcode = self.routines[opcIdx]
-            list.append((opcIdx,currentOpcode))
-            if currentOpcode[7] == 0:
-                break
-            opcIdx = currentOpcode[7]
-        return list
 
     def editOpcode(self, opcIdx):
         newOpc = []
         oldOpc = self.routines[opcIdx]
-        opcList = self.opcodeListForIndex(opcIdx)
+        opcList = self.allRelatedOpcodesFromIndex(opcIdx)
         self.opWin.erase()
         self.opWin.move(0, 0)
         self.opWin.addstr("editing opcode #"+str(opcIdx)+"\n\n")
@@ -166,12 +174,6 @@ class mapEditor():
             newOpc.append(oldOpc[len(newOpc)])
         self.routines[opcIdx] = newOpc
 
-    def allOpcodesList(self):
-        opcList = []
-        for i in range(len(self.routines)):
-            opcList.append((i, self.routines[i]))
-        return opcList
-
     def enterOpcodeEditorAt(self, startOpcode, rCount=0):
         opcsPerPage = 16
         quitOpcodeEdit = 0
@@ -185,7 +187,7 @@ class mapEditor():
             if (startOpcode == 0):
                 opcList = self.allOpcodesList()
             else:
-                opcList = self.opcodeListForIndex(startOpcode)
+                opcList = self.allRelatedOpcodesFromIndex(startOpcode)
             numRoutines = len(opcList)
             numPages = numRoutines//opcsPerPage
             if chosenOpcode < 0:
