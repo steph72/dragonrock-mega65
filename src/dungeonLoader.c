@@ -8,22 +8,13 @@
 
 #define BUFSIZE 255
 
-/*
-extern dungeonItem *dungeon;
-extern byte *seenSpaces;
-extern byte *dungeonMapWidth;
-extern byte *dungeonMapHeight;
-extern byte *startX;
-extern byte *startY;
-extern opcode *opcodesAdr;      // external address of 1st opcode
-extern unsigned char **feelTbl; // pointer to feel addresses
-*/
-
 unsigned int dungeonSize;
 byte numFeels;
 byte numOpcs;
 byte *mapdata;
 byte linebuf[BUFSIZE];
+
+#pragma code-name (push, "OVERLAY1");
 
 byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc);
 
@@ -181,3 +172,5 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     }
     return currentPtr;
 }
+
+#pragma code-name (pop);

@@ -16,6 +16,10 @@
 #define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
 #define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
 
+// clang-format off
+#pragma code-name(push, "OVERLAY1");
+// clang-format on
+
 char signs[]= {
     0x60, // empty space
     123,  // diamond
@@ -23,15 +27,6 @@ char signs[]= {
     0x40, // horizontal door
     102   // filled space
 };
-
-/*
-byte *seenSpaces;
-dungeonItem *dungeon;
-byte *dungeonMapWidth;
-byte *dungeonMapHeight;
-byte *startX;
-byte *startY;
-*/
 
 dungeonDescriptor *desc;
 
@@ -367,4 +362,5 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
 // clang-format off
 #pragma codesize(pop);
+#pragma code-name(pop);
 // clang-format on

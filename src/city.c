@@ -1,10 +1,10 @@
 
 
 #include <conio.h>
+#include <plus4.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <plus4.h>
 
 #include "character.h"
 #include "config.h"
@@ -19,6 +19,10 @@ extern byte hasLoadedGame;
 extern char outbuf[80];
 
 const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
+
+// clang-format off
+#pragma code-name(push, "OVERLAY2");
+// clang-format on
 
 void inspectCharacter(byte idx);
 
@@ -86,7 +90,8 @@ void runGuildMenu(void) {
     sprintf(outbuf, "%s Guild", gCities[currentCity]);
 
     while (!quitGuild) {
-        cg_titlec(BCOLOR_BROWN|CATTR_LUMA4, BCOLOR_GREEN|CATTR_LUMA5, 1, outbuf);
+        cg_titlec(BCOLOR_BROWN | CATTR_LUMA4, BCOLOR_GREEN | CATTR_LUMA5, 1,
+                  outbuf);
         showCurrentParty();
         gotoxy(0, 14);
         puts(menu);
@@ -147,7 +152,8 @@ void runCityMenu(void) {
     quitCity= 0;
     while (!quitCity) {
         sprintf(outbuf, "%s (%d)", gCities[currentCity], currentCity + 1);
-        cg_titlec(BCOLOR_BLUE|CATTR_LUMA3, BCOLOR_GREEN|CATTR_LUMA5, 1, outbuf);
+        cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 1,
+                  outbuf);
         showCurrentParty();
         gotoxy(0, 14);
         puts(menu);
@@ -200,7 +206,8 @@ void newGuildMember(byte city) {
     const char margin= 14;
     const char delSpaces= 40 - margin;
 
-    cg_titlec(BCOLOR_BLUEGREEN|CATTR_LUMA2, BCOLOR_CYAN|CATTR_LUMA5, 0, "New Guild Member");
+    cg_titlec(BCOLOR_BLUEGREEN | CATTR_LUMA2, BCOLOR_CYAN | CATTR_LUMA5, 0,
+              "New Guild Member");
 
     slot= nextFreeGuildSlot();
     if (slot == -1) {
@@ -292,9 +299,9 @@ void newGuildMember(byte city) {
     for (i= 0; i < INV_SIZE; i++) {
         newC->inventory[i]= 0;
     }
-    addInventoryItem(0xff,newC); // add sword for testing
-    newC->weapon= 0x01; // add club
-    newC->armor= 0x80;  // add robes
+    addInventoryItem(0xff, newC); // add sword for testing
+    newC->weapon= 0x01;           // add club
+    newC->armor= 0x80;            // add robes
     newC->aMaxHP= tempHP;
     newC->aHP= tempHP;
     newC->aMaxMP= tempMP;
@@ -303,3 +310,6 @@ void newGuildMember(byte city) {
     strcpy(newC->name, cname);
 }
 
+// clang-format off
+#pragma code-name(pop);
+// clang-format on

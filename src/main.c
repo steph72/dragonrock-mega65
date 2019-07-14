@@ -18,6 +18,7 @@
 
 #include <conio.h>
 #include <em.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +34,10 @@
 
 #define debug 1
 
+extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
+extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
+
+
 byte currentCity;
 byte hasLoadedGame;
 char outbuf[80];
@@ -41,8 +46,7 @@ void initEngine(void);
 void runCityMenu(void);
 void runGuildMenu(void);
 void loadSaved(void);
-
-unsigned char loadoverlay(unsigned char num);
+unsigned char loadfile(char *name, void *addr, void *size);
 
 void initEngine(void) {
     const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
@@ -53,7 +57,6 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
-
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
     if (!hasLoadedGame) {       // since initGuild() is in city overlay
@@ -68,7 +71,6 @@ int main() {
 
     initEngine();
     clrscr();
-    testMap(); // DEBUG!
     cg_borders();
     cputsxy(2, 4, "Welcome to");
     cputsxy(5, 6, "Dragon Rock 1 - The Escape");
@@ -80,7 +82,7 @@ int main() {
 
     do {
         choice= cgetc();
-    } while (strchr("12", choice) == NULL);
+    } while (strchr("12d", choice) == NULL);
 
     if (choice == '1' && hasLoadedGame) {
         // determine last city from saved party
@@ -90,13 +92,32 @@ int main() {
                 break;
             }
         }
+    } else if (choice == 'd') {
+        cputs("\r\n--DEBUG--");
+        loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
+        testMap();
     } else {
         // remove saved party if not loading saved game
         for (choice= 0; choice < PARTYSIZE; party[choice++]= 0)
             ;
     }
 
+    loadfile("city", _OVERLAY2_LOAD__, _OVERLAY2_SIZE__);
     runCityMenu();
 
     return 0;
+}
+
+unsigned char loadfile(char *name, void *addr, void *size) {
+    /* Avoid compiler warnings about unused parameters. */
+    (void)addr;
+    (void)size;
+#ifdef DEBUG
+    cprintf("\r\nloading ov %s, size $%x at $%x", name, size, addr);
+#endif
+    if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
+        cputs("Loading overlay file failed");
+        return 0;
+    }
+    return 1;
 }

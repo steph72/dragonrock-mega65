@@ -12,6 +12,8 @@ delete dungeon
 delete outdoor
 delete em
 delete map0
-write bin/drmain.plus4 main
+write bin/drmain.plus4   main
+write bin/drmain.plus4.1 dungeon
+write bin/drmain.plus4.2 city
 write mapdata/testmap.drm map0
 EOF
