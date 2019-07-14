@@ -42,7 +42,6 @@ void runCityMenu(void);
 void runGuildMenu(void);
 void loadSaved(void);
 
-unsigned char loademdriver(void);
 unsigned char loadoverlay(unsigned char num);
 
 void initEngine(void) {
