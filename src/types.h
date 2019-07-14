@@ -41,7 +41,7 @@ typedef enum _itemType {
 	it_armor, it_shield, it_weapon, it_potion, it_scroll, it_special 
 } itemType;
 
-typedef struct _item {
+typedef struct _item {			// inventory item
 	byte id;
 	char *name;
 	byte type;
@@ -50,18 +50,7 @@ typedef struct _item {
 	int price;
 } item;
 
-/*
-
-	dragon rock 1 opcodes
-	=====================
-
-	0x00	NOP
-	0x01	display feel (param1)
-
-
-*/
-
-typedef struct _ditem {
+typedef struct _ditem {			// dungeon item
     byte mapItem;
     byte opcodeID;
 } dungeonItem;

@@ -10,8 +10,6 @@ attach disc/drock.d64
 delete main
 delete city
 delete dungeon
-delete outdoor
-delete em
 delete map0
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
