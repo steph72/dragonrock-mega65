@@ -41,7 +41,6 @@ itemT addInventoryItem(itemT anItemID, character *aCharacter) {
     return 0;
 }
 
-
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 
 char *bonusStrForAttribute(attrT a) {

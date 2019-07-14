@@ -10,18 +10,20 @@
 #include "congui.h"
 #include "guild.h"
 #include "types.h"
+#include "guildLoader.h"
 
-character *guild;
-character *party[PARTYSIZE];
-
-void initGuildMem(void);
-byte loadGuild(void);
+extern character *guild;
+extern character *party[];
 
 void newGuildMember(byte city);
 void _listGuildMembers(void);
 void listGuildMembers(void);
 
 void flagError(char *e);
+
+// clang-format off
+#pragma code-name(push, "OVERLAY2");
+// clang-format on
 
 void _listGuildMembers(void) {
     static byte i, x, y;
@@ -194,7 +196,7 @@ void saveGuild(void) {
     cg_borders();
     puts("\nPlease wait, "
          "saving the game...");
-    outfile= fopen("guild", "w");
+    outfile= fopen("gdata", "w");
     fwrite(guild, GUILDSIZE * sizeof(character), 1, outfile);
     for (i= 0; i < PARTYSIZE; i++) {
         if (party[i]) {
@@ -208,38 +210,6 @@ void saveGuild(void) {
     cgetc();
 }
 
-byte loadGuild(void) {
-    static FILE *infile;
-    static byte i;
-    static byte slot;
-    infile= fopen("guild", "r");
-    if (!infile) {
-        return false;
-    }
-    fread(guild, GUILDSIZE * sizeof(character), 1, infile);
-    for (i= 0; i < PARTYSIZE; i++) {
-        slot= fgetc(infile);
-        if (slot != 99) {
-            party[i]= &guild[slot];
-        }
-    }
-    fclose(infile);
-    return true;
-}
-
-byte initGuild() {
-    initGuildMem();
-    return loadGuild();
-}
-
-void initGuildMem(void) {
-    static unsigned int sizeBytes= 0;
-    sizeBytes= GUILDSIZE * sizeof(character);
-    guild= (character *)malloc(sizeBytes);
-    if (guild == NULL) {
-        puts("???fatal: no memory for guild");
-        exit(0);
-    }
-    bzero(guild, sizeBytes);
-}
-
+// clang-format off
+#pragma code-name(pop);
+// clang-format on

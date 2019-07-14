@@ -4,7 +4,6 @@
 #include "config.h"
 #include "types.h"
 
-byte initGuild(void);
 void newGuildMember(byte city);
 void listGuildMembers(void);
 void purgeGuildMember(void);
