@@ -9,8 +9,8 @@ Change current status message to *msgID*
 ## 0x02 DISP <01:msgID> <02:winColor>
 Display *msgID* in a window.
 
-## 0x03 WKEY
-Wait for keypress
+## 0x03 WKEY <01:regNr>
+Wait for keypress. Stores pressed key in *regNr*
 
 ## 0x04 YESNO <01:trueOpcIdx> <02:falseOpcodeIdx>
 Wait for 'y' or 'n' keypress
@@ -30,3 +30,6 @@ Register 0 -> true on success, otherwise false
 
 ## 0x08 ALTER <01:xpos> <02:ypos> <03:startOpcodeIdx> <04:dungeonItemID>
 Alter map at coordinates *xpos*,*ypos* to *startOpcodeIdx* and *dungeonItemID*
+
+## 0x09 REDRAW
+Force redraw the dungeon display

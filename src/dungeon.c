@@ -16,6 +16,19 @@
 #define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
 #define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
 
+/* ------------------------ opcodes ------------------------- */
+#define OPC_NOP 0x00    /* no operation                       */
+#define OPC_NSTAT 0x01  /* new status line                    */
+#define OPC_DISP 0x02   /* display text                       */
+#define OPC_WKEY 0x03   /* waitkey                            */
+#define OPC_YESNO 0x04  /* request y or n                     */
+#define OPC_IFREG 0x05  /* if register                        */
+#define OPC_IFPOS 0x06  /* if item in possession              */
+#define OPC_ADD 0x07    /* add item to character's inventory  */
+#define OPC_ALTER 0x08  /* alter map at coordinates           */
+#define OPC_REDRAW 0x09 /* redraw screen                      */
+/* ---------------------------------------------------------- */
+
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
 // clang-format on
@@ -31,6 +44,7 @@ char signs[]= {
 dungeonDescriptor *desc;
 
 byte lastFeelIndex;
+byte registers[16];
 
 byte currentX; // current coordinates inside map window
 byte currentY;
@@ -48,8 +62,11 @@ const byte screenX= 2;
 const byte screenY= 2;
 
 opcode *opcodeForIndex(byte idx);
-
 char *feelForIndex(byte idx);
+void displayFeel(byte idx);
+void redrawAll(void);
+void plotPlayer(byte x, byte y);
+void setupDungeonScreen(void);
 
 void SetBit(byte *A, int k) {
     byte i= k / 8;
@@ -68,6 +85,15 @@ dungeonItem *dungeonItemAtPos(byte x, byte y) {
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
+void redrawAll() {
+    setupDungeonScreen();
+    redrawMap();
+    plotPlayer(currentX, currentY);
+    if (lastFeelIndex != 0) {
+        displayFeel(lastFeelIndex);
+    }
+}
+
 void plotDungeonItem(dungeonItem *item, byte x, byte y) {
 
     register byte *screenPtr; // working pointer to screen
@@ -85,8 +111,18 @@ void plotPlayer(byte x, byte y) {
     *screenPtr= 0;
 }
 
-void performDisplayFeelOpcode(opcode *anOpcode) {
+void displayFeel(byte feelID) {
+
     byte i;
+
+    for (i= 20; i < 24; ++i) {
+        cclearxy(0, i, 40);
+    }
+    gotoxy(0, 20);
+    puts(feelForIndex(feelID));
+}
+
+void performDisplayFeelOpcode(opcode *anOpcode) {
     byte feelIndex;
 
     feelIndex= anOpcode->param1;
@@ -96,26 +132,54 @@ void performDisplayFeelOpcode(opcode *anOpcode) {
         return;
     }
 
-    for (i= 20; i < 24; ++i) {
-        cclearxy(0, i, 40);
-    }
-    gotoxy(0, 20);
-    puts(feelForIndex(anOpcode->param1));
+    displayFeel(anOpcode->param1);
     lastFeelIndex= feelIndex;
+}
+
+void performDisplayTextOpcode(opcode *anOpcode) {
+    byte feelIndex;
+    feelIndex= anOpcode->param1;
+    clrscr();
+    puts(feelForIndex(anOpcode->param1));
+}
+
+void performWaitkeyOpcode(opcode *anOpcode) { 
+   registers[anOpcode->param1] = cgetc(); 
 }
 
 void performOpcode(opcode *anOpcode) {
 
 #ifdef DEBUG
     gotoxy(0, 24);
-    printf("opc%02x-%02x%02x%02x%02x%02x%02x.%02x", anOpcode->id,
+    printf("opc%02x.%02x%02x%02x%02x%02x%02x>%02x", anOpcode->id,
            anOpcode->param1, anOpcode->param2, anOpcode->param3,
            anOpcode->param4, anOpcode->param5, anOpcode->param6,
            anOpcode->nextOpcode); // DEBUG
 #endif
 
-    if (anOpcode->id == 0x01) {
+    switch (anOpcode->id) {
+    case OPC_NSTAT:
         performDisplayFeelOpcode(anOpcode);
+        break;
+
+    case OPC_DISP:
+        performDisplayTextOpcode(anOpcode);
+        break;
+
+    case OPC_WKEY:
+        performWaitkeyOpcode(anOpcode);
+        break;
+    
+    case OPC_REDRAW:
+        redrawAll();
+        break;
+
+    default:
+        break;
+    }
+
+    if (anOpcode->nextOpcode != OPC_NOP) {
+        performOpcode(opcodeForIndex(anOpcode->nextOpcode));
     }
 }
 
@@ -226,6 +290,7 @@ void dungeonLoop() {
         }
 
         op= opcodeForIndex(currentItem->opcodeID);
+        
         performOpcode(op);
 
         oldX= currentX;
@@ -292,7 +357,10 @@ opcode *opcodeForIndex(byte idx) { return desc->opcodesAdr + idx; }
 char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
 
 void setupDungeonScreen(void) {
+    textcolor(COLOR_BLACK);
     clrscr();
+    bordercolor(BCOLOR_WHITE | CATTR_LUMA3);
+    bgcolor(BCOLOR_WHITE | CATTR_LUMA6);
     textcolor(BCOLOR_BLUEGREEN | CATTR_LUMA1);
     cputcxy(screenX - 1, screenY - 1, 176);             // left upper corner
     cputcxy(screenX + mapWindowSize, 1, 174);           // right upper corner
@@ -311,9 +379,6 @@ void testMap(void) {
     cprintf("**mapdebug**\r\n");
     desc= loadMap("map0");
     cgetc();
-    textcolor(COLOR_BLACK);
-    bordercolor(BCOLOR_WHITE | CATTR_LUMA3);
-    bgcolor(BCOLOR_WHITE | CATTR_LUMA6);
     setupDungeonScreen();
     dungeonLoop();
 }

@@ -21,7 +21,8 @@ class mapEditor():
     kLowerTop = kMapWinHeight+6
     kScrollMargin = 2
 
-    kOpcodes = ["NOP", "NSTAT", "DISP", "WKEY", "YESNO", "IFREG", "IFPOS", "IADD", "ALTER"]
+    kOpcodes = ["NOP", "NSTAT", "DISP", "WKEY", "YESNO", "IFREG", "IFPOS", "IADD", "ALTER",
+                "REDRAW" ]
 
     kDisplayCharacters = ['.',        # 0 : space/floor
                           u"\u25c6",  # 1 : item = diamond

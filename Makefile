@@ -58,7 +58,7 @@ EMUCMD :=
 #PREEMUCMD := osascript -e "tell application \"X11\" to activate"
 #POSTEMUCMD := osascript -e "tell application \"System Events\" to tell process \"X11\" to set visible to false"
 #POSTEMUCMD := osascript -e "tell application \"Terminal\" to activate"
-PREEMUCMD := /bin/bash buildDisc.sh
+PREEMUCMD := /bin/bash tools/buildDisc.sh
 POSTEMUCMD :=
 
 # On Windows machines VICE emulators may not be available in the PATH by default.
