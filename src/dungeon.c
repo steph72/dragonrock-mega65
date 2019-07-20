@@ -1,4 +1,5 @@
 #include "dungeon.h"
+#include "character.h"
 #include "dungeonLoader.h"
 #include "types.h"
 #include <conio.h>
@@ -61,12 +62,192 @@ const byte screenWidth= 40;
 const byte screenX= 2;
 const byte screenY= 2;
 
+// prototypes
+
 opcode *opcodeForIndex(byte idx);
 char *feelForIndex(byte idx);
 void displayFeel(byte idx);
 void redrawAll(void);
 void plotPlayer(byte x, byte y);
 void setupDungeonScreen(void);
+void performOpcodeAtIndex(byte idx);
+void performOpcode(opcode *anOpcode);
+
+// --------------------------------- opcodes ---------------------------------
+
+// 0x01: NSTAT
+void performDisplayFeelOpcode(opcode *anOpcode) {
+    byte feelIndex;
+
+    feelIndex= anOpcode->param1;
+
+    // make sure we display it only once
+    if (feelIndex == lastFeelIndex) {
+        return;
+    }
+
+    displayFeel(anOpcode->param1);
+    lastFeelIndex= feelIndex;
+}
+
+// 0x02: DISP
+void performDisplayTextOpcode(opcode *anOpcode) {
+    byte feelIndex;
+    feelIndex= anOpcode->param1;
+    clrscr();
+    puts(feelForIndex(anOpcode->param1));
+}
+
+// 0x03: WAITKEY
+void performWaitkeyOpcode(opcode *anOpcode) {
+    registers[anOpcode->param1]= cgetc();
+}
+
+// 0x04: YESNO
+void performYesNoOpcode(opcode *anOpcode) {
+    byte inkey;
+    cursor(true);
+    do {
+        inkey= cgetc();
+    } while (inkey != 'y' && inkey != 'n');
+    cursor(false);
+    if (inkey == 'y') {
+        registers[0]= true;
+        performOpcodeAtIndex(anOpcode->param1);
+    } else if (inkey == 'n') {
+        registers[0]= false;
+        performOpcodeAtIndex(anOpcode->param2);
+    }
+}
+
+// 0x05: IFREG
+void performIfregOpcode(opcode *anOpcode) {
+    byte regNr;
+    byte value;
+    regNr= anOpcode->param1;
+    value= anOpcode->param2;
+    if (registers[regNr] == value) {
+        performOpcodeAtIndex(anOpcode->param3);
+    }
+}
+
+// 0x06: IFPOS
+void performIfposOpcode(opcode *anOpcode) {
+    itemT anItemID;
+    byte i;
+    byte found;
+
+    found= 0xff;
+    anItemID= anOpcode->param1;
+
+    for (i= 0; i < PARTYSIZE; ++i) {
+        if (party[i]) {
+            if (hasInventoryItem(party[i], anItemID)) {
+                found= i;
+                break;
+            }
+        }
+    }
+
+    if (found != 0xff) {
+        registers[0]= found;
+        performOpcodeAtIndex(anOpcode->param2);
+    }
+}
+
+// 0x07: ADD
+void performAddOpcode(opcode *anOpcode) {
+    byte charIdx;
+    byte anItemID;
+    byte found;
+
+    anItemID= anOpcode->param1;
+    charIdx= anOpcode->param2;
+    found = false;
+
+    if (charIdx!=0xff) {
+        // choose first character with free inventory space
+        for (charIdx=0;charIdx<PARTYSIZE;++charIdx) {
+            if (party[charIdx]) {
+                if (nextFreeInventorySlot(party[charIdx])) {
+                    found=true;
+                    break;
+                }
+            } 
+        }
+        if (!found) {
+            registers[0] = false; // failure flag
+            return;
+        }
+    }
+
+    if (addInventoryItem(anItemID,party[charIdx])) {
+        registers[0] = true;
+        registers[1] = charIdx;
+        return;
+    }
+
+    registers[0] = false;
+    return;
+
+}
+
+// ---------------------------------
+// general opcode handling functions
+// ---------------------------------
+
+void performOpcodeAtIndex(byte idx) { performOpcode(opcodeForIndex(idx)); }
+
+void performOpcode(opcode *anOpcode) {
+
+#ifdef DEBUG
+    gotoxy(0, 24);
+    printf("opc%02x.%02x%02x%02x%02x%02x%02x>%02x", anOpcode->id,
+           anOpcode->param1, anOpcode->param2, anOpcode->param3,
+           anOpcode->param4, anOpcode->param5, anOpcode->param6,
+           anOpcode->nextOpcode); // DEBUG
+#endif
+
+    switch (anOpcode->id) {
+
+    case OPC_NSTAT:
+        performDisplayFeelOpcode(anOpcode);
+        break;
+
+    case OPC_DISP:
+        performDisplayTextOpcode(anOpcode);
+        break;
+
+    case OPC_WKEY:
+        performWaitkeyOpcode(anOpcode);
+        break;
+
+    case OPC_YESNO:
+        performYesNoOpcode(anOpcode);
+        break;
+
+    case OPC_IFREG:
+        performIfregOpcode(anOpcode);
+        break;
+
+    case OPC_IFPOS:
+        performIfposOpcode(anOpcode);
+        break;
+
+    case OPC_REDRAW:
+        redrawAll();
+        break;
+
+    default:
+        break;
+    }
+
+    if (anOpcode->nextOpcode != OPC_NOP) {
+        performOpcodeAtIndex(anOpcode->nextOpcode);
+    }
+}
+
+// ----------------------------------------------------------------------------
 
 void SetBit(byte *A, int k) {
     byte i= k / 8;
@@ -120,67 +301,6 @@ void displayFeel(byte feelID) {
     }
     gotoxy(0, 20);
     puts(feelForIndex(feelID));
-}
-
-void performDisplayFeelOpcode(opcode *anOpcode) {
-    byte feelIndex;
-
-    feelIndex= anOpcode->param1;
-
-    // make sure we display it only once
-    if (feelIndex == lastFeelIndex) {
-        return;
-    }
-
-    displayFeel(anOpcode->param1);
-    lastFeelIndex= feelIndex;
-}
-
-void performDisplayTextOpcode(opcode *anOpcode) {
-    byte feelIndex;
-    feelIndex= anOpcode->param1;
-    clrscr();
-    puts(feelForIndex(anOpcode->param1));
-}
-
-void performWaitkeyOpcode(opcode *anOpcode) { 
-   registers[anOpcode->param1] = cgetc(); 
-}
-
-void performOpcode(opcode *anOpcode) {
-
-#ifdef DEBUG
-    gotoxy(0, 24);
-    printf("opc%02x.%02x%02x%02x%02x%02x%02x>%02x", anOpcode->id,
-           anOpcode->param1, anOpcode->param2, anOpcode->param3,
-           anOpcode->param4, anOpcode->param5, anOpcode->param6,
-           anOpcode->nextOpcode); // DEBUG
-#endif
-
-    switch (anOpcode->id) {
-    case OPC_NSTAT:
-        performDisplayFeelOpcode(anOpcode);
-        break;
-
-    case OPC_DISP:
-        performDisplayTextOpcode(anOpcode);
-        break;
-
-    case OPC_WKEY:
-        performWaitkeyOpcode(anOpcode);
-        break;
-    
-    case OPC_REDRAW:
-        redrawAll();
-        break;
-
-    default:
-        break;
-    }
-
-    if (anOpcode->nextOpcode != OPC_NOP) {
-        performOpcode(opcodeForIndex(anOpcode->nextOpcode));
-    }
 }
 
 // moves origin and redraws map if player is in scroll area
@@ -290,7 +410,7 @@ void dungeonLoop() {
         }
 
         op= opcodeForIndex(currentItem->opcodeID);
-        
+
         performOpcode(op);
 
         oldX= currentX;

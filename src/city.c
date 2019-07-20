@@ -299,7 +299,7 @@ void newGuildMember(byte city) {
     for (i= 0; i < INV_SIZE; i++) {
         newC->inventory[i]= 0;
     }
-    addInventoryItem(0xff, newC); // add sword for testing
+    addInventoryItem(0xff, newC); // add white orb for testing
     newC->weapon= 0x01;           // add club
     newC->armor= 0x80;            // add robes
     newC->aMaxHP= tempHP;

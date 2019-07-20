@@ -25,7 +25,7 @@ extern char *gCities[NUM_CITIES];
 extern char *gStateDesc[];
 
 extern item gItems[];
-
 extern int gRaceModifiers[NUM_RACES][6];
+
 
 #endif

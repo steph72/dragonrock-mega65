@@ -30,13 +30,32 @@ char *nameOfInventoryItem(item *anItem) {
     return anItem->name;
 }
 
-itemT addInventoryItem(itemT anItemID, character *aCharacter) {
+byte hasInventoryItem(character *aCharacter, itemT anItemID) {
     register byte i;
-    for (i= 0; i < INV_SIZE; i++) {
-        if (!aCharacter->inventory[i]) {
-            aCharacter->inventory[i]= anItemID;
-            return anItemID;
+    for (i=0;i<INV_SIZE;++i) {
+        if (aCharacter->inventory[i] == anItemID) {
+            return true;
         }
+    }
+    return false;
+}
+
+byte nextFreeInventorySlot(character *aCharacter) {
+    register byte i;
+    for (i=0;i<INV_SIZE;++i) {
+        if (!aCharacter->inventory[i]) {
+            return i;
+        }
+    }
+    return 0xff;
+}
+
+itemT addInventoryItem(itemT anItemID, character *aCharacter) {
+    byte i;
+    i = nextFreeInventorySlot(aCharacter);
+    if (i!=0xff) {
+          aCharacter->inventory[i]= anItemID;
+            return anItemID;
     }
     return 0;
 }

@@ -23,10 +23,13 @@ If register *regNr* contains *regValue*, jump to *trueOpcIdx*
 
 ## 0x06 IFPOS <01:itemId> <02:trueOpcIdx>
 If *itemId* is in current party's posession, jump to *trueOpcIdx* 
+Register 0 -> party member who is owner of itemID
 
 ## 0x07 ADD <01:itemId> <02:charIdx>
 Add *itemId* to character *charIdx* inventory
+If *charIdx*==0xff use first free character if posssible
 Register 0 -> true on success, otherwise false
+Register 1 -> party member who took the item
 
 ## 0x08 ALTER <01:xpos> <02:ypos> <03:startOpcodeIdx> <04:dungeonItemID>
 Alter map at coordinates *xpos*,*ypos* to *startOpcodeIdx* and *dungeonItemID*

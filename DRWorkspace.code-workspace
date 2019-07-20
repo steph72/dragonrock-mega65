@@ -16,7 +16,8 @@
 			"device.h": "c",
 			"plus4.h": "c",
 			"cbm264.h": "c",
-			"conio.h": "c"
+			"conio.h": "c",
+			"guild.h": "c"
 		}
 	}
 }
