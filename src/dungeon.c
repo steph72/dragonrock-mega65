@@ -25,7 +25,7 @@
 #define OPC_YESNO 0x04  /* request y or n                     */
 #define OPC_IFREG 0x05  /* if register                        */
 #define OPC_IFPOS 0x06  /* if item in possession              */
-#define OPC_ADD 0x07    /* add item to character's inventory  */
+#define OPC_IADD 0x07   /* add item to character's inventory  */
 #define OPC_ALTER 0x08  /* alter map at coordinates           */
 #define OPC_REDRAW 0x09 /* redraw screen                      */
 /* ---------------------------------------------------------- */
@@ -51,10 +51,6 @@ byte currentX; // current coordinates inside map window
 byte currentY;
 byte offsetX;
 byte offsetY;
-
-// clang-format off
-#pragma codesize(push, 300);
-// clang-format on
 
 const byte mapWindowSize= 15;
 const byte scrollMargin= 2;
@@ -128,6 +124,8 @@ void performIfregOpcode(opcode *anOpcode) {
     value= anOpcode->param2;
     if (registers[regNr] == value) {
         performOpcodeAtIndex(anOpcode->param3);
+    } else {
+        performOpcodeAtIndex(anOpcode->param4);
     }
 }
 
@@ -152,51 +150,61 @@ void performIfposOpcode(opcode *anOpcode) {
     if (found != 0xff) {
         registers[0]= found;
         performOpcodeAtIndex(anOpcode->param2);
+    } else {
+        performOpcodeAtIndex(anOpcode->param3);
     }
 }
 
-// 0x07: ADD
-void performAddOpcode(opcode *anOpcode) {
+// 0x07: IADD
+void performIAddOpcode(opcode *anOpcode) {
     byte charIdx;
     byte anItemID;
     byte found;
 
     anItemID= anOpcode->param1;
     charIdx= anOpcode->param2;
-    found = false;
+    found= false;
 
-    if (charIdx!=0xff) {
+    if (charIdx == 0xff) {
         // choose first character with free inventory space
-        for (charIdx=0;charIdx<PARTYSIZE;++charIdx) {
+        for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
             if (party[charIdx]) {
                 if (nextFreeInventorySlot(party[charIdx])) {
-                    found=true;
+                    found= true;
                     break;
                 }
-            } 
+            }
         }
         if (!found) {
-            registers[0] = false; // failure flag
+            registers[0]= false; // failure flag
             return;
         }
     }
 
-    if (addInventoryItem(anItemID,party[charIdx])) {
-        registers[0] = true;
-        registers[1] = charIdx;
+    if (addInventoryItem(anItemID, party[charIdx])) {
+        registers[0]= true;
+        registers[1]= charIdx;
         return;
     }
 
-    registers[0] = false;
+    registers[0]= false;
     return;
-
 }
 
 // ---------------------------------
 // general opcode handling functions
 // ---------------------------------
 
-void performOpcodeAtIndex(byte idx) { performOpcode(opcodeForIndex(idx)); }
+void performOpcodeAtIndex(byte idx) {
+
+    /*     if ((opcodeForIndex(idx)->id)>1) {
+          gotoxy(0,0);
+          cprintf("-- i%d:%d --",idx,opcodeForIndex(idx)->id); cgetc();
+      }
+      */
+
+    performOpcode(opcodeForIndex(idx));
+}
 
 void performOpcode(opcode *anOpcode) {
 
@@ -232,6 +240,10 @@ void performOpcode(opcode *anOpcode) {
 
     case OPC_IFPOS:
         performIfposOpcode(anOpcode);
+        break;
+
+    case OPC_IADD:
+        performIAddOpcode(anOpcode);
         break;
 
     case OPC_REDRAW:
@@ -338,6 +350,10 @@ void ensureSaneOffset() {
         }
     }
 }
+
+// clang-format off
+#pragma codesize(push, 300);
+// clang-format on
 
 void dungeonLoop() {
 

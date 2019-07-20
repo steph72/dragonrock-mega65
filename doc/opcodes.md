@@ -18,14 +18,14 @@ Register 0 -> true on 'yes', otherwise false.
 if *y* and *trueOpcIdx*!=0 -> jump to *trueOpcIdx*
 if *n* and *falseOpcIdx*!=0 -> jump to *falseOpcodeIdx*
 
-## 0x05 IFREG <01:regNr> <02:regValue> <03:trueOpcIdx>
-If register *regNr* contains *regValue*, jump to *trueOpcIdx*
+## 0x05 IFREG <01:regNr> <02:regValue> <03:trueOpcIdx> <04:falseOpcodeIdx>
+If register *regNr* contains *regValue*, perform *trueOpcIdx*, else *falseOpcIdx*
 
-## 0x06 IFPOS <01:itemId> <02:trueOpcIdx>
-If *itemId* is in current party's posession, jump to *trueOpcIdx* 
+## 0x06 IFPOS <01:itemId> <02:trueOpcIdx> <02:falseOpcIdx>
+If *itemId* is in current party's posession, perform *trueOpcIdx*, else *falseOpcIdx* 
 Register 0 -> party member who is owner of itemID
 
-## 0x07 ADD <01:itemId> <02:charIdx>
+## 0x07 IADD <01:itemId> <02:charIdx>
 Add *itemId* to character *charIdx* inventory
 If *charIdx*==0xff use first free character if posssible
 Register 0 -> true on success, otherwise false

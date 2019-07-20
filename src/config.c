@@ -51,7 +51,7 @@ item gItems[]= {
     {0x80, "Robe", it_armor, 0, 1, 1},
 
     // --- special ---
-
-    {0xff, "White Orb", it_special, 0, 0, 65535ul}
+    {0xf0, "Rusty Key", it_special, 0 , 65535u},
+    {0xff, "White Orb", it_special, 0, 0, 65535u}
 
 };
