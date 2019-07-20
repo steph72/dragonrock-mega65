@@ -169,11 +169,11 @@ void performIAddOpcode(opcode *anOpcode) {
         // choose first character with free inventory space
         for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
             if (party[charIdx]) {
-                if (nextFreeInventorySlot(party[charIdx])) {
+                if (nextFreeInventorySlot(party[charIdx])!=0xff) {
                     found= true;
                     break;
                 }
-            }
+            } 
         }
         if (!found) {
             registers[0]= false; // failure flag
