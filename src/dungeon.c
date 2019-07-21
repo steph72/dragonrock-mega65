@@ -89,14 +89,20 @@ void performDisplayFeelOpcode(opcode *anOpcode) {
 // 0x02: DISP
 void performDisplayTextOpcode(opcode *anOpcode) {
     byte feelIndex;
+    if (anOpcode->param1==0) {
+        return;
+    }
     feelIndex= anOpcode->param1;
-    clrscr();
+    if (anOpcode->param2!=0) {
+        clrscr();
+    }
     puts(feelForIndex(anOpcode->param1));
 }
 
 // 0x03: WAITKEY
 void performWaitkeyOpcode(opcode *anOpcode) {
-    registers[anOpcode->param1]= cgetc();
+    performDisplayTextOpcode(anOpcode);
+    registers[anOpcode->param3]= cgetc();
 }
 
 // 0x04: YESNO
@@ -169,14 +175,15 @@ void performIAddOpcode(opcode *anOpcode) {
         // choose first character with free inventory space
         for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
             if (party[charIdx]) {
-                if (nextFreeInventorySlot(party[charIdx])!=0xff) {
+                if (nextFreeInventorySlot(party[charIdx]) != 0xff) {
                     found= true;
                     break;
                 }
-            } 
+            }
         }
         if (!found) {
             registers[0]= false; // failure flag
+            performOpcodeAtIndex(anOpcode->param4);
             return;
         }
     }
@@ -184,10 +191,12 @@ void performIAddOpcode(opcode *anOpcode) {
     if (addInventoryItem(anItemID, party[charIdx])) {
         registers[0]= true;
         registers[1]= charIdx;
+        performOpcodeAtIndex(anOpcode->param3);
         return;
     }
 
     registers[0]= false;
+    performOpcodeAtIndex(anOpcode->param4);
     return;
 }
 
@@ -196,6 +205,9 @@ void performIAddOpcode(opcode *anOpcode) {
 // ---------------------------------
 
 void performOpcodeAtIndex(byte idx) {
+
+    if (idx == 0)
+        return;
 
     /*     if ((opcodeForIndex(idx)->id)>1) {
           gotoxy(0,0);

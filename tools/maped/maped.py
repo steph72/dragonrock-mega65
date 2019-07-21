@@ -83,18 +83,18 @@ class mapEditor():
     def stringForRoutinesEntry(self, entry):
         opc = entry[0]
         mnemo = self.kOpcodes[opc]
-        if (opc == 1 or opc == 2):
+        if (opc == 1 or opc == 2 or opc==3):
             mnemo += " "+str(entry[1])
             f = self.feels[entry[1]].replace("\n", "")
-            if len(f) > 40:
-                f = f[0:40]+"..."
+            if len(f) > 16:
+                f = f[0:16]+"..."
             mnemo += " ["+f+"]"
         if (opc == 4): # YESNO
             mnemo += " [Y:"+str(entry[1])+"] [N:"+str(entry[2])+"]"
         if (opc == 5): # IFREG
             mnemo += " [R"+str(entry[1])+"="+str(entry[2])+": "+str(entry[3])+"] [!:"+str(entry[4])+"]"
         if (opc == 7): # IADD
-            mnemo += " [I:"+str(entry[1])+"->C:"+str(entry[2])+"]"
+            mnemo += " [I:"+str(entry[1])+"->C:"+str(entry[2])+"] [Y:"+str(entry[3])+"] [N:"+str(entry[4])+"]"
         lnk = entry[7]
         if (lnk != 0):
             mnemo += "-> "+str(lnk)
@@ -111,7 +111,7 @@ class mapEditor():
                 tempList.append(opcode[1])
             if (opcode[2]!=0):
                 tempList.append(opcode[2])
-        if (opcode[0]==5): # IFREG
+        if (opcode[0]==5 or opcode[0]==7): # IFREG, IADD
             if (opcode[3]!=0):
                 tempList.append(opcode[3])
             if (opcode[4]!=0):

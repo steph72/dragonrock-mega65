@@ -6,11 +6,11 @@ No operation
 ## 0x01 NSTAT <01:msgID>
 Change current status message to *msgID*
 
-## 0x02 DISP <01:msgID> <02:winColor>
-Display *msgID* in a window.
+## 0x02 DISP <01:msgID> <02:clrFlag>
+Display *msgID*
 
-## 0x03 WKEY <01:regNr>
-Wait for keypress. Stores pressed key in *regNr*
+## 0x03 WKEY <01:msgID> <02:clrFlag> <03:regNr> 
+Wait for keypress and display msgID. Stores pressed key in *regNr*
 
 ## 0x04 YESNO <01:trueOpcIdx> <02:falseOpcodeIdx>
 Wait for 'y' or 'n' keypress
@@ -25,9 +25,10 @@ If register *regNr* contains *regValue*, perform *trueOpcIdx*, else *falseOpcIdx
 If *itemId* is in current party's posession, perform *trueOpcIdx*, else *falseOpcIdx* 
 Register 0 -> party member who is owner of itemID
 
-## 0x07 IADD <01:itemId> <02:charIdx>
+## 0x07 IADD <01:itemId> <02:charIdx> <03:successOpcIdx> <04:failureOpcIdx>
 Add *itemId* to character *charIdx* inventory
 If *charIdx*==0xff use first free character if posssible
+On success, performs <successOpcIdx>; otherwise <failureOpcIdx>
 Register 0 -> true on success, otherwise false
 Register 1 -> party member who took the item
 

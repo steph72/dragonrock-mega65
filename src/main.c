@@ -79,6 +79,9 @@ int main() {
 
     currentCity= 0;
 
+    loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
+    testMap();
+
     do {
         choice= cgetc();
     } while (strchr("12d", choice) == NULL);
