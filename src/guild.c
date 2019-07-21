@@ -1,16 +1,16 @@
 
 #include <cbm.h>
 #include <conio.h>
+#include <plus4.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <plus4.h>
 
 #include "config.h"
 #include "congui.h"
 #include "guild.h"
-#include "types.h"
 #include "guildLoader.h"
+#include "types.h"
 
 extern character *guild;
 extern character *party[];
@@ -44,28 +44,11 @@ void _listGuildMembers(void) {
 }
 
 void listGuildMembers(void) {
-    cg_titlec(BCOLOR_CYAN|CATTR_LUMA3, BCOLOR_LEMON|CATTR_LUMA5, 0, "Guild Members");
+    cg_titlec(BCOLOR_CYAN | CATTR_LUMA3, BCOLOR_LEMON | CATTR_LUMA5, 0,
+              "Guild Members");
     _listGuildMembers();
     cputsxy(0, 23, "-- key --");
     cgetc();
-}
-
-void showCurrentParty(void) {
-    static byte i, y;
-    static character *c;
-    gotoxy(0, 2);
-    y= 2;
-    for (i= 0; i < PARTYSIZE; i++) {
-        if (party[i]) {
-            c= party[i];
-            ++y;
-            gotoxy(0, y);
-            cprintf("%d %s", i + 1, c->name);
-            cputsxy(20, y, gRacesS[c->aRace]);
-            cputsxy(24, y, gClassesS[c->aClass]);
-            cputsxy(34, y, gStateDesc[c->status]);
-        }
-    }
 }
 
 void flagError(char *e) {

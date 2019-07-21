@@ -288,11 +288,13 @@ dungeonItem *dungeonItemAtPos(byte x, byte y) {
     return desc->dungeon + x + (y * desc->dungeonMapWidth);
 }
 
+
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void redrawAll() {
     setupDungeonScreen();
     redrawMap();
+    showCurrentParty(true);
     plotPlayer(currentX, currentY);
     if (lastFeelIndex != 0) {
         displayFeel(lastFeelIndex);
@@ -527,7 +529,7 @@ void testMap(void) {
     cprintf("**mapdebug**\r\n");
     desc= loadMap("map0");
     cgetc();
-    setupDungeonScreen();
+    redrawAll();
     dungeonLoop();
 }
 

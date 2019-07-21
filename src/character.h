@@ -15,4 +15,7 @@ byte nextFreeInventorySlot(character *aCharacter);
 signed char bonusValueForAttribute(attrT a);
 char* bonusStrForAttribute(attrT a);
 
+void showCurrentParty(char small);
+
+
 #endif

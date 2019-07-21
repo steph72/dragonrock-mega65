@@ -92,7 +92,7 @@ void runGuildMenu(void) {
     while (!quitGuild) {
         cg_titlec(BCOLOR_BROWN | CATTR_LUMA4, BCOLOR_GREEN | CATTR_LUMA5, 1,
                   outbuf);
-        showCurrentParty();
+        showCurrentParty(false);
         gotoxy(0, 14);
         puts(menu);
         cputsxy(2, 22, "Command:");
@@ -154,7 +154,7 @@ void runCityMenu(void) {
         sprintf(outbuf, "%s (%d)", gCities[currentCity], currentCity + 1);
         cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 1,
                   outbuf);
-        showCurrentParty();
+        showCurrentParty(false);
         gotoxy(0, 14);
         puts(menu);
         cputsxy(8, 21, "Command:");

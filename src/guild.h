@@ -9,7 +9,6 @@ void listGuildMembers(void);
 void purgeGuildMember(void);
 void addToParty(void);
 void dropFromParty(void);
-void showCurrentParty(void);
 
 byte isInParty(byte guildIdx);
 

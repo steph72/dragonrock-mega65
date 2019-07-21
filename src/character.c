@@ -1,3 +1,4 @@
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,8 @@
 
 #include "config.h"
 #include "types.h"
+
+extern char outbuf[80];
 
 item *inventoryItemForID(itemT anItemID) {
     register byte i;
@@ -32,7 +35,7 @@ char *nameOfInventoryItem(item *anItem) {
 
 byte hasInventoryItem(character *aCharacter, itemT anItemID) {
     register byte i;
-    for (i=0;i<INV_SIZE;++i) {
+    for (i= 0; i < INV_SIZE; ++i) {
         if (aCharacter->inventory[i] == anItemID) {
             return true;
         }
@@ -42,7 +45,7 @@ byte hasInventoryItem(character *aCharacter, itemT anItemID) {
 
 byte nextFreeInventorySlot(character *aCharacter) {
     register byte i;
-    for (i=0;i<INV_SIZE;++i) {
+    for (i= 0; i < INV_SIZE; ++i) {
         if (!aCharacter->inventory[i]) {
             return i;
         }
@@ -52,10 +55,10 @@ byte nextFreeInventorySlot(character *aCharacter) {
 
 itemT addInventoryItem(itemT anItemID, character *aCharacter) {
     byte i;
-    i = nextFreeInventorySlot(aCharacter);
-    if (i!=0xff) {
-          aCharacter->inventory[i]= anItemID;
-            return anItemID;
+    i= nextFreeInventorySlot(aCharacter);
+    if (i != 0xff) {
+        aCharacter->inventory[i]= anItemID;
+        return anItemID;
     }
     return 0;
 }
@@ -72,4 +75,37 @@ char *bonusStrForAttribute(attrT a) {
         sprintf(ret, "(%d)", b);
     }
     return ret;
+}
+
+void showCurrentParty(byte small) {
+    static byte i, x, y;
+    static character *c;
+
+    y= 2;
+
+    if (small) {
+        x= 19;
+    } else {
+        x= 0;
+    }
+
+    for (i= 0; i < PARTYSIZE; i++) {
+        if (party[i]) {
+            c= party[i];
+            ++y;
+            gotoxy(x, y);
+            if (small) {
+                *outbuf= 0;
+                strncat(outbuf, c->name, 12);
+                cprintf("%d %s", i + 1, outbuf);
+            } else {
+                cprintf("%d %s", i + 1, c->name);
+            }
+            if (!small) {
+                cputsxy(20, y, gRacesS[c->aRace]);
+                cputsxy(24, y, gClassesS[c->aClass]);
+            }
+            cputsxy(34, y, gStateDesc[c->status]);
+        }
+    }
 }
