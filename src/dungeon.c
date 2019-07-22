@@ -43,9 +43,10 @@ char signs[]= {
 };
 
 dungeonDescriptor *desc;
-
 byte lastFeelIndex;
 byte registers[16];
+
+#define R_PASS 15
 
 byte currentX; // current coordinates inside map window
 byte currentY;
@@ -89,11 +90,11 @@ void performDisplayFeelOpcode(opcode *anOpcode) {
 // 0x02: DISP
 void performDisplayTextOpcode(opcode *anOpcode) {
     byte feelIndex;
-    if (anOpcode->param1==0) {
+    if (anOpcode->param1 == 0) {
         return;
     }
     feelIndex= anOpcode->param1;
-    if (anOpcode->param2!=0) {
+    if (anOpcode->param2 != 0) {
         clrscr();
     }
     puts(feelForIndex(anOpcode->param1));
@@ -153,8 +154,9 @@ void performIfposOpcode(opcode *anOpcode) {
         }
     }
 
+    registers[anOpcode->param4]= found;
+
     if (found != 0xff) {
-        registers[0]= found;
         performOpcodeAtIndex(anOpcode->param2);
     } else {
         performOpcodeAtIndex(anOpcode->param3);
@@ -220,12 +222,17 @@ void performOpcodeAtIndex(byte idx) {
 
 void performOpcode(opcode *anOpcode) {
 
+    byte xs, ys; // x,y save
+
 #ifdef DEBUG
+    xs= wherex();
+    ys= wherey();
     gotoxy(0, 24);
     printf("opc%02x.%02x%02x%02x%02x%02x%02x>%02x", anOpcode->id,
            anOpcode->param1, anOpcode->param2, anOpcode->param3,
            anOpcode->param4, anOpcode->param5, anOpcode->param6,
            anOpcode->nextOpcode); // DEBUG
+    gotoxy(xs, ys);
 #endif
 
     switch (anOpcode->id) {
@@ -287,7 +294,6 @@ void SetBit(byte *A, int k) {
 dungeonItem *dungeonItemAtPos(byte x, byte y) {
     return desc->dungeon + x + (y * desc->dungeonMapWidth);
 }
-
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
@@ -374,6 +380,8 @@ void dungeonLoop() {
     int mposX; // current coords inside map
     int mposY;
 
+    byte xs, ys; // save x,y
+
     opcode *op; // current opcode
 
     byte oldX, oldY;
@@ -440,7 +448,6 @@ void dungeonLoop() {
         }
 
         op= opcodeForIndex(currentItem->opcodeID);
-
         performOpcode(op);
 
         oldX= currentX;
@@ -486,17 +493,24 @@ void dungeonLoop() {
             // what is here?
             dItem= dungeonItemAtPos(mposX, mposY);
 #ifdef DEBUG
+            xs= wherex();
+            ys= wherey();
             gotoxy(27, 24);
             printf("%2d,%2d: %02x %02x", mposX, mposY, dItem->opcodeID,
-                   dItem->mapItem); // DEBUG
+                   dItem->mapItem);
+            gotoxy(xs, ys);
 #endif
             if (dItem->mapItem & 32) { // check impassable flag
-                // can't go there
-                currentX= oldX;
-                currentY= oldY;
-                // but perform opcode if anything's there
+                // can't go there: reset pass register...
+                registers[R_PASS]= 255;
+                // ...perform opcode...
                 op= opcodeForIndex(dItem->opcodeID);
                 performOpcode(op);
+                // ...and check 'pass' register
+                if (registers[R_PASS] == 255) {
+                    currentX= oldX;
+                    currentY= oldY;
+                }
             }
         }
     } while (!quit);

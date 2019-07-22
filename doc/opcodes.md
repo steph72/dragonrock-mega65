@@ -21,9 +21,9 @@ if *n* and *falseOpcIdx*!=0 -> jump to *falseOpcodeIdx*
 ## 0x05 IFREG <01:regNr> <02:regValue> <03:trueOpcIdx> <04:falseOpcodeIdx>
 If register *regNr* contains *regValue*, perform *trueOpcIdx*, else *falseOpcIdx*
 
-## 0x06 IFPOS <01:itemId> <02:trueOpcIdx> <02:falseOpcIdx>
+## 0x06 IFPOS <01:itemId> <02:trueOpcIdx> <02:falseOpcIdx> <03:resultReg> 
 If *itemId* is in current party's posession, perform *trueOpcIdx*, else *falseOpcIdx* 
-Register 0 -> party member who is owner of itemID
+Register #resultReg -> party member who is owner of itemID or 255 for not found
 
 ## 0x07 IADD <01:itemId> <02:charIdx> <03:successOpcIdx> <04:failureOpcIdx>
 Add *itemId* to character *charIdx* inventory

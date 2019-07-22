@@ -79,9 +79,6 @@ int main() {
 
     currentCity= 0;
 
-    loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
-    testMap();
-
     do {
         choice= cgetc();
     } while (strchr("12d", choice) == NULL);
@@ -115,7 +112,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     (void)addr;
     (void)size;
 #ifdef DEBUG
-    cprintf("\r\nloading ov %s, size $%x at $%x", name, size, addr);
+    cprintf("\r\nloading ov %s\r\nsize $%x at $%x...", name, size, addr);
 #endif
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");
