@@ -35,11 +35,12 @@
 // clang-format on
 
 char signs[]= {
-    0x60, // empty space
-    123,  // diamond
-    0x5d, // vertical door<i
-    0x40, // horizontal door
-    102   // filled space
+    0x60,  // empty space
+    0x61,  // diamond
+    0x62,  // vertical door
+    0x63,  // horizontal door
+    0x64,  // filled space
+    0x65   // coat of arms
 };
 
 dungeonDescriptor *desc;
@@ -335,7 +336,7 @@ void plotPlayer(byte x, byte y) {
 
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
     screenPtr+= x + (y * screenWidth);
-    *screenPtr= 0;
+    *screenPtr= 0x65;
 }
 
 void displayFeel(byte feelID) {
