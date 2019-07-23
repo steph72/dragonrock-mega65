@@ -14,7 +14,7 @@ byte numOpcs;
 byte *mapdata;
 byte linebuf[BUFSIZE];
 
-#pragma code-name (push, "OVERLAY1");
+#pragma code-name(push, "OVERLAY1");
 
 byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc);
 
@@ -24,6 +24,10 @@ dungeonDescriptor *loadMap(char *filename) {
 
     byte *currentDungeonPtr;
     byte *feelsPtr;
+
+#ifdef DEBUG
+    byte *debugPtr;
+#endif
 
     byte bytesRead;
 
@@ -139,6 +143,12 @@ dungeonDescriptor *loadMap(char *filename) {
 
     fclose(infile);
 
+#ifdef DEBUG
+    debugPtr= (byte *)malloc(8);
+    printf("dungeon: %x-%x (size %x)\n",(int)desc,(int)debugPtr,(int)debugPtr-(int)desc);
+    free(debugPtr);
+#endif
+
     return desc;
 }
 
@@ -173,4 +183,4 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     return currentPtr;
 }
 
-#pragma code-name (pop);
+#pragma code-name(pop);

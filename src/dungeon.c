@@ -62,7 +62,9 @@ const byte screenY= 2;
 // prototypes
 
 opcode *opcodeForIndex(byte idx);
+dungeonItem *dungeonItemAtPos(byte x, byte y);
 char *feelForIndex(byte idx);
+
 void displayFeel(byte idx);
 void redrawAll(void);
 void plotPlayer(byte x, byte y);
@@ -202,6 +204,14 @@ void performIAddOpcode(opcode *anOpcode) {
     return;
 }
 
+// 0x08: ALTER
+void performAlterOpcode(opcode *anOpcode) {
+    dungeonItem *dItem;
+    dItem = dungeonItemAtPos(anOpcode->param1,anOpcode->param2);
+    dItem->mapItem = anOpcode->param3;
+    dItem->opcodeID = anOpcode->param4;
+}
+
 // ---------------------------------
 // general opcode handling functions
 // ---------------------------------
@@ -263,6 +273,10 @@ void performOpcode(opcode *anOpcode) {
 
     case OPC_IADD:
         performIAddOpcode(anOpcode);
+        break;
+
+    case OPC_ALTER:
+        performAlterOpcode(anOpcode);
         break;
 
     case OPC_REDRAW:
@@ -380,11 +394,9 @@ void dungeonLoop() {
     int mposX; // current coords inside map
     int mposY;
 
-    byte xs, ys; // save x,y
+    byte xs, ys; // save x,y for debugging
 
-    opcode *op; // current opcode
-
-    byte oldX, oldY;
+    byte oldX, oldY; // save x,y for impassable
 
     byte cmd;
     byte quit;
@@ -447,8 +459,7 @@ void dungeonLoop() {
             }
         }
 
-        op= opcodeForIndex(currentItem->opcodeID);
-        performOpcode(op);
+        performOpcodeAtIndex(currentItem->opcodeID);
 
         oldX= currentX;
         oldY= currentY;
@@ -504,8 +515,7 @@ void dungeonLoop() {
                 // can't go there: reset pass register...
                 registers[R_PASS]= 255;
                 // ...perform opcode...
-                op= opcodeForIndex(dItem->opcodeID);
-                performOpcode(op);
+                performOpcodeAtIndex(dItem->opcodeID);
                 // ...and check 'pass' register
                 if (registers[R_PASS] == 255) {
                     currentX= oldX;

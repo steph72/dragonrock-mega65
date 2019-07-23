@@ -56,6 +56,7 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
+    cprintf("outbuf at $%x\r\n",outbuf);
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
     if (!hasLoadedGame) {       // since initGuild() is in city overlay

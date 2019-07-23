@@ -385,10 +385,11 @@ class mapEditor():
         self.stdscr.clrtoeol()
         self.stdscr.addstr(self.kLowerTop, 0, self.feelForElement(e))
         self.stdscr.move(1, 0)
+        self.stdscr.addstr("dItem: #"+str(self.mapElementByte(e))+", ")
         self.stdscr.addstr("opcode: #"+str(e.startOpcodeIndex)+" [")
         for i in self.routines[e.startOpcodeIndex]:
             self.stdscr.addstr(" "+str(i))
-        self.stdscr.addstr(" ]")
+        self.stdscr.addstr(" ]   ")
 
     def checkScrollMap(self):
         if self.cursorX > self.kMapWinWidth-self.kScrollMargin:
@@ -469,6 +470,16 @@ class mapEditor():
             bytes = bytearray(i)
             arr.extend(bytes)
         return arr
+    
+    def mapElementByte(self,currentMapElem):
+        mID = currentMapElem.mapElementID
+        outbyte1 = currentMapElem.mapElementID
+        if currentMapElem.initiallyVisible:
+            outbyte1 = outbyte1 | 128
+        if currentMapElem.impassable:
+            outbyte1 = outbyte1 | 32
+        return outbyte1
+
 
     def mapBytes(self):
         mapbytes = bytearray()
@@ -479,12 +490,7 @@ class mapEditor():
         for y in range(self.mapHeight):
             for x in range(self.mapWidth):
                 currentMapElem = self.map[x][y]
-                mID = currentMapElem.mapElementID
-                outbyte1 = currentMapElem.mapElementID
-                if currentMapElem.initiallyVisible:
-                    outbyte1 = outbyte1 | 128
-                if currentMapElem.impassable:
-                    outbyte1 = outbyte1 | 32
+                outbyte1=self.mapElementByte(currentMapElem)
                 outbyte2 = currentMapElem.startOpcodeIndex
                 mapbytes.append(outbyte1)
                 mapbytes.append(outbyte2)

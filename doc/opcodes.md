@@ -32,7 +32,7 @@ On success, performs <successOpcIdx>; otherwise <failureOpcIdx>
 Register 0 -> true on success, otherwise false
 Register 1 -> party member who took the item
 
-## 0x08 ALTER <01:xpos> <02:ypos> <03:startOpcodeIdx> <04:dungeonItemID>
+## 0x08 ALTER <01:xpos> <02:ypos> <03:dungeonItemID> <04:startOpcodeIDx>
 Alter map at coordinates *xpos*,*ypos* to *startOpcodeIdx* and *dungeonItemID*
 
 ## 0x09 REDRAW
