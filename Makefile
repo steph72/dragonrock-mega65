@@ -27,7 +27,7 @@ CONFIG  :=
 
 # Additional C compiler flags and options.
 # Default: none
-CFLAGS  =
+CFLAGS  = -DDEBUG -DGODMODE
 
 # Additional assembler flags and options.
 # Default: none
@@ -80,8 +80,6 @@ STATEFILE := Makefile.options
 ### Predefined compiler, assembler and linker flags, used with abstract options ###
 ### valid for 2.14.x. Consult the documentation of your cc65 version before use ###
 ###################################################################################
-
-CFLAGS += -DDEBUG
 
 # Compiler flags used to tell the compiler to optimise for SPEED
 define _optspeed_

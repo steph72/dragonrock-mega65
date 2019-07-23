@@ -26,11 +26,14 @@
 #include <cbm.h>
 #include <device.h>
 
+#include "charset.h"
+
 #include "config.h"
 #include "congui.h"
 #include "dungeon.h"
 #include "guildLoader.h"
 #include "types.h"
+
 
 #define debug 1
 
@@ -45,6 +48,8 @@ void initEngine(void);
 void runCityMenu(void);
 void runGuildMenu(void);
 void loadSaved(void);
+void installCharset(void);
+
 unsigned char loadfile(char *name, void *addr, void *size);
 
 void initEngine(void) {
@@ -56,7 +61,8 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
-    cprintf("outbuf at $%x\r\n",outbuf);
+    cprintf("outbuf at $%x\r\n", outbuf);
+    copychars();
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
     if (!hasLoadedGame) {       // since initGuild() is in city overlay
@@ -106,6 +112,13 @@ int main() {
     runCityMenu();
 
     return 0;
+}
+
+void installCharset() {
+    byte *tedCharSrc= (byte *)0xff12;
+    byte *tedCharAdr= (byte *)0xff13;
+    *tedCharSrc= (*tedCharSrc) & 251;
+    *tedCharAdr= 0xf0;
 }
 
 unsigned char loadfile(char *name, void *addr, void *size) {
