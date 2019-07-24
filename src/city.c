@@ -24,57 +24,6 @@ const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
 
-void inspectCharacter(byte idx);
-
-void inspectCharacter(byte idx) {
-    character *ic;
-    byte i;
-    if (party[idx] == NULL) {
-        return;
-    }
-    ic= party[idx];
-    clrscr();
-    revers(1);
-    cputs(ic->name);
-    revers(0);
-    printf(" (%s, %s)\n", gRaces[ic->aRace], gClasses[ic->aClass]);
-    for (i= 0; i < strlen(ic->name); ++i) {
-        cputc('=');
-    }
-    puts("\n");
-    for (i= 0; i < NUM_ATTRS; i++) {
-        cputsxy(0, i + 3, gAttributesS[i]);
-        cputsxy(3, i + 3, ":");
-        gotoxy(5, i + 3);
-        cprintf("%2d %s", ic->attributes[i],
-                bonusStrForAttribute(ic->attributes[i]));
-    }
-    gotoxy(0, i + 4);
-    printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);
-    printf(" MP: %d/%d\n", ic->aMP, ic->aMaxMP);
-    gotoxy(16, 3);
-    printf("   Age: %d", ic->age);
-    gotoxy(16, 4);
-    printf(" Level: %d", ic->level);
-    gotoxy(16, 5);
-    printf("    XP: %d", ic->xp);
-    gotoxy(16, 6);
-    printf(" Coins: %d", ic->gold);
-    gotoxy(16, 8);
-    printf("Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
-    gotoxy(16, 9);
-    printf(" Armor: %s", nameOfInventoryItemWithID(ic->armor));
-    gotoxy(16, 10);
-    printf("Shield: %s", nameOfInventoryItemWithID(ic->shield));
-    gotoxy(0, 13);
-    printf("Inventory:\n");
-    for (i= 0; i < INV_SIZE; i++) {
-        gotoxy(20 * (i / (INV_SIZE / 2)), 15 + (i % (INV_SIZE / 2)));
-        printf("%c : %s", 'A' + i, nameOfInventoryItemWithID(ic->inventory[i]));
-    }
-    cgetc();
-}
-
 void runGuildMenu(void) {
     const char menu[]= "  L)ist guild members  T)raining\n"
                        "  N)ew guild member    S)pells\n"

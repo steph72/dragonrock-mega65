@@ -16,6 +16,7 @@ signed char bonusValueForAttribute(attrT a);
 char* bonusStrForAttribute(attrT a);
 
 void showCurrentParty(char small);
+void inspectCharacter(byte idx);
 
 
 #endif

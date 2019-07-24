@@ -63,7 +63,6 @@ void initEngine(void) {
     puts(prompt);
     cprintf("outbuf at $%x\r\n", outbuf);
     copychars();
-    cgetc();
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
     if (!hasLoadedGame) {       // since initGuild() is in city overlay

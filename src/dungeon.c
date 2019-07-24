@@ -35,12 +35,12 @@
 // clang-format on
 
 char signs[]= {
-    0x60,  // empty space
-    0x61,  // diamond
-    0x62,  // vertical door
-    0x63,  // horizontal door
-    0x64,  // filled space
-    0x65   // coat of arms
+    0x60, // empty space
+    0x61, // diamond
+    0x62, // vertical door
+    0x63, // horizontal door
+    0x64, // filled space
+    0x65  // coat of arms
 };
 
 dungeonDescriptor *desc;
@@ -196,6 +196,10 @@ void performIAddOpcode(opcode *anOpcode) {
     if (addInventoryItem(anItemID, party[charIdx])) {
         registers[0]= true;
         registers[1]= charIdx;
+        if (anOpcode->param5) {
+            cprintf("%s takes %s\r\n", party[charIdx]->name,
+                    nameOfInventoryItemWithID(anItemID));
+        }
         performOpcodeAtIndex(anOpcode->param3);
         return;
     }
@@ -208,9 +212,9 @@ void performIAddOpcode(opcode *anOpcode) {
 // 0x08: ALTER
 void performAlterOpcode(opcode *anOpcode) {
     dungeonItem *dItem;
-    dItem = dungeonItemAtPos(anOpcode->param1,anOpcode->param2);
-    dItem->mapItem = anOpcode->param3;
-    dItem->opcodeID = anOpcode->param4;
+    dItem= dungeonItemAtPos(anOpcode->param1, anOpcode->param2);
+    dItem->mapItem= anOpcode->param3;
+    dItem->opcodeID= anOpcode->param4;
 }
 
 // ---------------------------------
@@ -466,6 +470,11 @@ void dungeonLoop() {
         oldY= currentY;
 
         cmd= cgetc();
+
+        if (cmd >= '1' && cmd <= '6') {
+            inspectCharacter(cmd - '1');
+            redrawAll();
+        }
 
         switch (cmd) {
 

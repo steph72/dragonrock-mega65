@@ -67,19 +67,6 @@ _copychars:
     lda #$f4
     sta tedctl2
 
-    ldx #<3072
-    ldy #>3072
-    stx ptr1
-    sty ptr1+1
-
-    ldy #00
-test:
-    tya
-    sta (ptr1),y
-    iny
-    bne test
-
-
 ; restore context from stack
 
     pla
