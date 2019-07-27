@@ -1,0 +1,31 @@
+
+; library (and test/debug dungeon)
+; sk, july 2019
+
+$ msgFoo, "Foo"
+$ msgBar, "Bar"
+
+includemap "testmap.drm"
+
+doEntrance:
+    IFPOS blubb, blah, doSomething
+    doSomething:
+    WKEY
+
+doCupboard:
+
+doStoreroomDoor:
+
+; ----------------------------- messages ---------------------------------
+
+; ----------------------------------- < screen width = 37 characters
+
+$ msgEntance, """
+This is the entrance. Do you want to
+leave the library?"""
+
+$ msgCupboard1, """
+There is a rusty key on this 
+cupboard. Take it? (y/n)"""
+
+$ msgCupboard2, "There is an empty cupboard here."

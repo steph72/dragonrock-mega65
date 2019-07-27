@@ -34,8 +34,12 @@
 #include "guildLoader.h"
 #include "types.h"
 
-
-#define debug 1
+#ifdef DEBUG
+void testMem(void);
+#define MEMT testMem()
+#else
+#define MEMT
+#endif
 
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
@@ -61,7 +65,7 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
-    cprintf("outbuf at $%x\r\n", outbuf);
+    MEMT;
     copychars();
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
@@ -74,7 +78,6 @@ void initEngine(void) {
 
 int main() {
     static char choice;
-
     initEngine();
     clrscr();
     cg_borders();
@@ -82,6 +85,7 @@ int main() {
     cputsxy(5, 6, "Dragon Rock 1 - The Escape");
     cputsxy(2, 12, "1 - load saved game");
     cputsxy(2, 14, "2 - start in ");
+    MEMT;
     cputs(gCities[0]);
 
     currentCity= 0;
@@ -133,4 +137,11 @@ unsigned char loadfile(char *name, void *addr, void *size) {
         return 0;
     }
     return 1;
+}
+
+void testMem() {
+    byte *t;
+    t= (byte *)malloc(8);
+    printf("memtop is $%x\n", t);
+    free(t);
 }

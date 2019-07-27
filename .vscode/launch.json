@@ -9,7 +9,10 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": [
+                "mapsrc/testmap.drs"
+            ]
         },
         {
             "name": "Python: Remote Attach",
@@ -64,7 +67,10 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "externalTerminal"
+            "console": "externalTerminal",
+            "args": [
+                "mapsrc/testmap.drs"
+            ]
         }
     ]
 }
