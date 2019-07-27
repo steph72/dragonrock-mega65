@@ -22,10 +22,13 @@ doStoreroomDoor:
 
 $ msgEntance, """
 This is the entrance. Do you want to
-leave the library?"""
+leave the library?
+"""
 
-$ msgCupboard1, """
+$ msgCupboardKey, """
 There is a rusty key on this 
-cupboard. Take it? (y/n)"""
+old cupboard. Do you want to
+take it? (y/n)
+"""
 
-$ msgCupboard2, "There is an empty cupboard here."
+$ msgCupboardEmpty, "There is an empty cupboard here."
