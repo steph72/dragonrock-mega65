@@ -10,12 +10,22 @@ includemap "testmap.drm"
 doEntrance:
     NSTAT msgEntrance
     YESNO exitDungeon
+    ---
 
 doTable:
+    DISP msgTable1, True          ; display take key messages
+    YESNO doTakeKey
+    ---
+
+doTakeKey:
+    WKEY msgTakeRustyKey, False
+    REDRAW
+    ---
 
 doStoreroomDoor:
 
 exitDungeon:
+    NOP
     EXIT
 
 ; ----------------------------- messages ---------------------------------
@@ -31,7 +41,8 @@ want to leave (y/n)?"""
 $ msgTable1, """
 An old, wooden table is here.
 There is a rusty key laying
-on top of it.
-"""
+on top of it. Take it (y/n)?"""
 
 $ msgTable2, "There is an old, wooden table here."
+
+$ msgTakeRustyKey, "You take the key."

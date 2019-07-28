@@ -4,7 +4,10 @@ import sys
 import pyparsing as pp
 
 gLabels = {}
+gStringMapping = {}
 
+gOpcodes = []
+gStrings = []
 
 class mapElement:
     pass
@@ -74,39 +77,125 @@ def scanAndTrimLabels(scrLines):
     return returnLines
 
 
+def buildStrings(p_table):
+    for i in p_table:
+        line = i[0]
+        src = i[1]
+        if (src.metaCmd == "$"):
+            gStringMapping[src.tMsgLabel] = len(gStrings)
+            gStrings.append(src.tMessage)
+
+def buildOpcodes(p_table):
+
+    def checkString(aLabel,pline):
+        if not gStringMapping.get(aLabel):
+            print ("error: can't find string \""+aLabel+"\" at line "+str(pline.lineNum))
+            exit(-1)
+
+    # -------------- opcode factory --------------
+
+    def opCreate_NOP(pline):
+        return [0,0,0,0,0,0,0,0]
+
+    def opCreate_NSTAT(pline):
+        checkString(pline.tMsgLabel,pline)
+        return [1,gStringMapping[pline.tMsgLabel],0,0,0,0,0,0]
+
+    def opCreate_DISP(pline):
+        checkString(pline.tMsgLabel,pline)
+        opc = [2,gStringMapping[pline.tMsgLabel],0,0,0,0,0,0]
+        if (pline.clrFlag==True):
+            opc[2] = 1
+        return opc
+
+    def opCreate_WKEY(pline):
+        pass
+
+    def opCreate_YESNO(pline):
+        opc = [4,0,0,0,0,0,0,0]
+        if (pline.tTrueOpcLabel):
+            opc[1] = "__DRLABEL__"+pline.tTrueOpcLabel
+        if (pline.tFalseOpcLabel):
+            opc[2] = "__DRLABEL__"+pline.tFalseOpcLabel
+        return opc
+    
+    def opCreate_IFREG(pline):
+        pass
+
+    def opCreate_IFPOS(pline):
+        pass
+
+    def opCreate_IADD(pline):
+        pass
+    
+    def opCreate_ALTER(pline):
+        pass
+
+    def opCreate_REDRAW(pline):
+        pass
+
+    def opCreate_EXIT(pline):
+        pass
+
+    lastOpcodeIndex = 0
+    lastOpcode = []
+
+    for i in p_table:
+        lineNum = i[0]
+        src = i[1]
+        if src.metaCmd=="---":
+            print("RESET")
+            lastOpcode = []
+        if not src.opcode:
+            continue
+
+        src.lineNum = lineNum
+        opCreateFunc = "opCreate_"+src.opcode     # construct building function name
+        newOpcode = locals()[opCreateFunc](src)   # ...and call it.
+        gOpcodes.append((lineNum,newOpcode))
+
+        newOpcodeIndex = len(gOpcodes)-1 
+
+        if (lastOpcode):
+            lastOpcode[7] = newOpcodeIndex        # link last opcode to current...
+
+        lastOpcode = newOpcode                    # ...and save this opcode
+
+
 def parseScript(codeLines):
 
     p_numeric_value = pp.pyparsing_common.number()
-    p_quoted_string = pp.quotedString()
+    p_quoted_string = pp.QuotedString('"')
     p_TRUE = pp.CaselessKeyword("true").setParseAction(lambda tokens: True)
     p_FALSE = pp.CaselessKeyword("false").setParseAction(lambda tokens: False)
 
     p_boolean_literal = p_TRUE | p_FALSE
 
-    value = p_numeric_value | p_quoted_string | p_boolean_literal | pp.Word(
-        pp.alphanums)
+    value = p_numeric_value | p_quoted_string | p_boolean_literal | pp.Word(pp.alphanums)
 
-    p_nstatMsgLabel = pp.Word(pp.alphanums)
+    p_msgLabel      = pp.Word(pp.alphanums)('tMsgLabel')
+    p_trueOpcLabel  = pp.Word(pp.alphanums)('tTrueOpcLabel')
+    p_falseOpcLabel = pp.Word(pp.alphanums)('tFalseOpcLabel')
 
     p_keywords = (
 
         # opcodes
         pp.Keyword("NOP")('opcode')
-        
-        ^ pp.Keyword("NSTAT")('opcode')+p_nstatMsgLabel('tMsgLabel')
-        ^ pp.Keyword("DISP")('opcode')
+        ^ pp.Keyword("NSTAT")('opcode')+p_msgLabel
+        ^ pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('clrFlag'))
         ^ pp.Keyword("WKEY")('opcode')
-        ^ pp.Keyword("YESNO")('opcode')
+        ^ pp.Keyword("YESNO")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
         ^ pp.Keyword("IFPOS")('opcode')
+        ^ pp.Keyword("REDRAW")('opcode')
         ^ pp.Keyword("EXIT")('opcode')
 
         # meta commands
         ^ pp.Keyword("includemap")('metaCmd')
-        ^ pp.Keyword("$")(
-            'metaCmd')+value('tMessageLabel')+pp.Suppress(",")+value('tMessage')
+        ^ pp.Keyword("---")('metaCmd')
+        ^ pp.Keyword("$")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tMessage')
     )
 
-    p_query = p_keywords+pp.ZeroOrMore(pp.delimitedList(value))
+    p_query = p_keywords #+pp.ZeroOrMore(pp.delimitedList(value))
     p_table = []
 
     for lineTupel in codeLines:
@@ -118,8 +207,12 @@ def parseScript(codeLines):
             print("parse error at line "+str(lineNum)+":")
             print(e)
             exit(-1)
-        p_table.append(a)
+        p_table.append((lineNum,a))
+    print("========== p_table ==========")
     pp.pprint.pprint(p_table)
+    print("======== p_table end ========")
+    buildStrings(p_table)
+    buildOpcodes(p_table)
 
 
 ##################
@@ -139,3 +232,7 @@ infile = open(srcFilename, "r")
 srcLines = trim(infile.readlines())
 codeLines = scanAndTrimLabels(srcLines)
 parseScript(codeLines)
+
+print("==== STRINGS ====\n", gStringMapping, "\n-------->\n",gStrings)
+print("==== OPCODES ====")
+pp.pprint.pprint(gOpcodes)
