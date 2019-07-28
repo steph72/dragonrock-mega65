@@ -38,3 +38,6 @@ Alter map at coordinates *xpos*,*ypos* to *startOpcodeIdx* and *dungeonItemID*
 
 ## 0x09 REDRAW
 Force redraw the dungeon display
+
+## 0x1F EXIT <01:mapId> <02:xpos> <03:ypos>
+Exits the dungeon module back into wilderness map <mapID> at coords <xpos>, <ypos> 

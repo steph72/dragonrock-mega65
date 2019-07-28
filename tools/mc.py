@@ -5,8 +5,10 @@ import pyparsing as pp
 
 gLabels = {}
 
+
 class mapElement:
     pass
+
 
 def trim(lines):
     out = []
@@ -18,22 +20,25 @@ def trim(lines):
         multilineQuotePos = i.find("\"\"\"")
         if (multilineQuotePos >= 0):
             if isReadingMultilineString:
-                #end reading multiline string
-                i = i.replace("\n","")  # remove last newline
+                # end reading multiline string
+                i = i.replace("\n", "")  # remove last newline
                 currentMultilineString += i
-                currentMultilineString = currentMultilineString.replace("\\n","&&nl&&")
-                currentMultilineString = currentMultilineString.replace("\"\"\"","\"")
-                currentMultilineString = currentMultilineString.replace("\n","&&nl&&")
-                out.append((lineNum,currentMultilineString))
+                currentMultilineString = currentMultilineString.replace(
+                    "\\n", "&&nl&&")
+                currentMultilineString = currentMultilineString.replace(
+                    "\"\"\"", "\"")
+                currentMultilineString = currentMultilineString.replace(
+                    "\n", "&&nl&&")
+                out.append((lineNum, currentMultilineString))
                 isReadingMultilineString = False
                 # print ("====>"+currentMultilineString+"<====")
                 continue
             else:
-                #start reading multiline string
+                # start reading multiline string
                 currentMultilineString = ""
-                i = i.replace("\n","")  # remove first newline
+                i = i.replace("\n", "")  # remove first newline
                 isReadingMultilineString = True
-        
+
         if isReadingMultilineString:
             currentMultilineString += i
         else:
@@ -46,7 +51,9 @@ def trim(lines):
 
     return out
 
-def scanLabels(scrLines):
+
+def scanAndTrimLabels(scrLines):
+    returnLines = []
     print("Scanning labels")
     currentLabels = []
     for lineTupel in srcLines:
@@ -54,25 +61,20 @@ def scanLabels(scrLines):
         line = lineTupel[1]
         if line.endswith(":"):
             if (gLabels.get(line)):
-                print ("error: duplicate label definition at line",lineNum)
-                print ("       (original definition was at line "+str(gLabels.get(line))+")")
+                print("error: duplicate label definition at line", lineNum)
+                print("       (original definition was at line " +
+                      str(gLabels.get(line))+")")
                 exit(-1)
             currentLabels.append(line)
         else:
+            returnLines.append((lineNum, line))
             for i in currentLabels:
                 gLabels[i] = lineNum
-            currentLabels=[]
-    print(gLabels)
+            currentLabels = []
+    return returnLines
 
-def parseScript(srcLines):
 
-    p_keywords = pp.Keyword("NOP") ^             \
-                 pp.Keyword("NSTAT") ^           \
-                 pp.Keyword("DISP") ^            \
-                 pp.Keyword("WKEY") ^            \
-                 pp.Keyword("IFPOS") ^           \
-                 pp.Keyword("includemap") ^      \
-                 ("$")
+def parseScript(codeLines):
 
     p_numeric_value = pp.pyparsing_common.number()
     p_quoted_string = pp.quotedString()
@@ -81,24 +83,43 @@ def parseScript(srcLines):
 
     p_boolean_literal = p_TRUE | p_FALSE
 
-    value = p_numeric_value | p_quoted_string | p_boolean_literal | pp.Word(pp.alphanums)
+    value = p_numeric_value | p_quoted_string | p_boolean_literal | pp.Word(
+        pp.alphanums)
 
-    p_query = p_keywords("command")+pp.ZeroOrMore(pp.delimitedList(value))
+    p_nstatMsgLabel = pp.Word(pp.alphanums)
 
-    for lineTupel in srcLines:
+    p_keywords = (
+
+        # opcodes
+        pp.Keyword("NOP")('opcode')
+        
+        ^ pp.Keyword("NSTAT")('opcode')+p_nstatMsgLabel('tMsgLabel')
+        ^ pp.Keyword("DISP")('opcode')
+        ^ pp.Keyword("WKEY")('opcode')
+        ^ pp.Keyword("YESNO")('opcode')
+        ^ pp.Keyword("IFPOS")('opcode')
+        ^ pp.Keyword("EXIT")('opcode')
+
+        # meta commands
+        ^ pp.Keyword("includemap")('metaCmd')
+        ^ pp.Keyword("$")(
+            'metaCmd')+value('tMessageLabel')+pp.Suppress(",")+value('tMessage')
+    )
+
+    p_query = p_keywords+pp.ZeroOrMore(pp.delimitedList(value))
+    p_table = []
+
+    for lineTupel in codeLines:
         lineNum = lineTupel[0]
         line = lineTupel[1]
-        if line.endswith(":"):
-            continue
-        a = []
         try:
             a = p_query.parseString(line)
         except pp.ParseException as e:
-            print ("parse error at line "+str(lineNum)+":")
-            print (e)
-            exit (-1)
-        print (a)
-
+            print("parse error at line "+str(lineNum)+":")
+            print(e)
+            exit(-1)
+        p_table.append(a)
+    pp.pprint.pprint(p_table)
 
 
 ##################
@@ -116,8 +137,5 @@ srcFilename = sys.argv[1]
 print("Reading "+sys.argv[1])
 infile = open(srcFilename, "r")
 srcLines = trim(infile.readlines())
-for i in srcLines:
-    print (i)
-
-scanLabels(srcLines)
-parseScript(srcLines)
+codeLines = scanAndTrimLabels(srcLines)
+parseScript(codeLines)

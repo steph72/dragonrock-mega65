@@ -8,27 +8,30 @@ $ msgBar, "Bar"
 includemap "testmap.drm"
 
 doEntrance:
-    IFPOS blubb, blah, doSomething
-    doSomething:
-    WKEY
+    NSTAT msgEntrance
+    YESNO exitDungeon
 
-doCupboard:
+doTable:
 
 doStoreroomDoor:
+
+exitDungeon:
+    EXIT
 
 ; ----------------------------- messages ---------------------------------
 
 ; ----------------------------------- < screen width = 37 characters
 
-$ msgEntance, """
-This is the entrance. Do you want to
-leave the library?
+
+$ msgEntrance, """
+Two big, oaken doors are at the
+entrance to the library. Do you
+want to leave (y/n)?"""
+
+$ msgTable1, """
+An old, wooden table is here.
+There is a rusty key laying
+on top of it.
 """
 
-$ msgCupboardKey, """
-There is a rusty key on this 
-old cupboard. Do you want to
-take it? (y/n)
-"""
-
-$ msgCupboardEmpty, "There is an empty cupboard here."
+$ msgTable2, "There is an old, wooden table here."
