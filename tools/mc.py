@@ -92,7 +92,7 @@ def buildOpcodes(p_table):
     linePosMapping = {}
 
     def checkString(aLabel, pline):
-        if not gStringMapping.get(aLabel):
+        if gStringMapping.get(aLabel) is None:
             print("error: can't find string \""+aLabel +
                   "\" at line "+str(pline.lineNum))
             exit(-1)
@@ -131,8 +131,12 @@ def buildOpcodes(p_table):
         return opc
 
     def opCreate_IFREG(pline):
-        # TODO
-        return [0, 0, 0, 0, 0, 0, 0, 0]
+        opc = [5, int(pline.tRegIndex), int(pline.tRegValue), 0, 0, 0, 0, 0]
+        if (pline.tTrueOpcLabel):
+            opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
+        if (pline.tFalseOpcLabel):
+            opc[4] = "__DRLABEL__"+pline.tFalseOpcLabel
+        return opc
 
     def opCreate_IFPOS(pline):
         # TODO
@@ -147,8 +151,7 @@ def buildOpcodes(p_table):
         return [0, 0, 0, 0, 0, 0, 0, 0]
 
     def opCreate_REDRAW(pline):
-        # TODO
-        return [0, 0, 0, 0, 0, 0, 0, 0]
+        return [9, 0, 0, 0, 0, 0, 0, 0]
 
     def opCreate_EXIT(pline):
         # TODO
@@ -161,7 +164,6 @@ def buildOpcodes(p_table):
         lineNum = i[0]
         src = i[1]
         if src.metaCmd == "---":
-            print("RESET")
             lastOpcode = []
         if not src.opcode:
             continue
@@ -178,7 +180,8 @@ def buildOpcodes(p_table):
             # link last opcode to current...
             lastOpcode[7] = newOpcodeIndex
 
-        lastOpcode = newOpcode                    # ...and save this opcode
+        # ...and remember this opcode for next link
+        lastOpcode = newOpcode
 
     print("calculating branch positions")
     for i in gOpcodes:
@@ -212,27 +215,42 @@ def parseScript(codeLines):
     p_trueOpcLabel = pp.Word(pp.alphanums)('tTrueOpcLabel')
     p_falseOpcLabel = pp.Word(pp.alphanums)('tFalseOpcLabel')
     p_regIdx = pp.Word(pp.nums)('tRegIndex')
+    p_regValue = pp.Word(pp.nums)('tRegValue')
+    p_itemID = pp.Word(pp.nums)('tItemID')
 
     p_keywords = (
 
         # opcodes
-        pp.Keyword("NOP")('opcode')
-        ^ pp.Keyword("NSTAT")('opcode')+p_msgLabel
-        ^ pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('tClrFlag'))
 
-        ^ (pp.Keyword("WKEY")('opcode')+p_msgLabel +
+        pp.Keyword("NOP")('opcode')
+
+        | pp.Keyword("NSTAT")('opcode')+p_msgLabel
+
+        | pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('tClrFlag'))
+
+        | (pp.Keyword("WKEY")('opcode')+p_msgLabel +
            pp.Optional(","+p_boolean_literal('tClrFlag')) +
            pp.Optional(","+p_regIdx))
 
-        ^ pp.Keyword("YESNO")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
-        ^ pp.Keyword("IFPOS")('opcode')
-        ^ pp.Keyword("REDRAW")('opcode')
-        ^ pp.Keyword("EXIT")('opcode')
+        | pp.Keyword("IFREG")('opcode')+p_regIdx+","+p_regValue+","+p_trueOpcLabel+","+p_falseOpcLabel
+
+        | pp.Keyword("YESNO")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
+
+        | (pp.Keyword("IFPOS")('opcode') + p_itemID +
+           ","+p_trueOpcLabel+","+p_falseOpcLabel +
+           ","+p_regIdx)
+
+        | pp.Keyword("REDRAW")('opcode')
+
+        | pp.Keyword("EXIT")('opcode')
 
         # meta commands
-        ^ pp.Keyword("includemap")('metaCmd')
-        ^ pp.Keyword("---")('metaCmd')
-        ^ pp.Keyword("$")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tMessage')
+
+        | pp.Keyword("includemap")('metaCmd')
+
+        | pp.Keyword("---")('metaCmd')
+
+        | pp.Keyword("$")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tMessage')
     )
 
     p_query = p_keywords  # +pp.ZeroOrMore(pp.delimitedList(value))
@@ -252,6 +270,7 @@ def parseScript(codeLines):
     pp.pprint.pprint(p_table)
     print("======== p_table end ========")
     buildStrings(p_table)
+    print(gStrings, gStringMapping)
     buildOpcodes(p_table)
 
 
