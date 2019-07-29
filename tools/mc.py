@@ -9,6 +9,7 @@ gStringMapping = {}
 gOpcodes = []
 gStrings = []
 
+
 class mapElement:
     pass
 
@@ -85,57 +86,73 @@ def buildStrings(p_table):
             gStringMapping[src.tMsgLabel] = len(gStrings)
             gStrings.append(src.tMessage)
 
+
 def buildOpcodes(p_table):
 
-    def checkString(aLabel,pline):
+    linePosMapping = {}
+
+    def checkString(aLabel, pline):
         if not gStringMapping.get(aLabel):
-            print ("error: can't find string \""+aLabel+"\" at line "+str(pline.lineNum))
+            print("error: can't find string \""+aLabel +
+                  "\" at line "+str(pline.lineNum))
             exit(-1)
 
     # -------------- opcode factory --------------
 
     def opCreate_NOP(pline):
-        return [0,0,0,0,0,0,0,0]
+        return [0, 0, 0, 0, 0, 0, 0, 0]
 
     def opCreate_NSTAT(pline):
-        checkString(pline.tMsgLabel,pline)
-        return [1,gStringMapping[pline.tMsgLabel],0,0,0,0,0,0]
+        checkString(pline.tMsgLabel, pline)
+        return [1, gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
 
     def opCreate_DISP(pline):
-        checkString(pline.tMsgLabel,pline)
-        opc = [2,gStringMapping[pline.tMsgLabel],0,0,0,0,0,0]
-        if (pline.clrFlag==True):
+        checkString(pline.tMsgLabel, pline)
+        opc = [2, gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
+        if (pline.tClrFlag == True):
             opc[2] = 1
         return opc
 
     def opCreate_WKEY(pline):
-        pass
+        checkString(pline.tMsgLabel, pline)
+        opc = [3, gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
+        if (pline.tClrFlag == True):
+            opc[2] = 1
+        if (pline.tRegIndex):
+            opc[3] = int(pline.tRegIndex)
+        return opc
 
     def opCreate_YESNO(pline):
-        opc = [4,0,0,0,0,0,0,0]
+        opc = [4, 0, 0, 0, 0, 0, 0, 0]
         if (pline.tTrueOpcLabel):
             opc[1] = "__DRLABEL__"+pline.tTrueOpcLabel
         if (pline.tFalseOpcLabel):
             opc[2] = "__DRLABEL__"+pline.tFalseOpcLabel
         return opc
-    
+
     def opCreate_IFREG(pline):
-        pass
+        # TODO
+        return [0, 0, 0, 0, 0, 0, 0, 0]
 
     def opCreate_IFPOS(pline):
-        pass
+        # TODO
+        return [0, 0, 0, 0, 0, 0, 0, 0]
 
     def opCreate_IADD(pline):
-        pass
-    
+        # TODO
+        return [0, 0, 0, 0, 0, 0, 0, 0]
+
     def opCreate_ALTER(pline):
-        pass
+        # TODO
+        return [0, 0, 0, 0, 0, 0, 0, 0]
 
     def opCreate_REDRAW(pline):
-        pass
+        # TODO
+        return [0, 0, 0, 0, 0, 0, 0, 0]
 
     def opCreate_EXIT(pline):
-        pass
+        # TODO
+        return [0, 0, 0, 0, 0, 0, 0, 0]
 
     lastOpcodeIndex = 0
     lastOpcode = []
@@ -143,7 +160,7 @@ def buildOpcodes(p_table):
     for i in p_table:
         lineNum = i[0]
         src = i[1]
-        if src.metaCmd=="---":
+        if src.metaCmd == "---":
             print("RESET")
             lastOpcode = []
         if not src.opcode:
@@ -152,14 +169,31 @@ def buildOpcodes(p_table):
         src.lineNum = lineNum
         opCreateFunc = "opCreate_"+src.opcode     # construct building function name
         newOpcode = locals()[opCreateFunc](src)   # ...and call it.
-        gOpcodes.append((lineNum,newOpcode))
+        gOpcodes.append((lineNum, newOpcode))
 
-        newOpcodeIndex = len(gOpcodes)-1 
+        newOpcodeIndex = len(gOpcodes)-1
+        linePosMapping[lineNum] = newOpcodeIndex  # add position to mapping
 
         if (lastOpcode):
-            lastOpcode[7] = newOpcodeIndex        # link last opcode to current...
+            # link last opcode to current...
+            lastOpcode[7] = newOpcodeIndex
 
         lastOpcode = newOpcode                    # ...and save this opcode
+
+    print("calculating branch positions")
+    for i in gOpcodes:
+        line = i[0]
+        opcode = i[1]
+        paramIdx = 0
+        for k in opcode:
+            if type(k) is str:
+                label = k[len("__DRLABEL__"):]+":"
+                labelLineNumber = gLabels.get(label)
+                opcodeNumber = linePosMapping[labelLineNumber]
+                print(label, labelLineNumber, opcodeNumber)
+                opcode[paramIdx] = opcodeNumber
+            paramIdx += 1
+    print(linePosMapping)
 
 
 def parseScript(codeLines):
@@ -171,19 +205,25 @@ def parseScript(codeLines):
 
     p_boolean_literal = p_TRUE | p_FALSE
 
-    value = p_numeric_value | p_quoted_string | p_boolean_literal | pp.Word(pp.alphanums)
+    value = p_numeric_value | p_quoted_string | p_boolean_literal | pp.Word(
+        pp.alphanums)
 
-    p_msgLabel      = pp.Word(pp.alphanums)('tMsgLabel')
-    p_trueOpcLabel  = pp.Word(pp.alphanums)('tTrueOpcLabel')
+    p_msgLabel = pp.Word(pp.alphanums)('tMsgLabel')
+    p_trueOpcLabel = pp.Word(pp.alphanums)('tTrueOpcLabel')
     p_falseOpcLabel = pp.Word(pp.alphanums)('tFalseOpcLabel')
+    p_regIdx = pp.Word(pp.nums)('tRegIndex')
 
     p_keywords = (
 
         # opcodes
         pp.Keyword("NOP")('opcode')
         ^ pp.Keyword("NSTAT")('opcode')+p_msgLabel
-        ^ pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('clrFlag'))
-        ^ pp.Keyword("WKEY")('opcode')
+        ^ pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('tClrFlag'))
+
+        ^ (pp.Keyword("WKEY")('opcode')+p_msgLabel +
+           pp.Optional(","+p_boolean_literal('tClrFlag')) +
+           pp.Optional(","+p_regIdx))
+
         ^ pp.Keyword("YESNO")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
         ^ pp.Keyword("IFPOS")('opcode')
         ^ pp.Keyword("REDRAW")('opcode')
@@ -195,7 +235,7 @@ def parseScript(codeLines):
         ^ pp.Keyword("$")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tMessage')
     )
 
-    p_query = p_keywords #+pp.ZeroOrMore(pp.delimitedList(value))
+    p_query = p_keywords  # +pp.ZeroOrMore(pp.delimitedList(value))
     p_table = []
 
     for lineTupel in codeLines:
@@ -207,7 +247,7 @@ def parseScript(codeLines):
             print("parse error at line "+str(lineNum)+":")
             print(e)
             exit(-1)
-        p_table.append((lineNum,a))
+        p_table.append((lineNum, a))
     print("========== p_table ==========")
     pp.pprint.pprint(p_table)
     print("======== p_table end ========")
@@ -231,8 +271,9 @@ print("Reading "+sys.argv[1])
 infile = open(srcFilename, "r")
 srcLines = trim(infile.readlines())
 codeLines = scanAndTrimLabels(srcLines)
+print(gLabels)
 parseScript(codeLines)
 
-print("==== STRINGS ====\n", gStringMapping, "\n-------->\n",gStrings)
+print("==== STRINGS ====\n", gStringMapping, "\n-------->\n", gStrings)
 print("==== OPCODES ====")
 pp.pprint.pprint(gOpcodes)
