@@ -1,6 +1,6 @@
 # DragonRock Opcodes
 
-## 0x00 NOP
+## 0x00 NOP / GOTO
 No operation
 
 ## 0x01 NSTAT <01:msgID>
@@ -25,15 +25,17 @@ If register *regNr* contains *regValue*, perform *trueOpcIdx*, else *falseOpcIdx
 If *itemId* is in current party's posession, perform *trueOpcIdx*, else *falseOpcIdx* 
 Register #resultReg -> party member who is owner of itemID or 255 for not found
 
-## 0x07 IADD <01:itemId> <02:charIdx> <03:successOpcIdx> <04:failureOpcIdx> <05:notifyFlag>
+## 0x07 IADD <01:itemId> <02:charIdx> <03:successOpcIdx> <04:failureOpcIdx>
 Add *itemId* to character *charIdx* inventory
 If *charIdx*==0xff use first free character if posssible
 On success, performs <successOpcIdx>; otherwise <failureOpcIdx>
 Register 0 -> true on success, otherwise false
 Register 1 -> party member who took the item
-If <notifyFlag> is set, prints '<characterName> took <itemName>'
 
-## 0x08 ALTER <01:xpos> <02:ypos> <03:dungeonItemID> <04:startOpcodeIDx>
+## 0x87 IADD_V
+like IADD; but print '[characterName] took [itemName]' after successful completion
+
+## 0x08 ALTER <01:xpos> <02:ypos> <03:startOpcodeIDx> <04:dungeonItemID>
 Alter map at coordinates *xpos*,*ypos* to *startOpcodeIdx* and *dungeonItemID*
 
 ## 0x09 REDRAW

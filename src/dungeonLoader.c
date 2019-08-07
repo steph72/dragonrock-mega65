@@ -134,7 +134,7 @@ dungeonDescriptor *loadMap(char *filename) {
         exit(0);
     }
 
-    currentDungeonPtr+= 5; // skip identifier
+    currentDungeonPtr+= 5; // skip identifier and count
     desc->opcodesAdr= (opcode *)currentDungeonPtr;
 
 #ifdef DEBUG
