@@ -1,0 +1,27 @@
+; library
+
+includemap "mapsrc/library.drm"
+
+defc entrance: 16,1                 ; connects entrance label to map coordinates 16,1
+defc corridor: 16,2
+
+corridor:
+    NSTAT msgCorridor
+    ---
+
+entrance:
+    DISP msgEntrance,True
+    YESNO exitDungeon
+    REDRAW
+    ---
+
+exitDungeon:
+    EXIT 1,0,0
+    ---
+
+$ msgCorridor,"A long, eerie corridor."
+
+$ msgEntrance,"""
+Two wooden doors guard the entrance
+to the library. Do you want to leave?
+(yes/no):"""

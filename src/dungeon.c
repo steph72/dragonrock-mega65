@@ -93,9 +93,7 @@ void performDisplayFeelOpcode(opcode *anOpcode) {
 // 0x02: DISP
 void performDisplayTextOpcode(opcode *anOpcode) {
     byte feelIndex;
-    if (anOpcode->param1 == 0) {
-        return;
-    }
+
     feelIndex= anOpcode->param1;
     if (anOpcode->param2 != 0) {
         clrscr();
@@ -321,7 +319,7 @@ void redrawAll() {
     redrawMap();
     showCurrentParty(true);
     plotPlayer(currentX, currentY);
-    if (lastFeelIndex != 0) {
+    if (lastFeelIndex != 255) {
         displayFeel(lastFeelIndex);
     }
 }

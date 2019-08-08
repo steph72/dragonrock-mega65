@@ -209,7 +209,7 @@ class mapEditor():
     def loadMap(self):
         loadFilename = self.getUserInput("Load file:")
         self.stdscr.addstr("\nLoading...")
-        infile = open(b"mapsrc/"+loadFilename+b".ds", "br")
+        infile = open(b"mapsrc/"+loadFilename+b".drm", "br")
         self.currentFilename = loadFilename
         mdata = pickle.load(infile)
         self.mapWidth = mdata["width"]
@@ -237,7 +237,7 @@ class mapEditor():
             "startY": self.startY,
             "map": self.map,
         }
-        outfile = open(b"mapsrc/"+saveFilename+b".drs", "bw")
+        outfile = open(b"mapsrc/"+saveFilename+b".drm", "bw")
         pickle.dump(mdata, outfile)
         outfile.close()
         self.clearLower()

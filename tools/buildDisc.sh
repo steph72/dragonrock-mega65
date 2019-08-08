@@ -1,5 +1,7 @@
 #!/bin/sh
 
+tools/mc.py mapsrc/library.drs mapdata/library.d
+
 if [ ! -f "disc/drock.d64" ]; then
   mkdir -p disc
   c1541 -format drock,sk d64 disc/drock.d64
@@ -14,5 +16,5 @@ delete map0
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
-write mapdata/testmap.drm map0
+write mapdata/library.d map0
 EOF

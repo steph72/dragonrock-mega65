@@ -7,26 +7,6 @@ import pyparsing as pp
 class mapElement:
     pass
 
-class mapExporter:
- 
-
-
-    def export(self):
-        outfile = open(b"mapdata/"+self.currentFilename+b".drm", "wb")
-        idbytes = bytearray()
-        idbytes.extend(map(ord, "DR0"))
-        segment1 = self.mapBytes()
-        segment2 = self.feelsBytes()
-        segment3 = self.opcodeBytes()
-        dlength = len(segment1) + len(segment2) + len(segment3)
-        idbytes.append(dlength % 256)
-        idbytes.append(dlength//256)
-        outfile.write(idbytes)
-        outfile.write(segment1)
-        outfile.write(segment2)
-        outfile.write(segment3)
-        outfile.close()
-
 # --------------------------------------------------------------------------------------------
 
 class mapCompiler:
@@ -97,6 +77,23 @@ class mapCompiler:
                 mapbytes.append(outbyte1)
                 mapbytes.append(outbyte2)
         return mapbytes
+
+
+    def export(self,filename):
+        outfile = open(filename, "wb")
+        idbytes = bytearray()
+        idbytes.extend(map(ord, "DR0"))
+        segment1 = self.mapBytes()
+        segment2 = self.feelsBytes()
+        segment3 = self.opcodeBytes()
+        dlength = len(segment1) + len(segment2) + len(segment3)
+        idbytes.append(dlength % 256)
+        idbytes.append(dlength//256)
+        outfile.write(idbytes)
+        outfile.write(segment1)
+        outfile.write(segment2)
+        outfile.write(segment3)
+        outfile.close()
 
 #######################################################################################
 
@@ -184,7 +181,7 @@ class mapCompiler:
                 self.gStrings.append(src.tMessage)
             if (src.metaCmd == "defc"):
                 self.gCoordsMapping[src.tCoordsLabel] = (
-                    int(src.tXValue), int(src.tYValue))
+                    int(src.tXValue)-1, int(src.tYValue)-1)
             if (src.metaCmd == "includemap"):
                 self.loadMap(src.tMapName)
 
@@ -474,9 +471,9 @@ class mapCompiler:
                 print (i,opcodeNumber,self.gCoordsMapping.get(i))
                 self.map[x][y].startOpcodeIndex = opcodeNumber
 
-        pp.pprint.pprint (self.opcodeBytes())
-        pp.pprint.pprint (self.feelsBytes())
-        pp.pprint.pprint (self.mapBytes())
+        #pp.pprint.pprint (self.opcodeBytes())
+        #pp.pprint.pprint (self.feelsBytes())
+        #pp.pprint.pprint (self.mapBytes())
 
 
 ##################
@@ -488,10 +485,13 @@ mc = mapCompiler()
 print("\nDragonRock map compiler v0.1 alpha")
 print("Written by Stephan Kleinert\n")
 
-if len(sys.argv) < 2:
-    print("usage: "+sys.argv[0]+" infile [outfile]")
+if len(sys.argv) < 3:
+    print("usage: "+sys.argv[0]+" infile outfile")
     exit(-1)
 
 srcFilename = sys.argv[1]
+destFilename = sys.argv[2]
 mc.compile(srcFilename)
-
+print("exporting...")
+mc.export(destFilename)
+print("done.")
