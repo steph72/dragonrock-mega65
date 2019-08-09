@@ -1,16 +1,87 @@
-; library
+;
+; deserted library
+;
 
 includemap "mapsrc/library.drm"
 
-defc entrance:      15,0                 ; connects entrance label to map coordinates 16,1
+; --------------------
+; locked storage room 
+; --------------------
+
+defc storageRoomDoor:   14,2
+defc storageRoom: 10,1 - 13,4
+
+$ msgStorageRoom,"""
+A surprisingly clean and kempt storage
+room. Lots of wooden boxes line the
+west wall"""
+
+storageRoom:
+    NSTAT msgStorageRoom
+    ---
+
+storageRoomDoor:
+    IFPOS 240,openStorageRoomDoor,lockedDoor,15
+    ---
+
+lockedDoor:
+    NSTAT msgLockedDoor
+    ---
+
+$ msgOpenSDoor, "Your rusty key opens the door."
+
+openStorageRoomDoor:
+    NSTAT msgOpenSDoor
+    ---
+
+
+; -------------------------
+; entrance & first corridor
+; -------------------------
+
+defc entrance:      15,0                 ; connects entrance
 defc corridor:      15,1 - 15,6          ; corridor message
-defc secretDoor1:   15,7                 ; secret door in start corridor
-defc secretRoom1:   14,8 - 16,10         ; secret room 
-defc sRoomTable:    15,9                 ; table in secret room
+
+$ msgCorridor,"A long, eerie corridor."
+
+$ msgEntrance,"""
+Two wooden doors guard the entrance
+to the library. Do you want to leave?
+(yes/no):"""
 
 corridor:
     NSTAT msgCorridor
     ---
+
+entrance:
+    DISP msgEntrance,True
+    YESNO exitDungeon
+    REDRAW
+    ---
+
+exitDungeon:
+    EXIT 1,0,0
+    ---
+
+
+;
+; ----------------------------------
+; secret room south of main corridor
+; ----------------------------------
+;
+
+defc secretDoor1:   15,7                 ; secret door in start corridor
+defc secretRoom1:   14,8 - 16,10         ; secret room 
+defc sRoomTable:    15,9                 ; table in secret room
+
+$ msgSecret1, "Wait, there's a secret door here!"
+
+$ msgSecretRoom1, "A small, hidden room with a wooden\ntable in its center."
+
+$ msgTable1,"""
+There is a small, wooden table here. 
+A rusty key is lying on top of it. 
+Do you take the key (y/n)?"""
 
 secretDoor1:
     NSTAT msgSecret1
@@ -38,31 +109,8 @@ keyNotTaken:
     NOP
     ---
 
-entrance:
-    DISP msgEntrance,True
-    YESNO exitDungeon
-    REDRAW
-    ---
 
-exitDungeon:
-    EXIT 1,0,0
-    ---
+; misc messages
 
 $ msgWaitkey, "-- key --"
-
-$ msgCorridor,"A long, eerie corridor."
-
-$ msgSecret1, "Wait, there's a secret door here!"
-
-$ msgSecretRoom1, "A small, hidden room with a wooden\ntable in its center."
-
-$ msgEntrance,"""
-Two wooden doors guard the entrance
-to the library. Do you want to leave?
-(yes/no):"""
-
-$ msgTable1,"""
-There is a small, wooden table here. 
-A rusty key is lying on top of it. 
-Do you take the key (y/n)?"""
-
+$ msgLockedDoor, "The door is locked."

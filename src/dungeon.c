@@ -169,7 +169,7 @@ void performIAddOpcode(opcode *anOpcode) {
     byte charIdx;
     byte anItemID;
     byte found;
-    
+
     anItemID= anOpcode->param1;
     charIdx= anOpcode->param2;
     found= false;
@@ -249,7 +249,7 @@ void performOpcode(opcode *anOpcode) {
     gotoxy(xs, ys);
 #endif
 
-    opcodeID = (anOpcode->id) & 127;
+    opcodeID= (anOpcode->id) & 127;
 
     switch (opcodeID) {
 
@@ -406,6 +406,7 @@ void dungeonLoop() {
 
     byte cmd;
     byte quit;
+    byte performedImpassableOpcode;
 
     signed char xdiff, ydiff;
 
@@ -433,6 +434,7 @@ void dungeonLoop() {
     }
 
     redrawMap();
+    performedImpassableOpcode = false;
 
     /**************************************************************
      *
@@ -465,7 +467,11 @@ void dungeonLoop() {
             }
         }
 
-        performOpcodeAtIndex(currentItem->opcodeID);
+        if (!performedImpassableOpcode) {
+           performOpcodeAtIndex(currentItem->opcodeID);
+        }
+
+        performedImpassableOpcode = false;
 
         oldX= currentX;
         oldY= currentY;
@@ -527,6 +533,7 @@ void dungeonLoop() {
                 registers[R_PASS]= 255;
                 // ...perform opcode...
                 performOpcodeAtIndex(dItem->opcodeID);
+                performedImpassableOpcode = true;
                 // ...and check 'pass' register
                 if (registers[R_PASS] == 255) {
                     currentX= oldX;
