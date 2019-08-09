@@ -4,15 +4,17 @@ import sys
 import pickle
 import pyparsing as pp
 
+
 class mapElement:
     pass
 
 # --------------------------------------------------------------------------------------------
 
+
 class mapCompiler:
 
-    def __init__(self): 
-        
+    def __init__(self):
+
         self.gLabels = {}
         self.gStringMapping = {}
         self.gCoordsMapping = {}
@@ -23,7 +25,7 @@ class mapCompiler:
         self.mapWidth = 0
         self.mapHeight = 0
         self.startX = 0
-        self.startY = 0 
+        self.startY = 0
         self.map = []
 
     # low level map exporting
@@ -44,6 +46,7 @@ class mapCompiler:
         for i in self.gStrings:
             commobytes = bytearray()
             unixbytes = bytearray()
+            i = i.replace("&&nl&&", "\n")
             unixbytes.extend(map(ord, i.swapcase()))
             for p in unixbytes:  # lf -> cr
                 if (p == 10):
@@ -78,8 +81,7 @@ class mapCompiler:
                 mapbytes.append(outbyte2)
         return mapbytes
 
-
-    def export(self,filename):
+    def export(self, filename):
         outfile = open(filename, "wb")
         idbytes = bytearray()
         idbytes.extend(map(ord, "DR0"))
@@ -97,7 +99,7 @@ class mapCompiler:
 
 #######################################################################################
 
-    def trim(self,lines):
+    def trim(self, lines):
         out = []
         lineNum = 0
         isReadingMultilineString = False
@@ -138,8 +140,7 @@ class mapCompiler:
 
         return out
 
-
-    def scanAndTrimLabels(self,srcLines):
+    def scanAndTrimLabels(self, srcLines):
         returnLines = []
         print("Scanning labels")
         currentLabels = []
@@ -150,7 +151,7 @@ class mapCompiler:
                 if (self.gLabels.get(line)):
                     print("error: duplicate label definition at line", lineNum)
                     print("       (original definition was at line " +
-                        str(self.gLabels.get(line))+")")
+                          str(self.gLabels.get(line))+")")
                     exit(-1)
                 currentLabels.append(line)
             else:
@@ -159,7 +160,6 @@ class mapCompiler:
                     self.gLabels[i] = lineNum
                 currentLabels = []
         return returnLines
-
 
     def loadMap(self, mapName):
         print("Reading map layout file", mapName)
@@ -172,7 +172,7 @@ class mapCompiler:
         self.map = mdata["map"]
         infile.close()
 
-    def buildStringsAndCoords(self,p_table):
+    def buildStringsAndCoords(self, p_table):
         for i in p_table:
             line = i[0]
             src = i[1]
@@ -180,13 +180,18 @@ class mapCompiler:
                 self.gStringMapping[src.tMsgLabel] = len(self.gStrings)
                 self.gStrings.append(src.tMessage)
             if (src.metaCmd == "defc"):
-                self.gCoordsMapping[src.tCoordsLabel] = (
-                    int(src.tXValue)-1, int(src.tYValue)-1)
+                x1 = int(src.tXValue)
+                y1 = int(src.tYValue)
+                x2 = x1
+                y2 = y1
+                if (src.tY2Value):
+                    x2 = int(src.tX2Value)
+                    y2 = int(src.tY2Value)
+                self.gCoordsMapping[src.tCoordsLabel] = (x1,y1,x2,y2)
             if (src.metaCmd == "includemap"):
                 self.loadMap(src.tMapName)
 
-
-    def buildOpcodes(self,p_table):
+    def buildOpcodes(self, p_table):
 
         self.gLinePosMapping = {}
         opcodes = [(-1, [0, 0, 0, 0, 0, 0, 0, 0])]
@@ -194,7 +199,7 @@ class mapCompiler:
         def checkString(aLabel, pline):
             if self.gStringMapping.get(aLabel) is None:
                 print("error: can't find string \""+aLabel +
-                    "\" at line "+str(pline.lineNum))
+                      "\" at line "+str(pline.lineNum))
                 exit(-1)
 
         # -------------- opcode factory --------------
@@ -236,7 +241,8 @@ class mapCompiler:
             return opc
 
         def opCreate_IFREG(pline):
-            opc = [5, int(pline.tRegIndex), int(pline.tRegValue), 0, 0, 0, 0, 0]
+            opc = [5, int(pline.tRegIndex), int(
+                pline.tRegValue), 0, 0, 0, 0, 0]
             if (pline.tTrueOpcLabel):
                 opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
@@ -300,7 +306,8 @@ class mapCompiler:
             opcodes.append((lineNum, newOpcode))
 
             newOpcodeIndex = len(opcodes)-1
-            self.gLinePosMapping[lineNum] = newOpcodeIndex  # add position to mapping
+            # add position to mapping
+            self.gLinePosMapping[lineNum] = newOpcodeIndex
 
             if (lastOpcode):
                 if (lastOpcode[7] == 0):
@@ -329,15 +336,15 @@ class mapCompiler:
             retList.append(i[1])
         return retList
 
+    def parseScript(self, codeLines):
 
-    def parseScript(self,codeLines):
-
-        print ("Parsing script")
+        print("Parsing script")
 
         p_numeric_value = pp.pyparsing_common.number()
         p_quoted_string = pp.QuotedString('"')
         p_TRUE = pp.CaselessKeyword("true").setParseAction(lambda tokens: True)
-        p_FALSE = pp.CaselessKeyword("false").setParseAction(lambda tokens: False)
+        p_FALSE = pp.CaselessKeyword(
+            "false").setParseAction(lambda tokens: False)
         p_idchars = pp.Word(pp.alphanums+"_")
 
         p_boolean_literal = p_TRUE | p_FALSE
@@ -359,6 +366,8 @@ class mapCompiler:
         p_mapID = pp.Word(pp.nums)('tMapID')
         p_xValue = pp.Word(pp.nums)('tXValue')
         p_yValue = pp.Word(pp.nums)('tYValue')
+        p_x2Value = pp.Word(pp.nums)('tX2Value')
+        p_y2Value = pp.Word(pp.nums)('tY2Value')
 
         p_keywords = (
 
@@ -373,53 +382,54 @@ class mapCompiler:
             ^ pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('tClrFlag'))
 
             ^ (pp.Keyword("WKEY")('opcode')+p_msgLabel +
-            pp.Optional(","+p_boolean_literal('tClrFlag')) +
-            pp.Optional(","+p_regIdx))
+               pp.Optional(","+p_boolean_literal('tClrFlag')) +
+               pp.Optional(","+p_regIdx))
 
             ^ pp.Keyword("IFREG")('opcode')+p_regIdx+","+p_regValue+","+p_trueOpcLabel+","+p_falseOpcLabel
 
             ^ pp.Keyword("YESNO")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
 
             ^ (pp.Keyword("IFPOS")('opcode') + p_itemID +
-            ","+p_trueOpcLabel+","+p_falseOpcLabel +
-            ","+p_regIdx)
+               ","+p_trueOpcLabel+","+p_falseOpcLabel +
+               ","+p_regIdx)
 
             ^ (pp.Keyword("IADD")('opcode')
-            + p_itemID + ","
-            + p_charID + ","
-            + p_trueOpcLabel + ","
-            + p_falseOpcLabel
-            )
+               + p_itemID + ","
+               + p_charID + ","
+               + p_trueOpcLabel + ","
+               + p_falseOpcLabel
+               )
 
             ^ (pp.Keyword("IADD_V")('opcode')
-            + p_itemID + ","
-            + p_charID + ","
-            + p_trueOpcLabel + ","
-            + p_falseOpcLabel
-            )
+               + p_itemID + ","
+               + p_charID + ","
+               + p_trueOpcLabel + ","
+               + p_falseOpcLabel
+               )
 
             ^ (pp.Keyword("ALTER")('opcode')
-            + p_coordsLabel + ","
-            + p_opcLabel + ","
-            + p_dungeonItemID
-            )
+               + p_coordsLabel + ","
+               + p_opcLabel + ","
+               + p_dungeonItemID
+               )
 
             ^ pp.Keyword("REDRAW")('opcode')
 
             ^ (pp.Keyword("EXIT")('opcode')
-            + p_mapID + ","
-            + p_xValue + ","
-            + p_yValue)
+               + p_mapID + ","
+               + p_xValue + ","
+               + p_yValue)
 
             # ---------- meta commands -----------
 
             ^ (pp.Keyword("defc")('metaCmd')
-            + p_coordsLabel+":"
-            + p_xValue
-            + ","+p_yValue)
+               + p_coordsLabel+":"
+               + p_xValue
+               + ","+p_yValue + pp.Optional("-"+p_x2Value + ","+p_y2Value)
+               )
 
             ^ (pp.Keyword("includemap")('metaCmd')
-            + p_quoted_string('tMapName'))
+               + p_quoted_string('tMapName'))
 
             ^ pp.Keyword("---")('metaCmd')
 
@@ -445,8 +455,7 @@ class mapCompiler:
         self.buildStringsAndCoords(p_table)
         return self.buildOpcodes(p_table)
 
-
-    def compile(self,srcFile):
+    def compile(self, srcFile):
 
         print("Reading "+sys.argv[1])
         infile = open(srcFilename, "r")
@@ -457,19 +466,21 @@ class mapCompiler:
         self.gOpcodes = self.parseScript(codeLines)
 
         for i in range(0, len(self.gOpcodes)):
-             print(i, self.gOpcodes[i])
-        print ("Connecting map positions...")
+            print(i, self.gOpcodes[i])
+        print("Connecting map positions...")
         for i in self.gCoordsMapping:
             label = i+":"
             labelLineNumber = self.gLabels.get(label)
             opcodeNumber = 0
-            if not (labelLineNumber is None):                
+            if not (labelLineNumber is None):
                 opcodeNumber = self.gLinePosMapping[labelLineNumber]
                 coords = self.gCoordsMapping.get(i)
-                x = coords[0]
-                y = coords[1]
-                print (i,opcodeNumber,self.gCoordsMapping.get(i))
-                self.map[x][y].startOpcodeIndex = opcodeNumber
+                for x in range(coords[0], coords[2]+1):
+                    for y in range(coords[1], coords[3]+1):
+                        # x = coords[0]
+                        # y = coords[1]
+                        print(i, opcodeNumber, x,y)
+                        self.map[x][y].startOpcodeIndex = opcodeNumber
 
         #pp.pprint.pprint (self.opcodeBytes())
         #pp.pprint.pprint (self.feelsBytes())

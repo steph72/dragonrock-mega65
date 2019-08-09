@@ -85,8 +85,8 @@ class mapEditor():
         self.stdscr.addstr(0, 0, "maped 1.0 <")
         self.stdscr.addstr(self.currentFilename)
         self.stdscr.addstr("> ")
-        x = self.originX + self.cursorX
-        y = self.originY + self.cursorY
+        x = self.originX + self.cursorX - 1
+        y = self.originY + self.cursorY - 1
         self.stdscr.addstr(" x,y: "+str(x)+","+str(y))
         self.stdscr.addstr(" startX,Y: "+str(self.startX)+","+str(self.startY))
         self.stdscr.addstr(" imp: "+str(e.impassable))
@@ -174,8 +174,8 @@ class mapEditor():
         self.cursorY += 1
 
     def setStartPosition(self):
-        self.startX = self.cursorX+self.originX
-        self.startY = self.cursorY+self.originY
+        self.startX = self.cursorX+self.originX -1
+        self.startY = self.cursorY+self.originY -1
 
     def toggleInitiallyVisible(self):
         e = self.getCurrentMapEntry()

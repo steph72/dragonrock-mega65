@@ -85,7 +85,6 @@ int main() {
     cputsxy(5, 6, "Dragon Rock 1 - The Escape");
     cputsxy(2, 12, "1 - load saved game");
     cputsxy(2, 14, "2 - start in ");
-    MEMT;
     cputs(gCities[0]);
 
     currentCity= 0;

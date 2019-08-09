@@ -169,7 +169,7 @@ void performIAddOpcode(opcode *anOpcode) {
     byte charIdx;
     byte anItemID;
     byte found;
-
+    
     anItemID= anOpcode->param1;
     charIdx= anOpcode->param2;
     found= false;
@@ -194,7 +194,7 @@ void performIAddOpcode(opcode *anOpcode) {
     if (addInventoryItem(anItemID, party[charIdx])) {
         registers[0]= true;
         registers[1]= charIdx;
-        if (anOpcode->param5) {
+        if (anOpcode->id & 128) {
             cprintf("%s takes %s\r\n", party[charIdx]->name,
                     nameOfInventoryItemWithID(anItemID));
         }
@@ -236,6 +236,7 @@ void performOpcodeAtIndex(byte idx) {
 void performOpcode(opcode *anOpcode) {
 
     byte xs, ys; // x,y save
+    byte opcodeID;
 
 #ifdef DEBUG
     xs= wherex();
@@ -248,7 +249,9 @@ void performOpcode(opcode *anOpcode) {
     gotoxy(xs, ys);
 #endif
 
-    switch (anOpcode->id) {
+    opcodeID = (anOpcode->id) & 127;
+
+    switch (opcodeID) {
 
     case OPC_NSTAT:
         performDisplayFeelOpcode(anOpcode);
@@ -412,8 +415,8 @@ void dungeonLoop() {
     quit= 0;
     lastFeelIndex= 0;
 
-    currentX= desc->startX - 1;
-    currentY= desc->startY - 1;
+    currentX= desc->startX;
+    currentY= desc->startY;
     offsetX= 0;
     offsetY= 0;
     mposX= 0;

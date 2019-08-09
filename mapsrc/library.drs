@@ -2,11 +2,40 @@
 
 includemap "mapsrc/library.drm"
 
-defc entrance: 16,1                 ; connects entrance label to map coordinates 16,1
-defc corridor: 16,2
+defc entrance:      15,0                 ; connects entrance label to map coordinates 16,1
+defc corridor:      15,1 - 15,6          ; corridor message
+defc secretDoor1:   15,7                 ; secret door in start corridor
+defc secretRoom1:   14,8 - 16,10         ; secret room 
+defc sRoomTable:    15,9                 ; table in secret room
 
 corridor:
     NSTAT msgCorridor
+    ---
+
+secretDoor1:
+    NSTAT msgSecret1
+    ---
+
+secretRoom1:
+    NSTAT msgSecretRoom1
+    ---
+
+sRoomTable:
+    DISP msgTable1,True
+    YESNO takeKey
+    REDRAW
+    ---
+
+takeKey:
+    IADD_V 240,255,keyTaken,keyNotTaken
+    ---
+
+keyTaken:
+    WKEY msgWaitkey
+    ---
+
+keyNotTaken:
+    NOP
     ---
 
 entrance:
@@ -19,9 +48,21 @@ exitDungeon:
     EXIT 1,0,0
     ---
 
+$ msgWaitkey, "-- key --"
+
 $ msgCorridor,"A long, eerie corridor."
+
+$ msgSecret1, "Wait, there's a secret door here!"
+
+$ msgSecretRoom1, "A small, hidden room with a wooden\ntable in its center."
 
 $ msgEntrance,"""
 Two wooden doors guard the entrance
 to the library. Do you want to leave?
 (yes/no):"""
+
+$ msgTable1,"""
+There is a small, wooden table here. 
+A rusty key is lying on top of it. 
+Do you take the key (y/n)?"""
+
