@@ -98,7 +98,7 @@ void performDisplayTextOpcode(opcode *anOpcode) {
     if (anOpcode->param2 != 0) {
         clrscr();
     }
-    puts(feelForIndex(anOpcode->param1));
+    fputs(feelForIndex(anOpcode->param1),stdout);
 }
 
 // 0x03: WAITKEY
@@ -211,8 +211,8 @@ void performIAddOpcode(opcode *anOpcode) {
 void performAlterOpcode(opcode *anOpcode) {
     dungeonItem *dItem;
     dItem= dungeonItemAtPos(anOpcode->param1, anOpcode->param2);
-    dItem->mapItem= anOpcode->param3;
-    dItem->opcodeID= anOpcode->param4;
+    dItem->opcodeID= anOpcode->param3;
+    dItem->mapItem= anOpcode->param4;
 }
 
 // ---------------------------------
@@ -247,6 +247,7 @@ void performOpcode(opcode *anOpcode) {
            anOpcode->param4, anOpcode->param5, anOpcode->param6,
            anOpcode->nextOpcode); // DEBUG
     gotoxy(xs, ys);
+    // cgetc();
 #endif
 
     opcodeID= (anOpcode->id) & 127;
@@ -348,10 +349,10 @@ void displayFeel(byte feelID) {
 
     byte i;
 
-    for (i= 20; i < 24; ++i) {
+    for (i= 19; i < 24; ++i) {
         cclearxy(0, i, 40);
     }
-    gotoxy(0, 20);
+    gotoxy(0, 19);
     puts(feelForIndex(feelID));
 }
 

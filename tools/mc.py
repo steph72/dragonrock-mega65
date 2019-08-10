@@ -475,7 +475,10 @@ class mapCompiler:
             if not (labelLineNumber is None):
                 opcodeNumber = self.gLinePosMapping[labelLineNumber]
                 coords = self.gCoordsMapping.get(i)
+                print (coords)
+                print (coords[0],coords[2])
                 for x in range(coords[0], coords[2]+1):
+                    print (x)
                     for y in range(coords[1], coords[3]+1):
                         # x = coords[0]
                         # y = coords[1]

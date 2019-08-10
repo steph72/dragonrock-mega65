@@ -4,6 +4,57 @@
 
 includemap "mapsrc/library.drm"
 
+; ====================
+;    history room
+; ====================
+
+defc historyRoom:  17,1 - 24,5
+defc wallWriting1: 19,5
+defc shelves1: 18,2 - 23,2
+defc shelves2: 18,4 - 23,4
+defc religionDoorSpace: 24,3
+
+;-------------------------------------- <- screen width
+
+$ historyRoomMsg,"""
+It seems like someone (or something)
+destroyed all of the books in a blind 
+rage. Thousands of torn, shredded and 
+burned pages cover the floor.""" 
+
+$ historyRoomShelvesMsg,"""
+These big and mighty shelves once were 
+home to many a beautiful tome, but
+now only dust and ashes remain."""
+
+$ wallWritingMsg1,"""
+A grafitti on the south wall reads:
+'OBEZNA KAN'T REED'"""
+
+;-------------------------------------- <- screen width
+$ religionDoorMsg,"""
+This door hangs broken in its hinges. 
+A sign above it says 'RELIGION', but
+below, someone scrawled on the door:
+'OBEZNA WAS HAERE'"""
+
+historyRoom:
+    NSTAT historyRoomMsg
+    ---
+
+shelves1:
+shelves2:
+    NSTAT historyRoomShelvesMsg
+    ---
+
+religionDoorSpace:
+    NSTAT religionDoorMsg
+    ---
+
+wallWriting1:
+    NSTAT wallWritingMsg1
+    ---
+
 ; --------------------
 ; locked storage room 
 ; --------------------
@@ -34,13 +85,13 @@ openStorageRoomDoor:
     NSTAT msgOpenSDoor
     ---
 
-
 ; -------------------------
 ; entrance & first corridor
 ; -------------------------
 
 defc entrance:      15,0                 ; connects entrance
-defc corridor:      15,1 - 15,6          ; corridor message
+defc corridor:      15,1 - 15,17         ; corridor message
+defc historySign:   15,3
 
 $ msgCorridor,"A long, eerie corridor."
 
@@ -48,6 +99,11 @@ $ msgEntrance,"""
 Two wooden doors guard the entrance
 to the library. Do you want to leave?
 (yes/no):"""
+
+$ historySignMsg,"""
+A sign above the east door says:
+'HISTORY AND RELIGION'
+""" 
 
 corridor:
     NSTAT msgCorridor
@@ -57,6 +113,10 @@ entrance:
     DISP msgEntrance,True
     YESNO exitDungeon
     REDRAW
+    ---
+
+historySign:
+    NSTAT historySignMsg
     ---
 
 exitDungeon:
@@ -70,9 +130,9 @@ exitDungeon:
 ; ----------------------------------
 ;
 
-defc secretDoor1:   15,7                 ; secret door in start corridor
-defc secretRoom1:   14,8 - 16,10         ; secret room 
-defc sRoomTable:    15,9                 ; table in secret room
+defc secretDoor1:   15,18                ; secret door in start corridor
+defc secretRoom1:   14,19 - 16,21        ; secret room 
+defc sRoomTable:    15,20                ; table in secret room
 
 $ msgSecret1, "Wait, there's a secret door here!"
 
@@ -83,6 +143,8 @@ There is a small, wooden table here.
 A rusty key is lying on top of it. 
 Do you take the key (y/n)?"""
 
+$ msgTable2, "There is a small, wooden table here."
+
 secretDoor1:
     NSTAT msgSecret1
     ---
@@ -91,10 +153,14 @@ secretRoom1:
     NSTAT msgSecretRoom1
     ---
 
-sRoomTable:
+sRoomTable:                 ; initial state of table
     DISP msgTable1,True
     YESNO takeKey
     REDRAW
+    ---
+
+sRoomTableEmpty:            ; table after key is taken
+    NSTAT msgTable2
     ---
 
 takeKey:
@@ -102,13 +168,14 @@ takeKey:
     ---
 
 keyTaken:
+    ; when key is taken, change table into empty table...
+    ALTER sRoomTable, sRoomTableEmpty, 1 
     WKEY msgWaitkey
     ---
 
 keyNotTaken:
     NOP
     ---
-
 
 ; misc messages
 
