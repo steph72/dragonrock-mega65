@@ -41,5 +41,11 @@ Alter map at coordinates *xpos*,*ypos* to *startOpcodeIdx* and *dungeonItemID*
 ## 0x09 REDRAW
 Force redraw the dungeon display
 
+## 0x0a ADDC <01:numCoinsL> <02:numCoinsH>
+Give numCoins to the party
+
+## 0x8a ADDC_V
+Like 'ADDC' but output 'coins taken' message
+
 ## 0x1F EXIT <01:mapId> <02:xpos> <03:ypos>
 Exits the dungeon module back into wilderness map <mapID> at coords <xpos>, <ypos> 

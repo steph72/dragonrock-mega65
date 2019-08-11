@@ -187,7 +187,7 @@ class mapCompiler:
                 if (src.tY2Value):
                     x2 = int(src.tX2Value)
                     y2 = int(src.tY2Value)
-                self.gCoordsMapping[src.tCoordsLabel] = (x1,y1,x2,y2)
+                self.gCoordsMapping[src.tCoordsLabel] = (x1, y1, x2, y2)
             if (src.metaCmd == "includemap"):
                 self.loadMap(src.tMapName)
 
@@ -281,9 +281,20 @@ class mapCompiler:
 
         def opCreate_REDRAW(pline):
             return [9, 0, 0, 0, 0, 0, 0, 0]
+        
+        def opCreate_ADDC(pline):
+            opc = [0xa,0,0,0,0,0,0,0]
+            opc[1] = int(pline.tCoinsValue)%255
+            opc[2] = int(pline.tCoinsValue)//255
+            return opc
+        
+        def opCreate_ADDC_V(pline):
+            opc = opCreate_ADDC(pline)
+            opc[0] = 0x8a
+            return opc 
 
         def opCreate_EXIT(pline):
-            opc = [10, 0, 0, 0, 0, 0, 0, 0]
+            opc = [0x1f, 0, 0, 0, 0, 0, 0, 0]
             opc[1] = int(pline.tMapID)
             opc[2] = int(pline.tXValue)
             opc[3] = int(pline.tYValue)
@@ -368,6 +379,7 @@ class mapCompiler:
         p_yValue = pp.Word(pp.nums)('tYValue')
         p_x2Value = pp.Word(pp.nums)('tX2Value')
         p_y2Value = pp.Word(pp.nums)('tY2Value')
+        p_coinsValue = pp.Word(pp.nums)('tCoinsValue')
 
         p_keywords = (
 
@@ -392,19 +404,27 @@ class mapCompiler:
             ^ (pp.Keyword("IFPOS")('opcode') + p_itemID +
                ","+p_trueOpcLabel+","+p_falseOpcLabel +
                ","+p_regIdx)
+            
+            ^ pp.Keyword("ADDC")('opcode') + p_coinsValue
+
+            ^ pp.Keyword("ADDC_V")('opcode') + p_coinsValue
 
             ^ (pp.Keyword("IADD")('opcode')
                + p_itemID + ","
                + p_charID + ","
-               + p_trueOpcLabel + ","
-               + p_falseOpcLabel
+               + pp.Optional(","
+                             + p_trueOpcLabel + ","
+                             + p_falseOpcLabel
+                             )
                )
 
             ^ (pp.Keyword("IADD_V")('opcode')
                + p_itemID + ","
-               + p_charID + ","
-               + p_trueOpcLabel + ","
-               + p_falseOpcLabel
+               + p_charID
+               + pp.Optional(","
+                             + p_trueOpcLabel + ","
+                             + p_falseOpcLabel
+                             )
                )
 
             ^ (pp.Keyword("ALTER")('opcode')
@@ -475,14 +495,14 @@ class mapCompiler:
             if not (labelLineNumber is None):
                 opcodeNumber = self.gLinePosMapping[labelLineNumber]
                 coords = self.gCoordsMapping.get(i)
-                print (coords)
-                print (coords[0],coords[2])
+                print(coords)
+                print(coords[0], coords[2])
                 for x in range(coords[0], coords[2]+1):
-                    print (x)
+                    print(x)
                     for y in range(coords[1], coords[3]+1):
                         # x = coords[0]
                         # y = coords[1]
-                        print(i, opcodeNumber, x,y)
+                        print(i, opcodeNumber, x, y)
                         self.map[x][y].startOpcodeIndex = opcodeNumber
 
         #pp.pprint.pprint (self.opcodeBytes())

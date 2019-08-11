@@ -171,7 +171,7 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     while (currentFeelIdx < numFeels) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DEBUG
-        printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
+       //printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
         //cgetc();
 #endif
         while (*currentPtr != 0) {

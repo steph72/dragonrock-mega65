@@ -77,6 +77,17 @@ char *bonusStrForAttribute(attrT a) {
     return ret;
 }
 
+byte partyMemberCount(void) {
+    byte i;
+    byte n=0;
+    for (i=0;i<PARTYSIZE;++i) {
+        if (party[i]) {
+            ++n;
+        }
+    }
+    return n;
+}
+
 void showCurrentParty(byte small) {
     static byte i, x, y;
     static character *c;

@@ -28,6 +28,7 @@
 #define OPC_IADD 0x07   /* add item to character's inventory  */
 #define OPC_ALTER 0x08  /* alter map at coordinates           */
 #define OPC_REDRAW 0x09 /* redraw screen                      */
+#define OPC_ADDC 0x0a   /* add coins                          */
 /* ---------------------------------------------------------- */
 
 // clang-format off
@@ -98,7 +99,7 @@ void performDisplayTextOpcode(opcode *anOpcode) {
     if (anOpcode->param2 != 0) {
         clrscr();
     }
-    fputs(feelForIndex(anOpcode->param1),stdout);
+    fputs(feelForIndex(anOpcode->param1), stdout);
 }
 
 // 0x03: WAITKEY
@@ -215,6 +216,29 @@ void performAlterOpcode(opcode *anOpcode) {
     dItem->mapItem= anOpcode->param4;
 }
 
+// 0x0a: ADDC
+void performAddCoinsOpcode(opcode *anOpcode) {
+    byte charIdx;
+    int coins;
+    int numMembers;
+    int coinsPerMember;
+
+    numMembers= partyMemberCount();
+    coins= anOpcode->param1 + (255 * (anOpcode->param2));
+    coinsPerMember= coins / numMembers;
+
+    for (charIdx=0;charIdx<PARTYSIZE;++charIdx) {
+        if (party[charIdx]) {
+            party[charIdx]->gold += coinsPerMember;
+        }
+    }
+
+    if (anOpcode->id & 128) {
+        cprintf("The party gets %d coins\r\n", coinsPerMember*numMembers);
+    }
+
+}
+
 // ---------------------------------
 // general opcode handling functions
 // ---------------------------------
@@ -288,6 +312,10 @@ void performOpcode(opcode *anOpcode) {
 
     case OPC_REDRAW:
         redrawAll();
+        break;
+
+    case OPC_ADDC:
+        performAddCoinsOpcode(anOpcode);
         break;
 
     default:
@@ -434,8 +462,8 @@ void dungeonLoop() {
         currentY= mapWindowSize / 2;
     }
 
-    redrawMap();
-    performedImpassableOpcode = false;
+    redrawAll();
+    performedImpassableOpcode= false;
 
     /**************************************************************
      *
@@ -469,10 +497,10 @@ void dungeonLoop() {
         }
 
         if (!performedImpassableOpcode) {
-           performOpcodeAtIndex(currentItem->opcodeID);
+            performOpcodeAtIndex(currentItem->opcodeID);
         }
 
-        performedImpassableOpcode = false;
+        performedImpassableOpcode= false;
 
         oldX= currentX;
         oldY= currentY;
@@ -534,7 +562,7 @@ void dungeonLoop() {
                 registers[R_PASS]= 255;
                 // ...perform opcode...
                 performOpcodeAtIndex(dItem->opcodeID);
-                performedImpassableOpcode = true;
+                performedImpassableOpcode= true;
                 // ...and check 'pass' register
                 if (registers[R_PASS] == 255) {
                     currentX= oldX;
@@ -572,7 +600,6 @@ void testMap(void) {
     cprintf("**mapdebug**\r\n");
     desc= loadMap("map0");
     cgetc();
-    redrawAll();
     dungeonLoop();
 }
 

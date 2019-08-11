@@ -12,6 +12,7 @@ defc historyRoom:  17,1 - 24,5
 defc wallWriting1: 19,5
 defc shelves1: 18,2 - 23,2
 defc shelves2: 18,4 - 23,4
+defc shelfCoins: 20,4
 defc religionDoorSpace: 24,3
 
 ;-------------------------------------- <- screen width
@@ -31,12 +32,13 @@ $ wallWritingMsg1,"""
 A grafitti on the south wall reads:
 'OBEZNA KAN'T REED'"""
 
-;-------------------------------------- <- screen width
+$ foundGoldMsg,"Wait, there's some coins!\n"
+
 $ religionDoorMsg,"""
 This door hangs broken in its hinges. 
 A sign above it says 'RELIGION', but
 below, someone scrawled on the door:
-'OBEZNA WAS HAERE'"""
+'OBEZNA WAS HAER'"""
 
 historyRoom:
     NSTAT historyRoomMsg
@@ -47,12 +49,59 @@ shelves2:
     NSTAT historyRoomShelvesMsg
     ---
 
+shelfCoins:
+    DISP foundGoldMsg,True
+    ADDC_V 60
+    ALTER shelfCoins,shelves1,33    ; 33 = 1 (cross) | 32 (impassable) 
+    WKEY msgWaitkey
+    REDRAW
+    ---
+
 religionDoorSpace:
     NSTAT religionDoorMsg
     ---
 
 wallWriting1:
     NSTAT wallWritingMsg1
+    ---
+
+; ====================
+;    religion room
+; ====================
+
+defc religionRoom: 26,1 - 30,4
+defc alcove: 28,5
+
+$ religionRoomMsg,"""
+Everything that once was in this
+room has burned to ashes. You can
+still smell the fire."""
+
+$ alcoveMsg,"""
+There is a small alcove here. In
+it, you find some items...
+
+-- press any key --
+
+"""
+
+$ alcoveMsg2, "There is a small alcove here."
+
+religionRoom:
+    NSTAT religionRoomMsg
+    ---
+
+alcoveEmpty:
+    NSTAT alcoveMsg2
+    ---
+
+alcove:
+    WKEY alcoveMsg,True
+    IADD_V 4,255            ; sword
+    IADD_V 64,255           ; shield
+    WKEY msgWaitkey
+    ALTER alcove,alcoveEmpty,0
+    REDRAW
     ---
 
 ; --------------------

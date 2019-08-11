@@ -61,6 +61,19 @@ void flagError(char *e) {
     cgetc();
 }
 
+void cleanupParty(void) {
+    byte i;
+    for (i= 0; i < PARTYSIZE - 1; ++i) {
+        if (party[i] == NULL) {
+            if (party[i + 1] != NULL) {
+                // changed=true;
+                party[i]= party[i + 1];
+                party[i + 1]= NULL;
+            }
+        }
+    }
+}
+
 void dropFromParty(void) {
     static char inbuf[3];
     static byte pm;
@@ -78,6 +91,7 @@ void dropFromParty(void) {
         return;
     }
     party[pm]= NULL;
+    cleanupParty();
 }
 
 byte isInParty(byte guildIdx) {
