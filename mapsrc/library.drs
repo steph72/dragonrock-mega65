@@ -13,7 +13,7 @@ defc wallWriting1: 19,5
 defc shelves1: 18,2 - 23,2
 defc shelves2: 18,4 - 23,4
 defc shelfCoins: 20,4
-defc religionDoorSpace: 24,3
+defc scienceDoorSpace: 24,3
 
 ;-------------------------------------- <- screen width
 
@@ -34,9 +34,9 @@ A grafitti on the south wall reads:
 
 $ foundGoldMsg,"Wait, there's some coins!\n"
 
-$ religionDoorMsg,"""
+$ scienceDoorMsg,"""
 This door hangs broken in its hinges. 
-A sign above it says 'RELIGION', but
+A sign above it says 'SCIENCE', but
 below, someone scrawled on the door:
 'OBEZNA WAS HAER'"""
 
@@ -57,8 +57,8 @@ shelfCoins:
     REDRAW
     ---
 
-religionDoorSpace:
-    NSTAT religionDoorMsg
+scienceDoorSpace:
+    NSTAT scienceDoorMsg
     ---
 
 wallWriting1:
@@ -66,13 +66,13 @@ wallWriting1:
     ---
 
 ; ====================
-;    religion room
+;    science room
 ; ====================
 
-defc religionRoom: 26,1 - 30,4
+defc scienceRoom: 26,1 - 30,4
 defc alcove: 28,5
 
-$ religionRoomMsg,"""
+$ scienceRoomMsg,"""
 Everything that once was in this
 room has burned to ashes. You can
 still smell the fire."""
@@ -87,8 +87,8 @@ it, you find some items...
 
 $ alcoveMsg2, "There is a small alcove here."
 
-religionRoom:
-    NSTAT religionRoomMsg
+scienceRoom:
+    NSTAT scienceRoomMsg
     ---
 
 alcoveEmpty:
@@ -151,7 +151,7 @@ to the library. Do you want to leave?
 
 $ historySignMsg,"""
 A sign above the east door says:
-'HISTORY AND RELIGION'
+'HISTORY AND SCIENCE'
 """ 
 
 corridor:

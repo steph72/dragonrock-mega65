@@ -227,16 +227,15 @@ void performAddCoinsOpcode(opcode *anOpcode) {
     coins= anOpcode->param1 + (255 * (anOpcode->param2));
     coinsPerMember= coins / numMembers;
 
-    for (charIdx=0;charIdx<PARTYSIZE;++charIdx) {
+    for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
         if (party[charIdx]) {
-            party[charIdx]->gold += coinsPerMember;
+            party[charIdx]->gold+= coinsPerMember;
         }
     }
 
     if (anOpcode->id & 128) {
-        cprintf("The party gets %d coins\r\n", coinsPerMember*numMembers);
+        cprintf("The party gets %d coins\r\n", coinsPerMember * numMembers);
     }
-
 }
 
 // ---------------------------------
@@ -424,6 +423,85 @@ void ensureSaneOffset() {
 #pragma codesize(push, 300);
 // clang-format on
 
+void look_bh(int x0, int y0, int x1, int y1) {
+
+    int dx, dy;
+    int x, y;
+    int n;
+    int x_inc, y_inc;
+    int error;
+
+    dungeonItem *anItem;
+    byte plotSign;
+
+    dx= abs(x1 - x0);
+    dy= abs(y1 - y0);
+    x= x0;
+    y= y0;
+    n= 1 + dx + dy;
+    x_inc= (x1 > x0) ? 1 : -1;
+    y_inc= (y1 > y0) ? 1 : -1;
+    error= dx - dy;
+
+    dx*= 2;
+    dy*= 2;
+
+    for (; n > 0; --n) {
+
+        anItem= dungeonItemAtPos(x, y);
+        plotSign= anItem->mapItem & 15;
+
+        SetBit(desc->seenSpaces, x + (desc->dungeonMapWidth * y));
+
+        if (plotSign >= 2) {
+            if (x != x0 || y != y0)
+                return;
+        }
+
+        if (error > 0) {
+            x+= x_inc;
+            error-= dy;
+        } else {
+            y+= y_inc;
+            error+= dx;
+        }
+    }
+}
+
+#define L_DISTANCE 3
+
+void look(int x, int y) {
+    int xi1, xi2, yi1, yi2;
+
+    yi1= y - L_DISTANCE;
+    if (yi1 < 0)
+        yi1= 0;
+
+    yi2= y + L_DISTANCE;
+    if (yi2 > desc->dungeonMapHeight)
+        yi2= desc->dungeonMapHeight;
+
+    for (xi1= x - L_DISTANCE; xi1 <= x + L_DISTANCE; ++xi1) {
+        look_bh(x, y, xi1, yi1);
+        look_bh(x, y, xi1, yi2);
+    }
+
+    xi1= x - L_DISTANCE;
+    if (xi1 < 0)
+        xi1= 0;
+
+    xi2= x + L_DISTANCE;
+    if (xi2 > desc->dungeonMapWidth)
+        xi2= desc->dungeonMapWidth;
+
+    for (yi1= y - L_DISTANCE; yi1 <= y + L_DISTANCE; ++yi1) {
+        look_bh(x, y, xi1, yi1);
+        look_bh(x, y, xi2, yi1);
+    }
+
+    redrawMap();
+}
+
 void dungeonLoop() {
 
     int mposX; // current coords inside map
@@ -476,6 +554,7 @@ void dungeonLoop() {
         ensureSaneOffset();
 
         // draw player surrounding
+
         for (xdiff= -1; xdiff <= 1; xdiff++) {
             for (ydiff= -1; ydiff <= 1; ydiff++) {
                 mposX= currentX + offsetX + xdiff;
@@ -507,12 +586,16 @@ void dungeonLoop() {
 
         cmd= cgetc();
 
-        if (cmd >= '1' && cmd <= '6') {
+        if (cmd >= '1' && cmd <= '6' && cmd != 'l') {
             inspectCharacter(cmd - '1');
             redrawAll();
         }
 
         switch (cmd) {
+
+        case 'l':
+            look(currentX + offsetX, currentY + offsetY);
+            break;
 
         case 29: // cursor right
             currentX++;
