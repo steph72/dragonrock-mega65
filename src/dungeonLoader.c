@@ -12,6 +12,7 @@ unsigned int dungeonSize;
 byte numFeels;
 byte numOpcs;
 byte *mapdata;
+byte *seenMap;
 byte linebuf[BUFSIZE];
 
 #pragma code-name(push, "OVERLAY1");
@@ -24,6 +25,7 @@ dungeonDescriptor *loadMap(char *filename) {
 
     byte *currentDungeonPtr;
     byte *feelsPtr;
+    int smSize;
 
 #ifdef DEBUG
     byte *debugPtr;
@@ -86,6 +88,10 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("dungeon at %x\n", desc->dungeon);
 #endif
 
+    smSize = desc->dungeonMapWidth * desc->dungeonMapHeight;
+    seenMap = (byte*)malloc(smSize);
+    memset(seenMap,255,smSize);
+
     desc->seenSpaces=
         (byte *)malloc((desc->dungeonMapWidth * desc->dungeonMapHeight) / 8);
     bzero(desc->seenSpaces,
@@ -95,9 +101,10 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("map format is %s, dungeon size %x, width %d, height %d.\n", linebuf,
            dungeonSize, desc->dungeonMapWidth, desc->dungeonMapHeight);
     printf("startx: %d, starty: %d\n", desc->startX, desc->startY);
+    printf("seen map is at $%x, size $%x\n",seenMap,smSize);
 #endif
 
-    // jump to end of map
+    // jump to end of mapW
     currentDungeonPtr=
         (mapdata + 4 + (desc->dungeonMapWidth * desc->dungeonMapHeight * 2));
 

@@ -52,7 +52,7 @@ shelves2:
 shelfCoins:
     DISP foundGoldMsg,True
     ADDC_V 60
-    ALTER shelfCoins,shelves1,33    ; 33 = 1 (cross) | 32 (impassable) 
+    ALTER shelfCoins, shelves1, 1    
     WKEY msgWaitkey
     REDRAW
     ---
@@ -74,15 +74,12 @@ defc alcove: 28,5
 
 $ scienceRoomMsg,"""
 Everything that once was in this
-room has burned to ashes. You can
-still smell the fire."""
+room has been burned to ashes. You 
+can still smell the fire."""
 
 $ alcoveMsg,"""
 There is a small alcove here. In
 it, you find some items...
-
--- press any key --
-
 """
 
 $ alcoveMsg2, "There is a small alcove here."
@@ -96,7 +93,8 @@ alcoveEmpty:
     ---
 
 alcove:
-    WKEY alcoveMsg,True
+    DISP alcoveMsg,True
+    WKEY msgWaitkey
     IADD_V 4,255            ; sword
     IADD_V 64,255           ; shield
     WKEY msgWaitkey
@@ -110,11 +108,73 @@ alcove:
 
 defc storageRoomDoor:   14,2
 defc storageRoom: 10,1 - 13,4
+defc emptyBoxes: 10,1 - 11,4 
+defc lever: 10,4
+defc leverDoor: 14,6
 
 $ msgStorageRoom,"""
 A surprisingly clean and kempt storage
 room. Lots of wooden boxes line the
 west wall"""
+
+$ msgEmptyBox,"Here is an empty wooden box."
+
+$ msgLeverInitial,"""
+Wait, there is a lever hidden behind 
+this empty box! """
+
+$ msgLever,"There is a lever here.\n"
+
+$ msgLeverUp,"""
+The lever is up.
+Pull it down? (y/n)"""
+
+$ msgLeverDown,"""
+The lever is down.
+Push it up? (y/n)"""
+
+$ msgLeverSound,"""\n
+You hear a rumbling sound 
+in the distance.\n
+"""
+
+lever:
+    DISP msgLeverInitial,True
+    GOTO lu2
+    ---
+
+leverUp:
+    DISP msgLever, True
+lu2:
+    DISP msgLeverUp
+    YESNO doLeverDown
+    REDRAW
+    ---
+
+leverDown:
+    DISP msgLever,True
+    DISP msgLeverDown
+    YESNO doLeverUp
+    REDRAW
+    ---
+
+doLeverUp:
+    ALTER lever, leverUp, 1
+    ALTER leverDoor, doNothing, 36    ; close lever door
+    DISP msgLeverSound
+    WKEY msgWaitkey
+    ---
+
+doLeverDown:
+    ALTER lever, leverDown, 1
+    ALTER leverDoor, doNothing, 0       ; open lever door
+    DISP msgLeverSound
+    WKEY msgWaitkey
+    ---
+
+emptyBoxes:
+    NSTAT msgEmptyBox
+    ---
 
 storageRoom:
     NSTAT msgStorageRoom
@@ -213,7 +273,7 @@ sRoomTableEmpty:            ; table after key is taken
     ---
 
 takeKey:
-    IADD_V 240,255,keyTaken,keyNotTaken
+    IADD_V 240,255,keyTaken,doNothing
     ---
 
 keyTaken:
@@ -222,11 +282,11 @@ keyTaken:
     WKEY msgWaitkey
     ---
 
-keyNotTaken:
+doNothing:
     NOP
     ---
 
 ; misc messages
 
-$ msgWaitkey, "-- key --"
+$ msgWaitkey, "-- press any key --\n"
 $ msgLockedDoor, "The door is locked."

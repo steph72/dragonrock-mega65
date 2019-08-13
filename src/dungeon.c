@@ -14,8 +14,8 @@
 #define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
 #define SCREEN ((unsigned char *)0xc00)
 
-#define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
-#define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
+// #define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
+// #define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
 
 /* ------------------------ opcodes ------------------------- */
 #define OPC_NOP 0x00    /* no operation                       */
@@ -45,6 +45,7 @@ char signs[]= {
 };
 
 dungeonDescriptor *desc;
+unsigned int dungeonMapWidth;
 byte lastFeelIndex;
 byte registers[16];
 
@@ -116,6 +117,7 @@ void performYesNoOpcode(opcode *anOpcode) {
         inkey= cgetc();
     } while (inkey != 'y' && inkey != 'n');
     cursor(false);
+    cprintf("%c\r\n", inkey);
     if (inkey == 'y') {
         registers[0]= true;
         performOpcodeAtIndex(anOpcode->param1);
@@ -219,13 +221,14 @@ void performAlterOpcode(opcode *anOpcode) {
 // 0x0a: ADDC
 void performAddCoinsOpcode(opcode *anOpcode) {
     byte charIdx;
-    int coins;
+    int *coins;
     int numMembers;
     int coinsPerMember;
 
     numMembers= partyMemberCount();
-    coins= anOpcode->param1 + (255 * (anOpcode->param2));
-    coinsPerMember= coins / numMembers;
+    coins= (int *)&(
+        anOpcode->param1); // ...try to do something like that in Swift!
+    coinsPerMember= *coins / numMembers;
 
     for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
         if (party[charIdx]) {
@@ -340,7 +343,7 @@ void SetBit(byte *A, int k) {
 }
 
 dungeonItem *dungeonItemAtPos(byte x, byte y) {
-    return desc->dungeon + x + (y * desc->dungeonMapWidth);
+    return desc->dungeon + x + (y * dungeonMapWidth);
 }
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
@@ -387,7 +390,7 @@ void displayFeel(byte feelID) {
 void ensureSaneOffset() {
 
     if (currentX > (mapWindowSize - scrollMargin - 1)) {
-        if (offsetX + mapWindowSize < desc->dungeonMapWidth) {
+        if (offsetX + mapWindowSize < dungeonMapWidth) {
             ++offsetX;
             --currentX;
             redrawMap();
@@ -423,6 +426,11 @@ void ensureSaneOffset() {
 #pragma codesize(push, 300);
 // clang-format on
 
+/*
+breseham's line drawing algorithm for
+field-of-view calculation
+*/
+
 void look_bh(int x0, int y0, int x1, int y1) {
 
     int dx, dy;
@@ -451,7 +459,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
         anItem= dungeonItemAtPos(x, y);
         plotSign= anItem->mapItem & 15;
 
-        SetBit(desc->seenSpaces, x + (desc->dungeonMapWidth * y));
+        seenMap[x+(dungeonMapWidth*y)] = anItem->mapItem;
 
         if (plotSign >= 2) {
             if (x != x0 || y != y0)
@@ -468,8 +476,9 @@ void look_bh(int x0, int y0, int x1, int y1) {
     }
 }
 
-#define L_DISTANCE 3
+#define L_DISTANCE 4
 
+// perform bresenham for 4 edges of f-o-v
 void look(int x, int y) {
     int xi1, xi2, yi1, yi2;
 
@@ -491,8 +500,8 @@ void look(int x, int y) {
         xi1= 0;
 
     xi2= x + L_DISTANCE;
-    if (xi2 > desc->dungeonMapWidth)
-        xi2= desc->dungeonMapWidth;
+    if (xi2 > dungeonMapWidth)
+        xi2= dungeonMapWidth;
 
     for (yi1= y - L_DISTANCE; yi1 <= y + L_DISTANCE; ++yi1) {
         look_bh(x, y, xi1, yi1);
@@ -559,15 +568,14 @@ void dungeonLoop() {
             for (ydiff= -1; ydiff <= 1; ydiff++) {
                 mposX= currentX + offsetX + xdiff;
                 mposY= currentY + offsetY + ydiff;
-                if (mposX >= 0 && mposY >= 0 && mposX < desc->dungeonMapWidth &&
+                if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
                     mposY < desc->dungeonMapHeight) {
                     dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 && ydiff == 0) {
                         currentItem= dItem;
                         plotPlayer(currentX, currentY);
                     } else {
-                        SetBit(desc->seenSpaces,
-                               mposX + (desc->dungeonMapWidth * mposY));
+                        seenMap[mposX+(dungeonMapWidth*mposY)] = dItem->mapItem;
                         plotDungeonItem(dItem, currentX + xdiff,
                                         currentY + ydiff);
                     }
@@ -624,7 +632,7 @@ void dungeonLoop() {
         mposY= currentY + offsetY;
 
         // can we move here?
-        if (mposX < 0 || mposY < 0 || mposX >= desc->dungeonMapWidth ||
+        if (mposX < 0 || mposY < 0 || mposX >= dungeonMapWidth ||
             mposY >= desc->dungeonMapHeight) {
             // nope, reset position
             currentX= oldX;
@@ -682,6 +690,7 @@ void testMap(void) {
     clrscr();
     cprintf("**mapdebug**\r\n");
     desc= loadMap("map0");
+    dungeonMapWidth= desc->dungeonMapWidth;
     cgetc();
     dungeonLoop();
 }
@@ -689,10 +698,8 @@ void testMap(void) {
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     register byte *screenPtr;     // working pointer to screen
-    register dungeonItem *bufPtr; // working pointer to line buffer
-    register dungeonItem *dunStartPtr;
-    unsigned int seenStartIdx;
-    unsigned int seenIdx;
+    register byte *bufPtr;        // working pointer to line buffer
+    byte *seenMapPtr;
     unsigned int offset;
     byte mapItem;
     byte xs, ys;
@@ -703,21 +710,18 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     dungeon= desc->dungeon;
     screenStride= screenWidth - mapWindowSize;
-    mapStride= desc->dungeonMapWidth;
+    mapStride= dungeonMapWidth;
 
     screenPtr= SCREEN + (screenWidth * posY) + posX;
-    dunStartPtr= dungeon + (mapY * desc->dungeonMapWidth) + mapX - 1;
-    seenStartIdx= (mapY * desc->dungeonMapWidth) + mapX;
+    seenMapPtr= seenMap + (mapY * dungeonMapWidth) + mapX - 1;
 
     offset= 0;
 
     for (ys= 0; ys < mapWindowSize; ++ys) {
-        bufPtr= dunStartPtr + offset;
-        seenIdx= seenStartIdx + offset;
-        for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr, ++seenIdx) {
-            mapItem= (++bufPtr)->mapItem;
-            if ((mapItem & 128) ||
-                TestBit(desc->seenSpaces, seenIdx)) { // visible/automapped?
+        bufPtr= seenMapPtr + offset;
+        for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
+            mapItem= *(++bufPtr);
+            if (mapItem != 255) {
                 *screenPtr= signs[mapItem & 15];
             } else {
                 *screenPtr= 160;

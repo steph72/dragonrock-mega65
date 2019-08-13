@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-extern byte gMap[];
+extern byte *seenMap;
 
 void testMap(void);
 void blitmap(byte mapX, byte mapY, byte posX, byte posY);

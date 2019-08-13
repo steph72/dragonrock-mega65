@@ -273,6 +273,9 @@ class mapCompiler:
         def opCreate_ALTER(pline):
             opc = [8, 0, 0, 0, 0, 0, 0, 0]
             coords = self.gCoordsMapping.get(pline.tCoordsLabel)
+            if not coords:
+                print ("error: cannot find coordinate mapping for",pline.tCoordsLabel)
+                exit (-1)
             opc[1] = coords[0]
             opc[2] = coords[1]
             opc[3] = "__DRLABEL__"+pline.tOpcLabel
