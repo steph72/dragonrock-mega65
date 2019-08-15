@@ -179,6 +179,8 @@ class mapCompiler:
             if (src.metaCmd == "$"):
                 self.gStringMapping[src.tMsgLabel] = len(self.gStrings)
                 self.gStrings.append(src.tMessage)
+            if (src.metaCMd == "&"):
+                self.writeFileMessage(src.tMsgLabel,src.tFileMessage)
             if (src.metaCmd == "defc"):
                 x1 = int(src.tXValue)
                 y1 = int(src.tYValue)
@@ -457,6 +459,9 @@ class mapCompiler:
             ^ pp.Keyword("---")('metaCmd')
 
             ^ pp.Keyword("$")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tMessage')
+
+            ^ pp.Keyword("&")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tFileMessage')
+
         )
 
         p_query = p_keywords  # +pp.ZeroOrMore(pp.delimitedList(value))

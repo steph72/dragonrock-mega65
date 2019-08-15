@@ -127,11 +127,11 @@ $ msgLever,"There is a lever here.\n"
 
 $ msgLeverUp,"""
 The lever is up.
-Pull it down? (y/n)"""
+Pull it? (y/n)"""
 
 $ msgLeverDown,"""
 The lever is down.
-Push it up? (y/n)"""
+Push it? (y/n)"""
 
 $ msgLeverSound,"""\n
 You hear a rumbling sound 
@@ -140,6 +140,7 @@ in the distance.\n
 
 lever:
     DISP msgLeverInitial,True
+    ALTER lever,leverUp,1
     GOTO lu2
     ---
 
@@ -160,7 +161,7 @@ leverDown:
 
 doLeverUp:
     ALTER lever, leverUp, 1
-    ALTER leverDoor, doNothing, 36    ; close lever door
+    ALTER leverDoor, doNothing, 36    ; close lever door (32=impassable | 4 =wall)
     DISP msgLeverSound
     WKEY msgWaitkey
     ---
@@ -290,3 +291,32 @@ doNothing:
 
 $ msgWaitkey, "-- press any key --\n"
 $ msgLockedDoor, "The door is locked."
+
+; -------------------------------------
+; file messages
+; -------------------------------------
+
+& fm1,"""
+
+     --------------------------
+     OBEZNA, DRAGON OF MISTRUST
+     -------------------------- 
+
+It is rumored that this evil beast has
+its lair in the southwestern granite
+caves, near the city of Hompart.
+
+Usually, Obezna only leaves her home to
+do dirty work for other, more respected
+creatures of evil, but occasionally 
+she can be seen scouring the countryside 
+for food or shiny objects which she 
+steals from merchant's caravans crossing 
+the southern border of Hompart.
+
+It has been suggested that Obezna is 
+close friends with Gerulda, the fabled
+great ego dragon. But since it has been 
+established that ego dragons are
+not capable of friendship, these ideas
+remain a myth. """
