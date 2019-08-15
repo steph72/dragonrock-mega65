@@ -172,6 +172,14 @@ class mapCompiler:
         self.map = mdata["map"]
         infile.close()
 
+    def writeFileMessage(self,name,message):
+        outstring = message.replace("&&nl&&", "\n")
+        outstring = outstring.swapcase()
+        print ("writing file message",name)
+        outfile = open(name,"wt")
+        outfile.write(outstring)
+        outfile.close()
+
     def buildStringsAndCoords(self, p_table):
         for i in p_table:
             line = i[0]
@@ -179,8 +187,8 @@ class mapCompiler:
             if (src.metaCmd == "$"):
                 self.gStringMapping[src.tMsgLabel] = len(self.gStrings)
                 self.gStrings.append(src.tMessage)
-            if (src.metaCMd == "&"):
-                self.writeFileMessage(src.tMsgLabel,src.tFileMessage)
+            if (src.metaCmd == "&"):
+                self.writeFileMessage(src.tMsgFile,src.tFileMessage)
             if (src.metaCmd == "defc"):
                 x1 = int(src.tXValue)
                 y1 = int(src.tYValue)
@@ -460,7 +468,7 @@ class mapCompiler:
 
             ^ pp.Keyword("$")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tMessage')
 
-            ^ pp.Keyword("&")('metaCmd')+p_msgLabel+pp.Suppress(",")+p_quoted_string('tFileMessage')
+            ^ pp.Keyword("&")('metaCmd')+p_quoted_string('tMsgFile')+pp.Suppress(",")+p_quoted_string('tFileMessage')
 
         )
 
