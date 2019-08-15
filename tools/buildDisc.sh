@@ -13,8 +13,11 @@ delete main
 delete city
 delete dungeon
 delete map0
+delete msg01
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
 write mapdata/library.d map0
+write mapdata/fmsg01 msg01
 EOF
+
