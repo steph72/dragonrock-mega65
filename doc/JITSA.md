@@ -13,7 +13,7 @@ JITSA is the abbreviation for "**J**ust **I**mplement **T**hat **S**hit **A**lre
 
 It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. Scrum & co. surely come with the best intentions, but unfortunately they encourage such behaviour. 
 
-In fact, most of this was actually written down while overpaid people in suits conducted endless discussions about whether their front end developers should develop their backend because the same overpaid people in suits completely screwed up their team structure... only to scrap the whole project in the end and "go crossplatform" with flutter or some shit like that (which of course didn't solve any of the actual problems).
+In fact, most of this text was actually written down while overpaid people in suits conducted endless discussions about whether their front end developers should develop their backend because the same overpaid people in suits completely screwed up their team structure... only to scrap the whole project in the end and "go crossplatform" with flutter or some shit like that (which of course didn't solve any of the actual problems).
 
 If you - like me - have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of work can be terribly frustrating, to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with Scrum.
 
@@ -48,5 +48,4 @@ Here they are:
 12. Regularly, the team gets intoxicated on beer or mate or grass or whatever your preferred poison might be. Then, they talk about the awesome time they had by just implementing that shit already, and how to have an even better time.
 
 
-Of course JITSa doesn't work in every situation, most probably it won't even work for most teams. But nothing beats leaving all the bullshit behind, sitting down and just implementing that shit already. Trust me.
-
+Of course JITSa doesn't work in every situation, most probably it won't even work for most teams. But nothing beats coming home after a day of doing nothing, leaving all the bullshit behind, sitting down and just implementing that shit already. Trust me.
