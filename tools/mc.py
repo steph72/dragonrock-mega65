@@ -173,11 +173,22 @@ class mapCompiler:
         infile.close()
 
     def writeFileMessage(self,name,message):
+        arr = bytearray()
         outstring = message.replace("&&nl&&", "\n")
         outstring = outstring.swapcase()
+        commobytes = bytearray()
+        unixbytes = bytearray()
+        unixbytes.extend(map(ord, outstring))
+        for p in unixbytes:  # lf -> cr
+            if (p == 10):
+                commobytes.append(13)
+            else:
+                commobytes.append(p)
+        commobytes.append(0)
+        arr.extend(commobytes)
         print ("writing file message",name)
-        outfile = open(name,"wt")
-        outfile.write(outstring)
+        outfile = open(name,"wb")
+        outfile.write(commobytes)
         outfile.close()
 
     def buildStringsAndCoords(self, p_table):
@@ -501,8 +512,8 @@ class mapCompiler:
         codeLines = self.scanAndTrimLabels(srcLines)
         self.gOpcodes = self.parseScript(codeLines)
 
-        for i in range(0, len(self.gOpcodes)):
-            print(i, self.gOpcodes[i])
+        #for i in range(0, len(self.gOpcodes)):
+        #    print(i, self.gOpcodes[i])
         print("Connecting map positions...")
         for i in self.gCoordsMapping:
             label = i+":"
@@ -511,14 +522,14 @@ class mapCompiler:
             if not (labelLineNumber is None):
                 opcodeNumber = self.gLinePosMapping[labelLineNumber]
                 coords = self.gCoordsMapping.get(i)
-                print(coords)
-                print(coords[0], coords[2])
+                # print(coords)
+                # print(coords[0], coords[2])
                 for x in range(coords[0], coords[2]+1):
-                    print(x)
+                    # print(x)
                     for y in range(coords[1], coords[3]+1):
                         # x = coords[0]
                         # y = coords[1]
-                        print(i, opcodeNumber, x, y)
+                        # print(i, opcodeNumber, x, y)
                         self.map[x][y].startOpcodeIndex = opcodeNumber
 
         #pp.pprint.pprint (self.opcodeBytes())

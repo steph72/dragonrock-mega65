@@ -111,6 +111,7 @@ defc storageRoom: 10,1 - 13,4
 defc emptyBoxes: 10,1 - 11,4 
 defc lever: 10,4
 defc leverDoor: 14,6
+defc testScroll: 16,8       ; TODO: move to a a sensible place
 
 $ msgStorageRoom,"""
 A surprisingly clean and kempt storage
@@ -137,6 +138,16 @@ $ msgLeverSound,"""\n
 You hear a rumbling sound 
 in the distance.\n
 """
+
+$ msgScroll1,"There is a scroll here!\n"
+
+testScroll:
+    DISP msgScroll1,True
+    IADD_V 160,255,doNothing,doNothing   ; 160 = scroll 1
+    ALTER testScroll,emptyBoxes,1
+    WKEY msgWaitkey
+    REDRAW
+    ---
 
 lever:
     DISP msgLeverInitial,True
@@ -298,15 +309,16 @@ $ msgLockedDoor, "The door is locked."
 
 & "mapdata/fmsg01","""
 
-     --------------------------
-     OBEZNA, DRAGON OF MISTRUST
-     -------------------------- 
+        --------------------------
+        OBEZNA, DRAGON OF MISTRUST
+        -------------------------- 
 
 It is rumored that this evil beast has
 its lair somewhere in the southwestern 
 granite caves, near the city of Hompart. 
-There, it commands a small army of 
-kobolds to do its bidding.
+
+There, Obezna commands a small army of 
+kobolds to do her bidding. 
 
 Usually, Obezna only leaves her home to
 do dirty work for other, more respected

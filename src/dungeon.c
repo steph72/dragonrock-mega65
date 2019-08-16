@@ -2,6 +2,7 @@
 #include "character.h"
 #include "dungeonLoader.h"
 #include "types.h"
+#include "congui.h"
 #include <conio.h>
 #include <plus4.h>
 #include <stdio.h>
@@ -379,9 +380,7 @@ void displayFeel(byte feelID) {
 
     byte i;
 
-    for (i= 19; i < 24; ++i) {
-        cclearxy(0, i, 40);
-    }
+    cg_clearLower(5);
     gotoxy(0, 19);
     puts(feelForIndex(feelID));
 }

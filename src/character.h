@@ -19,5 +19,7 @@ char* bonusStrForAttribute(attrT a);
 void showCurrentParty(char small);
 void inspectCharacter(byte idx);
 
+item *whichItem(character *ic);
+void useItem(character *ic);
 
 #endif

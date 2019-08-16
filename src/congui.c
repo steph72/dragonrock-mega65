@@ -17,38 +17,42 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <conio.h>
+#include "types.h"
 #include <cbm.h>
+#include <conio.h>
 #include <plus4.h>
 #include <string.h>
-#include "types.h"
 
-void cg_init()
-{
-	bgcolor(COLOR_BLACK);
-	bordercolor(COLOR_BLACK);
-	textcolor(BCOLOR_LEMON+CATTR_LUMA5);
-	cbm_k_bsout(11); // disable shift+cmd on c128 & 364
-	cbm_k_bsout(14); // lowercase charset
-	clrscr();
+void cg_clearLower(byte num) {
+
+    byte i;
+    for (i= 24-num; i <= 24; ++i) {
+        cclearxy(0, i, 40);
+    }
 }
 
-void cg_borders(void)
-{
-	chlinexy(0, 0, 40);
-	chlinexy(0, 24, 40);
-	gotoxy(0,1);
+void cg_init() {
+    bgcolor(COLOR_BLACK);
+    bordercolor(COLOR_BLACK);
+    textcolor(BCOLOR_LEMON + CATTR_LUMA5);
+    cbm_k_bsout(11); // disable shift+cmd on c128 & 364
+    cbm_k_bsout(14); // lowercase charset
+    clrscr();
 }
 
-void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t)
-{
-	clrscr();
-	textcolor(lcol);
-	cg_borders();
-	if (splitScreen)
-		chlinexy(0, 12, 40);
-	textcolor(tcol);
-	cputsxy(20 - (strlen(t) / 2), 1, t);
-	gotoxy(0, 3);
+void cg_borders(void) {
+    chlinexy(0, 0, 40);
+    chlinexy(0, 24, 40);
+    gotoxy(0, 1);
+}
+
+void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
+    clrscr();
+    textcolor(lcol);
+    cg_borders();
+    if (splitScreen)
+        chlinexy(0, 12, 40);
+    textcolor(tcol);
+    cputsxy(20 - (strlen(t) / 2), 1, t);
+    gotoxy(0, 3);
 }

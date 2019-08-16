@@ -89,6 +89,7 @@ void runGuildMenu(void) {
 }
 
 void runCityMenu(void) {
+
     const char menu[]= " Go to  A)rmory G)uild M)ystic\n"
                        "        I)nn    B)ank  L)eave town\n\n"
                        "  C)ast spell\n"
@@ -99,6 +100,8 @@ void runCityMenu(void) {
     static unsigned char quitCity;
 
     quitCity= 0;
+    gGameMode = gm_city;
+    
     while (!quitCity) {
         sprintf(outbuf, "%s (%d)", gCities[currentCity], currentCity + 1);
         cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 1,

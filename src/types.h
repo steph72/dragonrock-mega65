@@ -41,6 +41,10 @@ typedef enum _itemType {
 	it_armor, it_shield, it_weapon, it_potion, it_scroll, it_special 
 } itemType;
 
+typedef enum _gameMode {
+	gm_city, gm_merchant, gm_outdoor, gm_dungeon, gm_encounter
+} gameMode;
+
 typedef struct _item {			// inventory item
 	byte id;
 	char *name;

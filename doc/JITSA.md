@@ -11,9 +11,7 @@ JITSA is a software development model, just like Scrum. Or rather, not at all li
 
 JITSA is the abbreviation for "**J**ust **I**mplement **T**hat **S**hit **A**lready". It was conceived during hours and hours of endless and meaningless meetings, retros, refinements, shitshiftings and other assorted what-have-yous, burning tons of company money and getting nowhere slowly.
 
-It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. Scrum & co. surely come with the best intentions, but unfortunately they encourage such behaviour. 
-
-In fact, most of this text was actually written down while overpaid suits conducted endless discussions about whether their front end developers should develop their backend because the same overpaid suits completely screwed up their team structure... only to scrap the whole project in the end and let external contractors "go crossplatform" with flutter or some shit like that (which of course didn't solve any of the actual problems).
+It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. Scrum & friends surely come with the best intentions, but unfortunately they encourage such behaviour, especially when applied the wrong way. 
 
 If you - like me - have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of work can be terribly frustrating, to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with Scrum.
 

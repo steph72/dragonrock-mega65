@@ -4,8 +4,8 @@
 #include <string.h>
 
 #include "character.h"
-
 #include "config.h"
+#include "congui.h"
 #include "types.h"
 
 extern char outbuf[80];
@@ -79,8 +79,8 @@ char *bonusStrForAttribute(attrT a) {
 
 byte partyMemberCount(void) {
     byte i;
-    byte n=0;
-    for (i=0;i<PARTYSIZE;++i) {
+    byte n= 0;
+    for (i= 0; i < PARTYSIZE; ++i) {
         if (party[i]) {
             ++n;
         }
@@ -121,51 +121,168 @@ void showCurrentParty(byte small) {
     }
 }
 
+void useSpecial(item *anItem) {
+    if (anItem->id == 0) {
+        cg_clearLower(3);
+        gotoxy(0, 22);
+        cputs("\r\nCurious. Nothing happens.\r\n--key--");
+        cgetc();
+    }
+}
+
+void more(char *filename) {
+    FILE *infile;
+    int line= 0;
+    clrscr();
+    infile= fopen(filename, "r");
+    while (!feof(infile)) {
+        fgets(outbuf, 79, infile);
+        ++line;
+        fputs(outbuf, stdout);
+        if (line == 23) {
+            gotoxy(28, 24);
+            cprintf("-- more --");
+            cursor(1);
+            cgetc();
+            cursor(0);
+            line= 0;
+            clrscr();
+        }
+    }
+    fclose(infile);
+    gotoxy(28, 24);
+    cprintf("-- key --");
+    cgetc();
+}
+
+void useScroll(item *anItem) {
+    byte num;
+    num= anItem->val1;
+    sprintf(outbuf, "fmsg%02d", num);
+    more(outbuf);
+}
+
+item *whichItem(character *ic) {
+    item *anItem;
+    byte itemIdxChar;
+
+    cputs("which item (A-L)? ");
+    cursor(1);
+    itemIdxChar= cgetc();
+    cursor(0);
+    anItem= inventoryItemForID(ic->inventory[itemIdxChar - 'a']);
+    return anItem;
+}
+
+void useItem(character *ic) {
+    item *anItem;
+    cg_clearLower(3);
+    gotoxy(0, 22);
+    cputs("use ");
+    anItem= whichItem(ic);
+
+    switch (anItem->type) {
+
+    case it_special:
+        useSpecial(anItem);
+        break;
+
+    case it_scroll:
+        useScroll(anItem);
+
+    default:
+        break;
+    }
+}
+
 void inspectCharacter(byte idx) {
     character *ic;
     byte i;
+    byte quitInspect;
+    byte cmd;
+
     if (party[idx] == NULL) {
         return;
     }
-    ic= party[idx];
-    clrscr();
-    revers(1);
-    cputs(ic->name);
-    revers(0);
-    printf(" (%s, %s)\n", gRaces[ic->aRace], gClasses[ic->aClass]);
-    for (i= 0; i < strlen(ic->name); ++i) {
-        cputc('=');
-    }
-    puts("\n");
-    for (i= 0; i < NUM_ATTRS; i++) {
-        cputsxy(0, i + 3, gAttributesS[i]);
-        cputsxy(3, i + 3, ":");
-        gotoxy(5, i + 3);
-        cprintf("%2d %s", ic->attributes[i],
-                bonusStrForAttribute(ic->attributes[i]));
-    }
-    gotoxy(0, i + 4);
-    printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);
-    printf(" MP: %d/%d\n", ic->aMP, ic->aMaxMP);
-    gotoxy(16, 3);
-    printf("   Age: %d", ic->age);
-    gotoxy(16, 4);
-    printf(" Level: %d", ic->level);
-    gotoxy(16, 5);
-    printf("    XP: %d", ic->xp);
-    gotoxy(16, 6);
-    printf(" Coins: %d", ic->gold);
-    gotoxy(16, 8);
-    printf("Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
-    gotoxy(16, 9);
-    printf(" Armor: %s", nameOfInventoryItemWithID(ic->armor));
-    gotoxy(16, 10);
-    printf("Shield: %s", nameOfInventoryItemWithID(ic->shield));
-    gotoxy(0, 13);
-    printf("Inventory:\n");
-    for (i= 0; i < INV_SIZE; i++) {
-        gotoxy(20 * (i / (INV_SIZE / 2)), 15 + (i % (INV_SIZE / 2)));
-        printf("%c : %s", 'A' + i, nameOfInventoryItemWithID(ic->inventory[i]));
-    }
-    cgetc();
+
+    quitInspect= false;
+
+    while (!quitInspect) {
+
+        ic= party[idx];
+        clrscr();
+        revers(1);
+        cputs(ic->name);
+        revers(0);
+        printf(" (%s, %s)\n", gRaces[ic->aRace], gClasses[ic->aClass]);
+        for (i= 0; i < strlen(ic->name); ++i) {
+            cputc('=');
+        }
+        puts("\n");
+        for (i= 0; i < NUM_ATTRS; i++) {
+            cputsxy(0, i + 3, gAttributesS[i]);
+            cputsxy(3, i + 3, ":");
+            gotoxy(5, i + 3);
+            cprintf("%2d %s", ic->attributes[i],
+                    bonusStrForAttribute(ic->attributes[i]));
+        }
+        gotoxy(0, i + 4);
+        printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);
+        printf(" MP: %d/%d\n", ic->aMP, ic->aMaxMP);
+        gotoxy(16, 3);
+        printf("   Age: %d", ic->age);
+        gotoxy(16, 4);
+        printf(" Level: %d", ic->level);
+        gotoxy(16, 5);
+        printf("    XP: %d", ic->xp);
+        gotoxy(16, 6);
+        printf(" Coins: %d", ic->gold);
+        gotoxy(16, 8);
+        printf("Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
+        gotoxy(16, 9);
+        printf(" Armor: %s", nameOfInventoryItemWithID(ic->armor));
+        gotoxy(16, 10);
+        printf("Shield: %s", nameOfInventoryItemWithID(ic->shield));
+        gotoxy(0, 13);
+        printf("Inventory:\n");
+        for (i= 0; i < INV_SIZE; i++) {
+            gotoxy(20 * (i / (INV_SIZE / 2)), 15 + (i % (INV_SIZE / 2)));
+            printf("%c : %s", 'A' + i,
+                   nameOfInventoryItemWithID(ic->inventory[i]));
+        }
+        gotoxy(0, 22);
+        revers(1);
+        cputs("u");
+        revers(0);
+        cputs("se/ready ");
+        revers(1);
+        cputs("r");
+        revers(0);
+        cputs("emove ");
+        revers(1);
+        cputs("g");
+        revers(0);
+        cputs("ive ");
+        if (gGameMode == gm_city) {
+            revers(1);
+            cputs("s");
+            revers(0);
+            cputs("ell ");
+        }
+        revers(1);
+        cputs("q");
+        revers(0);
+        cputs("uit");
+        cputs(">");
+        cursor(1);
+        cmd= cgetc();
+        cursor(0);
+
+        if (cmd == 'q') {
+            quitInspect= true;
+        } else if (cmd == 'u') {
+            useItem(ic);
+        }
+
+    } // while !quitInspect
 }
