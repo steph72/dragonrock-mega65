@@ -254,7 +254,33 @@ class mapEditor():
 
     def saveMapAs(self):
         self._saveMap("")
+    
+    def trimMap(self):
+        width = 0
+        height = 0
+        while (width < 16 or width > self.mapWidth or height < 16 or height > self.mapHeight):
+            self.stdscr.erase()
+            self.stdscr.addstr("\n\n** trim map **\n")
+            self.stdscr.addstr("new width (16-"+str(self.mapWidth)+"): ")
+            self.stdscr.refresh()
+            curses.echo()
+            width = int(self.stdscr.getstr(4))
+            self.stdscr.addstr("new height (16-"+str(self.mapHeight)+"): ")
+            height = int(self.stdscr.getstr(4))
+            curses.noecho()
+   
+        newMap=[]
+        for y in range(width):
+            newRow = []
+            for x in range(height):
+                newRow.append(self.map[y][x])
+            newMap.append(newRow)
+        self.map = newMap
+        self.mapHeight = height
+        self.mapWidth = width
+        self.redrawStdEditorScreen()
 
+    
     def newMap(self):
         width = 0
         height = 0
@@ -323,7 +349,8 @@ class mapEditor():
             'l': self.loadMap,
             'v': self.toggleInitiallyVisible,
             'g': self.toggleImpassable,
-            'p': self.setStartPosition
+            'p': self.setStartPosition,
+            't': self.trimMap
         }
 
         stopEd = 0

@@ -102,9 +102,85 @@ alcove:
     REDRAW
     ---
 
-; --------------------
+; ===========================
+; librarian's floor and room
+; ===========================
+
+defc librarianFloor: 1,6 - 13,6
+defc librarianRoom: 3,1 - 8,4
+defc librarianRoomDone: 6,5             ; we include the door here for dramatic effect
+
+$ msgLibrarianFloor,"A surprisingly clean corridor."
+$ msgLibrarianRoom,"The librarian's room"
+
+;--------------------------------------
+$ msgLR1,"""
+This is the librarian's room. A lot of
+shelves and bookstands line the wall,
+and there's a magnificiant, wooden
+writing desk in the center of the 
+room.
+
+Before it, on the ground, there's the
+librarian. It seems like he was badly
+wounded in the attack on the library,
+but somehow managed to work the secret 
+doors and get to safety here.
+
+"""
+
+$ msgLR2,"""
+It looks like the librarian is still
+alive. What do you do?
+
+a) kill him
+b) search him
+c) help him
+
+"""
+
+$ msgKillLibrarian, "You kill the librarian."
+$ msgSearchLibrarian, "You search the librarian."
+$ msgHealLibrarian, "You heal the librarian."
+
+librarianRoomDone: 
+    NSTAT msgLibrarianRoom
+    ---
+
+librarianFloor:
+    NSTAT msgLibrarianFloor
+    ---
+
+librarianRoom:
+    DISP msgLR1, True
+    WKEY msgLR2, False , 1
+    SETREG 5,0
+    IFREG 1,65,doKillLibrarian,doNothing
+    IFREG 1,66,doSearchLibrarian,doNothing
+    IFREG 1,67,doHealLibrarian,doNothing
+    IFREG_B 5,0,librarianRoom
+    REDRAW
+    ---
+
+doKillLibrarian:
+    SETREG 5,1
+    WKEY msgKillLibrarian
+    ---
+
+doSearchLibrarian:
+    SETREG 5,1
+    WKEY msgSearchLibrarian
+    ---
+
+doHealLibrarian:
+    SETREG 5,1
+    WKEY msgHealLibrarian
+    ---
+
+
+; ====================
 ; locked storage room 
-; --------------------
+; ====================
 
 defc storageRoomDoor:   14,2
 defc storageRoom: 10,1 - 13,4
@@ -251,9 +327,9 @@ exitDungeon:
 ; ----------------------------------
 ;
 
-defc secretDoor1:   15,18                ; secret door in start corridor
-defc secretRoom1:   14,19 - 16,21        ; secret room 
-defc sRoomTable:    15,20                ; table in secret room
+defc secretDoor1:   21,18                ; secret door in start corridor
+defc secretRoom1:   20,19 - 22,21        ; secret room 
+defc sRoomTable:    21,20                ; table in secret room
 
 $ msgSecret1, "Wait, there's a secret door here!"
 
@@ -328,9 +404,9 @@ for food or shiny objects which she
 steals from merchant's caravans crossing 
 the southern border of Hompart.
 
-It has been suggested that Obezna is 
-close friends with Gerulda, the fabled
-great ego dragon. But since it has been 
-established that ego dragons are
+It has been suggested by some scholars 
+that Obezna is close friends with Gerulda, 
+the fabled great ego dragon. But since it 
+has been established that ego dragons are
 not capable of real friendship, these 
 ideas remain a myth. """

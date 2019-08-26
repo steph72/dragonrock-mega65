@@ -67,7 +67,7 @@ typedef struct _opcode {
 	byte param4;
 	byte param5;
 	byte param6;
-	byte nextOpcode;
+	byte nextOpcodeIndex;
 } opcode;
 
 typedef struct _character {
@@ -94,7 +94,6 @@ typedef struct _character {
 
 typedef struct _dungeonDescriptorS {
     dungeonItem *dungeon;    // pointer to dungeon map
-    byte *seenSpaces;        // pointer to bit array of seen spaces
     opcode *opcodesAdr;      // pointer to opcode list
     unsigned char **feelTbl; // pointer to message list
     byte dungeonMapWidth;

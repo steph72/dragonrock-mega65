@@ -16,6 +16,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
+
+// clang-format off
+#pragma check-stack(push,on)
+// clang-format on
+
 #include <conio.h>
 #include <em.h>
 #include <errno.h>
@@ -33,13 +38,8 @@
 #include "dungeon.h"
 #include "guildLoader.h"
 #include "types.h"
+#include "debug.h"
 
-#ifdef DEBUG
-void testMem(void);
-#define MEMT testMem()
-#else
-#define MEMT
-#endif
 
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
@@ -136,11 +136,4 @@ unsigned char loadfile(char *name, void *addr, void *size) {
         return 0;
     }
     return 1;
-}
-
-void testMem() {
-    byte *t;
-    t= (byte *)malloc(8);
-    printf("memtop is $%x\n", t);
-    free(t);
 }

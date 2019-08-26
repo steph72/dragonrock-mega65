@@ -13,7 +13,9 @@ JITSA is the abbreviation for "**J**ust **I**mplement **T**hat **S**hit **A**lre
 
 It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. Scrum & friends surely come with the best intentions, but unfortunately they encourage such behaviour, especially when applied the wrong way. 
 
-If you - like me - have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of work can be terribly frustrating, to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with Scrum.
+(In fact, a big portion of this text was written while I had to endure helping out on a project consisting mainly of overpaid people conducting endless discussions, scheming their petty little schemes in the background and finally flushing months and months of work down the sink because some outside consultant told the CEO that the only solution would be to "go crossplatform" with fluttter or some shit like that. This - of course - didn't solve any of the real problems of the company, which were deeply rooted in a totally messsed up 'agile' team structure and the fact that nobody was able or willing to get their fucking act together and just implement that shit already; but I digress...)
+
+If you - like me - have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of "work" can be terribly frustrating,to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with Scrum.
 
 Here they are:
 
@@ -27,7 +29,7 @@ Here they are:
 
 3. We deliver working shit when it's fucking ready. Not after that, and certainly not before that. If it takes another three months, so be it. There's no need to calm down product owners or investors with shiny trinkets and baubles. Just do what has to be done in the time that it takes.
 
-4. Absolutely no effing cooperation between business people and developers, because nobody needs business people.
+4. Absolutely no effing cooperation between business people and developers, because nobody needs business people. 
 
 5. Projects are built around the fact that we want to get this shit running, damnit.
 
@@ -46,6 +48,6 @@ Here they are:
 12. Regularly, the team gets intoxicated on beer or mate or grass or whatever your preferred poison might be. Then, they talk about the awesome time they had by just implementing that shit already, and how to have an even better time.
 
 
-Of course JITSA is not really meant as an alternative to Scrum or Spiral or Waterfall or whatever it is they make you do. It doesn't work in every situation, most probably it won't work at all for most of the common scenarios. 
+Of course JITSA is not really meant as an alternative to Scrum or Spiral or Waterfall or whatever it is they make you do. It doesn't work in every situation - in fact it probably won't work at all for most of the common scenarios. 
 
-It's more a guideline on how to take programming back into your own hands, and doing something awesome for yourself, like it was in the good old days... a feeling most of my younger colleagues - sadly - have never known.
+It's more of a guideline on how to take programming back into your own hands, and doing something awesome for yourself, like it was in the good old days... a feeling most of my younger colleagues - sadly - have never known.

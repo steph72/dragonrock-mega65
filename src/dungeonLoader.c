@@ -92,11 +92,6 @@ dungeonDescriptor *loadMap(char *filename) {
     seenMap = (byte*)malloc(smSize);
     memset(seenMap,255,smSize);
 
-    desc->seenSpaces=
-        (byte *)malloc((desc->dungeonMapWidth * desc->dungeonMapHeight) / 8);
-    bzero(desc->seenSpaces,
-          ((desc->dungeonMapWidth * desc->dungeonMapHeight) / 8));
-
 #ifdef DEBUG
     printf("map format is %s, dungeon size %x, width %d, height %d.\n", linebuf,
            dungeonSize, desc->dungeonMapWidth, desc->dungeonMapHeight);
@@ -179,7 +174,7 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DEBUG
        //printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
-        //cgetc();
+    //cgetc();
 #endif
         while (*currentPtr != 0) {
             currentPtr++;

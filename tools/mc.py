@@ -50,6 +50,7 @@ class mapCompiler:
             unixbytes.extend(map(ord, i.swapcase()))
             for p in unixbytes:  # lf -> cr
                 if (p == 10):
+                    commobytes.append(10)
                     commobytes.append(13)
                 else:
                     commobytes.append(p)
@@ -270,6 +271,11 @@ class mapCompiler:
                 opc[4] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
+        def opCreate_IFREG_B(pline):
+            opc = opCreate_IFREG(pline)
+            opc[0] = 0x45
+            return opc 
+
         def opCreate_IFPOS(pline):
             opc = [6, int(pline.tItemID), 0, 0, int(pline.tRegIndex), 0, 0, 0]
             if (pline.tTrueOpcLabel):
@@ -316,6 +322,21 @@ class mapCompiler:
             opc = opCreate_ADDC(pline)
             opc[0] = 0x8a
             return opc 
+
+        def opCreate_ADDE(pline):
+            opc = [0x0b,0,0,0,0,0,0,0]
+            opc[1] = int(pline.tCoinsValue)%255
+            opc[2] = int(pline.tCoinsValue)//255
+            return opc
+        
+        def opCreate_ADDE_V(pline):
+            opc = opCreate_ADDE(pline)
+            opc[0] = 0x8b
+            return opc 
+
+        def opCreate_SETREG(pline):
+            opc = [0x0c, int(pline.tRegIndex), int(pline.tRegValue), 0, 0, 0, 0, 0]    
+            return opc
 
         def opCreate_EXIT(pline):
             opc = [0x1f, 0, 0, 0, 0, 0, 0, 0]
@@ -404,6 +425,7 @@ class mapCompiler:
         p_x2Value = pp.Word(pp.nums)('tX2Value')
         p_y2Value = pp.Word(pp.nums)('tY2Value')
         p_coinsValue = pp.Word(pp.nums)('tCoinsValue')
+        p_expValue = pp.Word(pp.nums)('tExpValue')
 
         p_keywords = (
 
@@ -423,6 +445,10 @@ class mapCompiler:
 
             ^ pp.Keyword("IFREG")('opcode')+p_regIdx+","+p_regValue+","+p_trueOpcLabel+","+p_falseOpcLabel
 
+            ^ pp.Keyword("IFREG_B")('opcode')+p_regIdx+","+p_regValue+","+p_trueOpcLabel
+
+            ^ pp.Keyword("SETREG")('opcode')+p_regIdx+","+p_regValue
+
             ^ pp.Keyword("YESNO")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
 
             ^ (pp.Keyword("IFPOS")('opcode') + p_itemID +
@@ -432,6 +458,10 @@ class mapCompiler:
             ^ pp.Keyword("ADDC")('opcode') + p_coinsValue
 
             ^ pp.Keyword("ADDC_V")('opcode') + p_coinsValue
+
+            ^ pp.Keyword("ADDE")('opcode') + p_expValue
+
+            ^ pp.Keyword("ADDE_V")('opcode') + p_expValue
 
             ^ (pp.Keyword("IADD")('opcode')
                + p_itemID + ","
@@ -506,7 +536,8 @@ class mapCompiler:
 
         print("Reading "+sys.argv[1])
         infile = open(srcFilename, "r")
-        srcLines = self.trim(infile.readlines())
+        self.rawLines = infile.readlines()
+        srcLines = self.trim(self.rawLines)
         infile.close()
 
         codeLines = self.scanAndTrimLabels(srcLines)

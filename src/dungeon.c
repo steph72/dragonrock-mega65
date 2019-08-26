@@ -1,8 +1,10 @@
 #include "dungeon.h"
 #include "character.h"
+#include "congui.h"
+#include "debug.h"
 #include "dungeonLoader.h"
 #include "types.h"
-#include "congui.h"
+
 #include <conio.h>
 #include <plus4.h>
 #include <stdio.h>
@@ -30,6 +32,8 @@
 #define OPC_ALTER 0x08  /* alter map at coordinates           */
 #define OPC_REDRAW 0x09 /* redraw screen                      */
 #define OPC_ADDC 0x0a   /* add coins                          */
+#define OPC_ADDE 0x0b   /* add experience                     */
+#define OPC_SETREG 0x0c /* set register                       */
 /* ---------------------------------------------------------- */
 
 // clang-format off
@@ -74,44 +78,50 @@ void redrawAll(void);
 void plotPlayer(byte x, byte y);
 void setupDungeonScreen(void);
 void performOpcodeAtIndex(byte idx);
-void performOpcode(opcode *anOpcode);
+byte performOpcode(opcode *anOpcode, int dbgIdx);
 
 // --------------------------------- opcodes ---------------------------------
 
 // 0x01: NSTAT
-void performDisplayFeelOpcode(opcode *anOpcode) {
+byte performDisplayFeelOpcode(opcode *anOpcode) {
     byte feelIndex;
 
     feelIndex= anOpcode->param1;
 
     // make sure we display it only once
     if (feelIndex == lastFeelIndex) {
-        return;
+        return 0;
     }
 
     displayFeel(anOpcode->param1);
     lastFeelIndex= feelIndex;
+
+    return 0;
 }
 
 // 0x02: DISP
-void performDisplayTextOpcode(opcode *anOpcode) {
+byte performDisplayTextOpcode(opcode *anOpcode) {
     byte feelIndex;
 
     feelIndex= anOpcode->param1;
     if (anOpcode->param2 != 0) {
         clrscr();
     }
-    fputs(feelForIndex(anOpcode->param1), stdout);
+    // cprintf("%s",feelForIndex(anOpcode->param1));
+    cputs(feelForIndex(anOpcode->param1));
+
+    return 0;
 }
 
 // 0x03: WAITKEY
-void performWaitkeyOpcode(opcode *anOpcode) {
+byte performWaitkeyOpcode(opcode *anOpcode) {
     performDisplayTextOpcode(anOpcode);
     registers[anOpcode->param3]= cgetc();
+    return 0;
 }
 
 // 0x04: YESNO
-void performYesNoOpcode(opcode *anOpcode) {
+byte performYesNoOpcode(opcode *anOpcode) {
     byte inkey;
     cursor(true);
     do {
@@ -126,23 +136,35 @@ void performYesNoOpcode(opcode *anOpcode) {
         registers[0]= false;
         performOpcodeAtIndex(anOpcode->param2);
     }
+    return 0;
 }
 
 // 0x05: IFREG
-void performIfregOpcode(opcode *anOpcode) {
+byte performIfregOpcode(opcode *anOpcode) {
+
     byte regNr;
     byte value;
     regNr= anOpcode->param1;
     value= anOpcode->param2;
-    if (registers[regNr] == value) {
-        performOpcodeAtIndex(anOpcode->param3);
+
+    if (anOpcode->id & 0x40) {
+        if (registers[regNr] == value) {
+            return anOpcode->param3;
+        } else {
+            return anOpcode->nextOpcodeIndex;
+        }
     } else {
-        performOpcodeAtIndex(anOpcode->param4);
+        if (registers[regNr] == value) {
+            performOpcodeAtIndex(anOpcode->param3);
+        } else {
+            performOpcodeAtIndex(anOpcode->param4);
+        }
     }
+    return 0;
 }
 
 // 0x06: IFPOS
-void performIfposOpcode(opcode *anOpcode) {
+byte performIfposOpcode(opcode *anOpcode) {
     itemT anItemID;
     byte i;
     byte found;
@@ -166,10 +188,11 @@ void performIfposOpcode(opcode *anOpcode) {
     } else {
         performOpcodeAtIndex(anOpcode->param3);
     }
+    return 0;
 }
 
 // 0x07: IADD
-void performIAddOpcode(opcode *anOpcode) {
+byte performIAddOpcode(opcode *anOpcode) {
     byte charIdx;
     byte anItemID;
     byte found;
@@ -191,7 +214,7 @@ void performIAddOpcode(opcode *anOpcode) {
         if (!found) {
             registers[0]= false; // failure flag
             performOpcodeAtIndex(anOpcode->param4);
-            return;
+            return 0;
         }
     }
 
@@ -203,24 +226,25 @@ void performIAddOpcode(opcode *anOpcode) {
                     nameOfInventoryItemWithID(anItemID));
         }
         performOpcodeAtIndex(anOpcode->param3);
-        return;
+        return 0;
     }
 
     registers[0]= false;
     performOpcodeAtIndex(anOpcode->param4);
-    return;
+    return 0;
 }
 
 // 0x08: ALTER
-void performAlterOpcode(opcode *anOpcode) {
+byte performAlterOpcode(opcode *anOpcode) {
     dungeonItem *dItem;
     dItem= dungeonItemAtPos(anOpcode->param1, anOpcode->param2);
     dItem->opcodeID= anOpcode->param3;
     dItem->mapItem= anOpcode->param4;
+    return 0;
 }
 
 // 0x0a: ADDC
-void performAddCoinsOpcode(opcode *anOpcode) {
+byte performAddCoinsOpcode(opcode *anOpcode) {
     byte charIdx;
     int *coins;
     int numMembers;
@@ -240,6 +264,25 @@ void performAddCoinsOpcode(opcode *anOpcode) {
     if (anOpcode->id & 128) {
         cprintf("The party gets %d coins\r\n", coinsPerMember * numMembers);
     }
+
+    return 0;
+}
+
+// 0x0c: SETREG
+byte performSetregOpcode(opcode *anOpcode) {
+
+    byte regNr;
+    byte value;
+    regNr= anOpcode->param1;
+    value= anOpcode->param2;
+
+    if (regNr > 16) {
+        printf("??invalid register nr %d... quitting", regNr);
+        exit(0);
+    }
+
+    registers[regNr]= value;
+    return 0;
 }
 
 // ---------------------------------
@@ -248,99 +291,105 @@ void performAddCoinsOpcode(opcode *anOpcode) {
 
 void performOpcodeAtIndex(byte idx) {
 
-    if (idx == 0)
-        return;
+    byte next;
+    next = idx;
 
-    /*     if ((opcodeForIndex(idx)->id)>1) {
-          gotoxy(0,0);
-          cprintf("-- i%d:%d --",idx,opcodeForIndex(idx)->id); cgetc();
-      }
-      */
-
-    performOpcode(opcodeForIndex(idx));
+    do
+    {
+        next = performOpcode(opcodeForIndex(next),next);
+    } while (next!=0);
+    
+    performOpcode(opcodeForIndex(idx), idx);
 }
 
-void performOpcode(opcode *anOpcode) {
+byte performOpcode(opcode *anOpcode, int dbgIdx) {
 
     byte xs, ys; // x,y save
     byte opcodeID;
+    byte nextOpcodeIndex;
+
+    byte rOpcIdx; // returned opcode index from singular opcodes, used for
+                  // branching
 
 #ifdef DEBUG
     xs= wherex();
     ys= wherey();
     gotoxy(0, 24);
-    printf("opc%02x.%02x%02x%02x%02x%02x%02x>%02x", anOpcode->id,
+    printf("%02x:%02x%02x%02x%02x%02x%02x%02x>%02x", dbgIdx, anOpcode->id,
            anOpcode->param1, anOpcode->param2, anOpcode->param3,
            anOpcode->param4, anOpcode->param5, anOpcode->param6,
-           anOpcode->nextOpcode); // DEBUG
+           anOpcode->nextOpcodeIndex); // DEBUG
+    gotoxy(0, 23);
     gotoxy(xs, ys);
-    // cgetc();
 #endif
 
-    opcodeID= (anOpcode->id) & 127;
+    opcodeID= (anOpcode->id) & 31;
+    nextOpcodeIndex= anOpcode->nextOpcodeIndex;
 
     switch (opcodeID) {
 
+    case OPC_NOP:
+        rOpcIdx= 0;
+        break;
+
     case OPC_NSTAT:
-        performDisplayFeelOpcode(anOpcode);
+        rOpcIdx= performDisplayFeelOpcode(anOpcode);
         break;
 
     case OPC_DISP:
-        performDisplayTextOpcode(anOpcode);
+        rOpcIdx= performDisplayTextOpcode(anOpcode);
         break;
 
     case OPC_WKEY:
-        performWaitkeyOpcode(anOpcode);
+        rOpcIdx= performWaitkeyOpcode(anOpcode);
         break;
 
     case OPC_YESNO:
-        performYesNoOpcode(anOpcode);
+        rOpcIdx= performYesNoOpcode(anOpcode);
         break;
 
     case OPC_IFREG:
-        performIfregOpcode(anOpcode);
+        rOpcIdx= performIfregOpcode(anOpcode);
         break;
 
     case OPC_IFPOS:
-        performIfposOpcode(anOpcode);
+        rOpcIdx= performIfposOpcode(anOpcode);
         break;
 
     case OPC_IADD:
-        performIAddOpcode(anOpcode);
+        rOpcIdx= performIAddOpcode(anOpcode);
         break;
 
     case OPC_ALTER:
-        performAlterOpcode(anOpcode);
+        rOpcIdx= performAlterOpcode(anOpcode);
         break;
 
     case OPC_REDRAW:
         redrawAll();
+        rOpcIdx= 0;
         break;
 
     case OPC_ADDC:
-        performAddCoinsOpcode(anOpcode);
+        rOpcIdx= performAddCoinsOpcode(anOpcode);
+        break;
+
+    case OPC_SETREG:
+        rOpcIdx= performSetregOpcode(anOpcode);
         break;
 
     default:
+        printf("unknown opcode %2x at %2x", anOpcode->id, dbgIdx);
+        cgetc();
+        rOpcIdx= 0;
         break;
     }
 
-    if (anOpcode->nextOpcode != OPC_NOP) {
-        performOpcodeAtIndex(anOpcode->nextOpcode);
+    if (anOpcode->id & 0x40) {    // do we have a branch opcode?
+        nextOpcodeIndex= rOpcIdx; // use returned index as next index
     }
-}
 
-// ----------------------------------------------------------------------------
+    return nextOpcodeIndex;
 
-void SetBit(byte *A, int k) {
-    byte i= k / 8;
-    byte pos= k % 8;
-
-    byte flag= 1;
-
-    flag= flag << pos;
-
-    *(A + i)= *(A + i) | flag;
 }
 
 dungeonItem *dungeonItemAtPos(byte x, byte y) {
@@ -373,13 +422,11 @@ void plotPlayer(byte x, byte y) {
 
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
     screenPtr+= x + (y * screenWidth);
+
     *screenPtr= 0x65;
 }
 
 void displayFeel(byte feelID) {
-
-    byte i;
-
     cg_clearLower(5);
     gotoxy(0, 19);
     puts(feelForIndex(feelID));
@@ -421,10 +468,6 @@ void ensureSaneOffset() {
     }
 }
 
-// clang-format off
-#pragma codesize(push, 300);
-// clang-format on
-
 /*
 breseham's line drawing algorithm for
 field-of-view calculation
@@ -458,7 +501,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
         anItem= dungeonItemAtPos(x, y);
         plotSign= anItem->mapItem & 15;
 
-        seenMap[x+(dungeonMapWidth*y)] = anItem->mapItem;
+        seenMap[x + (dungeonMapWidth * y)]= anItem->mapItem;
 
         if (plotSign >= 2) {
             if (x != x0 || y != y0)
@@ -574,7 +617,8 @@ void dungeonLoop() {
                         currentItem= dItem;
                         plotPlayer(currentX, currentY);
                     } else {
-                        seenMap[mposX+(dungeonMapWidth*mposY)] = dItem->mapItem;
+                        seenMap[mposX + (dungeonMapWidth * mposY)]=
+                            dItem->mapItem;
                         plotDungeonItem(dItem, currentX + xdiff,
                                         currentY + ydiff);
                     }
@@ -696,8 +740,8 @@ void testMap(void) {
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
-    register byte *screenPtr;     // working pointer to screen
-    register byte *bufPtr;        // working pointer to line buffer
+    register byte *screenPtr; // working pointer to screen
+    register byte *bufPtr;    // working pointer to line buffer
     byte *seenMapPtr;
     unsigned int offset;
     byte mapItem;
@@ -732,6 +776,5 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 }
 
 // clang-format off
-#pragma codesize(pop);
 #pragma code-name(pop);
 // clang-format on
