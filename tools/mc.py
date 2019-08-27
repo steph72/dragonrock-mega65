@@ -173,7 +173,7 @@ class mapCompiler:
         self.map = mdata["map"]
         infile.close()
 
-    def writeFileMessage(self,name,message):
+    def writeFileMessage(self, name, message):
         arr = bytearray()
         outstring = message.replace("&&nl&&", "\n")
         outstring = outstring.swapcase()
@@ -187,8 +187,8 @@ class mapCompiler:
                 commobytes.append(p)
         commobytes.append(0)
         arr.extend(commobytes)
-        print ("writing file message",name)
-        outfile = open(name,"wb")
+        print("writing file message", name)
+        outfile = open(name, "wb")
         outfile.write(commobytes)
         outfile.close()
 
@@ -200,7 +200,7 @@ class mapCompiler:
                 self.gStringMapping[src.tMsgLabel] = len(self.gStrings)
                 self.gStrings.append(src.tMessage)
             if (src.metaCmd == "&"):
-                self.writeFileMessage(src.tMsgFile,src.tFileMessage)
+                self.writeFileMessage(src.tMsgFile, src.tFileMessage)
             if (src.metaCmd == "defc"):
                 x1 = int(src.tXValue)
                 y1 = int(src.tYValue)
@@ -274,7 +274,7 @@ class mapCompiler:
         def opCreate_IFREG_B(pline):
             opc = opCreate_IFREG(pline)
             opc[0] = 0x45
-            return opc 
+            return opc
 
         def opCreate_IFPOS(pline):
             opc = [6, int(pline.tItemID), 0, 0, int(pline.tRegIndex), 0, 0, 0]
@@ -301,8 +301,9 @@ class mapCompiler:
             opc = [8, 0, 0, 0, 0, 0, 0, 0]
             coords = self.gCoordsMapping.get(pline.tCoordsLabel)
             if not coords:
-                print ("error: cannot find coordinate mapping for",pline.tCoordsLabel)
-                exit (-1)
+                print("error: cannot find coordinate mapping for",
+                      pline.tCoordsLabel)
+                exit(-1)
             opc[1] = coords[0]
             opc[2] = coords[1]
             opc[3] = "__DRLABEL__"+pline.tOpcLabel
@@ -311,31 +312,32 @@ class mapCompiler:
 
         def opCreate_REDRAW(pline):
             return [9, 0, 0, 0, 0, 0, 0, 0]
-        
+
         def opCreate_ADDC(pline):
-            opc = [0xa,0,0,0,0,0,0,0]
-            opc[1] = int(pline.tCoinsValue)%255
+            opc = [0xa, 0, 0, 0, 0, 0, 0, 0]
+            opc[1] = int(pline.tCoinsValue) % 255
             opc[2] = int(pline.tCoinsValue)//255
             return opc
-        
+
         def opCreate_ADDC_V(pline):
             opc = opCreate_ADDC(pline)
             opc[0] = 0x8a
-            return opc 
+            return opc
 
         def opCreate_ADDE(pline):
-            opc = [0x0b,0,0,0,0,0,0,0]
-            opc[1] = int(pline.tCoinsValue)%255
+            opc = [0x0b, 0, 0, 0, 0, 0, 0, 0]
+            opc[1] = int(pline.tCoinsValue) % 255
             opc[2] = int(pline.tCoinsValue)//255
             return opc
-        
+
         def opCreate_ADDE_V(pline):
             opc = opCreate_ADDE(pline)
             opc[0] = 0x8b
-            return opc 
+            return opc
 
         def opCreate_SETREG(pline):
-            opc = [0x0c, int(pline.tRegIndex), int(pline.tRegValue), 0, 0, 0, 0, 0]    
+            opc = [0x0c, int(pline.tRegIndex), int(
+                pline.tRegValue), 0, 0, 0, 0, 0]
             return opc
 
         def opCreate_EXIT(pline):
@@ -443,7 +445,8 @@ class mapCompiler:
                pp.Optional(","+p_boolean_literal('tClrFlag')) +
                pp.Optional(","+p_regIdx))
 
-            ^ pp.Keyword("IFREG")('opcode')+p_regIdx+","+p_regValue+","+p_trueOpcLabel+","+p_falseOpcLabel
+            ^ (pp.Keyword("IFREG")('opcode')+p_regIdx+","+p_regValue+","+p_trueOpcLabel +
+               pp.Optional(","+p_falseOpcLabel))
 
             ^ pp.Keyword("IFREG_B")('opcode')+p_regIdx+","+p_regValue+","+p_trueOpcLabel
 
@@ -454,7 +457,7 @@ class mapCompiler:
             ^ (pp.Keyword("IFPOS")('opcode') + p_itemID +
                ","+p_trueOpcLabel+","+p_falseOpcLabel +
                ","+p_regIdx)
-            
+
             ^ pp.Keyword("ADDC")('opcode') + p_coinsValue
 
             ^ pp.Keyword("ADDC_V")('opcode') + p_coinsValue
@@ -543,7 +546,7 @@ class mapCompiler:
         codeLines = self.scanAndTrimLabels(srcLines)
         self.gOpcodes = self.parseScript(codeLines)
 
-        #for i in range(0, len(self.gOpcodes)):
+        # for i in range(0, len(self.gOpcodes)):
         #    print(i, self.gOpcodes[i])
         print("Connecting map positions...")
         for i in self.gCoordsMapping:

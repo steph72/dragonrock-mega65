@@ -155,9 +155,9 @@ librarianRoom:
     DISP msgLR1, True
     WKEY msgLR2, False , 1
     SETREG 5,0
-    IFREG 1,65,doKillLibrarian,doNothing
-    IFREG 1,66,doSearchLibrarian,doNothing
-    IFREG 1,67,doHealLibrarian,doNothing
+    IFREG 1,65,doKillLibrarian
+    IFREG 1,66,doSearchLibrarian
+    IFREG 1,67,doHealLibrarian
     IFREG_B 5,0,librarianRoom
     REDRAW
     ---
@@ -405,8 +405,8 @@ steals from merchant's caravans crossing
 the southern border of Hompart.
 
 It has been suggested by some scholars 
-that Obezna is close friends with Gerulda, 
-the fabled great ego dragon. But since it 
-has been established that ego dragons are
-not capable of real friendship, these 
-ideas remain a myth. """
+that Obezna is close friends with 
+Gerulda, the fabled great ego dragon. 
+But since it has been established that 
+ego dragons are not capable of real 
+friendship, these ideas remain a myth. """

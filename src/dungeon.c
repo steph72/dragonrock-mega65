@@ -292,14 +292,11 @@ byte performSetregOpcode(opcode *anOpcode) {
 void performOpcodeAtIndex(byte idx) {
 
     byte next;
-    next = idx;
+    next= idx;
 
-    do
-    {
-        next = performOpcode(opcodeForIndex(next),next);
-    } while (next!=0);
-    
-    performOpcode(opcodeForIndex(idx), idx);
+    do {
+        next= performOpcode(opcodeForIndex(next), next);
+    } while (next != 0);
 }
 
 byte performOpcode(opcode *anOpcode, int dbgIdx) {
@@ -389,7 +386,6 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     }
 
     return nextOpcodeIndex;
-
 }
 
 dungeonItem *dungeonItemAtPos(byte x, byte y) {
@@ -558,8 +554,7 @@ void dungeonLoop() {
     int mposX; // current coords inside map
     int mposY;
 
-    byte xs, ys; // save x,y for debugging
-
+    byte xs, ys;     // save x,y for debugging
     byte oldX, oldY; // save x,y for impassable
 
     byte cmd;
@@ -634,6 +629,9 @@ void dungeonLoop() {
 
         oldX= currentX;
         oldY= currentY;
+        while (kbhit()) {
+            cgetc();
+        }
 
         cmd= cgetc();
 
