@@ -109,6 +109,7 @@ alcove:
 defc librarianFloor: 1,6 - 13,6
 defc librarianRoom: 3,1 - 8,4
 defc librarianRoomDone: 6,5             ; we include the door here for dramatic effect
+defc librarianStart: 6,4                ; librarian stuff starts when entering the room
 
 $ msgLibrarianFloor,"A surprisingly clean corridor."
 $ msgLibrarianRoom,"The librarian's room"
@@ -127,9 +128,6 @@ wounded in the attack on the library,
 but somehow managed to work the secret 
 doors and get to safety here.
 
-"""
-
-$ msgLR2,"""
 It looks like the librarian is still
 alive. What do you do?
 
@@ -139,9 +137,9 @@ c) help him
 
 """
 
-$ msgKillLibrarian, "You kill the librarian."
-$ msgSearchLibrarian, "You search the librarian."
-$ msgHealLibrarian, "You heal the librarian."
+$ msgKillLibrarian, "You kill the librarian.\n"
+$ msgSearchLibrarian, "You search the librarian.\n"
+$ msgHealLibrarian, "You heal the librarian.\n"
 
 librarianRoomDone: 
     NSTAT msgLibrarianRoom
@@ -151,30 +149,35 @@ librarianFloor:
     NSTAT msgLibrarianFloor
     ---
 
-librarianRoom:
-    DISP msgLR1, True
-    WKEY msgLR2, False , 1
+librarianStart:
+    WKEY msgLR1, True, 1
     SETREG 5,0
     IFREG 1,65,doKillLibrarian
     IFREG 1,66,doSearchLibrarian
     IFREG 1,67,doHealLibrarian
-    IFREG_B 5,0,librarianRoom
+    IFREG_B 5,0,librarianStart
     REDRAW
+    ALTER librarianStart,librarianRoomDone,0,0
     ---
 
 doKillLibrarian:
     SETREG 5,1
-    WKEY msgKillLibrarian
+    DISP msgKillLibrarian
+    WKEY msgWaitkey
     ---
 
 doSearchLibrarian:
     SETREG 5,1
-    WKEY msgSearchLibrarian
+    DISP msgSearchLibrarian
+    WKEY msgWaitkey
     ---
 
 doHealLibrarian:
     SETREG 5,1
-    WKEY msgHealLibrarian
+    DISP msgHealLibrarian, True
+    WKEY msgWaitkey
+    ADDE_V 200
+    WKEY msgWaitkey
     ---
 
 

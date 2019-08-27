@@ -326,8 +326,8 @@ class mapCompiler:
 
         def opCreate_ADDE(pline):
             opc = [0x0b, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tCoinsValue) % 255
-            opc[2] = int(pline.tCoinsValue)//255
+            opc[1] = int(pline.tExpValue) % 255
+            opc[2] = int(pline.tExpValue)//255
             return opc
 
         def opCreate_ADDE_V(pline):

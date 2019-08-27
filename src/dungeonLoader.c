@@ -141,6 +141,7 @@ dungeonDescriptor *loadMap(char *filename) {
 
 #ifdef DEBUG
     printf("%d opcodes at %x\n", numOpcs, desc->opcodesAdr);
+    printf("%d opcodes remaining.\n",255-numOpcs);
 #endif
 
     fclose(infile);
