@@ -59,5 +59,18 @@ Like 'ADDE', but output 'exp taken' message
 ## 0x0c SETREG <01:regNum> <02:regVal>
 Set register *regNum* to value *regVal*
 
-## 0x1F EXIT <01:mapId> <02:xpos> <03:ypos>
+## 0x0d CLRENC
+Clear encounter list
+
+## 0x0e ADDENC0 <01:mID1> <02:mLvl1> <03:mID2> <04:mLvl2> 
+Add up to 2 monsters to encounter row 0
+
+## 0x8e ADDENC1 
+Like ADDENC0, but add to encounter row 1
+
+## 0x0f DOENC
+Start encounter
+On return, register 1==true if won, otherwise (fled enc) false
+
+## 0x1f EXIT <01:mapId> <02:xpos> <03:ypos>
 Exits the dungeon module back into wilderness map *mapID* at coords *xpos*, *ypos* 

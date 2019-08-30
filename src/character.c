@@ -18,6 +18,9 @@ item *inventoryItemForID(itemT anItemID) {
         if (anItem->id == anItemID) {
             return anItem;
         }
+        if (anItem->id == 255) {
+            break;
+        }
     }
     return NULL;
 }

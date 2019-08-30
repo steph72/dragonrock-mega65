@@ -3,6 +3,7 @@
 #include "congui.h"
 #include "debug.h"
 #include "dungeonLoader.h"
+#include "monster.h"
 #include "types.h"
 
 #include <conio.h>
@@ -20,7 +21,7 @@
 // #define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
 // #define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
 
-/* ------------------------ opcodes ------------------------- */
+/* ------------------------- opcodes ------------------------- */
 #define OPC_NOP 0x00    /* no operation                       */
 #define OPC_NSTAT 0x01  /* new status line                    */
 #define OPC_DISP 0x02   /* display text                       */
@@ -34,7 +35,10 @@
 #define OPC_ADDC 0x0a   /* add coins                          */
 #define OPC_ADDE 0x0b   /* add experience                     */
 #define OPC_SETREG 0x0c /* set register                       */
-/* ---------------------------------------------------------- */
+#define OPC_CLRENC 0x0d /* clear encounter                    */
+#define OPC_ADDENC 0x0e /* add monsters to encounter row      */
+#define OPC_DOENC 0x0f  /* do encounter                       */
+/* ----------------------------------------------------------- */
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -116,6 +120,9 @@ byte performDisplayTextOpcode(opcode *anOpcode) {
 // 0x03: WAITKEY
 byte performWaitkeyOpcode(opcode *anOpcode) {
     performDisplayTextOpcode(anOpcode);
+    while (kbhit()) {
+        cgetc();
+    }
     registers[anOpcode->param3]= cgetc();
     return 0;
 }
@@ -297,6 +304,34 @@ byte performSetregOpcode(opcode *anOpcode) {
     return 0;
 }
 
+// 0x0d: CLEARENC
+byte performClearencOpcode(void) {
+    clearMonsters();
+    return 0;
+}
+
+// 0x0e: ADDENC0 / 0x8e:ADDENC1
+byte performAddencOpcode(opcode *anOpcode) {
+    byte row;
+
+    if (anOpcode->id & 0x80) {
+        row= 1;
+    } else {
+        row= 0;
+    }
+    printf("%x ...",anOpcode->id);
+
+    if (anOpcode->param1) {
+        addNewMonster(anOpcode->param1, anOpcode->param2, row);
+    }
+
+    if (anOpcode->param3) {
+        addNewMonster(anOpcode->param3, anOpcode->param4, row);
+    }
+
+    return 0;
+}
+
 // ---------------------------------
 // general opcode handling functions
 // ---------------------------------
@@ -308,7 +343,7 @@ void performOpcodeAtIndex(byte idx) {
 
     do {
         next= performOpcode(opcodeForIndex(next), next);
-    } while (next != 0);
+    } while (next);
 }
 
 byte performOpcode(opcode *anOpcode, int dbgIdx) {
@@ -381,18 +416,24 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     case OPC_ADDC:
         rOpcIdx= performAddCoinsOpcode(anOpcode);
         break;
-    
+
     case OPC_ADDE:
-        rOpcIdx = performAddCoinsOpcode(anOpcode);
+        rOpcIdx= performAddCoinsOpcode(anOpcode);
         break;
 
     case OPC_SETREG:
         rOpcIdx= performSetregOpcode(anOpcode);
         break;
 
+    case OPC_CLRENC:
+        rOpcIdx= performClearencOpcode();
+        break;
+
+    case OPC_ADDENC:
+        rOpcIdx= performAddencOpcode(anOpcode);
+        break;
+
     default:
-        printf("unknown opcode %2x at %2x", anOpcode->id, dbgIdx);
-        cgetc();
         rOpcIdx= 0;
         break;
     }
@@ -645,9 +686,6 @@ void dungeonLoop() {
 
         oldX= currentX;
         oldY= currentY;
-        while (kbhit()) {
-            cgetc();
-        }
 
         cmd= cgetc();
 

@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "config.h"
 #include "congui.h"
 #include "guild.h"
 #include "guildLoader.h"

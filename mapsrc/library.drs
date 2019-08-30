@@ -14,8 +14,7 @@ defc shelves1: 18,2 - 23,2
 defc shelves2: 18,4 - 23,4
 defc shelfCoins: 20,4
 defc scienceDoorSpace: 24,3
-
-;-------------------------------------- <- screen width
+defc historyRoomKobolds: 17,3
 
 $ historyRoomMsg,"""
 It seems like someone (or something)
@@ -39,6 +38,14 @@ This door hangs broken in its hinges.
 A sign above it says 'SCIENCE', but
 below, someone scrawled on the door:
 'OBEZNA WAS HAER'"""
+
+historyRoomKobolds:
+    CLRENC
+    ADDENC0 1,1,1,1
+    ADDENC0 1,1,1,1
+    ADDENC1 2,2,2,2
+    ADDENC1 2,2,2,2
+    GOENC
 
 historyRoom:
     NSTAT historyRoomMsg
@@ -108,13 +115,14 @@ alcove:
 
 defc librarianFloor: 1,6 - 13,6
 defc librarianRoom: 3,1 - 8,4
-defc librarianRoomDone: 6,5             ; we include the door here for dramatic effect
+defc librarianRoomDoor: 6,5             ; we include the door here for dramatic effect
 defc librarianStart: 6,4                ; librarian stuff starts when entering the room
+defc librarianAlcove: 2,1
+
 
 $ msgLibrarianFloor,"A surprisingly clean corridor."
 $ msgLibrarianRoom,"The librarian's room"
 
-;--------------------------------------
 $ msgLR1,"""
 This is the librarian's room. A lot of
 shelves and bookstands line the wall,
@@ -138,15 +146,42 @@ c) help him
 """
 
 $ msgKillLibrarian, "You kill the librarian.\n"
-$ msgSearchLibrarian, "You search the librarian.\n"
-$ msgHealLibrarian, "You heal the librarian.\n"
 
-librarianRoomDone: 
-    NSTAT msgLibrarianRoom
-    ---
+$ msgLibrarianAlcove,"In a hidden alcove you find a scroll.\n\n"
+
+$ msgSearchLibrarian, """
+The dying librarian looks at you in 
+horror as you search him. He opens 
+his mouth as if trying to tell you 
+something. His eyes dart to the 
+northwest corner of the room.
+
+Then he dies.
+
+"""
+
+$ msgHealLibrarian, """
+You try to heal the librarian, but his 
+wounds are too severe. 
+
+Just before he dies, he makes a short 
+but elegant motion with his hands and 
+mutters an incantation. A scroll 
+magically appears in his hands. 
+
+'She... destroyed...  everything... 
+take... take it...', he says with his 
+dying breath.
+
+"""
 
 librarianFloor:
     NSTAT msgLibrarianFloor
+    ---
+
+librarianRoom:
+librarianRoomDoor:
+    NSTAT msgLibrarianRoom
     ---
 
 librarianStart:
@@ -157,7 +192,7 @@ librarianStart:
     IFREG 1,67,doHealLibrarian
     IFREG_B 5,0,librarianStart
     REDRAW
-    ALTER librarianStart,librarianRoomDone,0,0
+    ALTER librarianStart,librarianRoom,0,0
     ---
 
 doKillLibrarian:
@@ -168,7 +203,7 @@ doKillLibrarian:
 
 doSearchLibrarian:
     SETREG 5,1
-    DISP msgSearchLibrarian
+    DISP msgSearchLibrarian, True
     WKEY msgWaitkey
     ---
 
@@ -176,8 +211,18 @@ doHealLibrarian:
     SETREG 5,1
     DISP msgHealLibrarian, True
     WKEY msgWaitkey
+    ALTER librarianAlcove,doNothing,36
+    IADD_V 160,255,doNothing,doNothing   ; 160 = scroll 1
     ADDE_V 200
     WKEY msgWaitkey
+    ---
+
+librarianAlcove:
+    DISP msgLibrarianAlcove, True
+    IADD_V 160,255,doNothing,doNothing
+    ALTER librarianAlcove,doNothing,0
+    WKEY msgWaitkey
+    REDRAW
     ---
 
 
@@ -190,7 +235,6 @@ defc storageRoom: 10,1 - 13,4
 defc emptyBoxes: 10,1 - 11,4 
 defc lever: 10,4
 defc leverDoor: 14,6
-defc testScroll: 16,8       ; TODO: move to a a sensible place
 
 $ msgStorageRoom,"""
 A surprisingly clean and kempt storage
@@ -217,16 +261,6 @@ $ msgLeverSound,"""\n
 You hear a rumbling sound 
 in the distance.\n
 """
-
-$ msgScroll1,"There is a scroll here!\n"
-
-testScroll:
-    DISP msgScroll1,True
-    IADD_V 160,255,doNothing,doNothing   ; 160 = scroll 1
-    ALTER testScroll,emptyBoxes,1
-    WKEY msgWaitkey
-    REDRAW
-    ---
 
 lever:
     DISP msgLeverInitial,True
@@ -395,7 +429,6 @@ $ msgLockedDoor, "The door is locked."
 It is rumored that this evil beast has
 its lair somewhere in the southwestern 
 granite caves, near the city of Hompart. 
-
 There, Obezna commands a small army of 
 kobolds to do her bidding. 
 
@@ -407,9 +440,18 @@ for food or shiny objects which she
 steals from merchant's caravans crossing 
 the southern border of Hompart.
 
+Obezna is vile, mistrusting and bitter,
+and in an encounter, she always assumes
+that her opponents are just as deceitful
+and keen on stealing things as herself,
+which makes her a highly unstable
+negotiator and a fierce enemy.
+
 It has been suggested by some scholars 
 that Obezna is close friends with 
 Gerulda, the fabled great ego dragon. 
 But since it has been established that 
 ego dragons are not capable of real 
-friendship, these ideas remain a myth. """
+friendship, and because of Obeznas 
+own distrust of everything, these ideas 
+probably are a myth. """

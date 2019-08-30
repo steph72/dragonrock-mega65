@@ -45,6 +45,17 @@ typedef enum _gameMode {
 	gm_city, gm_merchant, gm_outdoor, gm_dungeon, gm_encounter
 } gameMode;
 
+typedef enum _attackType {
+	at_fists   = 0x01,
+	at_weapon  = 0x02,
+	at_claws   = 0x04,
+	at_spell   = 0x08,
+	at_breath  = 0x10,
+	at_wtouch  = 0x20,
+	at_ice     = 0x40,
+	at_fire    = 0x80
+} attackType;
+
 typedef struct _item {			// inventory item
 	byte id;
 	char *name;
@@ -69,6 +80,29 @@ typedef struct _opcode {
 	byte param6;
 	byte nextOpcodeIndex;
 } opcode;
+
+typedef struct _monsterDef {
+	byte id;
+	byte level;
+	byte spriteID;
+	char *name;
+	char *pluralname;	// nil if 's' suffix suffices :) 
+	signed char armorClass;
+	byte hitDice;
+	byte hpPerLevel;
+	byte mpPerLevel;
+	byte numAttacks;
+	byte courageModifier;
+	signed char hitModifier;
+	attackType aType;
+	int xpBaseValue;
+} monsterDef;
+
+typedef struct monster {
+	monsterDef *def;
+	int hp;
+	int mp;
+} monster;
 
 typedef struct _character {
 	characterStateT status;

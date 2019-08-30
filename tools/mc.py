@@ -340,6 +340,29 @@ class mapCompiler:
                 pline.tRegValue), 0, 0, 0, 0, 0]
             return opc
 
+        def opCreate_CLRENC(pline):
+            opc = [0x0d, 0, 0, 0, 0, 0, 0, 0]
+            return opc
+
+        def opCreate_ADDENC0(pline):
+            opc = [0x0e, 0, 0, 0, 0, 0, 0, 0]
+            opc[1] = int(pline.tMonsterID0)
+            opc[2] = int(pline.tMonsterLevel0)
+            if (pline.tMonsterID1):
+                opc[3] = int(pline.tMonsterID1)
+            if (pline.tMonsterLevel1):
+                opc[4] = int(pline.tMonsterLevel1)
+            return opc
+
+        def opCreate_ADDENC1(pline):
+            opc = opCreate_ADDENC0(pline)
+            opc[0] = 0x8e
+            return opc
+
+        def opCreate_GOENC(pline):
+            opc = [0x0f, 0, 0, 0, 0, 0, 0, 0]
+            return opc
+
         def opCreate_EXIT(pline):
             opc = [0x1f, 0, 0, 0, 0, 0, 0, 0]
             opc[1] = int(pline.tMapID)
@@ -384,7 +407,11 @@ class mapCompiler:
                 if type(k) is str:
                     label = k[len("__DRLABEL__"):]+":"
                     labelLineNumber = self.gLabels.get(label)
-                    opcodeNumber = self.gLinePosMapping[labelLineNumber]
+                    try:
+                        opcodeNumber = self.gLinePosMapping[labelLineNumber]
+                    except:
+                        print("cannot resolve ", label)
+                        exit(0)
                     # print(label, labelLineNumber, opcodeNumber)
                     opcode[paramIdx] = opcodeNumber
                 paramIdx += 1
@@ -419,6 +446,8 @@ class mapCompiler:
         p_regIdx = pp.Word(pp.nums)('tRegIndex')
         p_regValue = pp.Word(pp.nums)('tRegValue')
         p_itemID = pp.Word(pp.nums)('tItemID')
+        p_monsterID = pp.Word(pp.nums)('tMonsterID')
+        p_monsterLevel = pp.Word(pp.nums)('tMonsterLevel')
         p_dungeonItemID = pp.Word(pp.nums)('tDungeonItemID')
         p_charID = pp.Word(pp.nums)('tCharID')
         p_mapID = pp.Word(pp.nums)('tMapID')
@@ -491,6 +520,28 @@ class mapCompiler:
                )
 
             ^ pp.Keyword("REDRAW")('opcode')
+
+            ^ pp.Keyword("CLRENC")('opcode')
+
+            ^ pp.Keyword("GOENC")('opcode')
+
+            ^ (pp.Keyword("ADDENC0")('opcode')
+               + p_monsterID('tMonsterID0') + ","
+               + p_monsterLevel('tMonsterLevel0')
+               + pp.Optional(","
+                             + p_monsterID('tMonsterID1') + ","
+                             + p_monsterLevel('tMonsterLevel1')
+                             )
+               )
+
+            ^ (pp.Keyword("ADDENC1")('opcode')
+               + p_monsterID('tMonsterID0') + ","
+               + p_monsterLevel('tMonsterLevel0')
+               + pp.Optional(","
+                             + p_monsterID('tMonsterID1') + ","
+                             + p_monsterLevel('tMonsterLevel1')
+                             )
+               )
 
             ^ (pp.Keyword("EXIT")('opcode')
                + p_mapID + ","

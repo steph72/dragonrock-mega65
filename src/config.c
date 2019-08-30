@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "config.h"
 #include "types.h"
 
@@ -26,6 +27,8 @@ char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH"};
 
 char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
                             "Tia's Grove", "Modder",        "Foodim"};
+
+
 
 // equipment
 
@@ -64,7 +67,7 @@ item gItems[]= {
     {0xa7, "Scroll 8", it_scroll, 8, 0, 1},
     {0xa8, "Scroll 9", it_scroll, 9, 0, 1},
     {0xa9, "Scroll 10", it_scroll, 10, 0, 1},
-    
+
     // --- special ---
     {0xf0, "Rusty Key", it_special, 0, 0, 65535u},
     {0xff, "White Orb", it_special, 0, 0, 65535u}
