@@ -43,6 +43,7 @@ byte initGuild() {
 void initGuildMem(void) {
     static unsigned int sizeBytes= 0;
     sizeBytes= GUILDSIZE * sizeof(character);
+    printf("guild size is %x bytes\n",sizeBytes);
     guild= (character *)malloc(sizeBytes);
     if (guild == NULL) {
         puts("???fatal: no memory for guild");

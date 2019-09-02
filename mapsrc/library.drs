@@ -43,9 +43,10 @@ historyRoomKobolds:
     CLRENC
     ADDENC0 1,1,1,1
     ADDENC0 1,1,1,1
-    ADDENC1 2,2,2,2
-    ADDENC1 2,2,2,2
+    ADDENC1 2,1,2,1
+    ADDENC1 2,1,2,1
     GOENC
+    ---
 
 historyRoom:
     NSTAT historyRoomMsg

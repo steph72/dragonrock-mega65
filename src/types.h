@@ -33,6 +33,18 @@ typedef byte  classT;
 typedef byte  attrT;
 typedef byte  itemT;
 
+typedef enum _encCommand {
+	ec_thrust,
+	ec_attack,
+	ec_slash,
+	ec_parry,
+	ec_magic
+} encCommand;
+
+typedef enum _encResult {
+	encWon,encFled,encDead
+} encResult;
+
 typedef enum _cstateType {
 	deleted=0, dead, alive
 } characterStateT;
@@ -100,6 +112,7 @@ typedef struct _monsterDef {
 
 typedef struct monster {
 	monsterDef *def;
+	signed char initiative;
 	int hp;
 	int mp;
 } monster;
@@ -124,6 +137,7 @@ typedef struct _character {
 	itemT   weapon;
 	itemT   shield;
 	itemT   armor;
+	signed char    initiative;
 } character;
 
 typedef struct _dungeonDescriptorS {

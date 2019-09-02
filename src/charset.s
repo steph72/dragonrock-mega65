@@ -9,11 +9,11 @@ tedctl2 = $ff13
 romsel = $ff3e
 ramsel = $ff3f
 
-csize     = $800
-ramchars  = $f000
-romchars  = $d000
+csize     = $400         ; only copy one character set
+ramchars  = $f400        ; to the top of available memory
+romchars  = $d400        ; lowercase set
 
-gamechars = $f400 + ($61*8)
+gamechars = ramchars + ($5b*8)
 
 _copychars:
 
@@ -64,7 +64,7 @@ _copychars:
     lda tedctl1
     and %11111011
     sta tedctl1
-    lda #$f4
+    lda #>gamechars
     sta tedctl2
 
 ; restore context from stack

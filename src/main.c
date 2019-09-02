@@ -16,7 +16,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-
 // clang-format off
 #pragma check-stack(push,on)
 // clang-format on
@@ -30,6 +29,7 @@
 
 #include <cbm.h>
 #include <device.h>
+#include <time.h>
 
 #include "charset.h"
 
@@ -39,7 +39,6 @@
 #include "guildLoader.h"
 #include "types.h"
 #include "debug.h"
-
 
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
@@ -57,6 +56,7 @@ void installCharset(void);
 unsigned char loadfile(char *name, void *addr, void *size);
 
 void initEngine(void) {
+    unsigned int rseed;
     const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
                          "Version 0.1 alpha\n\n"
                          "Written by Stephan Kleinert\n"
@@ -65,6 +65,9 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
+    rseed = *(unsigned int*) 0xff02; // ted free running timer for random seed
+    printf("fate is $%x\n",rseed);
+    srand(rseed);
     MEMT;
     copychars();
     cputs("loading guild... ");
@@ -130,6 +133,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     (void)size;
 #ifdef DEBUG
     cprintf("\r\nloading ov %s\r\nsize $%x at $%x...", name, size, addr);
+    cprintf("\r\n(%x bytes remaining)",0x3000-(int)size);
 #endif
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");

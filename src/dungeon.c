@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "dungeonLoader.h"
 #include "monster.h"
+#include "encounter.h"
 #include "types.h"
 
 #include <conio.h>
@@ -45,12 +46,12 @@
 // clang-format on
 
 char signs[]= {
-    0x60, // empty space
-    0x61, // diamond
-    0x62, // vertical door
-    0x63, // horizontal door
-    0x64, // filled space
-    0x65  // coat of arms
+    0x20, // empty space
+    0x5b, // diamond
+    0x5c, // vertical door
+    0x5d, // horizontal door
+    0x5e, // filled space
+    0x5f  // coat of arms
 };
 
 dungeonDescriptor *desc;
@@ -319,7 +320,6 @@ byte performAddencOpcode(opcode *anOpcode) {
     } else {
         row= 0;
     }
-    printf("%x ...",anOpcode->id);
 
     if (anOpcode->param1) {
         addNewMonster(anOpcode->param1, anOpcode->param2, row);
@@ -331,6 +331,14 @@ byte performAddencOpcode(opcode *anOpcode) {
 
     return 0;
 }
+
+// 0x0f DOENC
+byte performDoencOpcode(void) {
+    doEncounter();
+    redrawAll();
+    return 0;
+}
+
 
 // ---------------------------------
 // general opcode handling functions
@@ -433,6 +441,10 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
         rOpcIdx= performAddencOpcode(anOpcode);
         break;
 
+    case OPC_DOENC:
+        rOpcIdx= performDoencOpcode();
+        break;
+
     default:
         rOpcIdx= 0;
         break;
@@ -476,7 +488,7 @@ void plotPlayer(byte x, byte y) {
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
     screenPtr+= x + (y * screenWidth);
 
-    *screenPtr= 0x65;
+    *screenPtr= signs[5];
 }
 
 void displayFeel(byte feelID) {
@@ -764,20 +776,33 @@ opcode *opcodeForIndex(byte idx) { return desc->opcodesAdr + idx; }
 char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
 
 void setupDungeonScreen(void) {
+    byte x;
     textcolor(COLOR_BLACK);
     clrscr();
     bordercolor(BCOLOR_WHITE | CATTR_LUMA3);
     bgcolor(BCOLOR_WHITE | CATTR_LUMA6);
     textcolor(BCOLOR_BLUEGREEN | CATTR_LUMA1);
-    cputcxy(screenX - 1, screenY - 1, 176);             // left upper corner
-    cputcxy(screenX + mapWindowSize, 1, 174);           // right upper corner
-    cputcxy(screenX - 1, screenY + mapWindowSize, 173); // left lower corner
+    revers(1);
+    /*
+    cputcxy(screenX - 1, screenY - 1, ' ');             // left upper corner
+    cputcxy(screenX + mapWindowSize, 1, ' ');           // right upper corner
+    cputcxy(screenX - 1, screenY + mapWindowSize, ' '); // left lower corner
     cputcxy(screenX + mapWindowSize, screenY + mapWindowSize,
-            189); // right lower corner
+            ' '); // right lower corner
+            */
+    for (x=0;x<mapWindowSize+1;++x) {
+        cputcxy(screenX-1+x,screenY-1,' ');
+        cputcxy(screenX-1+x,screenY-1+mapWindowSize,' ');
+        cputcxy(screenX-1,screenY-1+x,' ');
+        cputcxy(screenX+mapWindowSize,screenY-1+x,' ');
+    }
+    revers(0);
+    /*
     chlinexy(screenX, screenY - 1, mapWindowSize);
     chlinexy(screenX, screenY + mapWindowSize, mapWindowSize);
     cvlinexy(screenX - 1, screenY, mapWindowSize);
     cvlinexy(screenX + mapWindowSize, screenY, mapWindowSize);
+    */
     textcolor(COLOR_BLACK);
 }
 

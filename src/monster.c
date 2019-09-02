@@ -11,13 +11,11 @@ void addMonster(monster *aMonster, byte row) {
         if (gMonsterRow[row][i]==NULL) {
             gMonsterRow[row][i] = aMonster;
             added=true;
-            printf("added monster %d to row %d pos %d\n",aMonster->def->id,row,i);
-            cgetc();
             break;
         }
     }
     if (!added) {
-        printf("could not add monster %d to row %d",aMonster->def->id,row);
+        printf("err addm %d row %d",aMonster->def->id,row);
         exit(0);
     }
 } 
@@ -50,7 +48,6 @@ monster *createMonster(byte monsterID, byte level) {
 
     for (i= 0; i < 255; ++i) {
         if (gMonsters[i].id == monsterID) {
-            printf("found monster id %d",i);
             aDef= &gMonsters[i];
             break;
         }
