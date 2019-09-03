@@ -17,7 +17,6 @@
 
 #define LOWBYTE(v) ((unsigned char)(v))
 #define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
-#define SCREEN ((unsigned char *)0xc00)
 
 // #define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
 // #define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
@@ -783,13 +782,7 @@ void setupDungeonScreen(void) {
     bgcolor(BCOLOR_WHITE | CATTR_LUMA6);
     textcolor(BCOLOR_BLUEGREEN | CATTR_LUMA1);
     revers(1);
-    /*
-    cputcxy(screenX - 1, screenY - 1, ' ');             // left upper corner
-    cputcxy(screenX + mapWindowSize, 1, ' ');           // right upper corner
-    cputcxy(screenX - 1, screenY + mapWindowSize, ' '); // left lower corner
-    cputcxy(screenX + mapWindowSize, screenY + mapWindowSize,
-            ' '); // right lower corner
-            */
+
     for (x=0;x<mapWindowSize+1;++x) {
         cputcxy(screenX-1+x,screenY-1,' ');
         cputcxy(screenX-1+x,screenY-1+mapWindowSize,' ');
@@ -797,12 +790,7 @@ void setupDungeonScreen(void) {
         cputcxy(screenX+mapWindowSize,screenY-1+x,' ');
     }
     revers(0);
-    /*
-    chlinexy(screenX, screenY - 1, mapWindowSize);
-    chlinexy(screenX, screenY + mapWindowSize, mapWindowSize);
-    cvlinexy(screenX - 1, screenY, mapWindowSize);
-    cvlinexy(screenX + mapWindowSize, screenY, mapWindowSize);
-    */
+
     textcolor(COLOR_BLACK);
 }
 

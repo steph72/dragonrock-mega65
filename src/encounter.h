@@ -10,5 +10,6 @@
 #include "monster.h"
 
 extern monster *gMonsterRow[2][5];
+extern byte gNumMonsters[2];
 
 encResult doEncounter(void);

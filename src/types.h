@@ -26,6 +26,9 @@
 #define true   1
 #define false  0
 
+#define SCREEN ((unsigned char *)0xc00)
+
+
 typedef unsigned char byte;
 
 typedef byte  raceT;

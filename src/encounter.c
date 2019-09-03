@@ -1,5 +1,11 @@
 #include "encounter.h"
 
+byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
+    byte width;
+    width= 40 / numMonsters;
+    return (width * mPos) + (width / 2) - (mWidth / 2);
+}
+
 void doMonsterTurn(byte row, byte column) {
 
     monster *theMonster;
@@ -17,10 +23,28 @@ void doPartyTurn(byte idx) {
     // cgetc();
 }
 
+void plotMonster(byte row, byte idx) {
+    byte charIdx= 0;
+    byte monsterSpriteID= 0;
+    byte x, y, i, j;
+    byte *screenPtr;
+
+    x= xposForMonster(gNumMonsters[row], idx, 3);
+    y= 3 + (row * 6);
+
+    screenPtr= SCREEN + (x + y * 40) - 1;
+    charIdx= 0x60 + monsterSpriteID - 1;
+    for (i= 0; i < 3; ++i) {
+        for (j= 0; j < 3; ++j) {
+            *(++screenPtr)= 0x5f;
+        }
+        screenPtr+= 37;
+    }
+}
+
 encResult doEncounter(void) {
 
     byte c, i, j;
-    byte numMonsters[2]= {0, 0};
 
     clrscr();
     printf("An encounter...\n");
@@ -31,7 +55,7 @@ encResult doEncounter(void) {
         for (j= 0; j < 5; ++j) {
             if (gMonsterRow[i][j] != NULL) {
                 gMonsterRow[i][j]->initiative= (byte)(rand() % 20);
-                ++numMonsters[i];
+                plotMonster(i, j);
             }
         }
     }
@@ -42,8 +66,12 @@ encResult doEncounter(void) {
         if (party[j]) {
             party[j]->initiative=
                 (rand() % 20) + bonusValueForAttribute(party[j]->attributes[3]);
+            gotoxy(xposForMonster(partyMemberCount(), j, 3), 18);
+            cputs("PPP");
         }
     }
+
+    cgetc();
 
     // main encounter loop
 

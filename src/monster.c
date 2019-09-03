@@ -1,6 +1,7 @@
 #include "monster.h"
 
 monster *gMonsterRow[2][5];
+byte gNumMonsters[2];
 
 // add monster to row
 void addMonster(monster *aMonster, byte row) {
@@ -10,6 +11,7 @@ void addMonster(monster *aMonster, byte row) {
     for (i=0;i<5;++i) {
         if (gMonsterRow[row][i]==NULL) {
             gMonsterRow[row][i] = aMonster;
+            ++gNumMonsters[row];
             added=true;
             break;
         }
@@ -26,6 +28,7 @@ void addMonster(monster *aMonster, byte row) {
 void clearMonsters(void) {
     byte x, y;
     for (x= 0; x < 2; x++) {
+        gNumMonsters[x]=0;
         for (y= 0; y < 5; y++) {
             if (gMonsterRow[x][y]) {
                 free(gMonsterRow[x][y]);

@@ -40,6 +40,9 @@
 #include "types.h"
 #include "debug.h"
 
+#include "encounter.h"
+#include "monster.h"
+
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 
@@ -106,6 +109,16 @@ int main() {
         }
     } else if (choice == 'd') {
         cputs("\r\n--DEBUG--");
+        clearMonsters();
+        addNewMonster(1,1,0);
+        addNewMonster(1,1,0);
+        addNewMonster(1,1,0);
+        addNewMonster(1,1,0);
+        addNewMonster(2,1,1);
+        addNewMonster(2,1,1);
+        addNewMonster(2,1,1);
+        doEncounter();
+        cgetc();
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
         testMap();
     } else {
@@ -132,8 +145,8 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     (void)addr;
     (void)size;
 #ifdef DEBUG
-    cprintf("\r\nloading ov %s\r\nsize $%x at $%x...", name, size, addr);
-    cprintf("\r\n(%x bytes remaining)",0x3000-(int)size);
+    cprintf("\r\nov %s $%x @ $%x ", name, size, addr);
+    cprintf("$%x rem",0x3000-(int)size);
 #endif
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");
