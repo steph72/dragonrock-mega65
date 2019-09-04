@@ -32,6 +32,7 @@
 #include <time.h>
 
 #include "charset.h"
+#include "irq.h"
 
 #include "config.h"
 #include "congui.h"
@@ -67,6 +68,8 @@ void initEngine(void) {
                          "at Hundehaus im Reinhardswald\n\n"
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
+    installIRQ();
+    cgetc();
     puts(prompt);
     rseed = *(unsigned int*) 0xff02; // ted free running timer for random seed
     printf("fate is $%x\n",rseed);
@@ -118,7 +121,9 @@ int main() {
         addNewMonster(2,1,1);
         addNewMonster(2,1,1);
         doEncounter();
-        cgetc();
+        cgetc(); 
+        clrscr();
+        gotoxy(0,0);
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
         testMap();
     } else {
