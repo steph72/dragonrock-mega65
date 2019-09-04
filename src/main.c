@@ -16,10 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor Boston, MA 02110-1301,  USA
  */
 
-// clang-format off
-#pragma check-stack(push,on)
-// clang-format on
-
+#include <6502.h>
 #include <conio.h>
 #include <em.h>
 #include <errno.h>
@@ -36,10 +33,10 @@
 
 #include "config.h"
 #include "congui.h"
+#include "debug.h"
 #include "dungeon.h"
 #include "guildLoader.h"
 #include "types.h"
-#include "debug.h"
 
 #include "encounter.h"
 #include "monster.h"
@@ -47,9 +44,12 @@
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 
+#define IRQ_STACKSIZE 4
+
 byte currentCity;
 byte hasLoadedGame;
 char outbuf[80];
+char irqStack[IRQ_STACKSIZE];
 
 void initEngine(void);
 void runCityMenu(void);
@@ -58,6 +58,15 @@ void loadSaved(void);
 void installCharset(void);
 
 unsigned char loadfile(char *name, void *addr, void *size);
+
+unsigned char drIRQ(void) {
+
+    // doDRIRQ();
+    TED.irr= 0x02;
+    cbm_k_scnkey(); /* scan the keyboard matrix */
+    // cbm_k_udtim();  /* "bump" the clock() value */
+    return IRQ_NOT_HANDLED;
+}
 
 void initEngine(void) {
     unsigned int rseed;
@@ -68,14 +77,13 @@ void initEngine(void) {
                          "at Hundehaus im Reinhardswald\n\n"
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
-    installIRQ();
-    cgetc();
     puts(prompt);
-    rseed = *(unsigned int*) 0xff02; // ted free running timer for random seed
-    printf("fate is $%x\n",rseed);
+    rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
-    MEMT;
     copychars();
+    // set_irq(&drIRQ, irqStack, IRQ_STACKSIZE);
+        installIRQ();
+
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
     if (!hasLoadedGame) {       // since initGuild() is in city overlay
@@ -113,17 +121,17 @@ int main() {
     } else if (choice == 'd') {
         cputs("\r\n--DEBUG--");
         clearMonsters();
-        addNewMonster(1,1,0);
-        addNewMonster(1,1,0);
-        addNewMonster(1,1,0);
-        addNewMonster(1,1,0);
-        addNewMonster(2,1,1);
-        addNewMonster(2,1,1);
-        addNewMonster(2,1,1);
+        addNewMonster(1, 1, 0);
+        addNewMonster(1, 1, 0);
+        addNewMonster(1, 1, 0);
+        addNewMonster(1, 1, 0);
+        addNewMonster(2, 1, 1);
+        addNewMonster(2, 1, 1);
+        addNewMonster(2, 1, 1);
         doEncounter();
-        cgetc(); 
+        cgetc();
         clrscr();
-        gotoxy(0,0);
+        gotoxy(0, 0);
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
         testMap();
     } else {
@@ -151,7 +159,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     (void)size;
 #ifdef DEBUG
     cprintf("\r\nov %s $%x @ $%x ", name, size, addr);
-    cprintf("$%x rem",0x3000-(int)size);
+    cprintf("$%x rem", 0x3000 - (int)size);
 #endif
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");

@@ -1,13 +1,22 @@
 .export _installIRQ
 
+.import         SCNKEY
+
+.segment "LOWCODE"
+
 .code
+
+romsel = $ff3e
+ramsel = $ff3f
 
 tedctl1 = $ff12
 tedctl2 = $ff13
 tedirq  = $ff09
 tedirqenable = $ff0a
 tedraster = $ff0b
+
 tedborder = $ff19
+tedbg = $ff15
 
 irqvec = $314
 
@@ -48,12 +57,18 @@ newVec:             pha
                     lda #$30  
                     sta tedraster   ; we're at the bottom, so reconfigure irq to top
 
-                    inc tedborder       ; test inc bg
+                    lda #$00
+                    sta tedborder
+                    sta tedbg
+                    jsr $ff9f       ; perform SCNKEY
+                    jsr $ffea       ; perform UDTIM
                     jmp continue
 
 topPos:             lda #$50        ; we're at the top, so reconfigure irq to bottom
                     sta tedraster
-                    dec tedborder   ; test dec bg
+                    lda #$05
+                    sta tedborder
+                    sta tedbg
 
 continue:           pla
                     tay
@@ -61,7 +76,7 @@ continue:           pla
                     tax
                     pla
 
-                    rti
+                    jmp (oldvec)
 
 
 

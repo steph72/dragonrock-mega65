@@ -1,6 +1,6 @@
 #!/bin/sh
 
-tools/mc.py mapsrc/library.drs mapdata/library.d
+python3 tools/mc.py mapsrc/library.drs mapdata/library.d
 
 if [ ! -f "disc/drock.d64" ]; then
   mkdir -p disc
