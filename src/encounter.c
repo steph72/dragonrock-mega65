@@ -46,6 +46,7 @@ encResult doEncounter(void) {
 
     byte c, i, j;
 
+    setSplitEnable(1);
     clrscr();
     printf("An encounter...\n");
 
@@ -92,6 +93,8 @@ encResult doEncounter(void) {
     }
 
     cgetc();
+    
+    setSplitEnable(0);
 
     return encWon;
 }

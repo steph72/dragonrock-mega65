@@ -8,6 +8,7 @@
 #include "congui.h"
 #include "types.h"
 #include "monster.h"
+#include "irq.h"
 
 extern monster *gMonsterRow[2][5];
 extern byte gNumMonsters[2];

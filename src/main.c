@@ -44,12 +44,9 @@
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 
-#define IRQ_STACKSIZE 4
-
 byte currentCity;
 byte hasLoadedGame;
 char outbuf[80];
-char irqStack[IRQ_STACKSIZE];
 
 void initEngine(void);
 void runCityMenu(void);
@@ -59,14 +56,6 @@ void installCharset(void);
 
 unsigned char loadfile(char *name, void *addr, void *size);
 
-unsigned char drIRQ(void) {
-
-    // doDRIRQ();
-    TED.irr= 0x02;
-    cbm_k_scnkey(); /* scan the keyboard matrix */
-    // cbm_k_udtim();  /* "bump" the clock() value */
-    return IRQ_NOT_HANDLED;
-}
 
 void initEngine(void) {
     unsigned int rseed;
@@ -81,8 +70,7 @@ void initEngine(void) {
     rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
     copychars();
-    // set_irq(&drIRQ, irqStack, IRQ_STACKSIZE);
-        installIRQ();
+    installIRQ();
 
     cputs("loading guild... ");
     hasLoadedGame= initGuild(); // need to load guild here
