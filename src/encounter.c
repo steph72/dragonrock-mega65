@@ -23,23 +23,28 @@ void doPartyTurn(byte idx) {
     // cgetc();
 }
 
-void plotMonster(byte row, byte idx) {
-    byte charIdx= 0;
-    byte monsterSpriteID= 0;
-    byte x, y, i, j;
+void plotSprite(byte x, byte y, byte spriteIdx) {
+    byte i, j;
     byte *screenPtr;
-
-    x= xposForMonster(gNumMonsters[row], idx, 3);
-    y= 3 + (row * 6);
+    byte charIdx;
 
     screenPtr= SCREEN + (x + y * 40) - 1;
-    charIdx= 0x60 + monsterSpriteID - 1;
-    for (i= 0; i < 3; ++i) {
-        for (j= 0; j < 3; ++j) {
-            *(++screenPtr)= 0x5f;
+    charIdx= (spriteIdx * 4) - 1;
+    for (i= 0; i < 2; ++i) {
+        for (j= 0; j < 2; ++j) {
+            *(++screenPtr)= ++charIdx;
         }
-        screenPtr+= 37;
+        screenPtr+= 38;
     }
+}
+
+void plotMonster(byte row, byte idx, byte spriteIdx) {
+    byte x, y;
+
+    x= xposForMonster(gNumMonsters[row], idx, 2);
+    y= (row * 3);
+
+    plotSprite(x, y, spriteIdx);
 }
 
 encResult doEncounter(void) {
@@ -48,15 +53,16 @@ encResult doEncounter(void) {
 
     setSplitEnable(1);
     clrscr();
+    gotoxy(0, 16);
     printf("An encounter...\n");
 
     // determine number of monsters & do monster initiative rolls
 
-    for (i= 0; i < 2; ++i) {
-        for (j= 0; j < 5; ++j) {
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        for (j= 0; j < MONSTER_SLOTS; ++j) {
             if (gMonsterRow[i][j] != NULL) {
                 gMonsterRow[i][j]->initiative= (byte)(rand() % 20);
-                plotMonster(i, j);
+                plotMonster(i, j, 0);
             }
         }
     }
@@ -67,7 +73,7 @@ encResult doEncounter(void) {
         if (party[j]) {
             party[j]->initiative=
                 (rand() % 20) + bonusValueForAttribute(party[j]->attributes[3]);
-            gotoxy(xposForMonster(partyMemberCount(), j, 3), 18);
+            gotoxy(xposForMonster(partyMemberCount(), j, 3), 12);
             cputs("PPP");
         }
     }
@@ -77,8 +83,8 @@ encResult doEncounter(void) {
     // main encounter loop
 
     for (c= 20; c != 0; --c) {
-        for (i= 0; i < 2; ++i) {
-            for (j= 0; j < 5; ++j) {
+        for (i= 0; i < MONSTER_ROWS; ++i) {
+            for (j= 0; j < MONSTER_SLOTS; ++j) {
                 if (gMonsterRow[i][j] != NULL &&
                     gMonsterRow[i][j]->initiative == c) {
                     doMonsterTurn(i, j);
@@ -93,7 +99,7 @@ encResult doEncounter(void) {
     }
 
     cgetc();
-    
+
     setSplitEnable(0);
 
     return encWon;

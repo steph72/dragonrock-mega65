@@ -314,18 +314,8 @@ byte performClearencOpcode(void) {
 byte performAddencOpcode(opcode *anOpcode) {
     byte row;
 
-    if (anOpcode->id & 0x80) {
-        row= 1;
-    } else {
-        row= 0;
-    }
-
     if (anOpcode->param1) {
-        addNewMonster(anOpcode->param1, anOpcode->param2, row);
-    }
-
-    if (anOpcode->param3) {
-        addNewMonster(anOpcode->param3, anOpcode->param4, row);
+        addNewMonster(anOpcode->param1, anOpcode->param2, anOpcode->param3, anOpcode->param4);
     }
 
     return 0;

@@ -1,35 +1,33 @@
 #include "monster.h"
 
-monster *gMonsterRow[2][5];
-byte gNumMonsters[2];
+monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
+byte gNumMonsters[MONSTER_ROWS];
 
 // add monster to row
 void addMonster(monster *aMonster, byte row) {
     byte i;
     byte added;
-    added = false;
-    for (i=0;i<5;++i) {
-        if (gMonsterRow[row][i]==NULL) {
-            gMonsterRow[row][i] = aMonster;
+    added= false;
+    for (i= 0; i < MONSTER_SLOTS; ++i) {
+        if (gMonsterRow[row][i] == NULL) {
+            gMonsterRow[row][i]= aMonster;
             ++gNumMonsters[row];
-            added=true;
+            added= true;
             break;
         }
     }
     if (!added) {
-        printf("err addm %d row %d",aMonster->def->id,row);
+        printf("err addm %d row %d", aMonster->def->id, row);
         exit(0);
     }
-} 
-
-
+}
 
 // clear monster roster
 void clearMonsters(void) {
     byte x, y;
-    for (x= 0; x < 2; x++) {
-        gNumMonsters[x]=0;
-        for (y= 0; y < 5; y++) {
+    for (x= 0; x < MONSTER_ROWS; x++) {
+        gNumMonsters[x]= 0;
+        for (y= 0; y < MONSTER_SLOTS; y++) {
             if (gMonsterRow[x][y]) {
                 free(gMonsterRow[x][y]);
                 gMonsterRow[x][y]= NULL;
@@ -54,13 +52,13 @@ monster *createMonster(byte monsterID, byte level) {
             aDef= &gMonsters[i];
             break;
         }
-        if (gMonsters[i].id==255) { // stop if end of monster list reached
+        if (gMonsters[i].id == 255) { // stop if end of monster list reached
             break;
         }
     }
 
     if (aDef == NULL) {
-        printf("?invalid monster ID %d",monsterID);
+        printf("?invalid monster ID %d", monsterID);
         exit(0);
     }
 
@@ -78,8 +76,11 @@ monster *createMonster(byte monsterID, byte level) {
 }
 
 // add new monster to row
-void addNewMonster(byte monsterID, byte level, byte row) {
+void addNewMonster(byte monsterID, byte level, byte num, byte row) {
+    byte i;
     monster *theMonster;
-    theMonster = createMonster(monsterID,level);
-    addMonster(theMonster,row);
+    for (i= 0; i < num; ++i) {
+        theMonster= createMonster(monsterID, level);
+        addMonster(theMonster, row);
+    }
 }

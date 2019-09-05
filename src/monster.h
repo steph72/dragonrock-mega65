@@ -8,6 +8,9 @@
 #include "congui.h"
 #include "types.h"
 
+#define MONSTER_ROWS  3
+#define MONSTER_SLOTS 6
+
 void clearMonsters(void);
-void addNewMonster(byte monsterID, byte level, byte row);
+void addNewMonster(byte monsterID, byte level, byte num, byte row);
 monster* createMonster(byte monsterID, byte level);

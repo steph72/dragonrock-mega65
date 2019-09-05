@@ -9,11 +9,11 @@ tedctl2 = $ff13
 romsel = $ff3e
 ramsel = $ff3f
 
-csize     = $400         ; only copy one character set
-ramchars  = $f400        ; to the top of available memory
-romchars  = $d400        ; lowercase set
+csize     = $800         ; only copy one character set
+ramchars  = $f000        ; to the top of available memory
+romchars  = $d000        ; lowercase set
 
-gamechars = ramchars + ($5b*8)
+gamechars = ramchars + $400 + ($5b*8)
 
 _copychars:
 

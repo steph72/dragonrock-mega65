@@ -56,7 +56,6 @@ void installCharset(void);
 
 unsigned char loadfile(char *name, void *addr, void *size);
 
-
 void initEngine(void) {
     unsigned int rseed;
     const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
@@ -83,6 +82,7 @@ void initEngine(void) {
 
 int main() {
     static char choice;
+    byte i;
     initEngine();
     clrscr();
     cg_borders();
@@ -109,13 +109,9 @@ int main() {
     } else if (choice == 'd') {
         cputs("\r\n--DEBUG--");
         clearMonsters();
-        addNewMonster(1, 1, 0);
-        addNewMonster(1, 1, 0);
-        addNewMonster(1, 1, 0);
-        addNewMonster(1, 1, 0);
-        addNewMonster(2, 1, 1);
-        addNewMonster(2, 1, 1);
-        addNewMonster(2, 1, 1);
+        addNewMonster(1, 1, 3, 0);
+        addNewMonster(2, 1, 3, 1);
+        addNewMonster(2, 1, 3, 2);
         doEncounter();
         cgetc();
         clrscr();
