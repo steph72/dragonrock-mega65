@@ -27,12 +27,11 @@ void plotSprite(byte x, byte y, byte spriteIdx) {
     byte i, j;
     byte *screenPtr;
     byte charIdx;
-
-    screenPtr= SCREEN + (x + y * 40) - 1;
+    screenPtr= SCREEN + (x - 1 + (y * 40));
     charIdx= (spriteIdx * 4) - 1;
     for (i= 0; i < 2; ++i) {
         for (j= 0; j < 2; ++j) {
-            *(++screenPtr)= ++charIdx;
+             *(++screenPtr)= ++charIdx;
         }
         screenPtr+= 38;
     }
@@ -55,12 +54,14 @@ encResult doEncounter(void) {
     clrscr();
     gotoxy(0, 16);
     printf("An encounter...\n");
+    gotoxy(0, 0);
+
 
     // determine number of monsters & do monster initiative rolls
 
     for (i= 0; i < MONSTER_ROWS; ++i) {
         for (j= 0; j < MONSTER_SLOTS; ++j) {
-            if (gMonsterRow[i][j] != NULL) {
+            if (gMonsterRow[i][j]) {
                 gMonsterRow[i][j]->initiative= (byte)(rand() % 20);
                 plotMonster(i, j, 0);
             }

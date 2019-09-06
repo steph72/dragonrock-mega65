@@ -344,14 +344,12 @@ class mapCompiler:
             opc = [0x0d, 0, 0, 0, 0, 0, 0, 0]
             return opc
 
-        def opCreate_ADDENC0(pline):
+        def opCreate_ADDENC(pline):
             opc = [0x0e, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tMonsterID0)
-            opc[2] = int(pline.tMonsterLevel0)
-            if (pline.tMonsterID1):
-                opc[3] = int(pline.tMonsterID1)
-            if (pline.tMonsterLevel1):
-                opc[4] = int(pline.tMonsterLevel1)
+            opc[1] = int(pline.tMonsterID)
+            opc[2] = int(pline.tMonsterLevel)
+            opc[3] = int(pline.tMonsterCount)
+            opc[4] = int(pline.tMonsterRow)
             return opc
 
         def opCreate_ADDENC1(pline):
@@ -525,22 +523,11 @@ class mapCompiler:
 
             ^ pp.Keyword("GOENC")('opcode')
 
-            ^ (pp.Keyword("ADDENC0")('opcode')
-               + p_monsterID('tMonsterID0') + ","
-               + p_monsterLevel('tMonsterLevel0')
-               + pp.Optional(","
-                             + p_monsterID('tMonsterID1') + ","
-                             + p_monsterLevel('tMonsterLevel1')
-                             )
-               )
-
-            ^ (pp.Keyword("ADDENC1")('opcode')
-               + p_monsterID('tMonsterID0') + ","
-               + p_monsterLevel('tMonsterLevel0')
-               + pp.Optional(","
-                             + p_monsterID('tMonsterID1') + ","
-                             + p_monsterLevel('tMonsterLevel1')
-                             )
+            ^ (pp.Keyword("ADDENC")('opcode')
+               + p_monsterID('tMonsterID') + ","
+               + p_monsterLevel('tMonsterLevel') + ","
+               + p_monsterID('tMonsterCount') + ","
+               + p_monsterLevel('tMonsterRow')
                )
 
             ^ (pp.Keyword("EXIT")('opcode')

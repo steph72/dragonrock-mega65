@@ -12,10 +12,12 @@ attach disc/drock.d64
 delete main
 delete city
 delete dungeon
+delete charset
 delete map*
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
+write bin/charset1 charset
 write mapdata/library.d map0
 EOF
 

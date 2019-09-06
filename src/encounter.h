@@ -10,7 +10,7 @@
 #include "monster.h"
 #include "irq.h"
 
-extern monster *gMonsterRow[2][5];
-extern byte gNumMonsters[2];
+extern monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
+extern byte gNumMonsters[MONSTER_ROWS];
 
 encResult doEncounter(void);

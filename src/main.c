@@ -66,23 +66,24 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
+    puts("\nInitializing enigne. Please wait.");
     rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
+    if (cbm_load("charset", getcurrentdevice(), (void *)0xf400) == 0) {
+        puts("Failed loading charset.");
+        exit(0);
+    }
     copychars();
     installIRQ();
-
-    cputs("loading guild... ");
-    hasLoadedGame= initGuild(); // need to load guild here
-    if (!hasLoadedGame) {       // since initGuild() is in city overlay
-        cputs("not found\r\n");
-    } else {
-        cputs("ok\r\n");
-    }
+    clrscr();
+    enableCustomCharset();
+    puts("Loading the guild...");
+    hasLoadedGame= initGuild();
 }
 
 int main() {
     static char choice;
-    byte i;
+
     initEngine();
     clrscr();
     cg_borders();
@@ -110,11 +111,9 @@ int main() {
         cputs("\r\n--DEBUG--");
         clearMonsters();
         addNewMonster(1, 1, 3, 0);
-        addNewMonster(2, 1, 3, 1);
-        addNewMonster(2, 1, 3, 2);
+        addNewMonster(2, 1, 4, 1);
+        addNewMonster(2, 1, 5, 2);
         doEncounter();
-        cgetc();
-        clrscr();
         gotoxy(0, 0);
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
         testMap();

@@ -310,7 +310,7 @@ byte performClearencOpcode(void) {
     return 0;
 }
 
-// 0x0e: ADDENC0 / 0x8e:ADDENC1
+// 0x0e: ADDENC
 byte performAddencOpcode(opcode *anOpcode) {
     byte row;
 

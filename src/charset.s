@@ -1,4 +1,6 @@
 .export _copychars
+.export _enableCustomCharset
+.export _disableCustomCharset
 
 .code
 .importzp ptr1, ptr2
@@ -9,9 +11,9 @@ tedctl2 = $ff13
 romsel = $ff3e
 ramsel = $ff3f
 
-csize     = $800         ; only copy one character set
+csize     = $400         ; only copy one character set
 ramchars  = $f000        ; to the top of available memory
-romchars  = $d000        ; lowercase set
+romchars  = $d000        ; uppercase set
 
 gamechars = ramchars + $400 + ($5b*8)
 
@@ -61,12 +63,6 @@ _copychars:
 
     jsr moveup
 
-    lda tedctl1
-    and %11111011
-    sta tedctl1
-    lda #>gamechars
-    sta tedctl2
-
 ; restore context from stack
 
     pla
@@ -75,6 +71,21 @@ _copychars:
     tya
     pla
     rts
+
+_enableCustomCharset:        lda tedctl1
+                             and %11111011
+                             sta tedctl1
+                             lda #>gamechars
+                             sta tedctl2
+                             rts
+
+_disableCustomCharset:       lda tedctl1
+                             ora %00000100
+                             sta tedctl1
+                             lda #$d0
+                             sta tedctl2
+                             rts
+
 
 moveup:  LDX sizeh    ; the last byte must be moved first
          CLC          ; start at the final pages of FROM and TO

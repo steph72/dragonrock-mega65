@@ -1,5 +1,6 @@
 #include "monster.h"
 
+
 monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
 byte gNumMonsters[MONSTER_ROWS];
 
@@ -16,10 +17,13 @@ void addMonster(monster *aMonster, byte row) {
             break;
         }
     }
+
+    printf("\n");
     if (!added) {
         printf("err addm %d row %d", aMonster->def->id, row);
         exit(0);
     }
+ 
 }
 
 // clear monster roster
@@ -29,7 +33,7 @@ void clearMonsters(void) {
         gNumMonsters[x]= 0;
         for (y= 0; y < MONSTER_SLOTS; y++) {
             if (gMonsterRow[x][y]) {
-                free(gMonsterRow[x][y]);
+                // free(gMonsterRow[x][y]);
                 gMonsterRow[x][y]= NULL;
             }
         }

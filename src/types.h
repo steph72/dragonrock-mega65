@@ -111,6 +111,8 @@ typedef struct _monsterDef {
 	signed char hitModifier;
 	attackType aType;
 	int xpBaseValue;
+	// ------ private ------
+	byte currentSpriteID;
 } monsterDef;
 
 typedef struct monster {
