@@ -1,6 +1,5 @@
 #include "monster.h"
 
-
 monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
 byte gNumMonsters[MONSTER_ROWS];
 
@@ -23,7 +22,6 @@ void addMonster(monster *aMonster, byte row) {
         printf("err addm %d row %d", aMonster->def->id, row);
         exit(0);
     }
- 
 }
 
 // clear monster roster
@@ -33,7 +31,7 @@ void clearMonsters(void) {
         gNumMonsters[x]= 0;
         for (y= 0; y < MONSTER_SLOTS; y++) {
             if (gMonsterRow[x][y]) {
-                // free(gMonsterRow[x][y]);
+                free(gMonsterRow[x][y]);
                 gMonsterRow[x][y]= NULL;
             }
         }
@@ -71,6 +69,13 @@ monster *createMonster(byte monsterID, byte level) {
     if (level == 0) {
         level= aDef->level;
     }
+
+    /*
+        a little hackish: remove current sprite id from newly created monsters,
+        so that they can be filled in when starting the encounter
+    */
+
+    aDef->currentSpriteID = 255;    // 255 = no sprite assigned
 
     newMonster->def= aDef;
     newMonster->hp= aDef->hpPerLevel * level;

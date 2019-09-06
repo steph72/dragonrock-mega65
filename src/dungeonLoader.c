@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFSIZE 255
+#define BUFSIZE 64
 
 unsigned int dungeonSize;
 byte numFeels;

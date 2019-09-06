@@ -1,5 +1,7 @@
 #include "encounter.h"
 
+byte gCurrentSpriteCharacterIndex;
+
 byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
     byte width;
     width= 40 / numMonsters;
@@ -23,47 +25,66 @@ void doPartyTurn(byte idx) {
     // cgetc();
 }
 
-void plotSprite(byte x, byte y, byte spriteIdx) {
+void plotSprite(byte x, byte y, byte spriteCharacterIdx) {
     byte i, j;
     byte *screenPtr;
     byte charIdx;
     screenPtr= SCREEN + (x - 1 + (y * 40));
-    charIdx= (spriteIdx * 4) - 1;
+    charIdx= spriteCharacterIdx - 1;
     for (i= 0; i < 2; ++i) {
         for (j= 0; j < 2; ++j) {
-             *(++screenPtr)= ++charIdx;
+            *(++screenPtr)= ++charIdx;
         }
         screenPtr+= 38;
     }
 }
 
-void plotMonster(byte row, byte idx, byte spriteIdx) {
+void plotMonster(byte row, byte idx) {
     byte x, y;
 
     x= xposForMonster(gNumMonsters[row], idx, 2);
     y= (row * 3);
 
-    plotSprite(x, y, spriteIdx);
+    plotSprite(x, y, gMonsterRow[row][idx]->def->currentSpriteID);
+}
+
+void loadMonsterSprite(byte id, byte idx) {
+    byte *addr;
+    addr= (byte *)0xf000 + (idx * 8);
+    printf("should load sprite %x to address %x\n", id, idx);
+    cgetc();
 }
 
 encResult doEncounter(void) {
 
     byte c, i, j;
+    monster *aMonster;
 
     setSplitEnable(1);
     clrscr();
     gotoxy(0, 16);
-    printf("An encounter...\n");
+    printf("An encounter...%c%c\n",27,'t');
     gotoxy(0, 0);
 
+    gCurrentSpriteCharacterIndex= 0;
 
     // determine number of monsters & do monster initiative rolls
 
     for (i= 0; i < MONSTER_ROWS; ++i) {
         for (j= 0; j < MONSTER_SLOTS; ++j) {
             if (gMonsterRow[i][j]) {
-                gMonsterRow[i][j]->initiative= (byte)(rand() % 20);
-                plotMonster(i, j, 0);
+                aMonster= gMonsterRow[i][j];
+                if (aMonster->def->currentSpriteID ==
+                    255) {                             // monster has no sprite yet?
+                    aMonster->def->currentSpriteID=
+                        gCurrentSpriteCharacterIndex; // set to current
+                    loadMonsterSprite(
+                        aMonster->def->spriteID,
+                        gCurrentSpriteCharacterIndex); // ...and load sprite
+                    gCurrentSpriteCharacterIndex+= 4;
+                }
+                aMonster->initiative= (byte)(rand() % 20);
+                plotMonster(i, j);
             }
         }
     }

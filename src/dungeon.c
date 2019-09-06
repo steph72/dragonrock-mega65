@@ -15,12 +15,6 @@
 
 #define BUFSIZE 128
 
-#define LOWBYTE(v) ((unsigned char)(v))
-#define HIGHBYTE(v) ((unsigned char)(((unsigned int)(v)) >> 8))
-
-// #define ClearBit(A, k) (*(A + (k / 8))&= ~(1 << (k % 8)))
-// #define TestBit(A, k) (*(A + (k / 8)) & (1 << (k % 8)))
-
 /* ------------------------- opcodes ------------------------- */
 #define OPC_NOP 0x00    /* no operation                       */
 #define OPC_NSTAT 0x01  /* new status line                    */
@@ -363,6 +357,7 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     gotoxy(0, 23);
     gotoxy(xs, ys);
 #endif
+
 
     opcodeID= (anOpcode->id) & 31;
     nextOpcodeIndex= anOpcode->nextOpcodeIndex;
@@ -736,6 +731,7 @@ void dungeonLoop() {
         } else {
             // what is here?
             dItem= dungeonItemAtPos(mposX, mposY);
+
 #ifdef DEBUG
             xs= wherex();
             ys= wherey();
@@ -744,6 +740,7 @@ void dungeonLoop() {
                    dItem->mapItem);
             gotoxy(xs, ys);
 #endif
+
             if (dItem->mapItem & 32) { // check impassable flag
                 // can't go there: reset pass register...
                 registers[R_PASS]= 255;
@@ -774,10 +771,10 @@ void setupDungeonScreen(void) {
     revers(1);
 
     for (x=0;x<mapWindowSize+1;++x) {
-        cputcxy(screenX-1+x,screenY-1,' ');
-        cputcxy(screenX-1+x,screenY-1+mapWindowSize,' ');
+        cputcxy(screenX+x,screenY-1,' ');
+        cputcxy(screenX-1+x,screenY+mapWindowSize,' ');
         cputcxy(screenX-1,screenY-1+x,' ');
-        cputcxy(screenX+mapWindowSize,screenY-1+x,' ');
+        cputcxy(screenX+mapWindowSize,screenY+x,' ');
     }
     revers(0);
 

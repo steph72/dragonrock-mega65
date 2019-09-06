@@ -142,7 +142,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     (void)size;
 #ifdef DEBUG
     cprintf("\r\nov %s $%x @ $%x ", name, size, addr);
-    cprintf("$%x rem", 0x3000 - (int)size);
+    cprintf("$%x rem", 0x2000 - (int)size);
 #endif
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");

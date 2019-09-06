@@ -325,6 +325,7 @@ openStorageRoomDoor:
 
 defc entrance:      15,0                 ; connects entrance
 defc corridor:      15,1 - 15,17         ; corridor message
+defc corridor_h:    3,17 - 25,17         ; horizontal corridor message
 defc historySign:   15,3
 
 $ msgCorridor,"A long, eerie corridor."
@@ -339,6 +340,7 @@ A sign above the east door says:
 'HISTORY AND SCIENCE'
 """ 
 
+corridor_h:
 corridor:
     NSTAT msgCorridor
     ---
@@ -367,8 +369,11 @@ exitDungeon:
 defc secretDoor1:   21,18                ; secret door in start corridor
 defc secretRoom1:   20,19 - 22,21        ; secret room 
 defc sRoomTable:    21,20                ; table in secret room
+defc sWind:         20,17
 
 $ msgSecret1, "Wait, there's a secret door here!"
+
+$ msgWind, "There's a light draft coming\nfrom the southeast"
 
 $ msgSecretRoom1, "A small, hidden room with a wooden\ntable in its center."
 
@@ -378,6 +383,10 @@ A rusty key is lying on top of it.
 Do you take the key (y/n)?"""
 
 $ msgTable2, "There is a small, wooden table here."
+
+sWind:
+    NSTAT msgWind
+    ---
 
 secretDoor1:
     NSTAT msgSecret1
