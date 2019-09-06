@@ -27,11 +27,20 @@ monsterDef gMonsters[]= {
 
         {
         0x02, 1, 2,           // ID, default level, spriteID
-        "Orc", NULL,       // name, pluralname
+        "Orc", NULL,          // name, pluralname
         9, 6, 6, 0, 1,        // armorClass, hit dice, hit points, numAttacks
         0, 0,                 // courageMod, hitMod
         at_fists | at_weapon, // attack types
         10                    // xp value
+    },
+
+    {
+        0x03, 1, 3,           // ID, default level, spriteID
+        "Kobold General", NULL,       // name, pluralname
+        10, 6, 6, 0, 2,        // armorClass, hit dice, hit points, numAttacks
+        0, 0,                 // courageMod, hitMod
+        at_fists | at_weapon, // attack types
+        15                    // xp value
     },
 
     // ---------------------- bosses ---------------------------

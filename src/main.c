@@ -66,7 +66,6 @@ void initEngine(void) {
                          "Copyright (c) 2019 7Turtles Software\n";
     cg_init();
     puts(prompt);
-    puts("\nInitializing enigne. Please wait.");
     rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
     if (cbm_load("charset", getcurrentdevice(), (void *)0xf400) == 0) {
@@ -75,7 +74,6 @@ void initEngine(void) {
     }
     copychars();
     installIRQ();
-    clrscr();
     enableCustomCharset();
     puts("Loading the guild...");
     hasLoadedGame= initGuild();
@@ -110,8 +108,8 @@ int main() {
     } else if (choice == 'd') {
         cputs("\r\n--DEBUG--");
         clearMonsters();
-        addNewMonster(1, 1, 3, 0);
-        addNewMonster(2, 1, 4, 1);
+        addNewMonster(0, 1, 3, 0);
+        addNewMonster(1, 1, 4, 1);
         addNewMonster(2, 1, 5, 2);
         doEncounter();
         gotoxy(0, 0);

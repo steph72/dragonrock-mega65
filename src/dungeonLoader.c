@@ -21,6 +21,8 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc);
 
 dungeonDescriptor *loadMap(char *filename) {
 
+    byte i= 0;
+
     dungeonDescriptor *desc;
 
     byte *currentDungeonPtr;
@@ -68,9 +70,12 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("mapdata at %x\n", mapdata);
 #endif
 
+    cputs("please wait.");
     while (!feof(infile)) {
+        ++i;
         bytesRead= fread(currentDungeonPtr, 1, BUFSIZE, infile);
-        cputc('.');
+        if (!(i%8))
+            cputc('.');
         currentDungeonPtr+= bytesRead;
     }
 
@@ -88,15 +93,15 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("dungeon at %x\n", desc->dungeon);
 #endif
 
-    smSize = desc->dungeonMapWidth * desc->dungeonMapHeight;
-    seenMap = (byte*)malloc(smSize);
-    memset(seenMap,255,smSize);
+    smSize= desc->dungeonMapWidth * desc->dungeonMapHeight;
+    seenMap= (byte *)malloc(smSize);
+    memset(seenMap, 255, smSize);
 
 #ifdef DEBUG
     printf("map format is %s, dungeon size %x, width %d, height %d.\n", linebuf,
            dungeonSize, desc->dungeonMapWidth, desc->dungeonMapHeight);
     printf("startx: %d, starty: %d\n", desc->startX, desc->startY);
-    printf("seen map is at $%x, size $%x\n",seenMap,smSize);
+    printf("seen map is at $%x, size $%x\n", seenMap, smSize);
 #endif
 
     // jump to end of mapW
@@ -141,14 +146,15 @@ dungeonDescriptor *loadMap(char *filename) {
 
 #ifdef DEBUG
     printf("%d opcodes at %x\n", numOpcs, desc->opcodesAdr);
-    printf("%d opcodes remaining.\n",255-numOpcs);
+    printf("%d opcodes remaining.\n", 255 - numOpcs);
 #endif
 
     fclose(infile);
 
 #ifdef DEBUG
     debugPtr= (byte *)malloc(8);
-    printf("dungeon: %x-%x (size %x)\n",(int)desc,(int)debugPtr,(int)debugPtr-(int)desc);
+    printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
+           (int)debugPtr - (int)desc);
     free(debugPtr);
 #endif
 
@@ -156,7 +162,7 @@ dungeonDescriptor *loadMap(char *filename) {
 }
 
 byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
-    byte *currentPtr; 
+    byte *currentPtr;
     unsigned int currentFeelIdx;
 
 #ifdef DEBUG
@@ -165,7 +171,7 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     currentPtr= startAddr;
     currentFeelIdx= 0;
 
-    desc->feelTbl= (char **)malloc(2*numFeels);
+    desc->feelTbl= (char **)malloc(2 * numFeels);
 
 #ifdef DEBUG
     printf("at %x in main mem\n", desc->feelTbl);
@@ -174,8 +180,8 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     while (currentFeelIdx < numFeels) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DEBUG
-       //printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
-    //cgetc();
+        // printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
+        // cgetc();
 #endif
         while (*currentPtr != 0) {
             currentPtr++;
