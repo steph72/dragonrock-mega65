@@ -82,7 +82,7 @@ _enableCustomCharset:        lda tedctl1
 _disableCustomCharset:       lda tedctl1
                              ora %00000100
                              sta tedctl1
-                             lda #$d0
+                             lda #$d4
                              sta tedctl2
                              rts
 

@@ -18,7 +18,8 @@
 			"cbm264.h": "c",
 			"conio.h": "c",
 			"guild.h": "c",
-			"time.h": "c"
+			"time.h": "c",
+			"cbm.h": "c"
 		}
 	}
 }
