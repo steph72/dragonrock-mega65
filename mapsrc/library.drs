@@ -373,7 +373,7 @@ defc sWind:         20,17
 
 $ msgSecret1, "Wait, there's a secret door here!"
 
-$ msgWind, "There's a light draft coming\nfrom the southeast"
+$ msgWind, "There's a light draft coming from\nthe southeast"
 
 $ msgSecretRoom1, "A small, hidden room with a wooden\ntable in its center."
 

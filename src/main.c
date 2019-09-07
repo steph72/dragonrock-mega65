@@ -74,6 +74,7 @@ void initEngine(void) {
     }
     copychars();
     installIRQ();
+    clrscr();
     enableCustomCharset();
     puts("Loading the guild...");
     hasLoadedGame= initGuild();
