@@ -6,14 +6,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFSIZE 64
 
 unsigned int dungeonSize;
 byte numFeels;
 byte numOpcs;
 byte *mapdata;
 byte *seenMap;
-byte linebuf[BUFSIZE];
+
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -45,14 +44,14 @@ dungeonDescriptor *loadMap(char *filename) {
 #endif
 
     infile= fopen(filename, "rb");
-    fread(linebuf, 3, 1, infile);
-    linebuf[3]= 0;
+    fread(drbuf, 3, 1, infile);
+    drbuf[3]= 0;
 
 #ifdef DEBUG
-    printf("identifier segment: %s\n", linebuf);
+    printf("identifier segment: %s\n", drbuf);
 #endif
 
-    if (strcmp(linebuf, "dr0") != 0) {
+    if (strcmp(drbuf, "dr0") != 0) {
         printf("?fatal: wrong map file format");
         fclose(infile);
         exit(0);
@@ -101,7 +100,7 @@ dungeonDescriptor *loadMap(char *filename) {
     memset(seenMap, 255, smSize);
 
 #ifdef DEBUG
-    printf("map format is %s, dungeon size %x, width %d, height %d.\n", linebuf,
+    printf("map format is %s, dungeon size %x, width %d, height %d.\n", drbuf,
            dungeonSize, desc->dungeonMapWidth, desc->dungeonMapHeight);
     printf("startx: %d, starty: %d\n", desc->startX, desc->startY);
     printf("seen map is at $%x, size $%x\n", seenMap, smSize);

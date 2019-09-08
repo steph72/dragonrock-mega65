@@ -8,7 +8,6 @@
 #include "congui.h"
 #include "types.h"
 
-extern char outbuf[80];
 
 item *inventoryItemForID(itemT anItemID) {
     register byte i;
@@ -109,9 +108,9 @@ void showCurrentParty(byte small) {
             ++y;
             gotoxy(x, y);
             if (small) {
-                *outbuf= 0;
-                strncat(outbuf, c->name, 12);
-                cprintf("%d %s", i + 1, outbuf);
+                *drbuf= 0;
+                strncat(drbuf, c->name, 12);
+                cprintf("%d %s", i + 1, drbuf);
             } else {
                 cprintf("%d %s", i + 1, c->name);
             }
@@ -139,9 +138,9 @@ void more(char *filename) {
     clrscr();
     infile= fopen(filename, "r");
     while (!feof(infile)) {
-        fgets(outbuf, 79, infile);
+        fgets(drbuf, BUFSIZE-1, infile);
         ++line;
-        fputs(outbuf, stdout);
+        fputs(drbuf, stdout);
         if (line == 23) {
             gotoxy(28, 24);
             cprintf("-- more --");
@@ -161,8 +160,8 @@ void more(char *filename) {
 void useScroll(item *anItem) {
     byte num;
     num= anItem->val1;
-    sprintf(outbuf, "fmsg%02d", num);
-    more(outbuf);
+    sprintf(drbuf, "fmsg%02d", num);
+    more(drbuf);
 }
 
 item *whichItem(character *ic) {

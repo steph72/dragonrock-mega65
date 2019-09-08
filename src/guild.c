@@ -74,14 +74,13 @@ void cleanupParty(void) {
 }
 
 void dropFromParty(void) {
-    static char inbuf[3];
     static byte pm;
 
     cclearxy(0, 22, 40);
     cputsxy(2, 22, "Remove whom (0=cancel)");
     cursor(1);
-    fgets(inbuf, 3, stdin);
-    pm= atoi(inbuf);
+    fgets(drbuf, 3, stdin);
+    pm= atoi(drbuf);
     if (pm == 0)
         return;
     --pm;

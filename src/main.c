@@ -46,7 +46,7 @@ extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 
 byte currentCity;
 byte hasLoadedGame;
-char outbuf[80];
+char drbuf[BUFSIZE];
 
 void initEngine(void);
 void runCityMenu(void);

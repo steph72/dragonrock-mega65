@@ -28,6 +28,9 @@
 
 #define SCREEN ((unsigned char *)0xc00)
 
+#define BUFSIZE 0x80
+
+extern char drbuf[BUFSIZE];		// everybody needs this
 
 typedef unsigned char byte;
 

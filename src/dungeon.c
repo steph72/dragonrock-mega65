@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFSIZE 128
 
 /* ------------------------- opcodes ------------------------- */
 #define OPC_NOP 0x00    /* no operation                       */
