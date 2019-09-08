@@ -259,6 +259,7 @@ void newGuildMember(byte city) {
     newC->aMaxMP= tempMP;
     newC->aMP= tempMP;
     newC->level= 1;
+    newC->spriteID = 0x80 + newC->aRace;
     strcpy(newC->name, cname);
 }
 

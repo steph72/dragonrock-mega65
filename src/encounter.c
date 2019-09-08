@@ -1,6 +1,7 @@
 #include "encounter.h"
 
 byte gCurrentSpriteCharacterIndex;
+byte idxTable[255]; // spriteID -> startCharacter mapping
 
 byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
     byte width;
@@ -25,12 +26,12 @@ void doPartyTurn(byte idx) {
     // cgetc();
 }
 
-void plotSprite(byte x, byte y, byte spriteCharacterIdx) {
+void plotSprite(byte x, byte y, byte spriteID) {
     byte i, j;
     byte *screenPtr;
     byte charIdx;
     screenPtr= SCREEN + (x - 1 + (y * 40));
-    charIdx= spriteCharacterIdx - 1;
+    charIdx= idxTable[spriteID] - 1;
     for (i= 0; i < 2; ++i) {
         for (j= 0; j < 2; ++j) {
             *(++screenPtr)= ++charIdx;
@@ -45,14 +46,42 @@ void plotMonster(byte row, byte idx) {
     x= xposForMonster(gNumMonsters[row], idx, 2);
     y= (row * 3);
 
-    plotSprite(x, y, gMonsterRow[row][idx]->def->currentSpriteID);
+    plotSprite(x, y, gMonsterRow[row][idx]->def->spriteID);
 }
 
-void loadMonsterSprite(byte id, byte idx) {
+void plotCharacter(byte idx) {
+    byte x, y;
+
+    x= xposForMonster(partyMemberCount(), idx, 2);
+    y= 12;
+
+    plotSprite(x, y, party[idx]->spriteID);
+}
+
+void loadSprite(byte id) {
     byte *addr;
-    addr= (byte *)0xf000 + (idx * 8);
-    printf("should load sprite %x to address %x\n", id, idx);
+    addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
+    printf("load sprite %x to idx %x @ %x\n", id, gCurrentSpriteCharacterIndex, addr);
+    idxTable[id]=gCurrentSpriteCharacterIndex;
+    gCurrentSpriteCharacterIndex += 8;
     cgetc();
+}
+
+void loadSpriteIfNeeded(byte id) {
+
+    if (idxTable[id] != 255) {
+        printf("already have sprite id %d\n", id);
+        cgetc();
+        return;
+    }    
+    loadSprite(id);
+}
+
+void loadCharacterSprites(void) {
+    byte i;
+    for (i=0;i<partyMemberCount();++i) {
+        loadSpriteIfNeeded(party[i]->spriteID);
+    }
 }
 
 encResult doEncounter(void) {
@@ -63,10 +92,13 @@ encResult doEncounter(void) {
     setSplitEnable(1);
     clrscr();
     gotoxy(0, 16);
-    printf("An encounter...%c%c\n",27,'t');
+    printf("An encounter...%c%c\n", 27, 't');
     gotoxy(0, 0);
 
+    memset(idxTable, 255, 255);
+
     gCurrentSpriteCharacterIndex= 0;
+    loadCharacterSprites();
 
     // determine number of monsters & do monster initiative rolls
 
@@ -74,15 +106,7 @@ encResult doEncounter(void) {
         for (j= 0; j < MONSTER_SLOTS; ++j) {
             if (gMonsterRow[i][j]) {
                 aMonster= gMonsterRow[i][j];
-                if (aMonster->def->currentSpriteID ==
-                    255) {                             // monster has no sprite yet?
-                    aMonster->def->currentSpriteID=
-                        gCurrentSpriteCharacterIndex; // set to current
-                    loadMonsterSprite(
-                        aMonster->def->spriteID,
-                        gCurrentSpriteCharacterIndex); // ...and load sprite
-                    gCurrentSpriteCharacterIndex+= 4;
-                }
+                loadSpriteIfNeeded(aMonster->def->spriteID);
                 aMonster->initiative= (byte)(rand() % 20);
                 plotMonster(i, j);
             }
@@ -95,8 +119,7 @@ encResult doEncounter(void) {
         if (party[j]) {
             party[j]->initiative=
                 (rand() % 20) + bonusValueForAttribute(party[j]->attributes[3]);
-            gotoxy(xposForMonster(partyMemberCount(), j, 3), 12);
-            cputs("PPP");
+            plotCharacter(j);
         }
     }
 

@@ -111,8 +111,6 @@ typedef struct _monsterDef {
 	signed char hitModifier;
 	attackType aType;
 	int xpBaseValue;
-	// ------ private ------
-	byte currentSpriteID;
 } monsterDef;
 
 typedef struct monster {
@@ -125,6 +123,7 @@ typedef struct monster {
 typedef struct _character {
 	characterStateT status;
 	byte	guildSlot;
+	byte    spriteID;
 	byte    city;
 	byte	level;
 	int		age;

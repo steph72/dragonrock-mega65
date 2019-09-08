@@ -70,13 +70,6 @@ monster *createMonster(byte monsterID, byte level) {
         level= aDef->level;
     }
 
-    /*
-        a little hackish: remove current sprite id from newly created monsters,
-        so that they can be filled in when starting the encounter
-    */
-
-    aDef->currentSpriteID = 255;    // 255 = no sprite assigned
-
     newMonster->def= aDef;
     newMonster->hp= aDef->hpPerLevel * level;
     newMonster->mp= aDef->mpPerLevel * level;
