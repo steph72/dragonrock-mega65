@@ -11,3 +11,6 @@ in progress and contributions are of course welcome (oh well, who am I kidding ;
 
 Here's some screenshots of what's in there by now:
 
+![Screen1](screenshots/characterCreation.jpg)
+
+
