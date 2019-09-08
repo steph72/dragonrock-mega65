@@ -305,7 +305,6 @@ byte performClearencOpcode(void) {
 
 // 0x0e: ADDENC
 byte performAddencOpcode(opcode *anOpcode) {
-    byte row;
 
     if (anOpcode->param1) {
         addNewMonster(anOpcode->param1, anOpcode->param2, anOpcode->param3, anOpcode->param4);

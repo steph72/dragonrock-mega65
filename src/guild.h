@@ -15,9 +15,13 @@ byte isInParty(byte guildIdx);
 signed char nextFreeGuildSlot(void);
 signed char nextFreePartySlot(void);
 
+
+void initGuildMem(void);
+byte initGuild(void);
+byte loadGuild(void);
+
 void saveGuild(void);
 
 extern character *party[PARTYSIZE];
-extern character *guild;
 
 #endif

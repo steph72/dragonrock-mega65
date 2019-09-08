@@ -44,7 +44,7 @@ void plotMonster(byte row, byte idx) {
     byte x, y;
 
     x= xposForMonster(gNumMonsters[row], idx, 2);
-    y= (row * 3);
+    y= ((2 - row) * 3);
 
     plotSprite(x, y, gMonsterRow[row][idx]->def->spriteID);
 }
@@ -61,27 +61,71 @@ void plotCharacter(byte idx) {
 void loadSprite(byte id) {
     byte *addr;
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
-    printf("load sprite %x to idx %x @ %x\n", id, gCurrentSpriteCharacterIndex, addr);
-    idxTable[id]=gCurrentSpriteCharacterIndex;
-    gCurrentSpriteCharacterIndex += 8;
-    cgetc();
+    // printf("load sprite %x to idx %x @ %x\n", id,
+    // gCurrentSpriteCharacterIndex, addr);
+    idxTable[id]= gCurrentSpriteCharacterIndex;
+    gCurrentSpriteCharacterIndex+= 8;
+    // cgetc();
 }
 
 void loadSpriteIfNeeded(byte id) {
 
     if (idxTable[id] != 255) {
-        printf("already have sprite id %d\n", id);
-        cgetc();
         return;
-    }    
+    }
     loadSprite(id);
 }
 
 void loadCharacterSprites(void) {
     byte i;
-    for (i=0;i<partyMemberCount();++i) {
+    for (i= 0; i < partyMemberCount(); ++i) {
         loadSpriteIfNeeded(party[i]->spriteID);
     }
+}
+
+byte preEncounter(void) {
+    static byte i, j;
+    static byte count;
+    static monster *aMonster;
+    static char *outName;
+    static char choice;
+
+    clrscr();
+    showCurrentParty(false);
+    chlinexy(0, 10, 40);
+    gotoxy(0, 12);
+    puts("An encounter!\n");
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        count= 0;
+        for (j= 0; j < MONSTER_SLOTS; ++j) {
+            if (gMonsterRow[i][j]) {
+                ++count;
+                aMonster= gMonsterRow[i][j];
+            }
+        }
+        if (count == 1) {
+            outName= aMonster->def->name;
+        } else {
+            outName= pluralname(aMonster->def);
+        }
+
+        printf("Rank %d: %d %s\n", i + 1, count, outName);
+    }
+
+    chlinexy(0, 18, 40);
+    gotoxy(0, 20);
+    puts("1) Fight      2) Accept Surrender");
+    puts("3) Greetings  4) Beg for mercy");
+    puts("5) Flee\n");
+    cputs(">");
+    cursor(1);
+
+    do {
+        choice= cgetc();
+    } while (choice<'1' || choice>'5');
+
+    cursor(0);
+
 }
 
 encResult doEncounter(void) {
@@ -89,10 +133,12 @@ encResult doEncounter(void) {
     byte c, i, j;
     monster *aMonster;
 
+    preEncounter();
+
     setSplitEnable(1);
     clrscr();
     gotoxy(0, 16);
-    printf("An encounter...%c%c\n", 27, 't');
+    printf("An encounter...\n");
     gotoxy(0, 0);
 
     memset(idxTable, 255, 255);

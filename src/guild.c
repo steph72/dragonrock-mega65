@@ -10,8 +10,10 @@
 #include "guild.h"
 #include "guildLoader.h"
 #include "types.h"
+#include "character.h"
 
-extern character *guild;
+character *guild;
+
 extern character *party[];
 
 void newGuildMember(byte city);
@@ -65,7 +67,6 @@ void cleanupParty(void) {
     for (i= 0; i < PARTYSIZE - 1; ++i) {
         if (party[i] == NULL) {
             if (party[i + 1] != NULL) {
-                // changed=true;
                 party[i]= party[i + 1];
                 party[i + 1]= NULL;
             }
@@ -88,6 +89,7 @@ void dropFromParty(void) {
         flagError("You wish!");
         return;
     }
+    free(party[pm]);
     party[pm]= NULL;
     cleanupParty();
 }
@@ -95,7 +97,7 @@ void dropFromParty(void) {
 byte isInParty(byte guildIdx) {
     static byte i;
     for (i= 0; i < PARTYSIZE; i++) {
-        if (party[i] == &guild[guildIdx]) {
+        if (party[i] && party[i]->guildSlot == guildIdx) {
             return true;
         }
     }
@@ -106,6 +108,9 @@ void addToParty(void) {
     static char inbuf[3];
     signed char slot;
     unsigned char gmIndex;
+
+    character *newPartyCharacter;
+
     cclearxy(0, 22, 40);
     slot= nextFreePartySlot();
     if (slot == -1) {
@@ -137,7 +142,9 @@ void addToParty(void) {
         return;
     }
 
-    party[slot]= &guild[gmIndex];
+    newPartyCharacter= malloc(sizeof(character));
+    memcpy(newPartyCharacter, (void *)&guild[gmIndex], sizeof(character));
+    party[slot]= newPartyCharacter;
 }
 
 void purgeGuildMember(void) {
@@ -186,23 +193,58 @@ signed char nextFreeGuildSlot(void) {
 
 void saveGuild(void) {
     static FILE *outfile;
-    static byte i;
+    static byte i,c;
     clrscr();
     cg_borders();
     puts("\nPlease wait, "
-         "saving the game...");
+         "saving guild...");
     outfile= fopen("gdata", "w");
     fwrite(guild, GUILDSIZE * sizeof(character), 1, outfile);
-    for (i= 0; i < PARTYSIZE; i++) {
-        if (party[i]) {
-            fputc(party[i]->guildSlot, outfile);
-        } else {
-            fputc(99, outfile);
-        }
+    fclose(outfile);
+
+    puts("saving party...");
+    outfile=fopen("pdata","w");
+    c = partyMemberCount();
+    fputc(c,outfile);
+    for (i=0;i<c;++i) {
+        fwrite(party[i],sizeof(character),1,outfile);
     }
     fclose(outfile);
     puts("\n\n...done.");
     cgetc();
+}
+
+byte loadGuild(void) {
+    static FILE *infile;
+
+    // disableCustomCharset();
+
+    infile= fopen("gdata", "r");
+    if (!infile) {
+        return false;
+    }
+    fread(guild, GUILDSIZE * sizeof(character), 1, infile);
+    fclose(infile);
+    // enableCustomCharset();
+
+    return true;
+}
+
+byte initGuild() {
+    initGuildMem();
+    return loadGuild();
+}
+
+void initGuildMem(void) {
+    static unsigned int sizeBytes= 0;
+    sizeBytes= GUILDSIZE * sizeof(character);
+    printf("guild size is %d bytes\n", sizeBytes);
+    guild= (character *)malloc(sizeBytes);
+    if (guild == NULL) {
+        puts("???fatal: no memory for guild");
+        exit(0);
+    }
+    bzero(guild, sizeBytes);
 }
 
 // clang-format off

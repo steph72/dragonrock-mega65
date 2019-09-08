@@ -36,6 +36,7 @@
 #include "debug.h"
 #include "dungeon.h"
 #include "guildLoader.h"
+#include "guild.h"
 #include "types.h"
 
 #include "encounter.h"
@@ -44,9 +45,10 @@
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 
+char *drbuf;
+
 byte currentCity;
 byte hasLoadedGame;
-char drbuf[BUFSIZE];
 
 void initEngine(void);
 void runCityMenu(void);
@@ -64,17 +66,23 @@ void initEngine(void) {
                          "at K-Burg, Bad Honnef, and\n"
                          "at Hundehaus im Reinhardswald\n\n"
                          "Copyright (c) 2019 7Turtles Software\n";
+
+    drbuf= (char *)0xff40; // use ram at top of i/o for buffer
+
     cg_init();
     puts(prompt);
     rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
+    printf("please wait.");
     if (cbm_load("charset", getcurrentdevice(), (void *)0xf400) == 0) {
         puts("Failed loading charset.");
         exit(0);
     }
+    printf(".");
     copychars();
     installIRQ();
-    hasLoadedGame= initGuild();
+    hasLoadedGame = loadParty();
+    printf(".");
     enableCustomCharset();
 }
 
@@ -108,8 +116,8 @@ int main() {
         cputs("\r\n--DEBUG--");
         clearMonsters();
         addNewMonster(0, 1, 3, 0);
-        addNewMonster(1, 1, 4, 1);
-        addNewMonster(2, 1, 5, 2);
+        addNewMonster(1, 1, 5, 1);
+        addNewMonster(2, 1, 1, 2);
         doEncounter();
         gotoxy(0, 0);
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
@@ -121,6 +129,7 @@ int main() {
     }
 
     loadfile("city", _OVERLAY2_LOAD__, _OVERLAY2_SIZE__);
+    initGuild();
     runCityMenu();
 
     return 0;
@@ -141,7 +150,8 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     cprintf("\r\nov %s $%x @ $%x ", name, size, addr);
     cprintf("$%x rem", 0x2000 - (int)size);
 #endif
-    disableCustomCharset(); // see explanation in guildLoader why we seem to need this...
+    disableCustomCharset(); // see explanation in guildLoader why we seem to
+                            // need this...
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");
         exit(0);

@@ -38,6 +38,18 @@ void clearMonsters(void) {
     }
 }
 
+char* pluralname(monsterDef *aMonsterDef) {
+    byte i;
+    if (aMonsterDef->pluralname) {
+        return aMonsterDef->pluralname;
+    }
+    strcpy(drbuf,aMonsterDef->name);
+    i=strlen(drbuf);
+    drbuf[i]='s';
+    drbuf[i+1]=0;
+    return drbuf;
+}
+
 // create a monster with given ID and level
 // (creates standard level if level==0)
 

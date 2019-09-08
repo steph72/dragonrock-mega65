@@ -27,11 +27,9 @@
 #define false  0
 
 #define SCREEN ((unsigned char *)0xc00)
+#define BUFSIZE 0xb0
 
-#define BUFSIZE 0x80
-
-extern char drbuf[BUFSIZE];		// everybody needs this
-
+extern char* drbuf;
 typedef unsigned char byte;
 
 typedef byte  raceT;
@@ -51,8 +49,11 @@ typedef enum _encResult {
 	encWon,encFled,encDead
 } encResult;
 
+
 typedef enum _cstateType {
-	deleted=0, dead, alive
+	deleted=0, 
+	dead=1, 
+	alive=2
 } characterStateT;
 
 typedef enum _itemType {

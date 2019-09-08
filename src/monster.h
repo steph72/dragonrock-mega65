@@ -14,3 +14,5 @@
 void clearMonsters(void);
 void addNewMonster(byte monsterID, byte level, byte num, byte row);
 monster* createMonster(byte monsterID, byte level);
+
+char* pluralname(monsterDef *aMonsterDef);

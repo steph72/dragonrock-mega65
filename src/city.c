@@ -14,6 +14,8 @@
 
 #include "dungeon.h"
 
+extern character *guild;
+
 extern byte currentCity;
 extern byte hasLoadedGame;
 
