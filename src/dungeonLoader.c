@@ -15,7 +15,10 @@ byte *mapdata;
 byte *seenMap;
 byte linebuf[BUFSIZE];
 
+// clang-format off
 #pragma code-name(push, "OVERLAY1");
+// clang-format on
+
 
 byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc);
 
@@ -193,4 +196,6 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     return currentPtr;
 }
 
+// clang-format on
 #pragma code-name(pop);
+// clang-format off

@@ -141,9 +141,11 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     cprintf("\r\nov %s $%x @ $%x ", name, size, addr);
     cprintf("$%x rem", 0x2000 - (int)size);
 #endif
+    disableCustomCharset(); // see explanation in guildLoader why we seem to need this...
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");
-        return 0;
+        exit(0);
     }
+    enableCustomCharset();
     return 1;
 }

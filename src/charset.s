@@ -73,14 +73,14 @@ _copychars:
     rts
 
 _enableCustomCharset:        lda tedctl1
-                             and %11111011
+                             and #%11111011
                              sta tedctl1
                              lda #>gamechars
                              sta tedctl2
                              rts
 
 _disableCustomCharset:       lda tedctl1
-                             ora %00000100
+                             ora #%00000100
                              sta tedctl1
                              lda #$d4
                              sta tedctl2

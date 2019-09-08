@@ -35,9 +35,9 @@ byte loadGuild(void) {
        since I want to be able to play the game on my real plus/4, the custom
        charset is disabled while loading things.
 
-          If (in stark contrast to everthing else I've ever created) this game
-       should find an audience, maybe someone who has the means and the
-       knowledge can find out what the effing crap is happening here...
+          If (against all odds) this game should find an audience, maybe someone
+       who has the means and the knowledge can find out what the effing crap
+       is happening here...
 
       */
 
