@@ -37,5 +37,6 @@ byte loadParty(void) {
     }
 
     fclose(infile);
+    return true;
 }
 
