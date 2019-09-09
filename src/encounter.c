@@ -2,7 +2,7 @@
 #include <unistd.h>
 
 byte gCurrentSpriteCharacterIndex;
-byte *idxTable; // sprite index cache
+byte idxTable[255]; // sprite index cache
 static char sfname[8];
 
 unsigned int partyAuthorityLevel;
@@ -70,18 +70,23 @@ void loadSprite(byte id) {
     sprintf(sfname, "spr%03d", id);
     spritefile= fopen(sfname, "rb");
     if (!spritefile) {
-        printf("sprite %s not found\n", sfname);
-        idxTable[id]= gCurrentSpriteCharacterIndex;
-        gCurrentSpriteCharacterIndex+= 9;
-        cgetc();
-        return;
+        //printf("sprite %s not found\n", sfname);
+        //cgetc();
     }
-    addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
+    addr= (byte *)0xec00 + (gCurrentSpriteCharacterIndex * 8);
     printf("load sprite %s to idx %x @ %x\n", sfname,
            gCurrentSpriteCharacterIndex, addr);
     idxTable[id]= gCurrentSpriteCharacterIndex;
-    gCurrentSpriteCharacterIndex+= 9;
-    cgetc();
+
+    /*
+        one sprite takes 18 characters (144 bytes),
+        3x3 rows = 9 characters x 2 for each state,
+        which gives us space for 14 sprites in one
+        charset.
+
+    */
+
+    gCurrentSpriteCharacterIndex+= 18;
 }
 
 void loadSpriteIfNeeded(byte id) {
@@ -193,8 +198,6 @@ encResult doEncounter(void) {
 
     byte c, i, j;
     monster *aMonster;
-
-    idxTable= (byte *)0xf800;
 
     bordercolor(BCOLOR_BLACK);
     bgcolor(BCOLOR_BLACK);

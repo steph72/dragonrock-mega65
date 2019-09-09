@@ -10,6 +10,8 @@
 romsel = $ff3e
 ramsel = $ff3f
 
+tedconf1 = $ff07
+
 tedctl1 = $ff12
 tedctl2 = $ff13
 tedirq  = $ff09
@@ -50,7 +52,7 @@ _installIRQ:        ldx irqvec
 
 _setSplitEnable:    sta splitflag
                     bne back
-                    lda #$f4            ; reset to text mode if splitflag=0
+                    lda #$f8            ; reset to text mode if splitflag=0
                     sta tedctl2 
 back:               rts
 
@@ -69,9 +71,11 @@ newVec:
                     beq skip1       ; skip configuring ted if splitflag=0
 
                     sta tedborder
-                    ; sta tedbg
-                    lda #$f4        ; switch to lowercase/text mode
+                    lda #$f8        ; switch to lowercase/text mode
                     sta tedctl2
+                    lda tedconf1
+                    and #%01111111
+                    sta tedconf1    ; select 128 characters + rvs mode
 
 skip1:              jsr $ff9f       ; perform SCNKEY
                     jsr $ffea       ; perform UDTIM
@@ -84,10 +88,13 @@ topPos:             lda #bottomRow  ; we're at the top, so reconfigure irq to bo
                     beq continue    ; nope -> continue
                     
                     lda #$05
-                    sta tedborder
-                    ; sta tedbg
-                    lda #$f0        ; switch to uppercase/graphics mode
+                    sta tedborder   ; color border for debugging
+                    lda #$f0        ; switch to graphics charset
                     sta tedctl2
+                    lda tedconf1
+                    ora #%10000000   ; enable 256 characters
+                    sta tedconf1
+
 
 continue:           pla             ; ROM interrupt starts with saving registers
                     tay             ; so we have to pull 1 time

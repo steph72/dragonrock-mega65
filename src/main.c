@@ -73,7 +73,7 @@ void initEngine(void) {
     rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
     printf("please wait.");
-    if (cbm_load("charset", getcurrentdevice(), (void *)0xf400) == 0) {
+    if (cbm_load("charset", getcurrentdevice(), (void *)0xf800) == 0) {
         puts("Failed loading charset.");
         exit(0);
     }

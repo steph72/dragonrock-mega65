@@ -96,8 +96,7 @@ dungeonDescriptor *loadMap(char *filename) {
 #endif
 
     smSize= desc->dungeonMapWidth * desc->dungeonMapHeight;
-    // seenMap= (byte *)malloc(smSize);
-    seenMap = (byte*)0xf900;
+    seenMap= (byte *)malloc(smSize);
     memset(seenMap, 255, smSize);
 
 #ifdef DEBUG
