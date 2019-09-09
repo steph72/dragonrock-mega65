@@ -8,13 +8,12 @@
 
 #include "congui.h"
 #include "guild.h"
-#include "guildLoader.h"
 #include "types.h"
 #include "character.h"
 
 character *guild;
 
-extern character *party[];
+extern character *party[PARTYSIZE];
 
 void newGuildMember(byte city);
 void _listGuildMembers(void);

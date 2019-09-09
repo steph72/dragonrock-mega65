@@ -8,6 +8,7 @@
 #include "congui.h"
 #include "types.h"
 
+character *party[PARTYSIZE];
 
 item *inventoryItemForID(itemT anItemID) {
     register byte i;
@@ -287,4 +288,28 @@ void inspectCharacter(byte idx) {
         }
 
     } // while !quitInspect
+}
+
+
+byte loadParty(void) {
+    static FILE *infile;
+    static byte i, count;
+    character *newChar;
+
+    infile= fopen("pdata", "r");
+    if (!infile) {
+        return false;
+    }
+
+    count = fgetc(infile);
+
+    for (i=0;i<count;++i) {
+        printf(".");
+        newChar = malloc(sizeof(character));
+        fread(newChar,sizeof(character),1,infile);
+        party[i]=newChar;
+    }
+
+    fclose(infile);
+    return true;
 }

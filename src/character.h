@@ -4,6 +4,8 @@
 #include "types.h"
 #include "config.h"
 
+byte loadParty(void);
+
 extern character *party[PARTYSIZE];
 
 char *nameOfInventoryItem(item *anItem);

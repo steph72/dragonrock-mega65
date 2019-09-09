@@ -35,7 +35,6 @@
 #include "congui.h"
 #include "debug.h"
 #include "dungeon.h"
-#include "guildLoader.h"
 #include "guild.h"
 #include "types.h"
 
@@ -116,8 +115,8 @@ int main() {
         cputs("\r\n--DEBUG--");
         clearMonsters();
         addNewMonster(0, 1, 3, 0);
-        addNewMonster(1, 1, 5, 1);
-        addNewMonster(2, 1, 1, 2);
+        addNewMonster(1, 6, 5, 1);
+        addNewMonster(2, 2, 1, 2);
         doEncounter();
         gotoxy(0, 0);
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);

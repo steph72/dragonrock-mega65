@@ -96,7 +96,8 @@ dungeonDescriptor *loadMap(char *filename) {
 #endif
 
     smSize= desc->dungeonMapWidth * desc->dungeonMapHeight;
-    seenMap= (byte *)malloc(smSize);
+    // seenMap= (byte *)malloc(smSize);
+    seenMap = (byte*)0xf900;
     memset(seenMap, 255, smSize);
 
 #ifdef DEBUG
@@ -172,8 +173,12 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
 #endif
     currentPtr= startAddr;
     currentFeelIdx= 0;
-
+    if ((numFeels*2)>0x400) {
+        printf("too many feels... sorry\n");
+        exit(0);
+    }
     desc->feelTbl= (char **)malloc(2 * numFeels);
+    // desc->feelTbl= (char**) 0xf900;
 
 #ifdef DEBUG
     printf("at %x in main mem\n", desc->feelTbl);

@@ -2,7 +2,11 @@
 #include <unistd.h>
 
 byte gCurrentSpriteCharacterIndex;
-byte idxTable[255]; // spriteID -> startCharacter mapping
+byte *idxTable; // sprite index cache
+static char sfname[8];
+
+unsigned int partyAuthorityLevel;
+unsigned int monsterAuthorityLevel;
 
 byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
     byte width;
@@ -33,19 +37,19 @@ void plotSprite(byte x, byte y, byte spriteID) {
     byte charIdx;
     screenPtr= SCREEN + (x - 1 + (y * 40));
     charIdx= idxTable[spriteID] - 1;
-    for (i= 0; i < 2; ++i) {
-        for (j= 0; j < 2; ++j) {
+    for (i= 0; i < 3; ++i) {
+        for (j= 0; j < 3; ++j) {
             *(++screenPtr)= ++charIdx;
         }
-        screenPtr+= 38;
+        screenPtr+= 37;
     }
 }
 
 void plotMonster(byte row, byte idx) {
     byte x, y;
 
-    x= xposForMonster(gNumMonsters[row], idx, 2);
-    y= ((2 - row) * 3);
+    x= xposForMonster(gNumMonsters[row], idx, 3);
+    y= ((2 - row) * 4);
 
     plotSprite(x, y, gMonsterRow[row][idx]->def->spriteID);
 }
@@ -53,7 +57,7 @@ void plotMonster(byte row, byte idx) {
 void plotCharacter(byte idx) {
     byte x, y;
 
-    x= xposForMonster(partyMemberCount(), idx, 2);
+    x= xposForMonster(partyMemberCount(), idx, 3);
     y= 12;
 
     plotSprite(x, y, party[idx]->spriteID);
@@ -61,12 +65,23 @@ void plotCharacter(byte idx) {
 
 void loadSprite(byte id) {
     byte *addr;
+    FILE *spritefile;
+
+    sprintf(sfname, "spr%03d", id);
+    spritefile= fopen(sfname, "rb");
+    if (!spritefile) {
+        printf("sprite %s not found\n", sfname);
+        idxTable[id]= gCurrentSpriteCharacterIndex;
+        gCurrentSpriteCharacterIndex+= 9;
+        cgetc();
+        return;
+    }
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
-    // printf("load sprite %x to idx %x @ %x\n", id,
-    // gCurrentSpriteCharacterIndex, addr);
+    printf("load sprite %s to idx %x @ %x\n", sfname,
+           gCurrentSpriteCharacterIndex, addr);
     idxTable[id]= gCurrentSpriteCharacterIndex;
-    gCurrentSpriteCharacterIndex+= 8;
-    // cgetc();
+    gCurrentSpriteCharacterIndex+= 9;
+    cgetc();
 }
 
 void loadSpriteIfNeeded(byte id) {
@@ -84,23 +99,39 @@ void loadCharacterSprites(void) {
     }
 }
 
+byte checkSurrender() { return 0; }
+
 byte preEncounter(void) {
     static byte i, j;
     static byte count;
+    static byte totalMonsterCount;
+    static byte livePartyMembersCount;
     static monster *aMonster;
     static char *outName;
     static char choice;
+    character *aCharacter;
+
+    monsterAuthorityLevel= 0;
 
     clrscr();
-    showCurrentParty(false);
+    textcolor(BCOLOR_RED | CATTR_LUMA3);
     chlinexy(0, 10, 40);
-    gotoxy(0,12);
+    chlinexy(0, 16, 40);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+    showCurrentParty(false);
+    gotoxy(0, 12);
+
+    // display ranks and compute authority level while we're at it
+    totalMonsterCount= 0;
     for (i= 0; i < MONSTER_ROWS; ++i) {
         count= 0;
         for (j= 0; j < MONSTER_SLOTS; ++j) {
             if (gMonsterRow[i][j]) {
                 ++count;
+                ++totalMonsterCount;
                 aMonster= gMonsterRow[i][j];
+                monsterAuthorityLevel+= aMonster->level;
+                monsterAuthorityLevel+= aMonster->def->courageModifier;
             }
         }
         if (count == 1) {
@@ -110,8 +141,26 @@ byte preEncounter(void) {
         }
         printf("Rank %d: %d %s\n", i + 1, count, outName);
     }
+    monsterAuthorityLevel/= totalMonsterCount;
 
-    chlinexy(0, 16, 40);
+    // calc party authority level
+    partyAuthorityLevel= 0;
+    livePartyMembersCount= 0;
+    for (i= 0; i < partyMemberCount(); ++i) {
+        aCharacter= party[i];
+        if (aCharacter->status == alive) {
+            ++livePartyMembersCount;
+            partyAuthorityLevel+= aCharacter->level;
+            partyAuthorityLevel+=
+                bonusValueForAttribute(aCharacter->attributes[0]);
+        }
+    }
+    partyAuthorityLevel/= livePartyMembersCount;
+
+#ifdef DEBUG
+    gotoxy(30, 17);
+    printf("(P%d/M%d)", partyAuthorityLevel, monsterAuthorityLevel);
+#endif
     gotoxy(0, 18);
     puts("1) Fight      2) Accept Surrender");
     puts("3) Greetings  4) Beg for mercy");
@@ -121,10 +170,23 @@ byte preEncounter(void) {
 
     do {
         choice= cgetc();
-    } while (choice<'1' || choice>'5');
-
+    } while (choice < '1' || choice > '5');
     cursor(0);
 
+    switch (choice) {
+    case '1':
+        return 0; // just fight
+        break;
+
+    case '2':
+        return checkSurrender();
+        break;
+
+    default:
+        break;
+    }
+
+    return 0;
 }
 
 encResult doEncounter(void) {
@@ -132,11 +194,17 @@ encResult doEncounter(void) {
     byte c, i, j;
     monster *aMonster;
 
+    idxTable= (byte *)0xf800;
+
+    bordercolor(BCOLOR_BLACK);
+    bgcolor(BCOLOR_BLACK);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+
     clrscr();
     puts("An encounter!\n");
     sleep(1);
     cg_emptyBuffer();
-    
+
     preEncounter();
 
     setSplitEnable(1);

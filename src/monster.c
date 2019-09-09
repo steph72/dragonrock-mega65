@@ -85,6 +85,7 @@ monster *createMonster(byte monsterID, byte level) {
     newMonster->def= aDef;
     newMonster->hp= aDef->hpPerLevel * level;
     newMonster->mp= aDef->mpPerLevel * level;
+    newMonster->level = level;
 
     return newMonster;
 }

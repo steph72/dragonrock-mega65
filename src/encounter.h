@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <plus4.h>
 
 #include "character.h"
 #include "config.h"

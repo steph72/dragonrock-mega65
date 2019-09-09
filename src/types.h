@@ -119,6 +119,7 @@ typedef struct _monsterDef {
 
 typedef struct monster {
 	monsterDef *def;
+	byte level;
 	signed char initiative;
 	int hp;
 	int mp;
