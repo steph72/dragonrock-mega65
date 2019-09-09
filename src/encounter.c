@@ -1,4 +1,5 @@
 #include "encounter.h"
+#include <unistd.h>
 
 byte gCurrentSpriteCharacterIndex;
 byte idxTable[255]; // spriteID -> startCharacter mapping
@@ -93,8 +94,7 @@ byte preEncounter(void) {
     clrscr();
     showCurrentParty(false);
     chlinexy(0, 10, 40);
-    gotoxy(0, 12);
-    puts("An encounter!\n");
+    gotoxy(0,12);
     for (i= 0; i < MONSTER_ROWS; ++i) {
         count= 0;
         for (j= 0; j < MONSTER_SLOTS; ++j) {
@@ -108,12 +108,11 @@ byte preEncounter(void) {
         } else {
             outName= pluralname(aMonster->def);
         }
-
         printf("Rank %d: %d %s\n", i + 1, count, outName);
     }
 
-    chlinexy(0, 18, 40);
-    gotoxy(0, 20);
+    chlinexy(0, 16, 40);
+    gotoxy(0, 18);
     puts("1) Fight      2) Accept Surrender");
     puts("3) Greetings  4) Beg for mercy");
     puts("5) Flee\n");
@@ -133,13 +132,16 @@ encResult doEncounter(void) {
     byte c, i, j;
     monster *aMonster;
 
+    clrscr();
+    puts("An encounter!\n");
+    sleep(1);
+    cg_emptyBuffer();
+    
     preEncounter();
 
     setSplitEnable(1);
     clrscr();
     gotoxy(0, 16);
-    printf("An encounter...\n");
-    gotoxy(0, 0);
 
     memset(idxTable, 255, 255);
 

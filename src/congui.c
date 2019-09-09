@@ -23,6 +23,13 @@
 #include <plus4.h>
 #include <string.h>
 
+
+void cg_emptyBuffer(void) {
+    while (kbhit()) {
+      cgetc();
+    }
+}
+
 void cg_clearLower(byte num) {
 
     byte i;
