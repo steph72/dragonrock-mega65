@@ -55,17 +55,19 @@ void runGuildMenu(void);
 void loadSaved(void);
 void installCharset(void);
 
-unsigned char loadfile(char *name, void *addr, void *size);
-
-void initEngine(void) {
-    unsigned int rseed;
-    const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
+ const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
                          "Version 0.1 alpha\n\n"
                          "Written by Stephan Kleinert\n"
                          "at K-Burg, Bad Honnef, and\n"
                          "at Hundehaus im Reinhardswald\n\n"
+                         "Graphics by Yannick Flossdorf\n\n"
                          "Copyright (c) 2019 7Turtles Software\n";
 
+unsigned char loadfile(char *name, void *addr, void *size);
+
+void initEngine(void) {
+    unsigned int rseed;
+   
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
 
     cg_init();

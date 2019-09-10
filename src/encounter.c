@@ -71,7 +71,7 @@ void loadSprite(byte id) {
     //spritefile= fopen(sfname, "rb");
     spritefile=fopen("spr128","rb");
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
-    printf("%s -> %x @ %x", sfname,
+    printf("%s -> %d @ $%x", sfname,
            gCurrentSpriteCharacterIndex, addr);
     if (spritefile) {
         fread(addr,144,1,spritefile);
@@ -211,7 +211,7 @@ encResult doEncounter(void) {
     preEncounter();
 
     setSplitEnable(1);
-    cg_clearGraphics();
+    cg_clear();
 
     gotoxy(0, 17);
 

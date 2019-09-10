@@ -31,7 +31,6 @@ void cg_emptyBuffer(void) {
 }
 
 void cg_clearLower(byte num) {
-
     byte i;
     for (i= 24-num; i <= 24; ++i) {
         cclearxy(0, i, 40);
@@ -40,9 +39,17 @@ void cg_clearLower(byte num) {
 
 void cg_clearGraphics(void){
     char *hiadr = (char*)0xc00; // graphics area
-    char *loadr = (char*)0xea8; // text area
     memset(hiadr,0xff,680); // clear 17 lines with 0xff
-    memset(loadr,0x21,320); // clear 8 lines with 0x20
+}
+
+void cg_clearText(void){
+    char *loadr = (char*)0xea8; // text area
+    memset(loadr,0x20,320); // clear 8 lines with 0x20
+}
+
+void cg_clear(void) {
+    cg_clearGraphics();
+    cg_clearText();
 }
 
 void cg_init() {
