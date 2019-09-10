@@ -58,7 +58,7 @@ void plotCharacter(byte idx) {
     byte x, y;
 
     x= xposForMonster(partyMemberCount(), idx, 3);
-    y= 12;
+    y= 13;
 
     plotSprite(x, y, party[idx]->spriteID);
 }
@@ -68,14 +68,15 @@ void loadSprite(byte id) {
     FILE *spritefile;
 
     sprintf(sfname, "spr%03d", id);
-    spritefile= fopen(sfname, "rb");
-    if (!spritefile) {
-        //printf("sprite %s not found\n", sfname);
-        //cgetc();
-    }
-    addr= (byte *)0xec00 + (gCurrentSpriteCharacterIndex * 8);
-    printf("load sprite %s to idx %x @ %x\n", sfname,
+    //spritefile= fopen(sfname, "rb");
+    spritefile=fopen("spr128","rb");
+    addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
+    printf("%s -> %x @ %x", sfname,
            gCurrentSpriteCharacterIndex, addr);
+    if (spritefile) {
+        fread(addr,144,1,spritefile);
+        fclose(spritefile);
+    }
     idxTable[id]= gCurrentSpriteCharacterIndex;
 
     /*
@@ -212,7 +213,7 @@ encResult doEncounter(void) {
 
     setSplitEnable(1);
     clrscr();
-    gotoxy(0, 16);
+    gotoxy(0, 17);
 
     memset(idxTable, 255, 255);
 

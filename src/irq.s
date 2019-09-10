@@ -24,7 +24,7 @@ tedbg = $ff15
 irqvec = $314
 
 topRow      = 1
-bottomRow   = 128
+bottomRow   = 137
 
 _installIRQ:        ldx irqvec
                     ldy irqvec+1
@@ -70,6 +70,8 @@ newVec:
                     lda splitflag
                     beq skip1       ; skip configuring ted if splitflag=0
 
+                    nop
+                    nop
                     sta tedborder
                     lda #$f8        ; switch to lowercase/text mode
                     sta tedctl2
