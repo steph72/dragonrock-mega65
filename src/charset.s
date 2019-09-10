@@ -27,24 +27,6 @@ _copychars:
     tya
     pha
 
-; setup pointers for rom charset copy
-
-    ldx #<romchars
-    ldy #>romchars
-    stx ptr1
-    sty ptr1+1
-    ldx #<ramchars
-    ldy #>ramchars
-    stx ptr2
-    sty ptr2+1
-    ldx #<csize
-    ldy #>csize
-    stx sizel
-    sty sizeh
-
-    sta romsel
-    jsr moveup
-    sta ramsel
 
 ; setup pointers for gamechars copy
 

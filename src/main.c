@@ -134,12 +134,6 @@ int main() {
     return 0;
 }
 
-void installCharset() {
-    byte *tedCharSrc= (byte *)0xff12;
-    byte *tedCharAdr= (byte *)0xff13;
-    *tedCharSrc= (*tedCharSrc) & 251;
-    *tedCharAdr= 0xf0;
-}
 
 unsigned char loadfile(char *name, void *addr, void *size) {
     /* Avoid compiler warnings about unused parameters. */

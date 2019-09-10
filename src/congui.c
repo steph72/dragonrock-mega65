@@ -38,12 +38,20 @@ void cg_clearLower(byte num) {
     }
 }
 
+void cg_clearGraphics(void){
+    char *hiadr = (char*)0xc00; // graphics area
+    char *loadr = (char*)0xea8; // text area
+    memset(hiadr,0xff,680); // clear 17 lines with 0xff
+    memset(loadr,0x21,320); // clear 8 lines with 0x20
+}
+
 void cg_init() {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     textcolor(BCOLOR_LEMON + CATTR_LUMA5);
     cbm_k_bsout(11); // disable shift+cmd on c128 & 364
     cbm_k_bsout(14); // lowercase charset
+    bzero((byte*)0xf7f8,8); // create empty space for graphics screen
     clrscr();
 }
 

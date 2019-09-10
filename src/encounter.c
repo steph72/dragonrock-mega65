@@ -208,11 +208,11 @@ encResult doEncounter(void) {
     puts("An encounter!\n");
     sleep(1);
     cg_emptyBuffer();
-
     preEncounter();
 
     setSplitEnable(1);
-    clrscr();
+    cg_clearGraphics();
+
     gotoxy(0, 17);
 
     memset(idxTable, 255, 255);
@@ -264,7 +264,6 @@ encResult doEncounter(void) {
     }
 
     cgetc();
-
     setSplitEnable(0);
 
     return encWon;
