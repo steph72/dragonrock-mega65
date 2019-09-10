@@ -54,6 +54,9 @@ _setSplitEnable:    sta splitflag
                     bne back
                     lda #$f8            ; reset to text mode if splitflag=0
                     sta tedctl2 
+                    lda tedconf1
+                    and #%01111111
+                    sta tedconf1        ; select 128 characters + rvs mode
 back:               rts
 
 

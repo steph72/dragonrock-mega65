@@ -46,7 +46,10 @@ typedef enum _encCommand {
 } encCommand;
 
 typedef enum _encResult {
-	encWon,encFled,encDead
+	encWon, 	// the party wins
+	encFight, 	// encounter not over; monsters want to fight
+	encFled, 	// the party has fled
+	encDead		// the party is dead
 } encResult;
 
 

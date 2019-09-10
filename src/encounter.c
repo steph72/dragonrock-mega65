@@ -69,15 +69,15 @@ void loadSprite(byte id) {
 
     sprintf(sfname, "spr%03d", id);
     // spritefile= fopen(sfname, "rb");
-    spritefile=fopen("spr128","rb");
+    spritefile= fopen("spr128", "rb");
     cputc('.');
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
     // printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex, addr);
     if (spritefile) {
-        fread(addr,144,1,spritefile);
+        fread(addr, 144, 1, spritefile);
         fclose(spritefile);
     } else {
-        printf("!spritefile %s not found",spritefile);
+        printf("!spritefile %s not found", spritefile);
     }
     idxTable[id]= gCurrentSpriteCharacterIndex;
 
@@ -100,16 +100,20 @@ void loadSpriteIfNeeded(byte id) {
     loadSprite(id);
 }
 
-void preloadCharacterSprites(void) {
-    byte i;
-    for (i= 0; i < partyMemberCount(); ++i) {
-        loadSpriteIfNeeded(party[i]->spriteID);
+encResult checkSurrender() {
+    unsigned int tMonsterAuth;
+    tMonsterAuth= monsterAuthorityLevel + rand() % 3;
+    if (tMonsterAuth < partyAuthorityLevel) {
+        cg_clearLower(7);
+        gotoxy(0, 18);
+        cputs("The monsters surrender!");
+        sleep(1);
+        return encWon;
     }
+    return encFight;
 }
 
-byte checkSurrender() { return 0; }
-
-byte preEncounter(void) {
+encResult preEncounter(void) {
     static byte i, j;
     static byte count;
     static byte totalMonsterCount;
@@ -178,67 +182,35 @@ byte preEncounter(void) {
 
     do {
         choice= cgetc();
-    } while (choice < '1' || choice > '5');
+    } while (choice < '1' || choice > '6');
     cursor(0);
 
     switch (choice) {
     case '1':
-        return 0; // just fight
+        return encFight; // just fight
         break;
 
     case '2':
         return checkSurrender();
         break;
+    
+    #ifdef DEBUG
+    case '6':
+        return encWon; // debug win
+        break;
+    #endif
 
     default:
         break;
     }
 
-    return 0;
+    return encFight;
 }
 
-void preloadMonsters(void){
+void prepareMonsters(void) {
 
-    byte i,j;
+    byte i, j;
     monster *aMonster;
-
-     for (i= 0; i < MONSTER_ROWS; ++i) {
-        for (j= 0; j < MONSTER_SLOTS; ++j) {
-            if (gMonsterRow[i][j]) {
-                aMonster= gMonsterRow[i][j];
-                loadSpriteIfNeeded(aMonster->def->spriteID);
-                aMonster->initiative= (byte)(rand() % 20);
-            }
-        }
-    }
-
-}
-
-encResult doEncounter(void) {
-
-    byte c, i, j;
-    monster *aMonster;
-
-    bordercolor(BCOLOR_BLACK);
-    bgcolor(BCOLOR_BLACK);
-    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
-
-    clrscr();
-    cputs("An encounter...");
-    gCurrentSpriteCharacterIndex= 0;
-
-    memset(idxTable, 255, 255);
-    preloadMonsters();
-    preloadCharacterSprites();
-    
-    cg_emptyBuffer();
-    preEncounter();
-    setSplitEnable(1);
-    cg_clear();
-
-    gotoxy(0, 17);
-
-    // determine number of monsters & do monster initiative rolls
 
     for (i= 0; i < MONSTER_ROWS; ++i) {
         for (j= 0; j < MONSTER_SLOTS; ++j) {
@@ -246,42 +218,97 @@ encResult doEncounter(void) {
                 aMonster= gMonsterRow[i][j];
                 loadSpriteIfNeeded(aMonster->def->spriteID);
                 aMonster->initiative= (byte)(rand() % 20);
-                plotMonster(i, j);
             }
         }
     }
+}
 
-    // do party initiative rolls
-
-    for (j= 0; j < PARTYSIZE; ++j) {
-        if (party[j]) {
-            party[j]->initiative=
-                (rand() % 20) + bonusValueForAttribute(party[j]->attributes[3]);
-            plotCharacter(j);
-        }
+void prepareCharacters(void) {
+    byte i;
+    for (i= 0; i < partyMemberCount(); ++i) {
+        party[i]->initiative=
+            (rand() % 20) + bonusValueForAttribute(party[i]->attributes[3]);
+        loadSpriteIfNeeded(party[i]->spriteID);
     }
+}
 
-    cgetc();
+encResult doEncounter(void) {
 
-    // main encounter loop
+    byte c, i, j;
+    monster *aMonster;
+    encResult res;
+    byte stopEncounter;
 
-    for (c= 20; c != 0; --c) {
+    bordercolor(BCOLOR_BLACK);
+    bgcolor(BCOLOR_BLACK);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+
+    clrscr();
+    cputs("An encounter! ");
+
+    gCurrentSpriteCharacterIndex= 0;
+    memset(idxTable, 255, 255);
+    prepareMonsters();
+    prepareCharacters();
+    stopEncounter= false;
+
+    do {
+
+        setSplitEnable(0);
+        cg_emptyBuffer();
+        res= preEncounter();
+
+        if (res != encFight) {
+            setSplitEnable(0);
+            clrscr();
+            cputs("Please wait...");
+            return res;
+        }
+
+        setSplitEnable(1);
+        cg_clear();
+
+        gotoxy(0, 17);
+
+        // initial plot of monsters & do monster initiative rolls
+
         for (i= 0; i < MONSTER_ROWS; ++i) {
             for (j= 0; j < MONSTER_SLOTS; ++j) {
-                if (gMonsterRow[i][j] != NULL &&
-                    gMonsterRow[i][j]->initiative == c) {
-                    doMonsterTurn(i, j);
+                if (gMonsterRow[i][j]) {
+                    aMonster= gMonsterRow[i][j];
+                    plotMonster(i, j);
                 }
             }
         }
+
+        // do party initiative rolls & plot
+
         for (j= 0; j < PARTYSIZE; ++j) {
-            if (party[j] && party[j]->initiative == c) {
-                doPartyTurn(j);
+            if (party[j]) {
+                plotCharacter(j);
             }
         }
-    }
 
-    cgetc();
+        // main encounter loop
+
+        for (c= 20; c != 0; --c) {
+            for (i= 0; i < MONSTER_ROWS; ++i) {
+                for (j= 0; j < MONSTER_SLOTS; ++j) {
+                    if (gMonsterRow[i][j] != NULL &&
+                        gMonsterRow[i][j]->initiative == c) {
+                        doMonsterTurn(i, j);
+                    }
+                }
+            }
+            for (j= 0; j < PARTYSIZE; ++j) {
+                if (party[j] && party[j]->initiative == c) {
+                    doPartyTurn(j);
+                }
+            }
+        }
+
+    } while (!stopEncounter);
+
     setSplitEnable(0);
 
     return encWon;
