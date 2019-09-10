@@ -22,4 +22,6 @@ write mapdata/library.d map0
 EOF
 
 c1541 disc/drock.d64 -delete fmsg*
+c1541 disc/drock.d64 -delete spr*
 c1541 disc/drock.d64 -write mapdata/fmsg*
+c1541 disc/drock.d64 -write graphics/spr*
