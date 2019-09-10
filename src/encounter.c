@@ -68,14 +68,16 @@ void loadSprite(byte id) {
     FILE *spritefile;
 
     sprintf(sfname, "spr%03d", id);
-    //spritefile= fopen(sfname, "rb");
+    // spritefile= fopen(sfname, "rb");
     spritefile=fopen("spr128","rb");
+    cputc('.');
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
-    printf("%s -> %d @ $%x", sfname,
-           gCurrentSpriteCharacterIndex, addr);
+    // printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex, addr);
     if (spritefile) {
         fread(addr,144,1,spritefile);
         fclose(spritefile);
+    } else {
+        printf("!spritefile %s not found",spritefile);
     }
     idxTable[id]= gCurrentSpriteCharacterIndex;
 
@@ -98,7 +100,7 @@ void loadSpriteIfNeeded(byte id) {
     loadSprite(id);
 }
 
-void loadCharacterSprites(void) {
+void preloadCharacterSprites(void) {
     byte i;
     for (i= 0; i < partyMemberCount(); ++i) {
         loadSpriteIfNeeded(party[i]->spriteID);
@@ -195,6 +197,23 @@ byte preEncounter(void) {
     return 0;
 }
 
+void preloadMonsters(void){
+
+    byte i,j;
+    monster *aMonster;
+
+     for (i= 0; i < MONSTER_ROWS; ++i) {
+        for (j= 0; j < MONSTER_SLOTS; ++j) {
+            if (gMonsterRow[i][j]) {
+                aMonster= gMonsterRow[i][j];
+                loadSpriteIfNeeded(aMonster->def->spriteID);
+                aMonster->initiative= (byte)(rand() % 20);
+            }
+        }
+    }
+
+}
+
 encResult doEncounter(void) {
 
     byte c, i, j;
@@ -205,20 +224,19 @@ encResult doEncounter(void) {
     textcolor(BCOLOR_WHITE | CATTR_LUMA6);
 
     clrscr();
-    puts("An encounter!\n");
-    sleep(1);
+    cputs("An encounter...");
+    gCurrentSpriteCharacterIndex= 0;
+
+    memset(idxTable, 255, 255);
+    preloadMonsters();
+    preloadCharacterSprites();
+    
     cg_emptyBuffer();
     preEncounter();
-
     setSplitEnable(1);
     cg_clear();
 
     gotoxy(0, 17);
-
-    memset(idxTable, 255, 255);
-
-    gCurrentSpriteCharacterIndex= 0;
-    loadCharacterSprites();
 
     // determine number of monsters & do monster initiative rolls
 
