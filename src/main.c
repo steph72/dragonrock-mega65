@@ -80,7 +80,6 @@ void initEngine(void) {
         exit(0);
     }
     printf(".");
-    copychars();
     installIRQ();
     hasLoadedGame = loadParty();
     printf(".");
