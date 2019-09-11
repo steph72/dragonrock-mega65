@@ -1,6 +1,10 @@
 #!/bin/sh
 
+tools/buildCharset.sh
+
 python3 tools/mc.py mapsrc/library.drs mapdata/library.d
+
+# printf "00" | cat - graphics/dr_charset.bin > bin/charset
 
 if [ ! -f "disc/drock.d64" ]; then
   mkdir -p disc
@@ -17,7 +21,7 @@ delete map*
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
-write bin/charset1 charset
+write bin/drcharset charset
 write mapdata/library.d map0
 EOF
 
