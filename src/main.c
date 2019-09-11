@@ -60,7 +60,6 @@ void installCharset(void);
                          "Written by Stephan Kleinert\n"
                          "at K-Burg, Bad Honnef, and\n"
                          "at Hundehaus im Reinhardswald\n\n"
-                         "Graphics by Yannick Flossdorf\n\n"
                          "Copyright (c) 2019 7Turtles Software\n";
 
 unsigned char loadfile(char *name, void *addr, void *size);

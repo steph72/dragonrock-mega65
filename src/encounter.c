@@ -8,6 +8,59 @@ static char sfname[8];
 unsigned int partyAuthorityLevel;
 unsigned int monsterAuthorityLevel;
 
+// 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
+byte performAddCoinsOpcode(opcode *anOpcode) {
+    byte charIdx;
+    byte opcodeID;
+    int *coins;
+    int numMembers;
+    int coinsPerMember;
+
+    opcodeID= anOpcode->id & 31;
+
+    numMembers= partyMemberCount();
+    coins= (int *)&(
+        anOpcode->param1); // ...try to do something like that in Swift!
+    coinsPerMember= *coins / numMembers;
+
+    for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
+        if (party[charIdx]) {
+            if (opcodeID == 0x0a) {
+                party[charIdx]->gold+= coinsPerMember;
+            } else if (opcodeID == 0x0b) {
+                party[charIdx]->xp+= coinsPerMember;
+            }
+        }
+    }
+
+    if (anOpcode->id & 128) {
+        if (opcodeID == 0x0a) {
+            printf("The party gets %d coins\n", coinsPerMember * numMembers);
+        } else if (opcodeID == 0x0b) {
+            printf("The party gets %d experience points\n",
+                   coinsPerMember * numMembers);
+        }
+    }
+
+    return 0;
+}
+
+void giveCoins(unsigned int coins) {
+    opcode fakeOpcode;
+    fakeOpcode.id= 0x8a;
+    fakeOpcode.param1= coins % 256;
+    fakeOpcode.param2= coins / 256;
+    performAddCoinsOpcode(&fakeOpcode);
+}
+
+void giveExperience(unsigned int exp) {
+    opcode fakeOpcode;
+    fakeOpcode.id= 0x8b;
+    fakeOpcode.param1= exp % 256;
+    fakeOpcode.param2= exp / 256;
+    performAddCoinsOpcode(&fakeOpcode);
+}
+
 byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
     byte width;
     width= 40 / numMonsters;
@@ -114,6 +167,7 @@ encResult checkSurrender() {
 }
 
 encResult preEncounter(void) {
+
     static byte i, j;
     static byte count;
     static byte totalMonsterCount;
@@ -193,12 +247,12 @@ encResult preEncounter(void) {
     case '2':
         return checkSurrender();
         break;
-    
-    #ifdef DEBUG
+
+#ifdef DEBUG
     case '6':
         return encWon; // debug win
         break;
-    #endif
+#endif
 
     default:
         break;
@@ -232,7 +286,7 @@ void prepareCharacters(void) {
     }
 }
 
-encResult doEncounter(void) {
+encResult encLoop(void) {
 
     byte c, i, j;
     monster *aMonster;
@@ -308,8 +362,59 @@ encResult doEncounter(void) {
         }
 
     } while (!stopEncounter);
+    return encWon;
+}
 
+void postWin(byte takeLoot) {
+
+    unsigned int experience= 0;
+    unsigned int coins= 0;
+    byte newCoins;
+
+    byte i, j;
+    monster *aMonster;
+
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        for (j= 0; j < MONSTER_SLOTS; ++j) {
+            aMonster= gMonsterRow[i][j];
+            if (aMonster != NULL) {
+                newCoins= 0;
+                if (aMonster->hp <= 0) {
+                    experience+= aMonster->def->xpBaseValue;
+                    newCoins= aMonster->def->xpBaseValue / 10;
+                }
+                if (takeLoot) {
+                    if (newCoins == 0) {
+                        newCoins= 1;
+                    }
+                    coins+= newCoins;
+                }
+            }
+        }
+    }
+
+    if (coins > 0) {
+        giveCoins(coins);
+    }
+
+    if (experience > 0) {
+        giveExperience(experience);
+    }
+
+    printf("-- key --\n");
+    cgetc();
+}
+
+encResult doEncounter(void) {
+
+    encResult res;
+
+    res= encLoop();
     setSplitEnable(0);
 
-    return encWon;
+    clrscr();
+
+    if (res == encWon) {
+        postWin(true);
+    }
 }

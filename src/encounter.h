@@ -14,4 +14,5 @@
 extern monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
 extern byte gNumMonsters[MONSTER_ROWS];
 
+byte performAddCoinsOpcode(opcode *anOpcode);
 encResult doEncounter(void);

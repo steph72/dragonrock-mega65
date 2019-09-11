@@ -244,41 +244,7 @@ byte performAlterOpcode(opcode *anOpcode) {
 }
 
 // 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
-byte performAddCoinsOpcode(opcode *anOpcode) {
-    byte charIdx;
-    byte opcodeID;
-    int *coins;
-    int numMembers;
-    int coinsPerMember;
-
-    opcodeID= anOpcode->id & 31;
-
-    numMembers= partyMemberCount();
-    coins= (int *)&(
-        anOpcode->param1); // ...try to do something like that in Swift!
-    coinsPerMember= *coins / numMembers;
-
-    for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
-        if (party[charIdx]) {
-            if (opcodeID == 0x0a) {
-                party[charIdx]->gold+= coinsPerMember;
-            } else if (opcodeID == 0x0b) {
-                party[charIdx]->xp+= coinsPerMember;
-            }
-        }
-    }
-
-    if (anOpcode->id & 128) {
-        if (opcodeID == 0x0a) {
-            cprintf("The party gets %d coins\r\n", coinsPerMember * numMembers);
-        } else if (opcodeID == 0x0b) {
-            cprintf("The party gets %d experience points\r\n",
-                    coinsPerMember * numMembers);
-        }
-    }
-
-    return 0;
-}
+// is in encounter.c
 
 // 0x0c: SETREG
 byte performSetregOpcode(opcode *anOpcode) {
