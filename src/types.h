@@ -69,6 +69,13 @@ typedef enum _gameMode {
 	gm_city, gm_merchant, gm_outdoor, gm_dungeon, gm_encounter
 } gameMode;
 
+typedef enum _monstertype {
+	mt_animal   = 0x01,
+	mt_humanoid = 0x02, 
+	mt_magical  = 0x04,
+	mt_unique   = 0x08
+} monsterType;
+
 typedef enum _attackType {
 	at_fists   = 0x01,
 	at_weapon  = 0x02,
@@ -109,6 +116,7 @@ typedef struct _monsterDef {
 	byte id;
 	byte level;
 	byte spriteID;
+	monsterType type;
 	char *name;
 	char *pluralname;	// nil if 's' suffix suffices :) 
 	signed char armorClass;

@@ -384,10 +384,12 @@ void postWin(byte takeLoot) {
                     newCoins= aMonster->def->xpBaseValue / 10;
                 }
                 if (takeLoot) {
-                    if (newCoins == 0) {
-                        newCoins= 1;
+                    if (!(aMonster->def->type & mt_animal)) {
+                        if (newCoins == 0) {
+                            newCoins= 1;
+                        }
+                        coins+= newCoins;
                     }
-                    coins+= newCoins;
                 }
             }
         }
@@ -417,4 +419,6 @@ encResult doEncounter(void) {
     if (res == encWon) {
         postWin(true);
     }
+
+    return res;
 }

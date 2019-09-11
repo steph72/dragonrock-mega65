@@ -8,7 +8,7 @@ monsterDef gMonsters[]= {
     // -------------------- minor monsters ---------------------- */
 
     {
-        0x00, 1, 0,           // ID, default level, spriteID
+        0x00, 1, 0, mt_humanoid,           // ID, default level, spriteID
         "Noob", NULL,         // name, pluralname
         9, 6, 6, 0, 1,        // armorClass, hit dice, hit points, mag points, numAttacks
         0, 0,                 // courageMod, hitMod
@@ -17,7 +17,7 @@ monsterDef gMonsters[]= {
     },
 
     {
-        0x01, 1, 1,           // ID, default level, spriteID
+        0x01, 1, 1, mt_humanoid,           // ID, default level, spriteID
         "Kobold", NULL,       // name, pluralname
         10, 6, 6, 0, 1,        // armorClass, hit dice, hit points, numAttacks
         0, 0,                 // courageMod, hitMod
@@ -26,7 +26,7 @@ monsterDef gMonsters[]= {
     },
 
         {
-        0x02, 1, 2,           // ID, default level, spriteID
+        0x02, 1, 2, mt_humanoid,           // ID, default level, spriteID
         "Orc", NULL,          // name, pluralname
         9, 6, 6, 0, 1,        // armorClass, hit dice, hit points, numAttacks
         0, 0,                 // courageMod, hitMod
@@ -35,7 +35,7 @@ monsterDef gMonsters[]= {
     },
 
     {
-        0x03, 1, 3,           // ID, default level, spriteID
+        0x03, 1, 3, mt_humanoid,           // ID, default level, spriteID
         "Kobold General", NULL,       // name, pluralname
         10, 6, 6, 0, 2,        // armorClass, hit dice, hit points, numAttacks
         0, 0,                 // courageMod, hitMod
@@ -47,7 +47,7 @@ monsterDef gMonsters[]= {
     // (all monsters above 0xa0 are unique)
 
     {
-        0xa0, 10, 0xa0,                      // ID, default level, spriteID
+        0xa0, 10, 0xa0, mt_magical | mt_unique,                      // ID, default level, spriteID
         "Obenzna, Dragon of Mistrust", NULL, // name, pluralname
         3, 12, 12, 14, 4, // armorClass, hit dice, hit points, magPoints, numAttacks
         2, 3,         // courageMod, hitMod
@@ -56,7 +56,7 @@ monsterDef gMonsters[]= {
     },
 
     {
-        0xff, 102, 0xff,                           // ID, default level, spriteID
+        0xff, 102, 0xff, mt_magical | mt_unique,                           // ID, default level, spriteID
         "Gerulda, the Great Ego Dragon", NULL,     // name, pluralname
         0, 12, 12, 20, 4,                              // armorClass, hit dice, hit points, numAttacks
         10, 5,                                     // courageMod, hitMod
