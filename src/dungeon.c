@@ -128,7 +128,7 @@ byte performYesNoOpcode(opcode *anOpcode) {
         inkey= cgetc();
     } while (inkey != 'y' && inkey != 'n');
     cursor(false);
-    cprintf("%c\r\n", inkey);
+    printf("%c\n", inkey);
     if (inkey == 'y') {
         registers[0]= true;
         performOpcodeAtIndex(anOpcode->param1);
@@ -747,7 +747,6 @@ void setupDungeonScreen(void) {
 
 void testMap(void) {
     clrscr();
-    cprintf("**mapdebug**\r\n");
     desc= loadMap("map0");
     dungeonMapWidth= desc->dungeonMapWidth;
     cgetc();

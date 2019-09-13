@@ -1,6 +1,9 @@
 #include "encounter.h"
 #include <unistd.h>
 
+byte iteratorRow= 0;
+byte iteratorColumn= 0;
+
 byte gCurrentSpriteCharacterIndex;
 byte idxTable[255]; // sprite index cache
 static char sfname[8];
@@ -35,10 +38,9 @@ byte performAddCoinsOpcode(opcode *anOpcode) {
 
     if (anOpcode->id & 128) {
         if (opcodeID == 0x0a) {
-            printf("The party gets %d coins\n", coinsPerMember * numMembers);
+            printf("The party gets %d coins\n", coins);
         } else if (opcodeID == 0x0b) {
-            printf("The party gets %d experience points\n",
-                   coinsPerMember * numMembers);
+            printf("The party gets %d experience points\n", coins);
         }
     }
 
@@ -166,14 +168,36 @@ encResult checkSurrender() {
     return encFight;
 }
 
+byte iterateMonsters(monster **currentMonster, byte *row, byte *column) {
+
+    *row= iteratorRow;
+    *column= iteratorColumn;
+
+    if (iteratorRow == MONSTER_ROWS) {
+        iteratorRow= 0;
+        iteratorColumn= 0;
+        *currentMonster= NULL;
+        return 0;
+    }
+
+    *currentMonster= gMonsterRow[iteratorRow][iteratorColumn];
+
+    if (iteratorColumn == MONSTER_SLOTS - 1) {
+        iteratorColumn= 0;
+        ++iteratorRow;
+    } else {
+        ++iteratorColumn;
+    }
+
+    return 1;
+}
+
 encResult preEncounter(void) {
 
     static byte i, j;
-    static byte count;
     static byte totalMonsterCount;
     static byte livePartyMembersCount;
     static monster *aMonster;
-    static char *outName;
     static char choice;
     character *aCharacter;
 
@@ -189,24 +213,23 @@ encResult preEncounter(void) {
 
     // display ranks and compute authority level while we're at it
     totalMonsterCount= 0;
-    for (i= 0; i < MONSTER_ROWS; ++i) {
-        count= 0;
-        for (j= 0; j < MONSTER_SLOTS; ++j) {
-            if (gMonsterRow[i][j]) {
-                ++count;
-                ++totalMonsterCount;
-                aMonster= gMonsterRow[i][j];
-                monsterAuthorityLevel+= aMonster->level;
-                monsterAuthorityLevel+= aMonster->def->courageModifier;
-            }
+    while (iterateMonsters(&aMonster, &i, &j)) {
+        if (aMonster) {
+            ++totalMonsterCount;
+            monsterAuthorityLevel+= aMonster->level;
+            monsterAuthorityLevel+= aMonster->def->courageModifier;
         }
-        if (count == 1) {
-            outName= aMonster->def->name;
-        } else {
-            outName= pluralname(aMonster->def);
-        }
-        printf("Rank %d: %d %s\n", i + 1, count, outName);
     }
+
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        j= gNumMonsters[i];
+        if (j) {
+            aMonster= gMonsterRow[i][0];
+            printf("Rank %d: %d %s(s)\n", i + 1, gNumMonsters[i],
+                   aMonster->def->name);
+        }
+    }
+
     monsterAuthorityLevel/= totalMonsterCount;
 
     // calc party authority level
@@ -266,13 +289,10 @@ void prepareMonsters(void) {
     byte i, j;
     monster *aMonster;
 
-    for (i= 0; i < MONSTER_ROWS; ++i) {
-        for (j= 0; j < MONSTER_SLOTS; ++j) {
-            if (gMonsterRow[i][j]) {
-                aMonster= gMonsterRow[i][j];
-                loadSpriteIfNeeded(aMonster->def->spriteID);
-                aMonster->initiative= (byte)(rand() % 20);
-            }
+    while (iterateMonsters(&aMonster, &i, &j)) {
+        if (aMonster) {
+            loadSpriteIfNeeded(aMonster->def->spriteID);
+            aMonster->initiative= (byte)(rand() % 20);
         }
     }
 }
@@ -326,12 +346,9 @@ encResult encLoop(void) {
 
         // initial plot of monsters & do monster initiative rolls
 
-        for (i= 0; i < MONSTER_ROWS; ++i) {
-            for (j= 0; j < MONSTER_SLOTS; ++j) {
-                if (gMonsterRow[i][j]) {
-                    aMonster= gMonsterRow[i][j];
-                    plotMonster(i, j);
-                }
+        while (iterateMonsters(&aMonster, &i, &j)) {
+            if (aMonster) {
+                plotMonster(i, j);
             }
         }
 
@@ -346,12 +363,9 @@ encResult encLoop(void) {
         // main encounter loop
 
         for (c= 20; c != 0; --c) {
-            for (i= 0; i < MONSTER_ROWS; ++i) {
-                for (j= 0; j < MONSTER_SLOTS; ++j) {
-                    if (gMonsterRow[i][j] != NULL &&
-                        gMonsterRow[i][j]->initiative == c) {
-                        doMonsterTurn(i, j);
-                    }
+            while (iterateMonsters(&aMonster, &i, &j)) {
+                if (aMonster && aMonster->initiative == c) {
+                    doMonsterTurn(i, j);
                 }
             }
             for (j= 0; j < PARTYSIZE; ++j) {
@@ -365,7 +379,7 @@ encResult encLoop(void) {
     return encWon;
 }
 
-void postWin(byte takeLoot) {
+void postKill(byte takeLoot) {
 
     unsigned int experience= 0;
     unsigned int coins= 0;
@@ -374,22 +388,19 @@ void postWin(byte takeLoot) {
     byte i, j;
     monster *aMonster;
 
-    for (i= 0; i < MONSTER_ROWS; ++i) {
-        for (j= 0; j < MONSTER_SLOTS; ++j) {
-            aMonster= gMonsterRow[i][j];
-            if (aMonster != NULL) {
-                newCoins= 0;
-                if (aMonster->hp <= 0) {
-                    experience+= aMonster->def->xpBaseValue;
-                    newCoins= aMonster->def->xpBaseValue / 10;
-                }
-                if (takeLoot) {
-                    if (!(aMonster->def->type & mt_animal)) {
-                        if (newCoins == 0) {
-                            newCoins= 1;
-                        }
-                        coins+= newCoins;
+    while (iterateMonsters(&aMonster, &i, &j)) {
+        if (aMonster != NULL) {
+            newCoins= 0;
+            if (aMonster->hp <= 0) {
+                experience+= aMonster->def->xpBaseValue;
+                newCoins= aMonster->def->xpBaseValue / 10;
+            }
+            if (takeLoot) {
+                if (!(aMonster->def->type & mt_animal)) {
+                    if (newCoins == 0) {
+                        newCoins= 1;
                     }
+                    coins+= newCoins;
                 }
             }
         }
@@ -402,9 +413,6 @@ void postWin(byte takeLoot) {
     if (experience > 0) {
         giveExperience(experience);
     }
-
-    printf("-- key --\n");
-    cgetc();
 }
 
 encResult doEncounter(void) {
@@ -417,8 +425,11 @@ encResult doEncounter(void) {
     clrscr();
 
     if (res == encWon) {
-        postWin(true);
+        postKill(true);
     }
+
+    cputs("-- key --\n");
+    cgetc();
 
     return res;
 }

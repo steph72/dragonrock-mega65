@@ -22,6 +22,7 @@
 #include <conio.h>
 #include <plus4.h>
 #include <string.h>
+#include <stdio.h>
 
 
 void cg_emptyBuffer(void) {

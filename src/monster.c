@@ -16,8 +16,6 @@ void addMonster(monster *aMonster, byte row) {
             break;
         }
     }
-
-    printf("\n");
     if (!added) {
         printf("err addm %d row %d", aMonster->def->id, row);
         exit(0);

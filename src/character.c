@@ -111,9 +111,9 @@ void showCurrentParty(byte small) {
             if (small) {
                 *drbuf= 0;
                 strncat(drbuf, c->name, 12);
-                cprintf("%d %s", i + 1, drbuf);
+                printf("%d %s", i + 1, drbuf);
             } else {
-                cprintf("%d %s", i + 1, c->name);
+                printf("%d %s", i + 1, c->name);
             }
             if (!small) {
                 cputsxy(20, y, gRacesS[c->aRace]);
@@ -139,12 +139,12 @@ void more(char *filename) {
     clrscr();
     infile= fopen(filename, "r");
     while (!feof(infile)) {
-        fgets(drbuf, BUFSIZE-1, infile);
+        fgets(drbuf, BUFSIZE, infile);
         ++line;
         fputs(drbuf, stdout);
         if (line == 23) {
             gotoxy(28, 24);
-            cprintf("-- more --");
+            cputs("-- more --");
             cursor(1);
             cgetc();
             cursor(0);
@@ -154,7 +154,7 @@ void more(char *filename) {
     }
     fclose(infile);
     gotoxy(28, 24);
-    cprintf("-- key --");
+    cputs("-- key --");
     cgetc();
 }
 
@@ -247,7 +247,7 @@ void inspectCharacter(byte idx) {
         gotoxy(16, 10);
         printf("Shield: %s", nameOfInventoryItemWithID(ic->shield));
         gotoxy(0, 13);
-        printf("Inventory:\n");
+        puts("Inventory:");
         for (i= 0; i < INV_SIZE; i++) {
             gotoxy(20 * (i / (INV_SIZE / 2)), 15 + (i % (INV_SIZE / 2)));
             printf("%c : %s", 'A' + i,
@@ -304,7 +304,7 @@ byte loadParty(void) {
     count = fgetc(infile);
 
     for (i=0;i<count;++i) {
-        printf(".");
+        cputs(".");
         newChar = malloc(sizeof(character));
         fread(newChar,sizeof(character),1,infile);
         party[i]=newChar;
