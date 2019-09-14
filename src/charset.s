@@ -6,7 +6,7 @@
 tedctl1 = $ff12
 tedctl2 = $ff13
 
-gamechars = $f800 + ($5b*8)
+gamechars = $f800
 
 _enableCustomCharset:        lda tedctl1
                              and #%11111011

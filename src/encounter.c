@@ -155,17 +155,37 @@ void loadSpriteIfNeeded(byte id) {
     loadSprite(id);
 }
 
+void showFightOptionStatus(char *status) {
+    cg_clearLower(7);
+    gotoxy(0, 18);
+    cputs(status);
+    sleep(1);
+}
+
 encResult checkSurrender() {
     unsigned int tMonsterAuth;
     tMonsterAuth= monsterAuthorityLevel + rand() % 3;
     if (tMonsterAuth < partyAuthorityLevel) {
-        cg_clearLower(7);
-        gotoxy(0, 18);
-        cputs("The monsters surrender!");
-        sleep(1);
+        showFightOptionStatus("The monsters surrender!");
         return encWon;
     }
     return encFight;
+}
+
+encResult checkMercy() {
+    encResult res = encFight;
+    if (monsterAuthorityLevel < partyAuthorityLevel) {
+        if ((rand() % 10) > 7) {
+            res = encMercy;
+        }
+    }
+    if ((rand() % 10) > 3) {
+        res = encMercy;
+    }
+    if (res==encMercy) {
+        showFightOptionStatus("The monsters have mercy!");
+    }
+    return res;
 }
 
 byte iterateMonsters(monster **currentMonster, byte *row, byte *column) {
@@ -269,6 +289,10 @@ encResult preEncounter(void) {
 
     case '2':
         return checkSurrender();
+        break;
+
+    case '4':
+        return checkMercy();
         break;
 
 #ifdef DEBUG
@@ -379,6 +403,14 @@ encResult encLoop(void) {
     return encWon;
 }
 
+void takeMoney(void) {
+    byte i;
+    for (i= 0; i < partyMemberCount(); ++i) {
+        party[i]->gold= 0;
+    }
+    puts("The monsters take all your money.\n");
+}
+
 void postKill(byte takeLoot) {
 
     unsigned int experience= 0;
@@ -426,6 +458,14 @@ encResult doEncounter(void) {
 
     if (res == encWon) {
         postKill(true);
+    }
+
+    if (res == encMercy) {
+        takeMoney();
+    }
+
+    if (res == encFled) {
+        postKill(false);
     }
 
     cputs("-- key --\n");

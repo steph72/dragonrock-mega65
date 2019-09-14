@@ -216,7 +216,6 @@ void saveGuild(void) {
 byte loadGuild(void) {
     static FILE *infile;
 
-    // disableCustomCharset();
 
     infile= fopen("gdata", "r");
     if (!infile) {
@@ -224,7 +223,6 @@ byte loadGuild(void) {
     }
     fread(guild, GUILDSIZE * sizeof(character), 1, infile);
     fclose(infile);
-    // enableCustomCharset();
 
     return true;
 }
