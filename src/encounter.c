@@ -38,9 +38,9 @@ byte performAddCoinsOpcode(opcode *anOpcode) {
 
     if (anOpcode->id & 128) {
         if (opcodeID == 0x0a) {
-            printf("The party gets %d coins\n", coins);
+            printf("The party gets %d coins\n", *coins);
         } else if (opcodeID == 0x0b) {
-            printf("The party gets %d experience points\n", coins);
+            printf("The party gets %d experience points\n", *coins);
         }
     }
 
