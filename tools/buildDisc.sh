@@ -13,11 +13,13 @@ fi
 
 c1541 <<EOF
 attach disc/drock.d64
+delete loader
 delete main
 delete city
 delete dungeon
 delete charset
 delete map*
+write cbm/loader loader
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
