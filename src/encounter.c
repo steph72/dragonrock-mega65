@@ -8,8 +8,8 @@ byte gCurrentSpriteCharacterIndex;
 byte idxTable[255]; // sprite index cache
 static char sfname[8];
 
-unsigned int partyAuthorityLevel;
-unsigned int monsterAuthorityLevel;
+int partyAuthorityLevel;
+int monsterAuthorityLevel;
 
 // 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
 byte performAddCoinsOpcode(opcode *anOpcode) {
@@ -166,26 +166,47 @@ encResult checkSurrender() {
     unsigned int tMonsterAuth;
     tMonsterAuth= monsterAuthorityLevel + rand() % 3;
     if (tMonsterAuth < partyAuthorityLevel) {
-        showFightOptionStatus("The monsters surrender!");
-        return encWon;
+        return encSurrender;
     }
     return encFight;
 }
 
 encResult checkMercy() {
-    encResult res = encFight;
+    encResult res= encFight;
     if (monsterAuthorityLevel < partyAuthorityLevel) {
         if ((rand() % 10) > 7) {
-            res = encMercy;
+            res= encMercy;
         }
     }
     if ((rand() % 10) > 3) {
-        res = encMercy;
+        res= encMercy;
     }
-    if (res==encMercy) {
-        showFightOptionStatus("The monsters have mercy!");
-    }
+
     return res;
+}
+
+encResult checkGreet() {
+    encResult res= encFight;
+    int greetChance= 0;
+    int greetRoll= 0;
+
+    if (monsterAuthorityLevel + 5 < partyAuthorityLevel) {
+        return encGreet;
+    }
+
+    if (monsterAuthorityLevel < partyAuthorityLevel) {
+        greetChance= 60;
+    } else {
+        greetChance= 50 - ((monsterAuthorityLevel - partyAuthorityLevel) * 10);
+    }
+
+    greetRoll= rand() % 100;
+
+    if (greetChance > greetRoll) {
+        return encGreet;
+    } else {
+        return encFight;
+    }
 }
 
 byte iterateMonsters(monster **currentMonster, byte *row, byte *column) {
@@ -291,6 +312,9 @@ encResult preEncounter(void) {
         return checkSurrender();
         break;
 
+    case '3':
+        return checkGreet();
+
     case '4':
         return checkMercy();
         break;
@@ -342,7 +366,7 @@ encResult encLoop(void) {
     textcolor(BCOLOR_WHITE | CATTR_LUMA6);
 
     clrscr();
-    cputs("An encounter! ");
+    cputs("An encounter!");
 
     gCurrentSpriteCharacterIndex= 0;
     memset(idxTable, 255, 255);
@@ -357,9 +381,6 @@ encResult encLoop(void) {
         res= preEncounter();
 
         if (res != encFight) {
-            setSplitEnable(0);
-            clrscr();
-            cputs("Please wait...");
             return res;
         }
 
@@ -447,16 +468,51 @@ void postKill(byte takeLoot) {
     }
 }
 
+void displayPostfightPrompt(encResult res) {
+    switch (res) {
+
+    case encSurrender:
+        showFightOptionStatus("The monsters surrender!");
+        break;
+
+    case encMercy:
+        showFightOptionStatus("The monsters have mercy!");
+        break;
+
+    case encWon:
+        showFightOptionStatus("The party wins!");
+        break;
+
+    case encFled:
+        showFightOptionStatus("The party flees!");
+        break;
+
+    case encDead:
+        showFightOptionStatus("All party members have fallen!");
+        break;
+
+    case encGreet:
+        showFightOptionStatus("The monsters greet you.");
+        break;
+
+    default:
+        showFightOptionStatus("?you should not see this");
+        break;
+    }
+}
+
 encResult doEncounter(void) {
 
     encResult res;
 
     res= encLoop();
+    displayPostfightPrompt(res);
+
     setSplitEnable(0);
 
     clrscr();
 
-    if (res == encWon) {
+    if (res == encWon || res == encSurrender) {
         postKill(true);
     }
 
@@ -468,8 +524,10 @@ encResult doEncounter(void) {
         postKill(false);
     }
 
-    cputs("-- key --\n");
-    cgetc();
+    if (res != encGreet) {
+        cputs("-- key --\n");
+        cgetc();
+    }
 
     return res;
 }
