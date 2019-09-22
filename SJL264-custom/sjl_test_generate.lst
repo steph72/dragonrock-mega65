@@ -1,0 +1,368 @@
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_generate.asm - Page 1 - 22.09.2019 15:47:19
+
+
+       1/       0 :                     ;-----------------------------------------------------------------------------
+       2/       0 :                     ;---	SJL264 test data generator
+       3/       0 :                     ;-----------------------------------------------------------------------------
+       4/       0 :                     	cpu	6502
+       5/       0 :                     	page	0,0
+       6/       0 :                     ;-----------------------------------------------------------------------------
+       7/       0 :                     	INCLUDE "_system.ain"		;System Constants
+(1)    1/       0 :                     ;-----------------------------------------------------------------------------
+(1)    2/       0 :                     ;---	System constants:
+(1)    3/       0 :                     ;-----------------------------------------------------------------------------
+(1)    4/       0 :                     ;---	Zero page definitions:
+(1)    5/       0 : =$2B                z_txttab		=	$2b		;W BASIC program start address
+(1)    6/       0 : =$90                z_status		=	$90		;B STatus
+(1)    7/       0 : =$93                z_verfck		=	$93		;B VERIFY flag
+(1)    8/       0 : =$95                z_bsour			=	$95		;B Serial data
+(1)    9/       0 : =$9A                z_msgfgl		=	$9a		;B Flag: Command / program mode
+(1)   10/       0 : =$9D                z_eal			=	$9d		;W LOAD memory pointer
+(1)   11/       0 : =$9E                z_eah			=	z_eal + 1
+(1)   12/       0 : =$AB                z_fnlen			=	$ab		;B FileName Length
+(1)   13/       0 : =$AD                z_sa			=	$ad		;B Secondary Address
+(1)   14/       0 : =$AE                z_fa			=	$ae		;B Device No
+(1)   15/       0 : =$AF                z_fnadr			=	$af		;W $AF/$B0: Serial: act. FileName address
+(1)   16/       0 : =$B4                z_memuss_l		=	$b4		;W Load address, if not from file
+(1)   17/       0 : =$B5                z_memuss_h		=	z_memuss_l + 1
+(1)   18/       0 : =$C6                z_sfdx			=	$c6		;B Last kb index
+(1)   19/       0 :                     
+(1)   20/       0 :                     
+(1)   21/       0 :                     ;---	SoftVectors:
+(1)   22/       0 : =$32E               v_iload			=	$032e		;W LOAD vector
+(1)   23/       0 :                     
+(1)   24/       0 : =$531               b_memstr		=	$0531		;W BASIC FREE (!) memory START address
+(1)   25/       0 : =$533               b_memsiz		=	$0533		;W BASIC FREE (!) memory END address
+(1)   26/       0 :                     
+(1)   27/       0 :                     
+(1)   28/       0 :                     ;---	BASIC addresses:
+(1)   29/       0 : =$8000              bas_cold_reset		=	$8000		;BASIC Interpreter Cold Reset			$8019
+(1)   30/       0 : =$8003              bas_warm_reset		=	$8003		;BASIC Interpreter Warm Reset			$800a
+(1)   31/       0 : =$8025              bas_coldreset_stack	=	$8025		;BASIC Interpreter Cold Reset end sequence
+(1)   32/       0 : =$802E              bas_reset		=	$802e		;BASIC Interpreter Init
+(1)   33/       0 : =$80C2              bas_printheader		=	$80c2		;BASIC Print BASIC HEAD text
+(1)   34/       0 : =$80E5              bas_printfree		=	$80e5		;BASIC Print "xxxx BYTES FREE" text
+(1)   35/       0 : =$8117              bas_vectors_init	=	$8117		;BASIC vectors init
+(1)   36/       0 : =$8923              bas_memory_check	=	$8923		;BASIC check available memory. If no room, out of memory error
+(1)   37/       0 :                     
+(1)   38/       0 :                     ;---	ROM misc. addresses:
+(1)   39/       0 : =$E1E9              rom_cbmser_devnotpres	=	$e1e9		;CBMSER set "Device Not Present" flag
+(1)   40/       0 : =$E1EE              rom_cbmser_timeout	=	$e1ee		;CBMSER set "TimeOut" flag + ATN hi (transfer end)
+(1)   41/       0 : =$E1F0              rom_cbmser_sstatserend	=	$e1f0		;CBMSER set status + ATN hi (transfer end)
+(1)   42/       0 : =$E1FC              rom_cbmser_atn_hiz	=	$e1fc		;CBMSER ATN line switch to HiZ
+(1)   43/       0 : =$E2B8              rom_cbmser_clk_hiz	=	$e2b8		;CBMSER CLK line switch to HiZ
+(1)   44/       0 : =$E2BF              rom_cbmser_clk_lo	=	$e2bf		;CBMSER CLK line switch to Lo
+(1)   45/       0 : =$E2C6              rom_cbmser_dat_hiz	=	$e2c6		;CBMSER DAT line switch to HiZ
+(1)   46/       0 : =$E2CD              rom_cbmser_dat_lo	=	$e2cd		;CBMSER DAT line switch to Lo
+(1)   47/       0 : =$E2D4              rom_cbmser_readlines	=	$e2d4		;CBMSER Read Clock/Data lines
+(1)   48/       0 : =$E2DC              rom_cbmser_wait1ms	=	$e2dc		;CBMSER wait ~1 mSec
+(1)   49/       0 : =$E2FC              rom_cbmser_wait20ms	=	$e2fc		;CBMSER Wait ~20 mSec
+(1)   50/       0 :                     
+(1)   51/       0 : =$F005              rom_iec_open		=	$f005		;KERNAL IEC/TCBM OPEN (BUSOP). If DNP, drop return address from stack and go to error handler routine
+(1)   52/       0 : =$F04A              rom_orig_load_vect	=	$f04a		;KERNAL LOAD vector jump here
+(1)   53/       0 : =$F050              rom_load_cont		=	$f050		;Load routine cont.
+(1)   54/       0 : =$F070              rom_load_driveload	=	$f070		;Load routine cont. "B"
+(1)   55/       0 : =$F0EB              rom_load_readyret	=	$f0eb		;Load routine end: return end address
+(1)   56/       0 : =$F160              rom_searchingfor	=	$f160		;Print "SEARCHING FOR <NAME>"
+(1)   57/       0 : =$F189              rom_loadingverifying	=	$f189		;Print "LOADING"/"VERIFYING"
+(1)   58/       0 : =$F211              rom_iec_close		=	$f211		;KERNAL IEC/TCBM CLOSE
+(1)   59/       0 : =$F27C              rom_error_filenotfnd	=	$f27c		;"?FILE NOT FOUND ERROR."
+(1)   60/       0 : =$F41E              rom_set_status		=	$f41e		;ORA ST, STA ST
+(1)   61/       0 :                     
+(1)   62/       0 :                     ;---	ROM vectors:
+(1)   63/       0 : =$FF49              rom_key			=	$ff49		;KERNAK KEY: Set string to Function Key
+(1)   64/       0 : =$FF4F              rom_primm		=	$ff4f		;KERNAL PRIMM
+(1)   65/       0 : =$FF8A              rom_vectors_setdefault	=	$ff8a		;KERNAL Vectors set to default values	$f2ce
+(1)   66/       0 : =$FF93              rom_seclisten		=	$ff93		;KERNAL SECONDARY LISTEN		$ee4d
+(1)   67/       0 : =$FF96              rom_sectalk		=	$ff96		;KERNAL SECONDARY TALK (TKSA)		$ee1a
+(1)   68/       0 : =$FFA5              rom_busin		=	$ffa5		;KERNAL BUSIN 				$ec8b
+(1)   69/       0 : =$FFA8              rom_busout		=	$ffa8		;KERNAL BUSOUT				$ecdf
+(1)   70/       0 : =$FFAB              rom_untalk		=	$ffab		;KERNAL UNTALK				$ef3b
+(1)   71/       0 : =$FFAE              rom_unlisten		=	$ffae		;KERNAL UNLISTEN			$ef23
+(1)   72/       0 : =$FFB1              rom_listen		=	$ffb1		;KERNAL LISTEN				$ee2c
+(1)   73/       0 : =$FFB4              rom_talk		=	$ffb4		;KERNAL TALK				$edfa
+(1)   74/       0 : =$FFBA              rom_setlfs		=	$ffba		;KERNAL SETLFS				$f413
+(1)   75/       0 : =$FFBD              rom_setnam		=	$ffbd		;KERNAL SETNAM				$f40c
+(1)   76/       0 : =$FFD2              rom_chrout		=	$ffd2		;KERNAL CHROUT				$ec4b
+(1)   77/       0 : =$FFD5              rom_load		=	$ffd5		;KERNAL LOAD				$f043
+(1)   78/       0 : =$FFD8              rom_save		=	$ffd8		;KERNAL SAVE				$f194
+(1)   79/       0 :                     
+(1)   80/       0 :                     ;-----------------------------------------------------------------------------
+(1)   81/       0 :                     ;---	HW registers:
+(1)   82/       0 : =$FF00              hw_tedbase		=	$ff00		;$FF00..$FF3F: TED base address
+(1)   83/       0 : =$FF06              hw_ted_scrcontrol1	=	hw_tedbase+$06	;$FF06: TED screen control register 1
+(1)   84/       0 : =$FF13              hw_ted_chargenclk	=	hw_tedbase+$13	;$FF13: TED char.gen address + clock control
+(1)   85/       0 : =$FF19              hw_ted_bordercolor	=	hw_tedbase+$19	;$FF19: TED border color
+(1)   86/       0 : =$FF1D              hw_ted_ypos		=	hw_tedbase+$1d	;$FF1D: TED actual rasterline no
+(1)   87/       0 :                     ;-----------------------------------------------------------------------------
+(1)   88/       0 :                     
+       8/       0 :                     ;-----------------------------------------------------------------------------
+       9/       0 :                     
+      10/       0 : =$1001              start_addr	=	$1001
+      11/       0 :                     
+      12/       0 :                     
+      13/     FFF :                     	ORG	start_addr - 2
+      14/     FFF : 01 10               	ADR	start_addr
+      15/    1001 :                     
+      16/    1001 :                     
+      17/    1001 :                     
+      18/    1001 : 0A 10 E1 07         	ADR	+, 2017
+      19/    1005 : 9E                  	BYT	$9e		; sys token
+      20/    1006 : 34 31 30 39         	BYT	"4109"		; $100d
+      21/    100A : 00 00 00            +	BYT	0,0,0
+      22/    100D :                     
+      23/    100D :                     	ORG	$100d
+      24/    100D : 20 4F FF            		jsr	rom_primm
+      25/    1010 : 0D 53 4A 4C 32 36   		BYT	$0d,"SJL264 TEST DATA GENERATOR",$0d
+                    34 20 54 45 53 54 
+                    20 44 41 54 41 20 
+                    47 45 4E 45 52 41 
+                    54 4F 52 0D       
+      26/    102C : 47 45 4E 45 52 41   		BYT	"GENERATING DATAS...",$0d,0
+                    54 49 4E 47 20 44 
+                    41 54 41 53 2E 2E 
+                    2E 0D 00          
+      27/    1041 :                     
+      28/    1041 : =G                  mode		=	"G"		;Generate
+      29/    1041 :                     	INCLUDE	"sjl_test.ain"
+(1)    1/    1041 :                     ;-----------------------------------------------------------------------------
+(1)    2/    1041 :                     ;---	SJL264 test data generator / checker
+(1)    3/    1041 :                     ;-----------------------------------------------------------------------------
+(1)    4/    1041 :                     	cpu	6502
+(1)    5/    1041 :                     	page	0,0
+(1)    6/    1041 :                     ;-----------------------------------------------------------------------------
+(1)    7/    1041 :                     
+(1)    8/    1041 :                     
+(1)    9/    1041 : =$123C              tdstart_addr	=	$123c		;Start address
+(1)   10/    1041 : =$FADF              tdend_addr	=	$fadf		;End address
+(1)   11/    1041 :                     
+(1)   12/    1041 : 08                  		php
+(1)   13/    1042 : 78                  		sei
+(1)   14/    1043 : 8D 3F FF            		sta	$ff3f
+(1)   15/    1046 :                     
+(1)   16/    1046 : A2 3C               		ldx	#(tdstart_addr & $ff)
+(1)   17/    1048 : A0 12               		ldy	#(tdstart_addr / 256)
+(1)   18/    104A : 86 D0               		stx	$d0
+(1)   19/    104C : 84 D1               		sty	$d1
+(1)   20/    104E :                     
+(1)   21/    104E : =>FALSE             	IF (mode = "C")
+(1)   22/    104E :                     		lda	#0
+(1)   23/    104E :                     		sta	$d2
+(1)   24/    104E :                     		sta	$d3
+(1)   25/    104E : [21]                	ENDIF
+(1)   26/    104E :                     
+(1)   27/    104E : A9 01               		lda	#1
+(1)   28/    1050 : 85 E0               		sta	$e0
+(1)   29/    1052 :                     
+(1)   30/    1052 : A0 00               		ldy	#0
+(1)   31/    1054 :                     
+(1)   32/    1054 : A5 E0               -		lda	$e0
+(1)   33/    1056 : =>TRUE              	IF (mode = "G")
+(1)   34/    1056 : 91 D0               		sta	($d0),y
+(1)   35/    1058 : [33]                	ENDIF
+(1)   36/    1058 : =>FALSE             	IF (mode = "C")
+(1)   37/    1058 :                     		cmp	($d0),y
+(1)   38/    1058 :                     		beq	+
+(1)   39/    1058 :                     		inc	$d2
+(1)   40/    1058 :                     		bne	+
+(1)   41/    1058 :                     		inc	$d3
+(1)   42/    1058 :                     +
+(1)   43/    1058 : [36]                	ENDIF
+(1)   44/    1058 : E6 D0               		inc	$d0
+(1)   45/    105A : D0 02               		bne	+
+(1)   46/    105C : E6 D1               		inc	$d1
+(1)   47/    105E :                     +
+(1)   48/    105E : 46 E0               		lsr	$e0
+(1)   49/    1060 : 90 06               		bcc	+
+(1)   50/    1062 : A9 B8               		lda	#%10111000
+(1)   51/    1064 : 45 E0               		eor	$e0
+(1)   52/    1066 : 85 E0               		sta	$e0
+(1)   53/    1068 :                     +
+(1)   54/    1068 : A5 D0               		lda	$d0
+(1)   55/    106A : C9 E0               		cmp	#((tdend_addr + 1) & $ff)
+(1)   56/    106C : D0 E6               		bne	-
+(1)   57/    106E : A5 D1               		lda	$d1
+(1)   58/    1070 : C9 FA               		cmp	#((tdend_addr + 1) / 256)
+(1)   59/    1072 : D0 E0               		bne	-
+(1)   60/    1074 :                     
+(1)   61/    1074 : =>FALSE             	IF (mode = "C")
+(1)   62/    1074 :                     		ldx	$d2
+(1)   63/    1074 :                     		ldy	$d3
+(1)   64/    1074 : [61]                	ENDIF
+(1)   65/    1074 :                     
+(1)   66/    1074 : 8D 3E FF            		sta	$ff3e
+(1)   67/    1077 : 28                  		plp
+(1)   68/    1078 :                     
+(1)   69/    1078 :                     ;-----------------------------------------------------------------------------
+(1)   70/    1078 :                     
+      30/    1078 :                     
+      31/    1078 : 20 4F FF            		jsr	rom_primm
+      32/    107B : 0D 44 41 54 41 20   		BYT	$0d,"DATA GENERATED. ",0
+                    47 45 4E 45 52 41 
+                    54 45 44 2E 20 00 
+      33/    108D : 20 FE 10            		jsr	unit_selector
+      34/    1090 : 85 E0               		sta	$e0
+      35/    1092 : 29 03               		and	#$03
+      36/    1094 : 0A                  		asl	a
+      37/    1095 : AA                  		tax
+      38/    1096 : BD F6 10            		lda	.unitlist,x
+      39/    1099 : 8D B2 10            		sta	.savestring+13
+      40/    109C : BD F7 10            		lda	.unitlist+1,x
+      41/    109F : 8D B3 10            		sta	.savestring+14
+      42/    10A2 : 20 4F FF            		jsr	rom_primm
+      43/    10A5 : 0D 53 41 56 45 20   .savestring	BYT	$0d,"SAVE TO UNIT??...",$0d,0
+                    54 4F 20 55 4E 49 
+                    54 3F 3F 2E 2E 2E 
+                    0D 00             
+      44/    10B9 : A9 01               		lda	#1
+      45/    10BB : A6 E0               		ldx	$e0
+      46/    10BD : A0 00               		ldy	#0
+      47/    10BF : 20 BA FF            		jsr	rom_setlfs
+      48/    10C2 : A9 08               		lda	#(.filename_end-.filename)
+      49/    10C4 : A2 EE               		ldx	#(.filename & $ff)
+      50/    10C6 : A0 10               		ldy	#(.filename / 256)
+      51/    10C8 : 20 BD FF            		jsr	rom_setnam
+      52/    10CB : A2 3C               		ldx	#(tdstart_addr & $ff)
+      53/    10CD : A0 12               		ldy	#(tdstart_addr / 256)
+      54/    10CF : 86 D0               		stx	$d0
+      55/    10D1 : 84 D1               		sty	$d1
+      56/    10D3 : A9 D0               		lda	#$d0
+      57/    10D5 : A2 E0               		ldx	#((tdend_addr + 1) & $ff)
+      58/    10D7 : A0 FA               		ldy	#((tdend_addr + 1) / 256)
+      59/    10D9 : 20 D8 FF            		jsr	rom_save
+      60/    10DC :                     
+      61/    10DC : 20 4F FF            		jsr	rom_primm
+      62/    10DF : 0D 44 41 54 41 20   		BYT	$0d,"DATA SAVED.",$0d,0
+                    53 41 56 45 44 2E 
+                    0D 00             
+      63/    10ED : 60                  		rts
+      64/    10EE :                     
+      65/    10EE : 54 45 53 54 44 41   .filename	BYT	"TESTDATA"
+                    54 41             
+      66/    10F6 :                     .filename_end
+      67/    10F6 :                     
+      68/    10F6 : 20 38 20 39 31 30   .unitlist	BYT	" 8 91011"
+                    31 31             
+      69/    10FE :                     
+      70/    10FE : 20 4F FF            unit_selector	jsr	rom_primm
+      71/    1101 : 43 48 4F 4F 53 45   		BYT	"CHOOSE UNIT.NO:"
+                    20 55 4E 49 54 2E 
+                    4E 4F 3A          
+      72/    1110 : 0D 38 3A 20 55 4E   		BYT	$0d,"8: UNIT 8"
+                    49 54 20 38       
+      73/    111A : 0D 39 3A 20 55 4E   		BYT	$0d,"9: UNIT 9"
+                    49 54 20 39       
+      74/    1124 : 0D 41 3A 20 55 4E   		BYT	$0d,"A: UNIT 10"
+                    49 54 20 31 30    
+      75/    112F : 0D 42 3A 20 55 4E   		BYT	$0d,"B: UNIT 11",0
+                    49 54 20 31 31 00 
+      76/    113B : A9 00               		lda	#0
+      77/    113D : 85 C6               		sta	z_sfdx
+      78/    113F : A6 C6               .cycle		ldx	z_sfdx
+      79/    1141 : A9 08               		lda	#8
+      80/    1143 : E0 1B               		cpx	#$1b			;"8"?
+      81/    1145 : F0 15               		beq	.ok
+      82/    1147 : A9 09               		lda	#9
+      83/    1149 : E0 20               		cpx	#$20			;"9"?
+      84/    114B : F0 0F               		beq	.ok
+      85/    114D : A9 0A               		lda	#10
+      86/    114F : E0 0A               		cpx	#$0a			;"A"?
+      87/    1151 : F0 09               		beq	.ok
+      88/    1153 : A9 0B               		lda	#11
+      89/    1155 : E0 1C               		cpx	#$1c			;"B"?
+      90/    1157 : F0 03               		beq	.ok
+      91/    1159 : 4C 3F 11            		jmp	.cycle
+      92/    115C : 60                  .ok		rts
+      93/    115D :                     
+      94/    115D :                     ;-----------------------------------------------------------------------------
+      95/    115D :                     
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_generate.asm - Page 2 - 22.09.2019 15:47:19
+
+
+  Symbol Table (* = unused):
+  --------------------------
+
+*ARCHITECTURE :                                        x86_64-unknown-linux - |
+*BAS_COLDRESET_STACK :         8025 - | *BAS_COLD_RESET :              8000 - |
+*BAS_MEMORY_CHECK :            8923 - | *BAS_PRINTFREE :               80E5 - |
+*BAS_PRINTHEADER :             80C2 - | *BAS_RESET :                   802E - |
+*BAS_VECTORS_INIT :            8117 - | *BAS_WARM_RESET :              8003 - |
+*BIGENDIAN :                      0 - | *BRANCHEXT :                      0 - |
+*B_MEMSIZ :                     533 - | *B_MEMSTR :                     531 - |
+*CASESENSITIVE :                  0 - | *CONSTPI :        3.141592653589793 - |
+*DATE :                  22.09.2019 - | *FALSE :                          0 - |
+*FULLPMMU :                       1 - | *HAS64 :                          1 - |
+*HASDSP :                         0 - | *HASFPU :                         0 - |
+*HASPMMU :                        0 - |  HW_TEDBASE :                  FF00 - |
+*HW_TED_BORDERCOLOR :          FF19 - | *HW_TED_CHARGENCLK :           FF13 - |
+*HW_TED_SCRCONTROL1 :          FF06 - | *HW_TED_YPOS :                 FF1D - |
+*INEXTMODE :                      0 - | *INLWORDMODE :                    0 - |
+*INMAXMODE :                      0 - | *INSRCMODE :                      0 - |
+*INSUPMODE :                      0 - | *LISTON :                         1 - |
+*MACEXP :                         7 - |  MODE :                           G - |
+*MOMCPU :                      6502 - | *MOMCPUNAME :                  6502 - |
+*NESTMAX :                      100 - | *PACKING :                        0 - |
+*PADDING :                        1 - | *RELAXED :                        0 - |
+*ROM_BUSIN :                   FFA5 - | *ROM_BUSOUT :                  FFA8 - |
+*ROM_CBMSER_ATN_HIZ :          E1FC - | *ROM_CBMSER_CLK_HIZ :          E2B8 - |
+*ROM_CBMSER_CLK_LO :           E2BF - | *ROM_CBMSER_DAT_HIZ :          E2C6 - |
+*ROM_CBMSER_DAT_LO :           E2CD - | *ROM_CBMSER_DEVNOTPRES :       E1E9 - |
+*ROM_CBMSER_READLINES :        E2D4 - | *ROM_CBMSER_SSTATSEREND :      E1F0 - |
+*ROM_CBMSER_TIMEOUT :          E1EE - | *ROM_CBMSER_WAIT1MS :          E2DC - |
+*ROM_CBMSER_WAIT20MS :         E2FC - | *ROM_CHROUT :                  FFD2 - |
+*ROM_ERROR_FILENOTFND :        F27C - | *ROM_IEC_CLOSE :               F211 - |
+*ROM_IEC_OPEN :                F005 - | *ROM_KEY :                     FF49 - |
+*ROM_LISTEN :                  FFB1 - | *ROM_LOAD :                    FFD5 - |
+*ROM_LOADINGVERIFYING :        F189 - | *ROM_LOAD_CONT :               F050 - |
+*ROM_LOAD_DRIVELOAD :          F070 - | *ROM_LOAD_READYRET :           F0EB - |
+*ROM_ORIG_LOAD_VECT :          F04A - |  ROM_PRIMM :                   FF4F - |
+ ROM_SAVE :                    FFD8 - | *ROM_SEARCHINGFOR :            F160 - |
+*ROM_SECLISTEN :               FF93 - | *ROM_SECTALK :                 FF96 - |
+ ROM_SETLFS :                  FFBA - |  ROM_SETNAM :                  FFBD - |
+*ROM_SET_STATUS :              F41E - | *ROM_TALK :                    FFB4 - |
+*ROM_UNLISTEN :                FFAE - | *ROM_UNTALK :                  FFAB - |
+*ROM_VECTORS_SETDEFAULT :      FF8A - |  START_ADDR :                  1001 - |
+ TDEND_ADDR :                  FADF - |  TDSTART_ADDR :                123C - |
+*TIME :                    15:47:19 - | *TRUE :                           1 - |
+ UNIT_SELECTOR :               10FE C |  UNIT_SELECTOR.CYCLE :         113F C |
+ UNIT_SELECTOR.OK :            115C C | *VERSION :                     142F - |
+*V_ILOAD :                      32E - | *Z_BSOUR :                       95 - |
+*Z_EAH :                         9E - |  Z_EAL :                         9D - |
+*Z_FA :                          AE - | *Z_FNADR :                       AF - |
+*Z_FNLEN :                       AB - | *Z_MEMUSS_H :                    B5 - |
+ Z_MEMUSS_L :                    B4 - | *Z_MSGFGL :                      9A - |
+*Z_SA :                          AD - |  Z_SFDX :                        C6 - |
+*Z_STATUS :                      90 - | *Z_TXTTAB :                      2B - |
+*Z_VERFCK :                      93 - |  __BACK0 :                     1054 C |
+ __FORW0 :                     100A C |  __FORW1 :                     105E C |
+ __FORW2 :                     1068 C |  __FORW2.FILENAME :            10EE C |
+ __FORW2.FILENAME_END :        10F6 C |  __FORW2.SAVESTRING :          10A5 C |
+ __FORW2.UNITLIST :            10F6 C |
+
+    110 Symbols
+     87 unused symbols
+
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_generate.asm - Page 3 - 22.09.2019 15:47:19
+
+
+  Code Pages:
+  ----------
+
+STANDARD (0 changed characters)
+
+1 code page
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_generate.asm - Page 4 - 22.09.2019 15:47:19
+
+
+  Space Used in CODE :
+  --------------------
+
+FFF-115C           
+
+
+0.01 seconds assembly time
+
+    253 lines source file
+      2 passes
+      0 errors
+      0 warnings

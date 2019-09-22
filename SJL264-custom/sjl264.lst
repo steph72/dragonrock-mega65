@@ -1,0 +1,892 @@
+ AS V1.42 Beta [Bld 149] - Source File sjl264.asm - Page 1 - 22.09.2019 15:47:19
+
+
+       1/       0 :                     ;-----------------------------------------------------------------------------
+       2/       0 :                     ;---	SJL264 by BSZ
+       3/       0 :                     ;---	C16, C116, plus/4 FastLoader for JiffyDOS equipped devices
+       4/       0 :                     ;---	Based on C64's SJLOAD software:
+       5/       0 :                     ;---		https://www.c64-wiki.com/wiki/SJLOAD
+       6/       0 :                     ;---	Thanks to the original authors!
+       7/       0 :                     ;---		2017.08.15.	Start!
+       8/       0 :                     ;---		2017.09.04.	First load check
+       9/       0 :                     ;---		2017.09.10.	First load check on real HW, it's work! :)
+      10/       0 :                     ;---		2017.09.11.	Create useable program; support $0A00..$FAEF (..$FCFF) area for load
+      11/       0 :                     ;---		2017.11.01.	Modify "Working Indicator", Add On/Off switch
+      12/       0 :                     ;---		2017.11.05.	RC1
+      13/       0 :                     ;---		2017.11.19.	Release 0.2
+      14/       0 :                     ;---		2018.01.07.	Release 0.3, 16K/32K support, DIRECTORY, $0A00..$FAFF, ...
+      15/       0 :                     ;-----------------------------------------------------------------------------
+      16/       0 :                     	cpu	6502
+      17/       0 :                     	page	0,0
+      18/       0 :                     ;-----------------------------------------------------------------------------
+      19/       0 : =0.3                def_version	=	"0.3"
+      20/       0 :                     
+      21/       0 : =N                  def_testing	=	"N"		;If "Y", built test mode
+      22/       0 : =                   def_betatext	=	""		;If not empty string, build beta/rc release (only display _this_ text)
+      23/       0 : =$3                 def_wimode	=	3		;0,1,2,3 Working indicator mode (0: none, 1, 2, 3: Border color changes)
+      24/       0 : =Y                  def_onoffswitch	=	"Y"		;If "Y", enable On/Off switch
+      25/       0 :                     
+      26/       0 :                     	INCLUDE "_system.ain"		;System Constants
+(1)    1/       0 :                     ;-----------------------------------------------------------------------------
+(1)    2/       0 :                     ;---	System constants:
+(1)    3/       0 :                     ;-----------------------------------------------------------------------------
+(1)    4/       0 :                     ;---	Zero page definitions:
+(1)    5/       0 : =$2B                z_txttab		=	$2b		;W BASIC program start address
+(1)    6/       0 : =$90                z_status		=	$90		;B STatus
+(1)    7/       0 : =$93                z_verfck		=	$93		;B VERIFY flag
+(1)    8/       0 : =$95                z_bsour			=	$95		;B Serial data
+(1)    9/       0 : =$9A                z_msgfgl		=	$9a		;B Flag: Command / program mode
+(1)   10/       0 : =$9D                z_eal			=	$9d		;W LOAD memory pointer
+(1)   11/       0 : =$9E                z_eah			=	z_eal + 1
+(1)   12/       0 : =$AB                z_fnlen			=	$ab		;B FileName Length
+(1)   13/       0 : =$AD                z_sa			=	$ad		;B Secondary Address
+(1)   14/       0 : =$AE                z_fa			=	$ae		;B Device No
+(1)   15/       0 : =$AF                z_fnadr			=	$af		;W $AF/$B0: Serial: act. FileName address
+(1)   16/       0 : =$B4                z_memuss_l		=	$b4		;W Load address, if not from file
+(1)   17/       0 : =$B5                z_memuss_h		=	z_memuss_l + 1
+(1)   18/       0 : =$C6                z_sfdx			=	$c6		;B Last kb index
+(1)   19/       0 :                     
+(1)   20/       0 :                     
+(1)   21/       0 :                     ;---	SoftVectors:
+(1)   22/       0 : =$32E               v_iload			=	$032e		;W LOAD vector
+(1)   23/       0 :                     
+(1)   24/       0 : =$531               b_memstr		=	$0531		;W BASIC FREE (!) memory START address
+(1)   25/       0 : =$533               b_memsiz		=	$0533		;W BASIC FREE (!) memory END address
+(1)   26/       0 :                     
+(1)   27/       0 :                     
+(1)   28/       0 :                     ;---	BASIC addresses:
+(1)   29/       0 : =$8000              bas_cold_reset		=	$8000		;BASIC Interpreter Cold Reset			$8019
+(1)   30/       0 : =$8003              bas_warm_reset		=	$8003		;BASIC Interpreter Warm Reset			$800a
+(1)   31/       0 : =$8025              bas_coldreset_stack	=	$8025		;BASIC Interpreter Cold Reset end sequence
+(1)   32/       0 : =$802E              bas_reset		=	$802e		;BASIC Interpreter Init
+(1)   33/       0 : =$80C2              bas_printheader		=	$80c2		;BASIC Print BASIC HEAD text
+(1)   34/       0 : =$80E5              bas_printfree		=	$80e5		;BASIC Print "xxxx BYTES FREE" text
+(1)   35/       0 : =$8117              bas_vectors_init	=	$8117		;BASIC vectors init
+(1)   36/       0 : =$8923              bas_memory_check	=	$8923		;BASIC check available memory. If no room, out of memory error
+(1)   37/       0 :                     
+(1)   38/       0 :                     ;---	ROM misc. addresses:
+(1)   39/       0 : =$E1E9              rom_cbmser_devnotpres	=	$e1e9		;CBMSER set "Device Not Present" flag
+(1)   40/       0 : =$E1EE              rom_cbmser_timeout	=	$e1ee		;CBMSER set "TimeOut" flag + ATN hi (transfer end)
+(1)   41/       0 : =$E1F0              rom_cbmser_sstatserend	=	$e1f0		;CBMSER set status + ATN hi (transfer end)
+(1)   42/       0 : =$E1FC              rom_cbmser_atn_hiz	=	$e1fc		;CBMSER ATN line switch to HiZ
+(1)   43/       0 : =$E2B8              rom_cbmser_clk_hiz	=	$e2b8		;CBMSER CLK line switch to HiZ
+(1)   44/       0 : =$E2BF              rom_cbmser_clk_lo	=	$e2bf		;CBMSER CLK line switch to Lo
+(1)   45/       0 : =$E2C6              rom_cbmser_dat_hiz	=	$e2c6		;CBMSER DAT line switch to HiZ
+(1)   46/       0 : =$E2CD              rom_cbmser_dat_lo	=	$e2cd		;CBMSER DAT line switch to Lo
+(1)   47/       0 : =$E2D4              rom_cbmser_readlines	=	$e2d4		;CBMSER Read Clock/Data lines
+(1)   48/       0 : =$E2DC              rom_cbmser_wait1ms	=	$e2dc		;CBMSER wait ~1 mSec
+(1)   49/       0 : =$E2FC              rom_cbmser_wait20ms	=	$e2fc		;CBMSER Wait ~20 mSec
+(1)   50/       0 :                     
+(1)   51/       0 : =$F005              rom_iec_open		=	$f005		;KERNAL IEC/TCBM OPEN (BUSOP). If DNP, drop return address from stack and go to error handler routine
+(1)   52/       0 : =$F04A              rom_orig_load_vect	=	$f04a		;KERNAL LOAD vector jump here
+(1)   53/       0 : =$F050              rom_load_cont		=	$f050		;Load routine cont.
+(1)   54/       0 : =$F070              rom_load_driveload	=	$f070		;Load routine cont. "B"
+(1)   55/       0 : =$F0EB              rom_load_readyret	=	$f0eb		;Load routine end: return end address
+(1)   56/       0 : =$F160              rom_searchingfor	=	$f160		;Print "SEARCHING FOR <NAME>"
+(1)   57/       0 : =$F189              rom_loadingverifying	=	$f189		;Print "LOADING"/"VERIFYING"
+(1)   58/       0 : =$F211              rom_iec_close		=	$f211		;KERNAL IEC/TCBM CLOSE
+(1)   59/       0 : =$F27C              rom_error_filenotfnd	=	$f27c		;"?FILE NOT FOUND ERROR."
+(1)   60/       0 : =$F41E              rom_set_status		=	$f41e		;ORA ST, STA ST
+(1)   61/       0 :                     
+(1)   62/       0 :                     ;---	ROM vectors:
+(1)   63/       0 : =$FF49              rom_key			=	$ff49		;KERNAK KEY: Set string to Function Key
+(1)   64/       0 : =$FF4F              rom_primm		=	$ff4f		;KERNAL PRIMM
+(1)   65/       0 : =$FF8A              rom_vectors_setdefault	=	$ff8a		;KERNAL Vectors set to default values	$f2ce
+(1)   66/       0 : =$FF93              rom_seclisten		=	$ff93		;KERNAL SECONDARY LISTEN		$ee4d
+(1)   67/       0 : =$FF96              rom_sectalk		=	$ff96		;KERNAL SECONDARY TALK (TKSA)		$ee1a
+(1)   68/       0 : =$FFA5              rom_busin		=	$ffa5		;KERNAL BUSIN 				$ec8b
+(1)   69/       0 : =$FFA8              rom_busout		=	$ffa8		;KERNAL BUSOUT				$ecdf
+(1)   70/       0 : =$FFAB              rom_untalk		=	$ffab		;KERNAL UNTALK				$ef3b
+(1)   71/       0 : =$FFAE              rom_unlisten		=	$ffae		;KERNAL UNLISTEN			$ef23
+(1)   72/       0 : =$FFB1              rom_listen		=	$ffb1		;KERNAL LISTEN				$ee2c
+(1)   73/       0 : =$FFB4              rom_talk		=	$ffb4		;KERNAL TALK				$edfa
+(1)   74/       0 : =$FFBA              rom_setlfs		=	$ffba		;KERNAL SETLFS				$f413
+(1)   75/       0 : =$FFBD              rom_setnam		=	$ffbd		;KERNAL SETNAM				$f40c
+(1)   76/       0 : =$FFD2              rom_chrout		=	$ffd2		;KERNAL CHROUT				$ec4b
+(1)   77/       0 : =$FFD5              rom_load		=	$ffd5		;KERNAL LOAD				$f043
+(1)   78/       0 : =$FFD8              rom_save		=	$ffd8		;KERNAL SAVE				$f194
+(1)   79/       0 :                     
+(1)   80/       0 :                     ;-----------------------------------------------------------------------------
+(1)   81/       0 :                     ;---	HW registers:
+(1)   82/       0 : =$FF00              hw_tedbase		=	$ff00		;$FF00..$FF3F: TED base address
+(1)   83/       0 : =$FF06              hw_ted_scrcontrol1	=	hw_tedbase+$06	;$FF06: TED screen control register 1
+(1)   84/       0 : =$FF13              hw_ted_chargenclk	=	hw_tedbase+$13	;$FF13: TED char.gen address + clock control
+(1)   85/       0 : =$FF19              hw_ted_bordercolor	=	hw_tedbase+$19	;$FF19: TED border color
+(1)   86/       0 : =$FF1D              hw_ted_ypos		=	hw_tedbase+$1d	;$FF1D: TED actual rasterline no
+(1)   87/       0 :                     ;-----------------------------------------------------------------------------
+(1)   88/       0 :                     
+      27/       0 :                     ;-----------------------------------------------------------------------------
+      28/       0 : =$1001              start_addr	=	$1001		;Loader system start address
+      29/       0 : =$5C6               switcher_addr	=	$05c6		;On/Off switch routine start address (V0.3+, Funct.key buffer)
+      30/       0 : =$5F5               bootstrap_addr	=	$05f5		;Bootstrap start address
+      31/       0 : =$801               ldr_addr	=	$0801		;Main loader routine start address
+      32/       0 : =$3E00              ldrstore16_addr	=	$3e00		;Main loader routine storage area / 16K RAM
+      33/       0 : =$7E00              ldrstore32_addr	=	$7e00		;Main loader routine storage area / 32K RAM
+      34/       0 : =$EE00              ldrstore64_addr	=	$ee00		;Main loader routine storage area / 64K RAM
+      35/       0 :                     ;-----------------------------------------------------------------------------
+      36/       0 :                     
+      37/     FFF :                     	ORG	start_addr - 2
+      38/     FFF : 01 10               	ADR	start_addr
+      39/    1001 :                     
+      40/    1001 :                     ;	BASIC area:
+      41/    1001 : 0A 10 E1 07         	ADR	+, 2017
+      42/    1005 : 9E                  	BYT	$9e		; sys token
+      43/    1006 : 34 31 30 39         	BYT	"4109"		; $100d
+      44/    100A : 00 00 00            +	BYT	0,0,0
+      45/    100D :                     
+      46/    100D :                     
+      47/    100D :                     
+      48/    100D :                     ;	Init routine:
+      49/    100D :                     	ORG	$100d
+      50/    100D : 20 4F FF            		jsr	rom_primm
+      51/    1010 : 0D 53 4A 4C 32 36   		BYT	$0d,"SJL264 LIGHT V",def_version," BY BSZ (B"
+                    34 20 4C 49 47 48 
+                    54 20 56 30 2E 33 
+                    20 42 59 20 42 53 
+                    5A 20 28 42       
+      52/    102C :                     	BINCLUDE "_coun.txt"
+      53/    102F : 2F                  		BYT	"/"
+      54/    1030 :                     	BINCLUDE "_date.txt"
+      55/    1036 : 29 0D               		BYT	")",$0d
+      56/    1038 : 46 41 53 54 4C 4F   		BYT	"FASTLOADER FOR JD EQUIPPED DRIVES",$0d
+                    41 44 45 52 20 46 
+                    4F 52 20 4A 44 20 
+                    45 51 55 49 50 50 
+                    45 44 20 44 52 49 
+                    56 45 53 0D       
+      57/    105A : =>TRUE                  IF (def_onoffswitch = "Y")
+      58/    105A : 50 52 45 53 53 20   		BYT	"PRESS F1 TO DISABLE/ENABLE",$0d
+                    46 31 20 54 4F 20 
+                    44 49 53 41 42 4C 
+                    45 2F 45 4E 41 42 
+                    4C 45 0D          
+      59/    1075 : [57]                    ENDIF
+      60/    1075 :                     
+      61/    1075 : =>TRUE                  IF (def_betatext = "")
+      62/    1075 : =>FALSE                 ELSE
+      63/    1075 :                     		BYT	def_betatext
+      64/    1075 :                           IF (def_testing = "Y")
+      65/    1075 :                     		BYT	" & TEST"
+      66/    1075 : [64]                      ENDIF
+      67/    1075 :                     		BYT	" VERSION",$0d
+      68/    1075 : [61]                    ENDIF
+      69/    1075 :                     
+      70/    1075 : 00                  		BYT	0
+      71/    1076 :                     
+      72/    1076 : A5 01               		lda	$01
+      73/    1078 : 29 08               		and	#%00001000		;Cass. Motor on?
+      74/    107A : D0 23               		bne	.mtroff
+      75/    107C : 20 4F FF            		jsr	rom_primm
+      76/    107F : 0D 50 4C 45 41 53   		BYT	$0d,"PLEASE DISCONNECT DATASETTE!",$0d,0
+                    45 20 44 49 53 43 
+                    4F 4E 4E 45 43 54 
+                    20 44 41 54 41 53 
+                    45 54 54 45 21 0D 
+                    00                
+      77/    109E : 60                  		rts
+      78/    109F :                     .mtroff
+      79/    109F :                     
+      80/    109F :                     ;	Patch copy routines for 16K/32K/64K, set memory:
+      81/    109F : AD 34 05            		lda	b_memsiz+1			;Basic FREE memory END
+      82/    10A2 : A2 3E               		ldx	#(ldrstore16_addr / 256)	;16K memory
+      83/    10A4 : C9 40               		cmp	#$40
+      84/    10A6 : 90 08               		bcc	.memsizeset
+      85/    10A8 : A2 7E               		ldx	#(ldrstore32_addr / 256)	;32K memory
+      86/    10AA : C9 80               		cmp	#$80
+      87/    10AC : 90 02               		bcc	.memsizeset
+      88/    10AE : A2 EE               		ldx	#(ldrstore64_addr / 256)	;64K memory
+      89/    10B0 : 8E 34 05            .memsizeset	stx	b_memsiz+1
+      90/    10B3 : A9 00               		lda	#(ldrstore64_addr & $ff)	;Low Byte is equal in 16K/32K/64K
+      91/    10B5 : 8D 33 05            		sta	b_memsiz+0
+      92/    10B8 : 8E DB 10            		stx	.loadccopy1_wr+2		;Patch the program -> "save" copy routine 1
+      93/    10BB : 8E 9E 11            		stx	load_routine.loadccopy1-bootstrap_addr+bootstrap_code_start+2
+      94/    10BE : E8                  		inx
+      95/    10BF : 8E E8 10            		stx	.loadccopy2_wr+2		;Patch the program -> "save" copy routine 2 
+      96/    10C2 : 8E AB 11            		stx	load_routine.loadccopy2-bootstrap_addr+bootstrap_code_start+2
+      97/    10C5 :                     
+      98/    10C5 :                     ;	Copy codes to "storage" area:
+      99/    10C5 : A2 E7               		ldx	#bootstrap_code_length		;Bootstrap copy
+     100/    10C7 : BD 57 11            .bootstrapccopy	lda	bootstrap_code_start-1,x
+     101/    10CA : 9D F4 05            		sta	bootstrap_addr-1,x
+     102/    10CD : CA                  		dex
+     103/    10CE : D0 F7               		bne	.bootstrapccopy
+     104/    10D0 :                     
+     105/    10D0 : A9 5A               		lda	#$5a
+     106/    10D2 : 85 95               		sta	z_bsour				;CkSum init
+     107/    10D4 : A0 00               		ldy	#0
+     108/    10D6 : B9 3F 12            .loadccopy1	lda	loader_code_start,y
+     109/    10D9 : 99 00 EE            .loadccopy1_wr	sta	ldrstore64_addr,y		;Address patched to 16K/32K/64K
+     110/    10DC : 45 95               		eor	z_bsour
+     111/    10DE : 85 95               		sta	z_bsour
+     112/    10E0 : C8                  		iny
+     113/    10E1 : D0 F3               		bne	.loadccopy1
+     114/    10E3 : B9 3F 13            .loadccopy2	lda	loader_code_start+256,y
+     115/    10E6 : 99 00 EF            .loadccopy2_wr	sta	ldrstore64_addr+256,y		;Address patched to 16K/32K/64K
+     116/    10E9 : 45 95               		eor	z_bsour
+     117/    10EB : 85 95               		sta	z_bsour
+     118/    10ED : C8                  		iny
+     119/    10EE : C0 EB               		cpy	#loader_code_length & $ff
+     120/    10F0 : D0 F1               		bne	.loadccopy2
+     121/    10F2 : 8D 6D 06            		sta	cksum_check+1			;Patch CkSum checker
+     122/    10F5 :                     
+     123/    10F5 :                     ;	Prepare On/Off switch routine (if required):
+     124/    10F5 : =>TRUE                  IF (def_onoffswitch = "Y")
+     125/    10F5 : A9 00               		lda	#0				;"F1" Function Key
+     126/    10F7 : 85 76               		sta	$76
+     127/    10F9 : A9 08               		lda	#.functionkeystring_end - .functionkeystring
+     128/    10FB : A2 2F               		ldx	#(.functionkeystring & $ff)
+     129/    10FD : A0 11               		ldy	#(.functionkeystring / 256)
+     130/    10FF : 86 22               		stx	$22
+     131/    1101 : 84 23               		sty	$23
+     132/    1103 : 20 49 FF            		jsr	rom_key				;Set string to "F1" key
+     133/    1106 : A2 20               		ldx	#.switcherroutine_end - .switcherroutine - 1
+     134/    1108 : BD 37 11            .switchercopy	lda	.switcherroutine,x
+     135/    110B : 9D C6 05            		sta	switcher_addr,x
+     136/    110E : CA                  		dex
+     137/    110F : 10 F7               		bpl	.switchercopy
+     138/    1111 : [124]                   ENDIF
+     139/    1111 :                     
+     140/    1111 :                     ;	Set load vector, reset BASIC interpreter:
+     141/    1111 : A9 F8               		lda	#(load_routine & $ff)
+     142/    1113 : 8D 2E 03            		sta	v_iload+0
+     143/    1116 : A9 05               		lda	#(load_routine / 256)
+     144/    1118 : 8D 2F 03            		sta	v_iload+1
+     145/    111B : 20 17 81            		jsr	bas_vectors_init		;$8117
+     146/    111E : 20 2E 80            		jsr	bas_reset			;$802e
+     147/    1121 : A5 2B               		lda	z_txttab+0
+     148/    1123 : A4 2C               		ldy	z_txttab+1
+     149/    1125 : 20 23 89            		jsr	bas_memory_check		;$8923
+     150/    1128 : 20 E5 80            		jsr	bas_printfree			;$80e5	Print "xxxxx BYTES FREE"
+     151/    112B : 58                  		cli
+     152/    112C : 4C 25 80            		jmp	bas_coldreset_stack		;$8025	Start BASIC Interpreter
+     153/    112F :                     
+     154/    112F : =>TRUE                  IF (def_onoffswitch = "Y")
+     155/    112F :                     .functionkeystring
+     156/    112F : 53 59 53 31 35 32   	BYT	"SYS1525", $0d
+                    35 0D             
+     157/    1137 :                     .functionkeystring_end
+     158/    1137 :                     
+     159/    1137 :                     .switcherroutine
+     160/     5C6 :                     	PHASE switcher_addr
+     161/     5C6 : A9 44               		lda	#'D'
+     162/     5C8 : A2 4A               		ldx	#(rom_orig_load_vect & $ff)
+     163/     5CA : A0 F0               		ldy	#(rom_orig_load_vect / 256)
+     164/     5CC : 2C 2F 03            		bit	v_iload+1
+     165/     5CF : 10 06               		bpl	.switch
+     166/     5D1 : A9 45               		lda	#'E'
+     167/     5D3 : A2 F8               		ldx	#(load_routine & $ff)
+     168/     5D5 : A0 05               		ldy	#(load_routine / 256)
+     169/     5D7 : 8D E3 05            .switch		sta	.switchchar
+     170/     5DA : 8E 2E 03            		stx	v_iload+0
+     171/     5DD : 8C 2F 03            		sty	v_iload+1
+     172/     5E0 : 20 4F FF            		jsr	rom_primm
+     173/     5E3 : 3F 0D 00            .switchchar	BYT	"?",$0d,0
+     174/     5E6 : 60                  		rts
+     175/    1158 :                     	DEPHASE
+     176/    1158 :                     .switcherroutine_end
+     177/    1158 :                     
+     178/    1158 : [154]                   ENDIF
+     179/    1158 :                     
+     180/    1158 :                     ;-----------------------------------------------------------------------------
+     181/    1158 :                     ;---	Loader pre/post process routines:
+     182/    1158 :                     
+     183/    1158 :                     bootstrap_code_start
+     184/    1158 :                     
+     185/     5F5 :                     	PHASE bootstrap_addr
+     186/     5F5 :                     
+     187/     5F5 : =>TRUE                  IF (def_onoffswitch = "Y")
+     188/     5F5 : 4C C6 05            		jmp	switcher_addr		;On/Off switch 
+     189/     5F8 : =>FALSE                 ELSE
+     190/     5F8 :                     		rts				;3-PLUS-1 start address: Return, if called
+     191/     5F8 : [187]                   ENDIF
+     192/     5F8 :                     
+     193/     5F8 : 85 93               load_routine	sta	z_verfck		;Store Verify flag
+     194/     5FA : A9 00               		lda	#0
+     195/     5FC : 85 90               		sta	z_status		;Clear ST
+     196/     5FE : A5 AE               		lda	z_fa			;Selected Device no
+     197/     600 : C9 08               		cmp	#8
+     198/     602 : B0 03               		bcs	.driveaddr
+     199/     604 : 4C 50 F0            .origload	jmp	rom_load_cont		;No drive, go to ROM load
+     200/     607 :                     
+     201/     607 : A5 AB               .driveaddr	lda	z_fnlen			;FileName length
+     202/     609 : F0 F9               		beq	.origload		;If 0, go to ROM load
+     203/     60B : A5 93               		lda	z_verfck		;Verify flag
+     204/     60D : D0 F5               		bne	.origload
+     205/     60F :                     
+     206/     60F : A0 00               		ldy	#0			;First character
+     207/     611 : A9 AF               		lda	#$af			;from FileName
+     208/     613 : 8D DF 07            		sta	$07df
+     209/     616 : 20 D9 07            		jsr	$07d9
+     210/     619 : C9 24               		cmp	#"$"			;Filename is "$"?
+     211/     61B : F0 E7               		beq	.origload		;If yes, KERNAL load required, Fastloading DIRECTORY not possible
+     212/     61D :                     
+     213/     61D : 20 60 F1            		jsr	rom_searchingfor	;Print "SEARCHING FOR..." text
+     214/     620 : 20 89 F1            		jsr	rom_loadingverifying	;Print "LOADING" text
+     215/     623 : AD 06 FF            		lda	hw_ted_scrcontrol1
+     216/     626 : 8D 86 06            		sta	sjl_retted06+1		;Save original TED register value
+     217/     629 : 29 EF               		and	#%11101111
+     218/     62B : 8D 06 FF            		sta	hw_ted_scrcontrol1	;Screen Off
+     219/     62E :                     
+     220/     62E : 08                  		php
+     221/     62F : 78                  		sei
+     222/     630 : 8D 3F FF            		sta	$ff3f
+     223/     633 : A9 5A               		lda	#$5a
+     224/     635 : 85 95               		sta	z_bsour			;CkSum init
+     225/     637 : A0 00               		ldy	#0
+     226/     639 : B9 00 EE            .loadccopy1	lda	ldrstore64_addr,y	;Address patched for proper memory size
+     227/     63C : 99 01 08            		sta	ldr_addr,y
+     228/     63F : 45 95               		eor	z_bsour
+     229/     641 : 85 95               		sta	z_bsour
+     230/     643 : C8                  		iny
+     231/     644 : D0 F3               		bne	.loadccopy1
+     232/     646 : B9 00 EF            .loadccopy2	lda	ldrstore64_addr+256,y	;Address patched for proper memory size
+     233/     649 : 99 01 09            		sta	ldr_addr+256,y
+     234/     64C : 45 95               		eor	z_bsour
+     235/     64E : 85 95               		sta	z_bsour
+     236/     650 : C8                  		iny
+     237/     651 : C0 EB               		cpy	#loader_code_length & $ff
+     238/     653 : D0 F1               		bne	.loadccopy2
+     239/     655 : 8D 3E FF            		sta	$ff3e
+     240/     658 : 28                  		plp
+     241/     659 :                     
+     242/     659 : AD 13 FF            		lda	hw_ted_chargenclk
+     243/     65C : 8D 8B 06            		sta	sjl_retted13+1
+     244/     65F : 09 02               		ora	#%00000010
+     245/     661 : 8D 13 FF            		sta	hw_ted_chargenclk	;Single Clock select
+     246/     664 :                     
+     247/     664 : =>TRUE                  IF (def_wimode = 3)
+     248/     664 : AD 19 FF            		lda	hw_ted_bordercolor
+     249/     667 : 8D BC 08            		sta	loader_routine.bordercolor+1
+     250/     66A : =>FALSE                 ELSEIF (def_wimode > 0)
+     251/     66A :                     		lda	hw_ted_bordercolor
+     252/     66A :                     		sta	sjl_retted19+1
+     253/     66A : [247]                   ENDIF
+     254/     66A :                     
+     255/     66A : A5 95               		lda	z_bsour
+     256/     66C : C9 00               cksum_check	cmp	#0			;Self-modifyed: load routine is valid?
+     257/     66E : F0 05               		beq	.waitborder
+     258/     670 : 20 7F 06            		jsr	sjl_returnrout
+     259/     673 : 50 F0               		ADR	rom_load_cont		;KERNAL LOAD
+     260/     675 :                     
+     261/     675 : AD 1D FF            .waitborder	lda	hw_ted_ypos
+     262/     678 : C9 DC               		cmp	#220
+     263/     67A : D0 F9               		bne	.waitborder
+     264/     67C : 4C 07 08            		jmp	loader_routine
+     265/     67F :                     
+     266/     67F :                     ;	"RETURN" routine. Restore screen and exit:
+     267/     67F : 08                  sjl_returnrout	php
+     268/     680 : 48                  		pha
+     269/     681 : 8A                  		txa
+     270/     682 : 48                  		pha
+     271/     683 : 98                  		tya
+     272/     684 : 48                  		pha
+     273/     685 :                     
+     274/     685 : A9 00               sjl_retted06	lda	#0			;Self-modified data: original TED register value
+     275/     687 : 8D 06 FF            		sta	hw_ted_scrcontrol1	;Screen restore
+     276/     68A : A9 00               sjl_retted13	lda	#0
+     277/     68C : 8D 13 FF            		sta	hw_ted_chargenclk	;Clock restore
+     278/     68F :                     
+     279/     68F : =>TRUE                  IF (def_wimode = 3)
+     280/     68F : =>FALSE                 ELSEIF (def_wimode > 0)
+     281/     68F :                     sjl_retted19	lda	#0
+     282/     68F :                     		sta	hw_ted_bordercolor	;Border color restore
+     283/     68F : [279]                   ENDIF
+     284/     68F :                     
+     285/     68F : A9 0F               		lda	#%00001111
+     286/     691 : 85 00               		sta	$00			;Restore CPUPORT DDR
+     287/     693 : A5 9D               		lda	z_eal
+     288/     695 : 48                  		pha
+     289/     696 : A5 9E               		lda	z_eah
+     290/     698 : 48                  		pha
+     291/     699 : BA                  		tsx
+     292/     69A : BD 07 01            		lda	$0107,x
+     293/     69D : 85 9D               		sta	z_eal
+     294/     69F : BD 08 01            		lda	$0108,x
+     295/     6A2 : 85 9E               		sta	z_eah
+     296/     6A4 : A0 01               		ldy	#1
+     297/     6A6 : B1 9D               		lda	(z_eal),y
+     298/     6A8 : 9D 07 01            		sta	$0107,x
+     299/     6AB : C8                  		iny
+     300/     6AC : B1 9D               		lda	(z_eal),y
+     301/     6AE : 9D 08 01            		sta	$0108,x
+     302/     6B1 : A2 00               		ldx	#0
+     303/     6B3 : AD 00 08            		lda	$0800
+     304/     6B6 : 9D 00 08            .colmemrestore	sta	ldr_addr-1,x		;~restore original colour memory
+     305/     6B9 : 9D 00 09            		sta	ldr_addr-1+256,x
+     306/     6BC : E8                  		inx
+     307/     6BD : D0 F7               		bne	.colmemrestore
+     308/     6BF : 20 CE 06            sjl_erldingaddr	jsr	.eraseloadtext
+     309/     6C2 : 68                  		pla
+     310/     6C3 : 85 9E               		sta	z_eah
+     311/     6C5 : 68                  		pla
+     312/     6C6 : 85 9D               		sta	z_eal
+     313/     6C8 : 68                  		pla
+     314/     6C9 : A8                  		tay
+     315/     6CA : 68                  		pla
+     316/     6CB : AA                  		tax
+     317/     6CC : 68                  		pla
+     318/     6CD : 40                  		rti
+     319/     6CE :                     
+     320/     6CE : 24 9A               .eraseloadtext	bit	z_msgfgl
+     321/     6D0 : 10 09               		bpl	.eraloadnot
+     322/     6D2 : 20 4F FF            		jsr	rom_primm
+     323/     6D5 : 1B 50 1B 4A 91 00   		BYT	$1b,"P",$1b,"J",$91,0
+     324/     6DB : 60                  .eraloadnot	rts
+     325/     6DC :                     
+     326/    123F :                     	DEPHASE
+     327/    123F :                     
+     328/    123F : =$E7                bootstrap_code_length = * - bootstrap_code_start
+     329/    123F :                     
+     330/    123F :                     ;-----------------------------------------------------------------------------
+     331/    123F :                     ;---	Loader routine:
+     332/    123F :                     
+     333/    123F :                     loader_code_start
+     334/    123F :                     
+     335/     801 :                     	PHASE ldr_addr
+     336/     801 :                     
+     337/     801 : 20 7F 06            open_exit	jsr	sjl_returnrout
+     338/     804 : 06 08               		ADR	.retaddr
+     339/     806 : 60                  .retaddr	rts
+     340/     807 :                     
+     341/     807 : A6 AD               loader_routine	ldx	z_sa			;Get original secondary address from LOAD routine, not IEC SA!
+     342/     809 : A9 60               		lda	#$60
+     343/     80B : 85 AD               		sta	z_sa			;Set secondary address: $60: load from drive channel 0
+     344/     80D :                     
+     345/     80D : A9 08               		lda	#((open_exit-1) / 256)
+     346/     80F : 48                  		pha
+     347/     810 : A9 00               		lda	#((open_exit-1) & $ff)
+     348/     812 : 48                  		pha				;"?DEVICE NOT PRESENT ERROR." ~routine
+     349/     813 : 20 05 F0            		jsr	rom_iec_open		;BUSOP. If DNP, drop return address and go to error handler
+     350/     816 : 68                  		pla
+     351/     817 : 68                  		pla
+     352/     818 : 78                  		sei
+     353/     819 :                     
+     354/     819 : A5 01               		lda	$01
+     355/     81B : 29 08               		and	#%00001000		;Cass. Motor on?
+     356/     81D : F0 1D               		beq	.filenotfound		;If yes, ERROR
+     357/     81F : A9 08               		lda	#%00001000
+     358/     821 : 85 01               		sta	$01			;Cass. RD line 0
+     359/     823 : A9 1F               		lda	#%00011111
+     360/     825 : 85 00               		sta	$00			;Dirty Hack: Switch Output to Cass. RD line
+     361/     827 :                     
+     362/     827 : A5 AE               		lda	z_fa			;Device no
+     363/     829 : 20 F9 08            		jsr	sjl_talk		;SJL Talk
+     364/     82C : A5 AD               		lda	z_sa			;Secondary address
+     365/     82E : 20 7A 09            		jsr	sjl_sectalk		;Secondary Talk
+     366/     831 : 20 A6 09            		jsr	sjl_busin		;Get load address Lo BYTE
+     367/     834 : 85 9D               		sta	z_eal
+     368/     836 : =>FALSE                 IF (def_testing = "Y")
+     369/     836 :                     		sta	$e6			;If test, store original LOAD address LO
+     370/     836 : [368]                   ENDIF
+     371/     836 : A5 90               		lda	z_status
+     372/     838 : 4A                  		lsr	a
+     373/     839 : 4A                  		lsr	a
+     374/     83A : 90 05               		bcc	.filefound
+     375/     83C : 20 7F 06            .filenotfound	jsr	sjl_returnrout
+     376/     83F : 7C F2               		ADR	rom_error_filenotfnd	;"?FILE NOT FOUND ERROR."
+     377/     841 :                     
+     378/     841 : 20 A6 09            .filefound	jsr	sjl_busin		;Get load address Hi BYTE
+     379/     844 : 85 9E               		sta	z_eah
+     380/     846 : =>FALSE                 IF (def_testing = "Y")
+     381/     846 :                     		sta	$e7			;If test, store original LOAD address HI
+     382/     846 : [380]                   ENDIF
+     383/     846 : 20 88 09            		jsr	sjl_untalk
+     384/     849 :                     
+     385/     849 : 8A                  		txa				;LOAD sec.addr = 0? Original load address / basic load address?
+     386/     84A : D0 08               		bne	.origloadaddr
+     387/     84C : A5 B4               		lda	z_memuss_l
+     388/     84E : 85 9D               		sta	z_eal
+     389/     850 : A5 B5               		lda	z_memuss_h
+     390/     852 : 85 9E               		sta	z_eah
+     391/     854 : A5 9E               .origloadaddr	lda	z_eah
+     392/     856 : C9 0A               		cmp	#$0a			;Load address >= $0A00?
+     393/     858 : B0 0A               		bcs	.ldaddrokay
+     394/     85A : 20 11 F2            		jsr	rom_iec_close		;Close file
+     395/     85D : A6 AD               		ldx	z_sa
+     396/     85F : 20 7F 06            		jsr	sjl_returnrout
+     397/     862 : 70 F0               		ADR	rom_load_driveload	;KERNAL load from disk, original
+     398/     864 :                     
+     399/     864 : E6 AD               .ldaddrokay	inc	z_sa			;Secondary address $61 = JD load
+     400/     866 : A5 AE               		lda	z_fa			;Device no
+     401/     868 : 20 F9 08            		jsr	sjl_talk		;SJL Talk
+     402/     86B : A5 AD               		lda	z_sa			;Secondary address
+     403/     86D : 20 7A 09            		jsr	sjl_sectalk		;Secondary Talk
+     404/     870 : C6 AD               		dec	z_sa
+     405/     872 :                     
+     406/     872 : A0 00               		ldy	#$00			;Mem. write index = always 0
+     407/     874 :                     		;ldx	#$00
+     408/     874 : A2 E7               		ldx	#231
+     409/     876 : CA                  .wait1		dex
+     410/     877 : D0 FD               		bne	.wait1
+     411/     879 :                     
+     412/     879 : A9 08               .loadloop	lda	#%00001000		;IEC lines released
+     413/     87B : 85 01               		sta	$01
+     414/     87D : 24 01               		bit	$01
+     415/     87F : 50 FC               		bvc	*-2			;Wait until 1541 release CLK
+     416/     881 : 30 4E               		bmi	.loadendover		;Branch if load ended
+     417/     883 : 24 01               		bit	$01
+     418/     885 : 10 FC               		bpl	*-2			;Wait until 1541 release DAT
+     419/     887 :                     
+     420/     887 : EA                  .transferbyte	nop				;	 Timing critical section
+     421/     888 : EA                  		nop
+     422/     889 : EA                  		nop
+     423/     88A : EA                  		nop
+     424/     88B : A9 08               		lda	#%00001000		;	 Release ATN/CLK/DAT
+     425/     88D : A2 09               		ldx	#%00001001		;	 Drive DAT
+     426/     88F : 86 01               		stx	$01			;(15/16)
+     427/     891 : 24 01               		bit	$01			;(18/20)
+     428/     893 : 50 E4               		bvc	.loadloop		;	 If 1541 activate CLK line, wait next block
+     429/     895 : EA                  		nop
+     430/     896 : 85 01               		sta	$01			;(25/28) Release DAT
+     431/     898 : A5 01               		lda	$01			;(28/32) Read bits 10
+     432/     89A : EA                  		nop
+     433/     89B : 4A                  		lsr	a
+     434/     89C : 4A                  		lsr	a
+     435/     89D : 45 01               		eor	$01			;(37/42) Read bits 32
+     436/     89F : 24 00               		bit	$00
+     437/     8A1 : 4A                  		lsr	a
+     438/     8A2 : 4A                  		lsr	a
+     439/     8A3 : 45 01               		eor	$01			;(47/53) Read bits 54
+     440/     8A5 : 24 00               		bit	$00
+     441/     8A7 : 4A                  		lsr
+     442/     8A8 : 4A                  		lsr
+     443/     8A9 : 45 01               		eor	$01			;(57/64) Read bits 76
+     444/     8AB : 49 0A               		eor	#%00001010		;	 Flip back (cas. mtr) bits
+     445/     8AD : 91 9D               .memwrt_opcode	sta	(z_eal),y		;	 Store received BYTE
+     446/     8AF : E6 9D               		inc	z_eal
+     447/     8B1 : D0 D4               		bne	.transferbyte
+     448/     8B3 :                     
+     449/     8B3 : =>FALSE                 IF (def_wimode = 1)
+     450/     8B3 :                     		and	#%00001111
+     451/     8B3 :                     		ora	#%00010000
+     452/     8B3 :                     		eor	hw_ted_bordercolor
+     453/     8B3 :                     		sta	hw_ted_bordercolor	;Border color change: "working indicator"
+     454/     8B3 : [449]                   ENDIF
+     455/     8B3 : =>FALSE                 IF (def_wimode = 2)
+     456/     8B3 :                     		and	#%00001111
+     457/     8B3 :                     		sta	hw_ted_bordercolor	;Border color change: "working indicator"
+     458/     8B3 :                     		bne	.notblack
+     459/     8B3 :                     		inc	hw_ted_bordercolor	;Border color: change black to gray
+     460/     8B3 :                     .notblack
+     461/     8B3 : [455]                   ENDIF
+     462/     8B3 : =>TRUE                  IF (def_wimode = 3)
+     463/     8B3 : 8D 19 FF            		sta	hw_ted_bordercolor	;Border color change: "working indicator"
+     464/     8B6 : 49 7F               		eor	#$7f
+     465/     8B8 : 8D 19 FF            		sta	hw_ted_bordercolor
+     466/     8BB : A9 00               .bordercolor	lda	#$00			;Self-modified: Saved Border color
+     467/     8BD : 8D 19 FF            		sta	hw_ted_bordercolor	;Border color restore
+     468/     8C0 : [462]                   ENDIF
+     469/     8C0 :                     
+     470/     8C0 : E6 9E               		inc	z_eah
+     471/     8C2 : A5 9E               		lda	z_eah
+     472/     8C4 : F0 04               		beq	.memwrtdis		;If next address = $0000, error, disable memwrite
+     473/     8C6 : C9 FD               		cmp	#$fd
+     474/     8C8 : D0 BD               		bne	.transferbyte		;If next address < $FD00, okay
+     475/     8CA : A9 B1               .memwrtdis	lda	#$b1			;LDA ($ZP),y op.code
+     476/     8CC : 8D AD 08            		sta	.memwrt_opcode
+     477/     8CF : D0 B6               		bne	.transferbyte		;BRA read cycle
+     478/     8D1 :                     
+     479/     8D1 : A2 64               .loadendover	ldx	#$64
+     480/     8D3 : 24 01               .end_check	bit	$01
+     481/     8D5 : 50 06               		bvc	.end_ok
+     482/     8D7 : CA                  		dex
+     483/     8D8 : D0 F9               		bne	.end_check
+     484/     8DA : A9 42               		lda	#%01000010		;EOI, TimeOut under receiving
+     485/     8DC : 2C                  		BYT	$2c			;~NOP $xxxx
+     486/     8DD : A9 40               .end_ok		lda	#%01000000		;EOI
+     487/     8DF : 20 1E F4            		jsr	rom_set_status
+     488/     8E2 : 20 88 09            		jsr	sjl_untalk
+     489/     8E5 : 20 11 F2            		jsr	rom_iec_close		;IEC bus CLOSE
+     490/     8E8 : 90 05               		bcc	.end_ready
+     491/     8EA : 20 7F 06            		jsr	sjl_returnrout
+     492/     8ED : 7C F2               		ADR	rom_error_filenotfnd
+     493/     8EF : A9 2C               .end_ready	lda	#$2c			;BIT $xxxx op.code
+     494/     8F1 : 8D BF 06            		sta	sjl_erldingaddr		;Patch "LOADING" text eraser routine
+     495/     8F4 : 20 7F 06            		jsr	sjl_returnrout
+     496/     8F7 : EB F0               		ADR	rom_load_readyret
+     497/     8F9 :                     
+     498/     8F9 :                     
+     499/     8F9 :                     
+     500/     8F9 :                     ;	TALK routine:
+     501/     8F9 : 09 40               sjl_talk	ora	#$40			;TALK flag
+     502/     8FB : 85 95               sjl_sendbyatn	sta	z_bsour
+     503/     8FD : 20 C6 E2            		jsr	rom_cbmser_dat_hiz	;DAT line to HiZ
+     504/     900 : EA                  		nop
+     505/     901 : EA                  		nop
+     506/     902 : A5 01               		lda	$01
+     507/     904 : 09 04               		ora	#%00000100
+     508/     906 : 85 01               		sta	$01			;ATN line to Lo
+     509/     908 :                     
+     510/     908 :                     ;	Send IEC BYTE: (lwiecs)
+     511/     908 : 20 BF E2            sjl_sendbyte	jsr	rom_cbmser_clk_lo	;CLK line to Lo
+     512/     90B : 20 C6 E2            		jsr	rom_cbmser_dat_hiz	;DAT line to HiZ
+     513/     90E : 20 DC E2            		jsr	rom_cbmser_wait1ms	;Wait 1 mSec
+     514/     911 : 20 D4 E2            		jsr	rom_cbmser_readlines	;Read CBMSER lines: Data -> Cy, Clock: -> N
+     515/     914 : 90 03               		bcc	.devpres
+     516/     916 : 4C E9 E1            		jmp	rom_cbmser_devnotpres	;Set "Device Not Present" flag
+     517/     919 : 20 B8 E2            .devpres	jsr	rom_cbmser_clk_hiz	;CLK line to HiZ
+     518/     91C : 20 D4 E2            .waitdata	jsr	rom_cbmser_readlines	;Read CBMSER lines: Data -> Cy, Clock: -> N
+     519/     91F : 90 FB               		bcc	.waitdata		;Wait until data HiZ
+     520/     921 : 20 BF E2            		jsr	rom_cbmser_clk_lo	;CLK line to Lo
+     521/     924 : 8A                  		txa
+     522/     925 : 48                  		pha
+     523/     926 : A2 08               		ldx	#8			;8 bits to send
+     524/     928 : EA                  .lsendbits	nop
+     525/     929 : EA                  		nop
+     526/     92A : EA                  		nop
+     527/     92B : 24 01               		bit	$01
+     528/     92D : 30 05               		bmi	.devprescont
+     529/     92F : 68                  		pla
+     530/     930 : AA                  		tax
+     531/     931 : 4C EE E1            		jmp	rom_cbmser_timeout	;Set "TimeOut" flag
+     532/     934 : 20 C6 E2            .devprescont	jsr	rom_cbmser_dat_hiz	;DAT line to HiZ
+     533/     937 : 66 95               		ror	z_bsour
+     534/     939 : B0 03               		bcs	.dathi
+     535/     93B : 20 CD E2            		jsr	rom_cbmser_dat_lo	;DAT line to Lo
+     536/     93E : 20 B8 E2            .dathi		jsr	rom_cbmser_clk_hiz	;CLK line to HiZ
+     537/     941 : A5 01               		lda	$01
+     538/     943 : 29 FE               		and	#%11111110		;C64: $DF = %11011111	DAT = HiZ
+     539/     945 : 09 02               		ora	#%00000010		;C64: $10 = %00010000	CLK = Lo
+     540/     947 : 85 01               		sta	$01
+     541/     949 : 29 04               		and	#%00000100		;C64: $08 = %00001000	ATN drive?
+     542/     94B : F0 19               		beq	.ltwobitsent
+     543/     94D : A5 95               		lda	z_bsour
+     544/     94F : 6A                  		ror	a
+     545/     950 : 6A                  		ror	a
+     546/     951 : E0 02               		cpx	#2
+     547/     953 : D0 11               		bne	.ltwobitsent
+     548/     955 : A2 1E               		ldx	#$1e
+     549/     957 : 24 01               .lwack1		bit	$01
+     550/     959 : 10 05               		bpl	.lwack2
+     551/     95B : CA                  		dex
+     552/     95C : D0 F9               		bne	.lwack1
+     553/     95E : F0 04               		beq	.lcont6
+     554/     960 :                     
+     555/     960 : 24 01               .lwack2		bit	$01
+     556/     962 : 10 FC               		bpl	.lwack2
+     557/     964 :                     
+     558/     964 : A2 02               .lcont6		ldx	#2
+     559/     966 : CA                  .ltwobitsent	dex
+     560/     967 : D0 BF               		bne	.lsendbits
+     561/     969 : A2 56               		ldx	#$56
+     562/     96B : CA                  .lcont7		dex
+     563/     96C : F0 07               		beq	.ltbtimeout
+     564/     96E : A5 01               		lda	$01
+     565/     970 : 30 F9               		bmi	.lcont7
+     566/     972 : 68                  		pla
+     567/     973 : AA                  		tax
+     568/     974 : 60                  		rts
+     569/     975 :                     
+     570/     975 : 68                  .ltbtimeout	pla
+     571/     976 : AA                  		tax
+     572/     977 : 4C EE E1            		jmp	rom_cbmser_timeout	;Set "TimeOut" flag
+     573/     97A :                     
+     574/     97A :                     ;	Send Secondary address: (lsendsa)
+     575/     97A : 85 95               sjl_sectalk	sta	z_bsour
+     576/     97C : 20 08 09            		jsr	sjl_sendbyte		;Send BYTE
+     577/     97F : A9 09               		lda	#%00001001		;C64: $23 = %00100011	Data Lo, ATN / CLK HiZ
+     578/     981 : 85 01               		sta	$01
+     579/     983 : 24 01               .waitclk	bit	$01
+     580/     985 : 70 FC               		bvs	.waitclk
+     581/     987 : 60                  		rts
+     582/     988 :                     
+     583/     988 :                     ;	UnTalk:
+     584/     988 : A5 01               sjl_untalk	lda	$01
+     585/     98A : 09 04               		ora	#%00000100		;ATN drive
+     586/     98C : 85 01               		sta	$01
+     587/     98E : 20 BF E2            		jsr	rom_cbmser_clk_lo
+     588/     991 : A9 5F               		lda	#$5f			;UNTALK command
+     589/     993 : 20 FB 08            		jsr	sjl_sendbyatn		;Send byte with ATN
+     590/     996 : 20 FC E1            		jsr	rom_cbmser_atn_hiz	;Release ATN line
+     591/     999 : 8A                  		txa
+     592/     99A : A2 0A               		ldx	#$0a
+     593/     99C : CA                  .ll2		dex
+     594/     99D : D0 FD               		bne	.ll2
+     595/     99F : AA                  		tax
+     596/     9A0 : 20 B8 E2            		jsr	rom_cbmser_clk_hiz	;Release CLK line
+     597/     9A3 : 4C C6 E2            		jmp	rom_cbmser_dat_hiz	;Release DAT line
+     598/     9A6 :                     
+     599/     9A6 :                     ;	IECIN: (lgiecin)
+     600/     9A6 : A5 01               sjl_busin	lda	$01
+     601/     9A8 : C9 40               		cmp	#%01000000		;#$40
+     602/     9AA : 90 FA               		bcc	sjl_busin
+     603/     9AC : EA                  		nop
+     604/     9AD : EA                  		nop
+     605/     9AE : EA                  		nop
+     606/     9AF : EA                  		nop
+     607/     9B0 : EA                  		nop
+     608/     9B1 : EA                  		nop
+     609/     9B2 : EA                  		nop
+     610/     9B3 : EA                  		nop
+     611/     9B4 : A9 08               		lda	#%00001000		;ATN/CLK/DAT HiZ
+     612/     9B6 : EA                  		nop
+     613/     9B7 : EA                  		nop
+     614/     9B8 : 85 01               		sta	$01		;(0)
+     615/     9BA : EA                  		nop
+     616/     9BB :                     		;nop
+     617/     9BB :                     		;nop
+     618/     9BB : A5 00               		lda	$00
+     619/     9BD : EA                  		nop
+     620/     9BE : EA                  		nop
+     621/     9BF : EA                  		nop
+     622/     9C0 : A5 01               		lda	$01		;(15/16)
+     623/     9C2 : 4A                  		lsr
+     624/     9C3 : 4A                  		lsr
+     625/     9C4 : EA                  		nop
+     626/     9C5 : 05 01               		ora	$01		;(24/26)
+     627/     9C7 : 4A                  		lsr
+     628/     9C8 : 4A                  		lsr
+     629/     9C9 : EA                  		nop
+     630/     9CA : 45 01               		eor	$01		;(33/36)
+     631/     9CC : 4A                  		lsr
+     632/     9CD : 4A                  		lsr
+     633/     9CE : 49 0A               		eor	#%00001010
+     634/     9D0 : EA                  		nop
+     635/     9D1 : 45 01               		eor	$01		;(44/48)
+     636/     9D3 : 48                  		pha
+     637/     9D4 : A9 09               		lda	#%00001001
+     638/     9D6 : 24 01               		bit	$01
+     639/     9D8 : 85 01               		sta	$01
+     640/     9DA : 50 0D               		bvc	.lend1
+     641/     9DC : 10 06               		bpl	.lerr1
+     642/     9DE : 68                  		pla
+     643/     9DF : A9 42               		lda	#%01000010		;EOI + timeout
+     644/     9E1 : 4C F0 E1            		jmp	rom_cbmser_sstatserend	;Set STATUS + serial transfer end
+     645/     9E4 : A9 40               .lerr1		lda	#%01000000		;EOI
+     646/     9E6 : 20 1E F4            		jsr	rom_set_status		;Set Status
+     647/     9E9 : 68                  .lend1		pla
+     648/     9EA : 18                  		clc
+     649/     9EB : 60                  		rts
+     650/     9EC :                     
+     651/    142A :                     	DEPHASE
+     652/    142A :                     
+     653/    142A : =$1EB               loader_code_length = * - loader_code_start
+     654/    142A :                     
+     655/    142A :                     ;-----------------------------------------------------------------------------
+     656/    142A :                     
+ AS V1.42 Beta [Bld 149] - Source File sjl264.asm - Page 2 - 22.09.2019 15:47:19
+
+
+  Symbol Table (* = unused):
+  --------------------------
+
+*ARCHITECTURE :                                        x86_64-unknown-linux - |
+ BAS_COLDRESET_STACK :         8025 - | *BAS_COLD_RESET :              8000 - |
+ BAS_MEMORY_CHECK :            8923 - |  BAS_PRINTFREE :               80E5 - |
+*BAS_PRINTHEADER :             80C2 - |  BAS_RESET :                   802E - |
+ BAS_VECTORS_INIT :            8117 - | *BAS_WARM_RESET :              8003 - |
+*BIGENDIAN :                      0 - |  BOOTSTRAP_ADDR :               5F5 - |
+ BOOTSTRAP_CODE_LENGTH :         E7 - |  BOOTSTRAP_CODE_START :        1158 C |
+*BRANCHEXT :                      0 - |  B_MEMSIZ :                     533 - |
+*B_MEMSTR :                     531 - | *CASESENSITIVE :                  0 - |
+ CKSUM_CHECK :                  66C C |  CKSUM_CHECK.WAITBORDER :       675 C |
+*CONSTPI :        3.141592653589793 - | *DATE :                  22.09.2019 - |
+ DEF_BETATEXT :                     - |  DEF_ONOFFSWITCH :                Y - |
+ DEF_TESTING :                    N - |  DEF_VERSION :                  0.3 - |
+ DEF_WIMODE :                     3 - | *FALSE :                          0 - |
+*FULLPMMU :                       1 - | *HAS64 :                          1 - |
+*HASDSP :                         0 - | *HASFPU :                         0 - |
+*HASPMMU :                        0 - |  HW_TEDBASE :                  FF00 - |
+ HW_TED_BORDERCOLOR :          FF19 - |  HW_TED_CHARGENCLK :           FF13 - |
+ HW_TED_SCRCONTROL1 :          FF06 - |  HW_TED_YPOS :                 FF1D - |
+*INEXTMODE :                      0 - | *INLWORDMODE :                    0 - |
+*INMAXMODE :                      0 - | *INSRCMODE :                      0 - |
+*INSUPMODE :                      0 - |  LDRSTORE16_ADDR :             3E00 - |
+ LDRSTORE32_ADDR :             7E00 - |  LDRSTORE64_ADDR :             EE00 - |
+ LDR_ADDR :                     801 - | *LISTON :                         1 - |
+ LOADER_CODE_LENGTH :           1EB - |  LOADER_CODE_START :           123F C |
+ LOADER_ROUTINE :               807 C |  LOADER_ROUTINE.BORDERCOLOR :   8BB C |
+ LOADER_ROUTINE.END_CHECK :     8D3 C |  LOADER_ROUTINE.END_OK :        8DD C |
+ LOADER_ROUTINE.END_READY :     8EF C |  LOADER_ROUTINE.FILEFOUND :     841 C |
+ LOADER_ROUTINE.FILENOTFOUND :  83C C |  LOADER_ROUTINE.LDADDROKAY :    864 C |
+ LOADER_ROUTINE.LOADENDOVER :   8D1 C |  LOADER_ROUTINE.LOADLOOP :      879 C |
+ LOADER_ROUTINE.MEMWRTDIS :     8CA C |  LOADER_ROUTINE.MEMWRT_OPCODE : 8AD C |
+ LOADER_ROUTINE.ORIGLOADADDR :  854 C |  LOADER_ROUTINE.TRANSFERBYTE :  887 C |
+ LOADER_ROUTINE.WAIT1 :         876 C |  LOAD_ROUTINE :                 5F8 C |
+ LOAD_ROUTINE.DRIVEADDR :       607 C |  LOAD_ROUTINE.LOADCCOPY1 :      639 C |
+ LOAD_ROUTINE.LOADCCOPY2 :      646 C |  LOAD_ROUTINE.ORIGLOAD :        604 C |
+*MACEXP :                         7 - | *MOMCPU :                      6502 - |
+*MOMCPUNAME :                  6502 - | *NESTMAX :                      100 - |
+ OPEN_EXIT :                    801 C |  OPEN_EXIT.RETADDR :            806 C |
+*PACKING :                        0 - | *PADDING :                        1 - |
+*RELAXED :                        0 - | *ROM_BUSIN :                   FFA5 - |
+*ROM_BUSOUT :                  FFA8 - |  ROM_CBMSER_ATN_HIZ :          E1FC - |
+ ROM_CBMSER_CLK_HIZ :          E2B8 - |  ROM_CBMSER_CLK_LO :           E2BF - |
+ ROM_CBMSER_DAT_HIZ :          E2C6 - |  ROM_CBMSER_DAT_LO :           E2CD - |
+ ROM_CBMSER_DEVNOTPRES :       E1E9 - |  ROM_CBMSER_READLINES :        E2D4 - |
+ ROM_CBMSER_SSTATSEREND :      E1F0 - |  ROM_CBMSER_TIMEOUT :          E1EE - |
+ ROM_CBMSER_WAIT1MS :          E2DC - | *ROM_CBMSER_WAIT20MS :         E2FC - |
+*ROM_CHROUT :                  FFD2 - |  ROM_ERROR_FILENOTFND :        F27C - |
+ ROM_IEC_CLOSE :               F211 - |  ROM_IEC_OPEN :                F005 - |
+ ROM_KEY :                     FF49 - | *ROM_LISTEN :                  FFB1 - |
+*ROM_LOAD :                    FFD5 - |  ROM_LOADINGVERIFYING :        F189 - |
+ ROM_LOAD_CONT :               F050 - |  ROM_LOAD_DRIVELOAD :          F070 - |
+ ROM_LOAD_READYRET :           F0EB - |  ROM_ORIG_LOAD_VECT :          F04A - |
+ ROM_PRIMM :                   FF4F - | *ROM_SAVE :                    FFD8 - |
+ ROM_SEARCHINGFOR :            F160 - | *ROM_SECLISTEN :               FF93 - |
+*ROM_SECTALK :                 FF96 - | *ROM_SETLFS :                  FFBA - |
+*ROM_SETNAM :                  FFBD - |  ROM_SET_STATUS :              F41E - |
+*ROM_TALK :                    FFB4 - | *ROM_UNLISTEN :                FFAE - |
+*ROM_UNTALK :                  FFAB - | *ROM_VECTORS_SETDEFAULT :      FF8A - |
+ SJL_BUSIN :                    9A6 C |  SJL_BUSIN.LEND1 :              9E9 C |
+ SJL_BUSIN.LERR1 :              9E4 C |  SJL_ERLDINGADDR :              6BF C |
+ SJL_ERLDINGADDR.ERALOADNOT :   6DB C |
+ SJL_ERLDINGADDR.ERASELOADTEXT :                                        6CE C |
+ SJL_RETTED06 :                 685 C |  SJL_RETTED13 :                 68A C |
+ SJL_RETTED13.COLMEMRESTORE :   6B6 C |  SJL_RETURNROUT :               67F C |
+ SJL_SECTALK :                  97A C |  SJL_SECTALK.WAITCLK :          983 C |
+ SJL_SENDBYATN :                8FB C |  SJL_SENDBYTE :                 908 C |
+ SJL_SENDBYTE.DATHI :           93E C |  SJL_SENDBYTE.DEVPRES :         919 C |
+ SJL_SENDBYTE.DEVPRESCONT :     934 C |  SJL_SENDBYTE.LCONT6 :          964 C |
+ SJL_SENDBYTE.LCONT7 :          96B C |  SJL_SENDBYTE.LSENDBITS :       928 C |
+ SJL_SENDBYTE.LTBTIMEOUT :      975 C |  SJL_SENDBYTE.LTWOBITSENT :     966 C |
+ SJL_SENDBYTE.LWACK1 :          957 C |  SJL_SENDBYTE.LWACK2 :          960 C |
+ SJL_SENDBYTE.WAITDATA :        91C C |  SJL_TALK :                     8F9 C |
+ SJL_UNTALK :                   988 C |  SJL_UNTALK.LL2 :               99C C |
+ START_ADDR :                  1001 - |  SWITCHER_ADDR :                5C6 - |
+*TIME :                    15:47:19 - | *TRUE :                           1 - |
+*VERSION :                     142F - |  V_ILOAD :                      32E - |
+ Z_BSOUR :                       95 - |  Z_EAH :                         9E - |
+ Z_EAL :                         9D - |  Z_FA :                          AE - |
+*Z_FNADR :                       AF - |  Z_FNLEN :                       AB - |
+ Z_MEMUSS_H :                    B5 - |  Z_MEMUSS_L :                    B4 - |
+ Z_MSGFGL :                      9A - |  Z_SA :                          AD - |
+*Z_SFDX :                        C6 - |  Z_STATUS :                      90 - |
+ Z_TXTTAB :                      2B - |  Z_VERFCK :                      93 - |
+ __FORW0 :                     100A C |  __FORW0.BOOTSTRAPCCOPY :      10C7 C |
+ __FORW0.FUNCTIONKEYSTRING :   112F C |
+ __FORW0.FUNCTIONKEYSTRING_END :                                       1137 C |
+ __FORW0.LOADCCOPY1 :          10D6 C |  __FORW0.LOADCCOPY1_WR :       10D9 C |
+ __FORW0.LOADCCOPY2 :          10E3 C |  __FORW0.LOADCCOPY2_WR :       10E6 C |
+ __FORW0.MEMSIZESET :          10B0 C |  __FORW0.MTROFF :              109F C |
+ __FORW0.SWITCH :               5D7 C |  __FORW0.SWITCHCHAR :           5E3 C |
+ __FORW0.SWITCHERCOPY :        1108 C |  __FORW0.SWITCHERROUTINE :     1137 C |
+ __FORW0.SWITCHERROUTINE_END : 1158 C |
+
+    178 Symbols
+     49 unused symbols
+
+ AS V1.42 Beta [Bld 149] - Source File sjl264.asm - Page 3 - 22.09.2019 15:47:19
+
+
+  Code Pages:
+  ----------
+
+STANDARD (0 changed characters)
+
+1 code page
+ AS V1.42 Beta [Bld 149] - Source File sjl264.asm - Page 4 - 22.09.2019 15:47:19
+
+
+  Space Used in CODE :
+  --------------------
+
+FFF-102B           102F               1036-1429          
+
+
+0.01 seconds assembly time
+
+    744 lines source file
+      2 passes
+      0 errors
+      0 warnings
