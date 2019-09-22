@@ -67,6 +67,9 @@ const byte screenWidth= 40;
 const byte screenX= 2;
 const byte screenY= 2;
 
+byte encounterWonOpcIdx;
+byte encounterLostOpcIdx;
+
 // prototypes
 
 opcode *opcodeForIndex(byte idx);
@@ -328,8 +331,10 @@ byte performAddencOpcode(opcode *anOpcode) {
 }
 
 // 0x0f DOENC
-byte performDoencOpcode(void) {
+byte performDoencOpcode(opcode *anOpcode) {
     prepareForGameMode(gm_encounter);
+    encounterWonOpcIdx= anOpcode->param1;
+    encounterLostOpcIdx= anOpcode->param2;
     quitDungeon= true;
     return 0;
 }
@@ -436,7 +441,7 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
         break;
 
     case OPC_DOENC:
-        rOpcIdx= performDoencOpcode();
+        rOpcIdx= performDoencOpcode(anOpcode);
         break;
 
     default:
@@ -660,6 +665,26 @@ void dungeonLoop() {
             }
         }
 
+        if (gEncounterResult !=
+            encUndef) { // coming from an encounter? --> handle result first
+
+            if ((gEncounterResult == encWon ||
+                 gEncounterResult == encSurrender ||
+                 gEncounterResult == encGreet) &&
+                encounterWonOpcIdx) {
+
+                performOpcodeAtIndex(encounterWonOpcIdx);
+            }
+
+            if ((gEncounterResult == encFled || gEncounterResult == encMercy) &&
+                encounterLostOpcIdx) {
+
+                performOpcodeAtIndex(encounterLostOpcIdx);
+            }
+
+            gEncounterResult = encUndef; // reset global encounter result for next time...
+        }
+
         if (!performedImpassableOpcode) {
             performOpcodeAtIndex(currentItem->opcodeID);
         }
@@ -669,7 +694,7 @@ void dungeonLoop() {
         oldX= currentX;
         oldY= currentY;
 
-        cmd = 0;
+        cmd= 0;
 
         if (!quitDungeon) {
 
@@ -679,7 +704,6 @@ void dungeonLoop() {
                 inspectCharacter(cmd - '1');
                 redrawAll();
             }
-        
         }
 
         switch (cmd) {
@@ -794,6 +818,17 @@ void loadNewDungeon(void) {
 
     mfile[3]= 'a' + gCurrentDungeonIndex;
     desc= loadMap(mfile);
+
+    if (!desc) {
+        puts("could not load dungeon");
+        exit(0);
+    }
+
+    encounterLostOpcIdx= 0;
+    encounterWonOpcIdx= 0;
+
+    gEncounterResult= encUndef;
+
     dungeonMapWidth= desc->dungeonMapWidth;
     gLoadedDungeonIndex= gCurrentDungeonIndex;
 

@@ -359,6 +359,10 @@ class mapCompiler:
 
         def opCreate_GOENC(pline):
             opc = [0x0f, 0, 0, 0, 0, 0, 0, 0]
+            if (pline.tWinOpcLabel):
+                opc[1] = "__DRLABEL__"+pline.tWinOpcLabel
+            if (pline.tLoseOpcLabel):
+                opc[2] = "__DRLABEL__"+pline.tLoseOpcLabel    
             return opc
 
         def opCreate_EXIT(pline):
@@ -441,6 +445,8 @@ class mapCompiler:
         p_mapName = pp.Word(pp.alphanums)('tMapName')
         p_trueOpcLabel = pp.Word(pp.alphanums)('tTrueOpcLabel')
         p_falseOpcLabel = pp.Word(pp.alphanums)('tFalseOpcLabel')
+        p_winOpcLabel = pp.Word(pp.alphanums)('tWinOpcLabel')
+        p_loseOpcLabel = pp.Word(pp.alphanums)('tLoseOpcLabel')
         p_regIdx = pp.Word(pp.nums)('tRegIndex')
         p_regValue = pp.Word(pp.nums)('tRegValue')
         p_itemID = pp.Word(pp.nums)('tItemID')
@@ -521,7 +527,7 @@ class mapCompiler:
 
             ^ pp.Keyword("CLRENC")('opcode')
 
-            ^ pp.Keyword("GOENC")('opcode')
+            ^ pp.Keyword("GOENC")('opcode')+p_winOpcLabel+","+p_loseOpcLabel
 
             ^ (pp.Keyword("ADDENC")('opcode')
                + p_monsterID('tMonsterID') + ","
@@ -604,9 +610,9 @@ class mapCompiler:
                         # print(i, opcodeNumber, x, y)
                         self.map[x][y].startOpcodeIndex = opcodeNumber
 
-        #pp.pprint.pprint (self.opcodeBytes())
-        #pp.pprint.pprint (self.feelsBytes())
-        #pp.pprint.pprint (self.mapBytes())
+        # pp.pprint.pprint (self.opcodeBytes())
+        # pp.pprint.pprint (self.feelsBytes())
+        # pp.pprint.pprint (self.mapBytes())
 
 
 ##################

@@ -44,7 +44,15 @@ historyRoomKobolds:
     ADDENC 1,1,3,0
     ADDENC 2,1,4,1
     ADDENC 1,1,5,2
-    GOENC
+    GOENC winH,loseH
+    ---
+
+winH:
+    ALTER historyRoomKobolds, historyRoom, 0
+    ---
+
+loseH:
+    WKEY msgWaitkey
     ---
 
 historyRoom:

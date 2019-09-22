@@ -65,11 +65,8 @@ Clear encounter list
 ## 0x0e ADDENC <01:mID> <02:mLvl> <03:count> <04:row> 
 Add <count> monsters with monster ID <mID> of level <mLvl> to encounter row <row>
 
-
-
-## 0x0f DOENC
+## 0x0f DOENC <01:winOpcIdx> <02:loseOpcIdx>
 Start encounter
-On return, register 1==true if won, otherwise (fled enc) false
 
 ## 0x1f EXIT <01:mapId> <02:xpos> <03:ypos>
 Exits the dungeon module back into wilderness map *mapID* at coords *xpos*, *ypos* 

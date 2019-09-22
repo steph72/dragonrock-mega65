@@ -20,8 +20,9 @@ gameModeT lastGameMode;
 
 byte gCurrentDungeonIndex;
 byte gLoadedDungeonIndex;
-
 byte gCurrentCityIndex;
+
+encResult gEncounterResult;
 
 unsigned char loadfile(char *name, void *addr, void *size);
 
@@ -62,8 +63,6 @@ void commitNewGameMode(void) {
 
 void enterCurrentGameMode() {
 
-    encResult res;
-
     switch (gCurrentGameMode) {
   
     case gm_city:
@@ -76,8 +75,8 @@ void enterCurrentGameMode() {
         break;
 
     case gm_encounter:
-        res = doEncounter();
-        if (res!=encDead) {
+        gEncounterResult = doEncounter();
+        if (gEncounterResult!=encDead) {
             popLastGameMode();
         } else {
             prepareForGameMode(gm_city);

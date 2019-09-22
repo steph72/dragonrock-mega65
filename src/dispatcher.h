@@ -18,6 +18,8 @@ extern byte gCurrentDungeonIndex;
 extern byte gLoadedDungeonIndex;
 extern byte gCurrentCityIndex;
 
+extern encResult gEncounterResult;
+
 void mainDispatchLoop(void);
 void prepareForGameMode(gameModeT newGameMode);
 void popLastGameMode(void);
