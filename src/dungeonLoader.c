@@ -90,6 +90,7 @@ dungeonDescriptor *loadMap(char *filename) {
     desc->startX= *(mapdata + 2);
     desc->startY= *(mapdata + 3);
     desc->dungeon= (dungeonItem *)(mapdata + 4);
+    desc->mapdata = mapdata;
 
 #ifdef DEBUG
     printf("dungeon at %x\n", desc->dungeon);

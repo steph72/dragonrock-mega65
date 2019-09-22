@@ -16,7 +16,6 @@
 
 extern character *guild;
 
-extern byte currentCity;
 extern byte hasLoadedGame;
 
 const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
@@ -39,7 +38,7 @@ void runGuildMenu(void) {
     quitGuild= 0;
 
     while (!quitGuild) {
-        sprintf(drbuf, "%s Guild", gCities[currentCity]);
+        sprintf(drbuf, "%s Guild", gCities[gCurrentCityIndex]);
         cg_titlec(BCOLOR_BROWN | CATTR_LUMA4, BCOLOR_GREEN | CATTR_LUMA5, 1,
                   drbuf);
         showCurrentParty(false);
@@ -68,7 +67,7 @@ void runGuildMenu(void) {
             break;
 
         case 'n':
-            newGuildMember(currentCity);
+            newGuildMember(gCurrentCityIndex);
             break;
 
         case 'l':
@@ -101,10 +100,9 @@ void runCityMenu(void) {
     static unsigned char quitCity;
 
     quitCity= 0;
-    gGameMode= gm_city;
 
     while (!quitCity) {
-        sprintf(drbuf, "%s (%d)", gCities[currentCity], currentCity + 1);
+        sprintf(drbuf, "%s (%d)", gCities[gCurrentCityIndex], gCurrentCityIndex + 1);
         cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 1,
                   drbuf);
         showCurrentParty(false);
@@ -140,6 +138,8 @@ void runCityMenu(void) {
             break;
         }
     }
+
+    free(guild);
 }
 
 void newGuildMember(byte city) {

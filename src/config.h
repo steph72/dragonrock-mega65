@@ -2,6 +2,7 @@
 #define __dwConfig
 
 #include "types.h"
+#include "dispatcher.h"
 
 // these may change...
 
@@ -14,7 +15,7 @@
 
 #define DR_GUILD_ID "**bkckkksk7t_dr**"
 
-extern gameMode gGameMode;
+extern gameModeT gCurrentGameMode;
 
 extern char *gRaces[NUM_RACES];
 extern char *gRacesS[NUM_RACES];

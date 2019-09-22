@@ -66,10 +66,6 @@ typedef enum _itemType {
 	it_armor, it_shield, it_weapon, it_potion, it_scroll, it_special 
 } itemType;
 
-typedef enum _gameMode {
-	gm_city, gm_merchant, gm_outdoor, gm_dungeon, gm_encounter
-} gameMode;
-
 typedef enum _monstertype {
 	mt_animal   = 0x01,
 	mt_humanoid = 0x02, 
@@ -164,6 +160,7 @@ typedef struct _character {
 } character;
 
 typedef struct _dungeonDescriptorS {
+	void *mapdata;			 // pointer to mapdata
     dungeonItem *dungeon;    // pointer to dungeon map
     opcode *opcodesAdr;      // pointer to opcode list
     unsigned char **feelTbl; // pointer to message list

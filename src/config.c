@@ -2,8 +2,6 @@
 #include "config.h"
 #include "types.h"
 
-gameMode gGameMode;
-
 char *gRaces[NUM_RACES]= {"Human", "Dwarf", "Elf", "Half-Elf", "Gnome"};
 char *gRacesS[NUM_RACES]= {"H", "D", "E", "HE", "G"};
 

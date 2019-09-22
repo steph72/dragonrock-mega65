@@ -41,12 +41,10 @@
 #include "encounter.h"
 #include "monster.h"
 
-extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
-extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
+#include "dispatcher.h"
 
 char *drbuf;
 
-byte currentCity;
 byte hasLoadedGame;
 
 void initEngine(void);
@@ -55,18 +53,18 @@ void runGuildMenu(void);
 void loadSaved(void);
 void installCharset(void);
 
- const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
-                         "Version 0.1 alpha\n\n"
-                         "Written by Stephan Kleinert\n"
-                         "at K-Burg, Bad Honnef, and\n"
-                         "at Hundehaus im Reinhardswald\n\n"
-                         "Copyright (c) 2019 7Turtles Software\n";
+const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
+                     "Version 0.1 alpha\n\n"
+                     "Written by Stephan Kleinert\n"
+                     "at K-Burg, Bad Honnef, and\n"
+                     "at Hundehaus im Reinhardswald\n\n"
+                     "Copyright (c) 2019 7Turtles Software\n";
 
 unsigned char loadfile(char *name, void *addr, void *size);
 
 void initEngine(void) {
     unsigned int rseed;
-   
+
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
 
     cg_init();
@@ -80,9 +78,11 @@ void initEngine(void) {
     }
     cputs(".");
     installIRQ();
-    hasLoadedGame = loadParty();
+    hasLoadedGame= loadParty();
     cputs(".");
     enableCustomCharset();
+    gLoadedDungeonIndex=255;
+
 }
 
 int main() {
@@ -97,7 +97,8 @@ int main() {
     cputsxy(2, 14, "2 - start in ");
     cputs(gCities[0]);
 
-    currentCity= 0;
+    gCurrentCityIndex= 0;
+    prepareForGameMode(gm_city);
 
     do {
         choice= cgetc();
@@ -105,47 +106,27 @@ int main() {
 
     if (choice == '1' && hasLoadedGame) {
         // determine last city from saved party
-        for (choice= 0; choice < PARTYSIZE; choice++) {
-            if (party[choice]) {
-                currentCity= party[choice]->city;
-                break;
-            }
-        }
+        gCurrentCityIndex= party[0]->city;
     } else if (choice == 'd') {
         cputs("\r\n--DEBUG--");
-        clearMonsters();
+        /* clearMonsters();
         addNewMonster(0, 1, 3, 0);
         addNewMonster(1, 6, 5, 1);
         addNewMonster(2, 2, 1, 2);
+        prepareForGameMode(gm_encounter);
+        commitNewGameMode();
         doEncounter();
         gotoxy(0, 0);
-        loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
-        testMap();
+        */
+        prepareForGameMode(gm_dungeon);
+        commitNewGameMode();
     } else {
         // remove saved party if not loading saved game
         for (choice= 0; choice < PARTYSIZE; party[choice++]= 0)
             ;
     }
 
-    loadfile("city", _OVERLAY2_LOAD__, _OVERLAY2_SIZE__);
-    initGuild();
-    runCityMenu();
+    mainDispatchLoop();
 
     return 0;
-}
-
-
-unsigned char loadfile(char *name, void *addr, void *size) {
-    /* Avoid compiler warnings about unused parameters. */
-    (void)addr;
-    (void)size;
-#ifdef DEBUG
-    cprintf("\r\nov %s $%x @ $%x ", name, size, addr);
-    cprintf("$%x rem", 0x2000 - (int)size);
-#endif
-    if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
-        cputs("Loading overlay file failed");
-        exit(0);
-    }
-    return 1;
 }

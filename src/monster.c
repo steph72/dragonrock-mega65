@@ -36,6 +36,7 @@ void clearMonsters(void) {
     }
 }
 
+/* 
 char* pluralname(monsterDef *aMonsterDef) {
     byte i;
     if (aMonsterDef->pluralname) {
@@ -47,6 +48,7 @@ char* pluralname(monsterDef *aMonsterDef) {
     drbuf[i+1]=0;
     return drbuf;
 }
+*/
 
 // create a monster with given ID and level
 // (creates standard level if level==0)
