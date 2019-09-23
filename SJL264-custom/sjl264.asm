@@ -47,28 +47,6 @@ ldrstore64_addr	=	$ee00		;Main loader routine storage area / 64K RAM
 
 ;	Init routine:
 	ORG	$100d
-		jsr	rom_primm
-		BYT	$0d,"SJL264 LIGHT V",def_version," BY BSZ (B"
-	BINCLUDE "_coun.txt"
-		BYT	"/"
-	BINCLUDE "_date.txt"
-		BYT	")",$0d
-		BYT	"FASTLOADER FOR JD EQUIPPED DRIVES",$0d
-    IF (def_onoffswitch = "Y")
-		BYT	"PRESS F1 TO DISABLE/ENABLE",$0d
-    ENDIF
-
-    IF (def_betatext = "")
-    ELSE
-		BYT	def_betatext
-      IF (def_testing = "Y")
-		BYT	" & TEST"
-      ENDIF
-		BYT	" VERSION",$0d
-    ENDIF
-
-		BYT	0
-
 		lda	$01
 		and	#%00001000		;Cass. Motor on?
 		bne	.mtroff
@@ -147,7 +125,6 @@ ldrstore64_addr	=	$ee00		;Main loader routine storage area / 64K RAM
 		lda	z_txttab+0
 		ldy	z_txttab+1
 		jsr	bas_memory_check		;$8923
-		jsr	bas_printfree			;$80e5	Print "xxxxx BYTES FREE"
 		cli
 		jmp	bas_coldreset_stack		;$8025	Start BASIC Interpreter
 

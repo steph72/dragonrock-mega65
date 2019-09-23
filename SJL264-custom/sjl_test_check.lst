@@ -1,4 +1,4 @@
- AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 1 - 22.09.2019 15:47:19
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 1 - 22.09.2019 15:55:32
 
 
        1/       0 :                     ;-----------------------------------------------------------------------------
@@ -384,7 +384,7 @@
      201/    11F2 :                     
      202/    11F2 :                     ;-----------------------------------------------------------------------------
      203/    11F2 :                     
- AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 2 - 22.09.2019 15:47:19
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 2 - 22.09.2019 15:55:32
 
 
   Symbol Table (* = unused):
@@ -437,7 +437,7 @@
 *ROM_UNLISTEN :                FFAE - | *ROM_UNTALK :                  FFAB - |
 *ROM_VECTORS_SETDEFAULT :      FF8A - |  START_ADDR :                  1001 - |
  TDEND_ADDR :                  FADF - |  TDSTART_ADDR :                123C - |
-*TIME :                    15:47:19 - | *TRUE :                           1 - |
+*TIME :                    15:55:32 - | *TRUE :                           1 - |
  UNIT_SELECTOR :               1193 C |  UNIT_SELECTOR.CYCLE :         11D4 C |
  UNIT_SELECTOR.OK :            11F1 C | *VERSION :                     142F - |
 *V_ILOAD :                      32E - | *Z_BSOUR :                       95 - |
@@ -457,7 +457,7 @@
     125 Symbols
      87 unused symbols
 
- AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 3 - 22.09.2019 15:47:19
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 3 - 22.09.2019 15:55:32
 
 
   Code Pages:
@@ -466,7 +466,7 @@
 STANDARD (0 changed characters)
 
 1 code page
- AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 4 - 22.09.2019 15:47:19
+ AS V1.42 Beta [Bld 149] - Source File sjl_test_check.asm - Page 4 - 22.09.2019 15:55:32
 
 
   Space Used in CODE :
@@ -475,7 +475,7 @@ STANDARD (0 changed characters)
 FFF-11F1           
 
 
-0.01 seconds assembly time
+0.02 seconds assembly time
 
     361 lines source file
       2 passes
