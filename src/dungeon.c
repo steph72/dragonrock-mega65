@@ -586,7 +586,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
 
 // perform bresenham for 4 edges of f-o-v
 void look(int x, int y) {
-    int xi1, xi2, yi1, yi2;
+    signed char xi1, xi2, yi1, yi2;
 
     yi1= y - L_DISTANCE;
     if (yi1 < 0)
@@ -738,7 +738,7 @@ void dungeonLoop() {
         mposX= currentX + offsetX;
         mposY= currentY + offsetY;
 
-        // can we move here?
+        // can we move here at all?
         if (mposX < 0 || mposY < 0 || mposX >= dungeonMapWidth ||
             mposY >= desc->dungeonMapHeight) {
             // nope, reset position
@@ -763,8 +763,9 @@ void dungeonLoop() {
                 // ...perform opcode...
                 performOpcodeAtIndex(dItem->opcodeID);
                 performedImpassableOpcode= true;
-                // ...and check 'pass' register
+                // ...and check if 'pass' register has become valid...
                 if (registers[R_PASS] == 255) {
+                    // ...you can not pass
                     currentX= oldX;
                     currentY= oldY;
                 }
