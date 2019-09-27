@@ -329,17 +329,17 @@ encResult encLoop(void) {
     encResult res;
     byte stopEncounter;
 
-    bordercolor(BCOLOR_BLACK);
-    bgcolor(BCOLOR_BLACK);
-    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
-
-    clrscr();
-
     gCurrentSpriteCharacterIndex= 0;
     memset(idxTable, 255, 255);
     prepareMonsters();
     prepareCharacters();
     stopEncounter= false;
+
+    bordercolor(BCOLOR_BLACK);
+    bgcolor(BCOLOR_BLACK);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+
+    clrscr();
 
     do {
 

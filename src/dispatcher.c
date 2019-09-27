@@ -2,13 +2,13 @@
 #include <cbm.h>
 #include <conio.h>
 #include <device.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "city.h"
-#include "guild.h"
 #include "dungeon.h"
 #include "encounter.h"
+#include "guild.h"
 
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
@@ -52,7 +52,7 @@ void commitNewGameMode(void) {
 
     case gm_encounter:
         clrscr();
-        puts("An encounter!");
+        cputs("An encounter...");
         loadfile("encounter", _OVERLAY3_LOAD__, _OVERLAY3_SIZE__);
         break;
 
@@ -64,7 +64,7 @@ void commitNewGameMode(void) {
 void enterCurrentGameMode() {
 
     switch (gCurrentGameMode) {
-  
+
     case gm_city:
         initGuild();
         runCityMenu();
@@ -75,8 +75,8 @@ void enterCurrentGameMode() {
         break;
 
     case gm_encounter:
-        gEncounterResult = doEncounter();
-        if (gEncounterResult!=encDead) {
+        gEncounterResult= doEncounter();
+        if (gEncounterResult != encDead) {
             popLastGameMode();
         } else {
             prepareForGameMode(gm_city);
@@ -90,19 +90,25 @@ void enterCurrentGameMode() {
 
 void mainDispatchLoop(void) {
     while (gNextGameMode != gm_end) {
-        puts("dp-n");
         commitNewGameMode();
         enterCurrentGameMode();
     }
 }
 
 unsigned char loadfile(char *name, void *addr, void *size) {
+#ifdef DEBUG
+    byte x, y;
+#endif
     /* Avoid compiler warnings about unused parameters. */
     (void)addr;
     (void)size;
 #ifdef DEBUG
-    cprintf("\r\nov %s $%x @ $%x ", name, size, addr);
-    cprintf("$%x rem", 0x2000 - (int)size);
+    x= wherex();
+    y= wherey();
+    gotoxy(0, 24);
+    printf("l %s $%x @ $%x ", name, size, addr);
+    printf("$%x rem", 0x2000 - (int)size);
+    gotoxy(x, y);
 #endif
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");

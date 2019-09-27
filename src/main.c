@@ -81,8 +81,7 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     cputs(".");
     enableCustomCharset();
-    gLoadedDungeonIndex=255;
-
+    gLoadedDungeonIndex= 255;
 }
 
 int main() {
@@ -108,7 +107,6 @@ int main() {
         // determine last city from saved party
         gCurrentCityIndex= party[0]->city;
     } else if (choice == 'd') {
-        cputs("\r\n--DEBUG--");
         /* clearMonsters();
         addNewMonster(0, 1, 3, 0);
         addNewMonster(1, 6, 5, 1);
@@ -118,6 +116,7 @@ int main() {
         doEncounter();
         gotoxy(0, 0);
         */
+        gCurrentDungeonIndex= 0;
         prepareForGameMode(gm_dungeon);
         commitNewGameMode();
     } else {
