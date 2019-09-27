@@ -3,8 +3,8 @@
 #include "congui.h"
 #include "debug.h"
 #include "dungeonLoader.h"
-#include "monster.h"
 #include "encounter.h"
+#include "monster.h"
 #include "types.h"
 
 #include <conio.h>
@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 
 /* ------------------------- opcodes ------------------------- */
 #define OPC_NOP 0x00    /* no operation                       */
@@ -46,7 +45,7 @@ char signs[]= {
     0x5f  // coat of arms
 };
 
-dungeonDescriptor *desc;
+static dungeonDescriptor *desc= NULL;
 unsigned int dungeonMapWidth;
 byte lastFeelIndex;
 byte registers[16];
@@ -55,14 +54,21 @@ byte registers[16];
 
 byte currentX; // current coordinates inside map window
 byte currentY;
+int mposX; // current coords inside map
+int mposY;
 byte offsetX;
 byte offsetY;
+
+byte quitDungeon;
 
 const byte mapWindowSize= 15;
 const byte scrollMargin= 2;
 const byte screenWidth= 40;
 const byte screenX= 2;
 const byte screenY= 2;
+
+byte encounterWonOpcIdx;
+byte encounterLostOpcIdx;
 
 // prototypes
 
@@ -243,8 +249,52 @@ byte performAlterOpcode(opcode *anOpcode) {
     return 0;
 }
 
+// CAUTION: 0x0a has to be in the main segment
+// because it is needed elsewhere as well..
+
+// clang-format off
+#pragma code-name(pop);
+// clang-format on
+
 // 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
-// is in encounter.c
+byte performAddCoinsOpcode(opcode *anOpcode) {
+    byte charIdx;
+    byte opcodeID;
+    int *coins;
+    int numMembers;
+    int coinsPerMember;
+
+    opcodeID= anOpcode->id & 31;
+
+    numMembers= partyMemberCount();
+    coins= (int *)&(
+        anOpcode->param1); // ...try to do something like that in Swift!
+    coinsPerMember= *coins / numMembers;
+
+    for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
+        if (party[charIdx]) {
+            if (opcodeID == 0x0a) {
+                party[charIdx]->gold+= coinsPerMember;
+            } else if (opcodeID == 0x0b) {
+                party[charIdx]->xp+= coinsPerMember;
+            }
+        }
+    }
+
+    if (anOpcode->id & 128) {
+        if (opcodeID == 0x0a) {
+            printf("The party gets %d coins\n", *coins);
+        } else if (opcodeID == 0x0b) {
+            printf("The party gets %d experience points\n", *coins);
+        }
+    }
+
+    return 0;
+}
+
+// clang-format off
+#pragma code-name(push, "OVERLAY1");
+// clang-format on
 
 // 0x0c: SETREG
 byte performSetregOpcode(opcode *anOpcode) {
@@ -273,19 +323,21 @@ byte performClearencOpcode(void) {
 byte performAddencOpcode(opcode *anOpcode) {
 
     if (anOpcode->param1) {
-        addNewMonster(anOpcode->param1, anOpcode->param2, anOpcode->param3, anOpcode->param4);
+        addNewMonster(anOpcode->param1, anOpcode->param2, anOpcode->param3,
+                      anOpcode->param4);
     }
 
     return 0;
 }
 
 // 0x0f DOENC
-byte performDoencOpcode(void) {
-    doEncounter();
-    redrawAll();
+byte performDoencOpcode(opcode *anOpcode) {
+    prepareForGameMode(gm_encounter);
+    encounterWonOpcIdx= anOpcode->param1;
+    encounterLostOpcIdx= anOpcode->param2;
+    quitDungeon= true;
     return 0;
 }
-
 
 // ---------------------------------
 // general opcode handling functions
@@ -321,7 +373,6 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     gotoxy(0, 23);
     gotoxy(xs, ys);
 #endif
-
 
     opcodeID= (anOpcode->id) & 31;
     nextOpcodeIndex= anOpcode->nextOpcodeIndex;
@@ -390,7 +441,7 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
         break;
 
     case OPC_DOENC:
-        rOpcIdx= performDoencOpcode();
+        rOpcIdx= performDoencOpcode(anOpcode);
         break;
 
     default:
@@ -535,7 +586,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
 
 // perform bresenham for 4 edges of f-o-v
 void look(int x, int y) {
-    int xi1, xi2, yi1, yi2;
+    signed char xi1, xi2, yi1, yi2;
 
     yi1= y - L_DISTANCE;
     if (yi1 < 0)
@@ -568,40 +619,16 @@ void look(int x, int y) {
 
 void dungeonLoop() {
 
-    int mposX; // current coords inside map
-    int mposY;
-
     byte xs, ys;     // save x,y for debugging
     byte oldX, oldY; // save x,y for impassable
 
     byte cmd;
-    byte quit;
     byte performedImpassableOpcode;
 
     signed char xdiff, ydiff;
 
     dungeonItem *dItem;
     dungeonItem *currentItem;
-
-    quit= 0;
-    lastFeelIndex= 0;
-
-    currentX= desc->startX;
-    currentY= desc->startY;
-    offsetX= 0;
-    offsetY= 0;
-    mposX= 0;
-    mposY= 0;
-
-    // if (currentX > mapWindowSize) {
-    offsetX= currentX - (mapWindowSize / 2);
-    currentX= mapWindowSize / 2;
-    //}
-
-    if (currentY > mapWindowSize) {
-        offsetY= currentY - (mapWindowSize / 2) - 1;
-        currentY= mapWindowSize / 2;
-    }
 
     redrawAll();
     performedImpassableOpcode= false;
@@ -612,7 +639,7 @@ void dungeonLoop() {
      *
      **************************************************************/
 
-    do {
+    while (!quitDungeon) {
 
         ensureSaneOffset();
 
@@ -638,6 +665,26 @@ void dungeonLoop() {
             }
         }
 
+        if (gEncounterResult !=
+            encUndef) { // coming from an encounter? --> handle result first
+
+            if ((gEncounterResult == encWon ||
+                 gEncounterResult == encSurrender ||
+                 gEncounterResult == encGreet) &&
+                encounterWonOpcIdx) {
+
+                performOpcodeAtIndex(encounterWonOpcIdx);
+            }
+
+            if ((gEncounterResult == encFled || gEncounterResult == encMercy) &&
+                encounterLostOpcIdx) {
+
+                performOpcodeAtIndex(encounterLostOpcIdx);
+            }
+
+            gEncounterResult = encUndef; // reset global encounter result for next time...
+        }
+
         if (!performedImpassableOpcode) {
             performOpcodeAtIndex(currentItem->opcodeID);
         }
@@ -647,11 +694,16 @@ void dungeonLoop() {
         oldX= currentX;
         oldY= currentY;
 
-        cmd= cgetc();
+        cmd= 0;
 
-        if (cmd >= '1' && cmd <= '6' && cmd != 'l') {
-            inspectCharacter(cmd - '1');
-            redrawAll();
+        if (!quitDungeon) {
+
+            cmd= cgetc();
+
+            if (cmd >= '1' && cmd <= '6' && cmd != 'l') {
+                inspectCharacter(cmd - '1');
+                redrawAll();
+            }
         }
 
         switch (cmd) {
@@ -677,7 +729,7 @@ void dungeonLoop() {
             break;
 
         case 'q':
-            quit= 1;
+            quitDungeon= true;
 
         default:
             break;
@@ -686,7 +738,7 @@ void dungeonLoop() {
         mposX= currentX + offsetX;
         mposY= currentY + offsetY;
 
-        // can we move here?
+        // can we move here at all?
         if (mposX < 0 || mposY < 0 || mposX >= dungeonMapWidth ||
             mposY >= desc->dungeonMapHeight) {
             // nope, reset position
@@ -711,14 +763,16 @@ void dungeonLoop() {
                 // ...perform opcode...
                 performOpcodeAtIndex(dItem->opcodeID);
                 performedImpassableOpcode= true;
-                // ...and check 'pass' register
+                // ...and check if 'pass' register has become valid...
                 if (registers[R_PASS] == 255) {
+                    // ...you can not pass
                     currentX= oldX;
                     currentY= oldY;
                 }
             }
         }
-    } while (!quit);
+
+    } // of while (!quitDungeon);
 }
 
 opcode *opcodeForIndex(byte idx) { return desc->opcodesAdr + idx; }
@@ -734,22 +788,74 @@ void setupDungeonScreen(void) {
     textcolor(BCOLOR_BLUEGREEN | CATTR_LUMA1);
     revers(1);
 
-    for (x=0;x<mapWindowSize+1;++x) {
-        cputcxy(screenX+x,screenY-1,' ');
-        cputcxy(screenX-1+x,screenY+mapWindowSize,' ');
-        cputcxy(screenX-1,screenY-1+x,' ');
-        cputcxy(screenX+mapWindowSize,screenY+x,' ');
+    for (x= 0; x < mapWindowSize + 1; ++x) {
+        cputcxy(screenX + x, screenY - 1, ' ');
+        cputcxy(screenX - 1 + x, screenY + mapWindowSize, ' ');
+        cputcxy(screenX - 1, screenY - 1 + x, ' ');
+        cputcxy(screenX + mapWindowSize, screenY + x, ' ');
     }
     revers(0);
 
     textcolor(COLOR_BLACK);
 }
 
-void testMap(void) {
-    clrscr();
-    desc= loadMap("map0");
+void unloadDungeon(void) {
+
+    if (desc != NULL) {
+        free(desc->dungeon);
+        free(desc->feelTbl);
+        free(desc->mapdata);
+        desc= NULL;
+    }
+
+    gLoadedDungeonIndex= 255;
+}
+
+void loadNewDungeon(void) {
+
+    char *mfile= "mapa";
+
+    unloadDungeon();
+
+    mfile[3]= 'a' + gCurrentDungeonIndex;
+    desc= loadMap(mfile);
+
+    if (!desc) {
+        puts("could not load dungeon");
+        exit(0);
+    }
+
+    encounterLostOpcIdx= 0;
+    encounterWonOpcIdx= 0;
+
+    gEncounterResult= encUndef;
+
     dungeonMapWidth= desc->dungeonMapWidth;
-    cgetc();
+    gLoadedDungeonIndex= gCurrentDungeonIndex;
+
+    lastFeelIndex= 0;
+
+    currentX= desc->startX;
+    currentY= desc->startY;
+    offsetX= 0;
+    offsetY= 0;
+    mposX= 0;
+    mposY= 0;
+
+    offsetX= currentX - (mapWindowSize / 2);
+    currentX= mapWindowSize / 2;
+
+    if (currentY > mapWindowSize) {
+        offsetY= currentY - (mapWindowSize / 2) - 1;
+        currentY= mapWindowSize / 2;
+    }
+}
+
+void enterDungeonMode(void) {
+    if (gLoadedDungeonIndex != gCurrentDungeonIndex) {
+        loadNewDungeon();
+    }
+    quitDungeon= false;
     dungeonLoop();
 }
 

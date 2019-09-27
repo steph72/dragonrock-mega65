@@ -11,41 +11,9 @@ static char sfname[8];
 int partyAuthorityLevel;
 int monsterAuthorityLevel;
 
-// 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
-byte performAddCoinsOpcode(opcode *anOpcode) {
-    byte charIdx;
-    byte opcodeID;
-    int *coins;
-    int numMembers;
-    int coinsPerMember;
-
-    opcodeID= anOpcode->id & 31;
-
-    numMembers= partyMemberCount();
-    coins= (int *)&(
-        anOpcode->param1); // ...try to do something like that in Swift!
-    coinsPerMember= *coins / numMembers;
-
-    for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
-        if (party[charIdx]) {
-            if (opcodeID == 0x0a) {
-                party[charIdx]->gold+= coinsPerMember;
-            } else if (opcodeID == 0x0b) {
-                party[charIdx]->xp+= coinsPerMember;
-            }
-        }
-    }
-
-    if (anOpcode->id & 128) {
-        if (opcodeID == 0x0a) {
-            printf("The party gets %d coins\n", *coins);
-        } else if (opcodeID == 0x0b) {
-            printf("The party gets %d experience points\n", *coins);
-        }
-    }
-
-    return 0;
-}
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
 
 void giveCoins(unsigned int coins) {
     opcode fakeOpcode;
@@ -361,18 +329,17 @@ encResult encLoop(void) {
     encResult res;
     byte stopEncounter;
 
-    bordercolor(BCOLOR_BLACK);
-    bgcolor(BCOLOR_BLACK);
-    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
-
-    clrscr();
-    cputs("An encounter!");
-
     gCurrentSpriteCharacterIndex= 0;
     memset(idxTable, 255, 255);
     prepareMonsters();
     prepareCharacters();
     stopEncounter= false;
+
+    bordercolor(BCOLOR_BLACK);
+    bgcolor(BCOLOR_BLACK);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+
+    clrscr();
 
     do {
 
@@ -531,3 +498,7 @@ encResult doEncounter(void) {
 
     return res;
 }
+
+// clang-format off
+#pragma code-name(pop);
+// clang-format on

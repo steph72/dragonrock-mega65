@@ -6,10 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "character.h"
 #include "congui.h"
 #include "guild.h"
 #include "types.h"
-#include "character.h"
 
 character *guild;
 
@@ -192,7 +192,7 @@ signed char nextFreeGuildSlot(void) {
 
 void saveGuild(void) {
     static FILE *outfile;
-    static byte i,c;
+    static byte i, c;
     clrscr();
     cg_borders();
     puts("\nPlease wait, "
@@ -202,11 +202,11 @@ void saveGuild(void) {
     fclose(outfile);
 
     puts("saving party...");
-    outfile=fopen("pdata","w");
-    c = partyMemberCount();
-    fputc(c,outfile);
-    for (i=0;i<c;++i) {
-        fwrite(party[i],sizeof(character),1,outfile);
+    outfile= fopen("pdata", "w");
+    c= partyMemberCount();
+    fputc(c, outfile);
+    for (i= 0; i < c; ++i) {
+        fwrite(party[i], sizeof(character), 1, outfile);
     }
     fclose(outfile);
     puts("\n\n...done.");
@@ -215,7 +215,6 @@ void saveGuild(void) {
 
 byte loadGuild(void) {
     static FILE *infile;
-
 
     infile= fopen("gdata", "r");
     if (!infile) {
@@ -235,8 +234,8 @@ byte initGuild() {
 void initGuildMem(void) {
     static unsigned int sizeBytes= 0;
     sizeBytes= GUILDSIZE * sizeof(character);
-    printf("guild size is %d bytes\n", sizeBytes);
     guild= (character *)malloc(sizeBytes);
+    printf("guild size is $%x bytes at $%x\n", sizeBytes,guild);
     if (guild == NULL) {
         puts("???fatal: no memory for guild");
         exit(0);

@@ -266,7 +266,7 @@ void inspectCharacter(byte idx) {
         cputs("g");
         revers(0);
         cputs("ive ");
-        if (gGameMode == gm_city) {
+        if (gCurrentGameMode == gm_city) {
             revers(1);
             cputs("s");
             revers(0);

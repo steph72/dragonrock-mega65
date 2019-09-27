@@ -6,6 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef DEBUG
+#define DLDEBUG
+#endif
+
+#undef DLDEBUG
 
 unsigned int dungeonSize;
 byte numFeels;
@@ -31,7 +36,7 @@ dungeonDescriptor *loadMap(char *filename) {
     byte *feelsPtr;
     int smSize;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     byte *debugPtr;
 #endif
 
@@ -39,7 +44,7 @@ dungeonDescriptor *loadMap(char *filename) {
 
     FILE *infile;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("load map %s\n\nloading map header\n", filename);
 #endif
 
@@ -47,7 +52,7 @@ dungeonDescriptor *loadMap(char *filename) {
     fread(drbuf, 3, 1, infile);
     drbuf[3]= 0;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("identifier segment: %s\n", drbuf);
 #endif
 
@@ -59,7 +64,7 @@ dungeonDescriptor *loadMap(char *filename) {
 
     desc= (dungeonDescriptor *)malloc(sizeof(dungeonDescriptor));
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("dungeon descriptor: %x\n", desc);
 #endif
 
@@ -68,11 +73,11 @@ dungeonDescriptor *loadMap(char *filename) {
     mapdata= (byte *)malloc(dungeonSize);
     currentDungeonPtr= mapdata;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("mapdata at %x\n", mapdata);
 #endif
 
-    cputs("please wait.");
+
     while (!feof(infile)) {
         ++i;
         bytesRead= fread(currentDungeonPtr, 1, BUFSIZE, infile);
@@ -81,7 +86,7 @@ dungeonDescriptor *loadMap(char *filename) {
         currentDungeonPtr+= bytesRead;
     }
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("\nread mapdata up to %x\n", currentDungeonPtr);
 #endif
 
@@ -90,8 +95,9 @@ dungeonDescriptor *loadMap(char *filename) {
     desc->startX= *(mapdata + 2);
     desc->startY= *(mapdata + 3);
     desc->dungeon= (dungeonItem *)(mapdata + 4);
+    desc->mapdata = mapdata;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("dungeon at %x\n", desc->dungeon);
 #endif
 
@@ -99,7 +105,7 @@ dungeonDescriptor *loadMap(char *filename) {
     seenMap= (byte *)malloc(smSize);
     memset(seenMap, 255, smSize);
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("map format is %s, dungeon size %x, width %d, height %d.\n", drbuf,
            dungeonSize, desc->dungeonMapWidth, desc->dungeonMapHeight);
     printf("startx: %d, starty: %d\n", desc->startX, desc->startY);
@@ -113,17 +119,17 @@ dungeonDescriptor *loadMap(char *filename) {
     numFeels= *(currentDungeonPtr + 5);
     *(currentDungeonPtr + 5)= 0; // set string terminator
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("segment: '%s'\n", currentDungeonPtr);
 #endif
 
     if (strcmp((char *)currentDungeonPtr, "feels") != 0) {
-        printf("?fatal: feels segment marker not found");
+        printf("?seg marker");
         fclose(infile);
         exit(0);
     }
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("%d feels\n", numFeels);
 #endif
 
@@ -133,12 +139,12 @@ dungeonDescriptor *loadMap(char *filename) {
     numOpcs= currentDungeonPtr[4];
     currentDungeonPtr[4]= 0;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("segment: '%s'\n", currentDungeonPtr);
 #endif
 
     if (strcmp(currentDungeonPtr, "opcs") != 0) {
-        printf("?fatal: opcs segment marker not found");
+        printf("?opcs marker");
         fclose(infile);
         exit(0);
     }
@@ -146,14 +152,14 @@ dungeonDescriptor *loadMap(char *filename) {
     currentDungeonPtr+= 5; // skip identifier and count
     desc->opcodesAdr= (opcode *)currentDungeonPtr;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("%d opcodes at %x\n", numOpcs, desc->opcodesAdr);
     printf("%d opcodes remaining.\n", 255 - numOpcs);
 #endif
 
     fclose(infile);
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     debugPtr= (byte *)malloc(8);
     printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
            (int)debugPtr - (int)desc);
@@ -167,27 +173,21 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     byte *currentPtr;
     unsigned int currentFeelIdx;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("\nbuilding feels tbl ");
 #endif
     currentPtr= startAddr;
     currentFeelIdx= 0;
-    if ((numFeels*2)>0x400) {
-        printf("too many feels... sorry\n");
-        exit(0);
-    }
     desc->feelTbl= (char **)malloc(2 * numFeels);
-    // desc->feelTbl= (char**) 0xf900;
 
-#ifdef DEBUG
+#ifdef DLDEBUG
     printf("at %x in main mem\n", desc->feelTbl);
 #endif
 
     while (currentFeelIdx < numFeels) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
-#ifdef DEBUG
-        // printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
-        // cgetc();
+#ifdef DLDEBUG
+        printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
 #endif
         while (*currentPtr != 0) {
             currentPtr++;
