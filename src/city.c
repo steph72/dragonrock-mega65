@@ -11,6 +11,7 @@
 #include "congui.h"
 #include "guild.h"
 #include "types.h"
+#include "utils.h"
 
 #include "dungeon.h"
 
@@ -209,14 +210,14 @@ void newGuildMember(byte city) {
     cputsxy(2, top, "Attributes:");
     do {
         for (i= 0; i < 6; i++) {
-            current= 7 + (rand() % 12) + gRaceModifiers[race][i];
+            current= 7 + (drand(12) + gRaceModifiers[race][i]);
             tempAttr[i]= current;
             cputsxy(margin, top + i, gAttributes[i]);
             gotoxy(margin + 13, top + i);
             cprintf("%2d %s", current, bonusStrForAttribute(current));
         }
-        tempHP= 3 + (rand() % 8) + bonusValueForAttribute(tempAttr[0]);
-        tempMP= 3 + (rand() % 8) + bonusValueForAttribute(tempAttr[1]);
+        tempHP= 3 + drand(8) + bonusValueForAttribute(tempAttr[0]);
+        tempMP= 3 + drand(8) + bonusValueForAttribute(tempAttr[1]);
 
         gotoxy(margin, top + i + 1);
         cprintf("Hit points   %2d", tempHP);
@@ -243,7 +244,7 @@ void newGuildMember(byte city) {
     // copy temp char to guild
     newC->city= city;
     newC->guildSlot= slot;
-    newC->status= alive;
+    newC->status= awake;
     newC->aRace= race;
     newC->aClass= class;
     for (i= 0; i < NUM_ATTRS; i++) {

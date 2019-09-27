@@ -73,9 +73,9 @@ newVec:
                     lda splitflag
                     beq skip1       ; skip configuring ted if splitflag=0
 
-                    nop
-                    nop
-                    sta tedborder
+                    ldx #8          ; burn some processor time...
+burnloop:           dex             ; ...for a nice, clean split screen
+                    bne burnloop
                     lda #$f8        ; switch to lowercase/text mode
                     sta tedctl2
                     lda tedconf1
@@ -92,8 +92,8 @@ topPos:             lda #bottomRow  ; we're at the top, so reconfigure irq to bo
                     lda splitflag   ; do we want a split at all?
                     beq continue    ; nope -> continue
                     
-                    lda #$05
-                    sta tedborder   ; color border for debugging
+                    ; lda #$05
+                    ; sta tedborder   ; color border for debugging
                     lda #$f0        ; switch to graphics charset
                     sta tedctl2
                     lda tedconf1

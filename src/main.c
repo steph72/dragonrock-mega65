@@ -107,15 +107,15 @@ int main() {
         // determine last city from saved party
         gCurrentCityIndex= party[0]->city;
     } else if (choice == 'd') {
-        /* clearMonsters();
+        
+        clearMonsters();
         addNewMonster(0, 1, 3, 0);
         addNewMonster(1, 6, 5, 1);
         addNewMonster(2, 2, 1, 2);
         prepareForGameMode(gm_encounter);
         commitNewGameMode();
-        doEncounter();
-        gotoxy(0, 0);
-        */
+        mainDispatchLoop();
+        
         gCurrentDungeonIndex= 0;
         prepareForGameMode(gm_dungeon);
         commitNewGameMode();

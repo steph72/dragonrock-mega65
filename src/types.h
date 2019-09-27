@@ -58,9 +58,11 @@ typedef enum _encResult {
 
 
 typedef enum _cstateType {
-	deleted=0, 
-	dead=1, 
-	alive=2
+	deleted=0,
+	down=1, 
+	asleep=2,
+	dead=3, 
+	awake=4
 } characterStateT;
 
 typedef enum _itemType {

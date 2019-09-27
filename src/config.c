@@ -10,7 +10,7 @@ char *gAttributes[]= {"Strength",  "Intelligence", "Wisdom",
 
 char *gAttributesS[]= {"STR", "INT", "WIS", "DEX", "CON", "CHR"};
 
-char *gStateDesc[]= {"deleted", "dead", "ok"};
+char *gStateDesc[]= {"deleted", "down", "asleep", "dead", "ok"};
 
 int gRaceModifiers[NUM_RACES][6]= {
     {0, 0, 0, 0, 0, 0},   // human

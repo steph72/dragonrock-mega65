@@ -1,4 +1,5 @@
 #include "encounter.h"
+#include "utils.h"
 #include <unistd.h>
 
 byte iteratorRow= 0;
@@ -10,6 +11,7 @@ static char sfname[8];
 
 int partyAuthorityLevel;
 int monsterAuthorityLevel;
+byte fightStarted;
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
@@ -123,16 +125,20 @@ void loadSpriteIfNeeded(byte id) {
     loadSprite(id);
 }
 
+void clearText(void) {
+    cg_clearLower(6);
+    gotoxy(0, 17);
+}
+
 void showFightOptionStatus(char *status) {
-    cg_clearLower(7);
-    gotoxy(0, 18);
+    clearText();
     cputs(status);
     sleep(1);
 }
 
 encResult checkSurrender() {
     unsigned int tMonsterAuth;
-    tMonsterAuth= monsterAuthorityLevel + rand() % 3;
+    tMonsterAuth= monsterAuthorityLevel + drand(3);
     if (tMonsterAuth < partyAuthorityLevel) {
         return encSurrender;
     }
@@ -142,11 +148,11 @@ encResult checkSurrender() {
 encResult checkMercy() {
     encResult res= encFight;
     if (monsterAuthorityLevel < partyAuthorityLevel) {
-        if ((rand() % 10) > 7) {
+        if ((drand(10)) > 7) {
             res= encMercy;
         }
     }
-    if ((rand() % 10) > 3) {
+    if (drand(10) > 3) {
         res= encMercy;
     }
 
@@ -158,6 +164,10 @@ encResult checkGreet() {
     int greetChance= 0;
     int greetRoll= 0;
 
+    if (fightStarted) {
+        return encFight;
+    }
+
     if (monsterAuthorityLevel + 5 < partyAuthorityLevel) {
         return encGreet;
     }
@@ -168,7 +178,10 @@ encResult checkGreet() {
         greetChance= 50 - ((monsterAuthorityLevel - partyAuthorityLevel) * 10);
     }
 
-    greetRoll= rand() % 100;
+    greetRoll= drand(100);
+
+    printf("greet chance, roll: %d %d", greetChance, greetRoll);
+    cgetc();
 
     if (greetChance > greetRoll) {
         return encGreet;
@@ -246,7 +259,7 @@ encResult preEncounter(void) {
     livePartyMembersCount= 0;
     for (i= 0; i < partyMemberCount(); ++i) {
         aCharacter= party[i];
-        if (aCharacter->status == alive) {
+        if (aCharacter->status == awake) {
             ++livePartyMembersCount;
             partyAuthorityLevel+= aCharacter->level;
             partyAuthorityLevel+=
@@ -308,7 +321,7 @@ void prepareMonsters(void) {
     while (iterateMonsters(&aMonster, &i, &j)) {
         if (aMonster) {
             loadSpriteIfNeeded(aMonster->def->spriteID);
-            aMonster->initiative= (byte)(rand() % 20);
+            aMonster->initiative= (byte)(drand(20)); // todo: honor monster attributes
         }
     }
 }
@@ -317,9 +330,18 @@ void prepareCharacters(void) {
     byte i;
     for (i= 0; i < partyMemberCount(); ++i) {
         party[i]->initiative=
-            (rand() % 20) + bonusValueForAttribute(party[i]->attributes[3]);
+            (drand(20) + bonusValueForAttribute(party[i]->attributes[3]));
         loadSpriteIfNeeded(party[i]->spriteID);
     }
+}
+
+void preparePartyMember(byte idx) {
+    character *guy;
+    guy= party[idx];
+    clearText();
+    cputs(guy->name);
+    puts(" encounter options:");
+    cgetc();
 }
 
 encResult encLoop(void) {
@@ -340,6 +362,7 @@ encResult encLoop(void) {
     textcolor(BCOLOR_WHITE | CATTR_LUMA6);
 
     clrscr();
+    fightStarted = false;
 
     do {
 
@@ -351,6 +374,7 @@ encResult encLoop(void) {
             return res;
         }
 
+        fightStarted = true;
         setSplitEnable(1);
         cg_clear();
 
@@ -373,6 +397,12 @@ encResult encLoop(void) {
         }
 
         // main encounter loop
+
+        for (j= 0; j < PARTYSIZE; ++j) {
+            if (party[j]->status == awake) {
+                preparePartyMember(j);
+            }
+        }
 
         for (c= 20; c != 0; --c) {
             while (iterateMonsters(&aMonster, &i, &j)) {
