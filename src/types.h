@@ -32,17 +32,34 @@
 extern char* drbuf;
 typedef unsigned char byte;
 
-typedef byte  raceT;
-typedef byte  classT;
 typedef byte  attrT;
 typedef byte  itemT;
+
+typedef enum _classT {
+	ct_fighter,
+	ct_ranger,
+	ct_priest,
+	ct_wizard,
+	ct_thief
+} classT;
+
+// char *gRaces[NUM_RACES]= {"Human", "Dwarf", "Elf", "Half-Elf", "Gnome"};
+
+typedef enum _raceT {
+	rt_human,
+	rt_dwarf,
+	rt_elf,
+	rt_halfelf,
+	rt_gnome
+} raceT;
 
 typedef enum _encCommand {
 	ec_thrust,
 	ec_attack,
 	ec_slash,
 	ec_parry,
-	ec_magic
+	ec_magic,
+	ec_fireBow
 } encCommand;
 
 typedef enum _encResult {
@@ -159,7 +176,10 @@ typedef struct _character {
 	itemT   weapon;
 	itemT   shield;
 	itemT   armor;
-	signed char    initiative;
+	signed char initiative;
+	encCommand	currentEncounterCommand;
+	byte		encParam1;
+	byte		encParam2;
 } character;
 
 typedef struct _dungeonDescriptorS {

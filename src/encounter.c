@@ -126,7 +126,7 @@ void loadSpriteIfNeeded(byte id) {
 }
 
 void clearText(void) {
-    cg_clearLower(6);
+    cg_clearLower(7);
     gotoxy(0, 17);
 }
 
@@ -321,7 +321,8 @@ void prepareMonsters(void) {
     while (iterateMonsters(&aMonster, &i, &j)) {
         if (aMonster) {
             loadSpriteIfNeeded(aMonster->def->spriteID);
-            aMonster->initiative= (byte)(drand(20)); // todo: honor monster attributes
+            aMonster->initiative=
+                (byte)(drand(20)); // todo: honor monster attributes
         }
     }
 }
@@ -337,11 +338,45 @@ void prepareCharacters(void) {
 
 void preparePartyMember(byte idx) {
     character *guy;
+    char choice;
     guy= party[idx];
     clearText();
     cputs(guy->name);
-    puts(" encounter options:");
-    cgetc();
+    cputs(":\r\nA)ttack  S)lash  T)hrust  P)arry\r\nF)ire bow  C)ast spell  "
+          "O)ptions\r\n>");
+    cursor(1);
+
+    do {
+        choice= cgetc();
+    } while (strchr("astpco", choice) == NULL);
+
+    switch (choice) {
+
+    case 'a':
+        guy->currentEncounterCommand= ec_attack;
+        break;
+
+    case 's':
+        if (guy->aClass == ct_fighter && guy->level >= 4) {
+            guy->currentEncounterCommand= ec_slash;
+        } else {
+            guy->currentEncounterCommand= ec_attack;
+        }
+        break;
+
+    case 't':
+        if (guy->aClass == ct_fighter && guy->level >= 2) {
+            guy->currentEncounterCommand= ec_thrust;
+        } else {
+            guy->currentEncounterCommand= ec_attack;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    cursor(0);
 }
 
 encResult encLoop(void) {
@@ -362,7 +397,7 @@ encResult encLoop(void) {
     textcolor(BCOLOR_WHITE | CATTR_LUMA6);
 
     clrscr();
-    fightStarted = false;
+    fightStarted= false;
 
     do {
 
@@ -374,7 +409,7 @@ encResult encLoop(void) {
             return res;
         }
 
-        fightStarted = true;
+        fightStarted= true;
         setSplitEnable(1);
         cg_clear();
 
