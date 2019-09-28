@@ -13,6 +13,12 @@ int partyAuthorityLevel;
 int monsterAuthorityLevel;
 byte fightStarted;
 
+char *gEncounterAction_p[]= {"Thrust", "Attack", "Slash",
+                           "Parry", "Cast", "Shoot"};
+
+char *gEncounterAction[]= {"thrusts", "attacks",     "slashes",
+                           "parries", "casts", "shoots"};
+
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
@@ -336,7 +342,7 @@ void prepareCharacters(void) {
     }
 }
 
-void preparePartyMember(byte idx) {
+void getChoicesForPartyMember(byte idx) {
     character *guy;
     char choice;
     guy= party[idx];
@@ -371,6 +377,10 @@ void preparePartyMember(byte idx) {
             guy->currentEncounterCommand= ec_attack;
         }
         break;
+    
+    case 'p':
+        guy->currentEncounterCommand = ec_parry;
+        break;
 
     default:
         break;
@@ -386,13 +396,15 @@ encResult encLoop(void) {
     encResult res;
     byte stopEncounter;
 
+    byte gotChoices;
+
     gCurrentSpriteCharacterIndex= 0;
     memset(idxTable, 255, 255);
     prepareMonsters();
     prepareCharacters();
     stopEncounter= false;
 
-    bordercolor(BCOLOR_BLACK);
+    bordercolor(BCOLOR_RED | CATTR_LUMA0);
     bgcolor(BCOLOR_BLACK);
     textcolor(BCOLOR_WHITE | CATTR_LUMA6);
 
@@ -433,11 +445,36 @@ encResult encLoop(void) {
 
         // main encounter loop
 
-        for (j= 0; j < PARTYSIZE; ++j) {
-            if (party[j]->status == awake) {
-                preparePartyMember(j);
+        gotChoices= false;
+        do {
+            for (j= 0; j < PARTYSIZE; ++j) {
+                if (party[j]->status == awake) {
+                    getChoicesForPartyMember(j);
+                }
             }
-        }
+            clearText();
+            for (j= 0; j < PARTYSIZE; ++j) {
+                if (party[j]->status == awake) {
+                    cputs(party[j]->name);
+                    cputs(": ");
+                    cputs(gEncounterAction_p[party[j]->currentEncounterCommand]);
+                    if (party[j]->encSpell) {
+                        printf(" %d ", party[j]->encSpell);
+                    }
+                    if (party[j]->encDestRank) {
+                        printf(" at rank %d", party[j]->encDestRank);
+                    }
+                    cputs("\r\n");
+                }
+            }
+            cputs("\r\nUse these options (y/n)? ");
+            cursor(1);
+            do {
+                c= cgetc();
+            } while (strchr("yn", c) == NULL);
+            cursor(0);
+            gotChoices= (c == 'y');
+        } while (!gotChoices);
 
         for (c= 20; c != 0; --c) {
             while (iterateMonsters(&aMonster, &i, &j)) {

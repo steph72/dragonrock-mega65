@@ -43,8 +43,6 @@ typedef enum _classT {
 	ct_thief
 } classT;
 
-// char *gRaces[NUM_RACES]= {"Human", "Dwarf", "Elf", "Half-Elf", "Gnome"};
-
 typedef enum _raceT {
 	rt_human,
 	rt_dwarf,
@@ -178,8 +176,8 @@ typedef struct _character {
 	itemT   armor;
 	signed char initiative;
 	encCommand	currentEncounterCommand;
-	byte		encParam1;
-	byte		encParam2;
+	byte		encSpell;
+	byte		encDestRank;
 } character;
 
 typedef struct _dungeonDescriptorS {
