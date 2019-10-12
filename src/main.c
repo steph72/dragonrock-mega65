@@ -103,9 +103,6 @@ int main() {
         choice= cgetc();
     } while (strchr("12d", choice) == NULL);
 
-    testMem();
-    cgetc();
-
     if (choice == '1' && hasLoadedGame) {
         // determine last city from saved party
         gCurrentCityIndex= party[0]->city;

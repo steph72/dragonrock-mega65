@@ -31,6 +31,11 @@ void cg_emptyBuffer(void) {
     }
 }
 
+char cg_getkey(void) {
+    cg_emptyBuffer();
+    return cgetc();
+}
+
 void cg_clearLower(byte num) {
     byte i;
     for (i= 24-num; i <= 24; ++i) {

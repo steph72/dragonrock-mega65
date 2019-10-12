@@ -14,10 +14,10 @@ int monsterAuthorityLevel;
 byte fightStarted;
 
 char *gEncounterAction_p[]= {"Thrust", "Attack", "Slash",
-                           "Parry", "Cast", "Shoot"};
+                             "Parry",  "Cast",   "Shoot"};
 
-char *gEncounterAction[]= {"thrusts", "attacks",     "slashes",
-                           "parries", "casts", "shoots"};
+char *gEncounterAction[]= {"thrusts", "attacks", "slashes",
+                           "parries", "casts",   "shoots"};
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
@@ -342,49 +342,74 @@ void prepareCharacters(void) {
     }
 }
 
+void characterChooseSpell(character *guy) {
+    char sp;
+    cputs("cast spell nr.? ");
+    fgets(drbuf, 10, stdin);
+    sp= atoi(drbuf);
+    guy->encSpell= sp;
+}
+
 void getChoicesForPartyMember(byte idx) {
     character *guy;
     char choice;
+    char repeat;
     guy= party[idx];
-    clearText();
-    cputs(guy->name);
-    cputs(":\r\nA)ttack  S)lash  T)hrust  P)arry\r\nF)ire bow  C)ast spell  "
-          "O)ptions\r\n>");
-    cursor(1);
 
     do {
-        choice= cgetc();
-    } while (strchr("astpco", choice) == NULL);
+        clearText();
+        repeat=false;
+        cputs(guy->name);
+        cputs(
+            ":\r\nA)ttack  S)lash  T)hrust  P)arry\r\nF)ire bow  C)ast spell  "
+            "O)ptions\r\n>");
+        cursor(1);
 
-    switch (choice) {
+        do {
+            choice= cgetc();
+        } while (strchr("astpco", choice) == NULL);
 
-    case 'a':
-        guy->currentEncounterCommand= ec_attack;
-        break;
+        switch (choice) {
 
-    case 's':
-        if (guy->aClass == ct_fighter && guy->level >= 4) {
-            guy->currentEncounterCommand= ec_slash;
-        } else {
+        case 'a':
             guy->currentEncounterCommand= ec_attack;
-        }
-        break;
+            break;
 
-    case 't':
-        if (guy->aClass == ct_fighter && guy->level >= 2) {
-            guy->currentEncounterCommand= ec_thrust;
-        } else {
-            guy->currentEncounterCommand= ec_attack;
+        case 's':
+            if (guy->aClass == ct_fighter && guy->level >= 4) {
+                guy->currentEncounterCommand= ec_slash;
+            } else {
+                guy->currentEncounterCommand= ec_attack;
+            }
+            break;
+
+        case 't':
+            if (guy->aClass == ct_fighter && guy->level >= 2) {
+                guy->currentEncounterCommand= ec_thrust;
+            } else {
+                guy->currentEncounterCommand= ec_attack;
+            }
+            break;
+
+        case 'p':
+            guy->currentEncounterCommand= ec_parry;
+            break;
+
+        case 'c':
+            guy->currentEncounterCommand= ec_magic;
+            characterChooseSpell(guy);
+            if (guy->encSpell==0) {
+                cputs("spell not known!");
+                cg_getkey();
+                repeat=true;
+            }
+            break;
+
+        default:
+            break;
         }
-        break;
     
-    case 'p':
-        guy->currentEncounterCommand = ec_parry;
-        break;
-
-    default:
-        break;
-    }
+    } while (repeat==true);
 
     cursor(0);
 }
@@ -457,7 +482,8 @@ encResult encLoop(void) {
                 if (party[j]->status == awake) {
                     cputs(party[j]->name);
                     cputs(": ");
-                    cputs(gEncounterAction_p[party[j]->currentEncounterCommand]);
+                    cputs(
+                        gEncounterAction_p[party[j]->currentEncounterCommand]);
                     if (party[j]->encSpell) {
                         printf(" %d ", party[j]->encSpell);
                     }
