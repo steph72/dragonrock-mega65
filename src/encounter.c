@@ -51,15 +51,23 @@ void doMonsterTurn(byte row, byte column) {
     theMonster= gMonsterRow[row][column];
     printf("doing %s(%d at %d,%d)\n", theMonster->def->name,
            theMonster->initiative, row, column);
-    // cgetc();
+    cgetc();
 }
 
 void doPartyTurn(byte idx) {
     character *theCharacter;
+    encCommand encounterCommand;
+    byte encSpell;
+    byte encDestinationRank;
+    
     theCharacter= party[idx];
-    printf("doing %s(%d at %d)\n", theCharacter->name, theCharacter->initiative,
-           idx);
-    // cgetc();
+    encounterCommand = theCharacter->currentEncounterCommand;
+    encSpell = theCharacter->encSpell;
+    encDestinationRank = theCharacter->encDestRank;
+
+    printf("doing %s(%d): encC %d encS %d encDR %d\n", theCharacter->name, theCharacter->initiative, encounterCommand,encSpell,encDestinationRank);
+    
+    cgetc();
 }
 
 void plotSprite(byte x, byte y, byte spriteID) {
