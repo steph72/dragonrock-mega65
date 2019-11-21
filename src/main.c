@@ -60,7 +60,6 @@ const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
                      "at Hundehaus im Reinhardswald\n\n"
                      "Copyright (c) 2019 7Turtles Software\n";
 
-unsigned char loadfile(char *name, void *addr, void *size);
 
 void initEngine(void) {
     unsigned int rseed;
@@ -107,7 +106,6 @@ int main() {
         // determine last city from saved party
         gCurrentCityIndex= party[0]->city;
     } else if (choice == 'd') {
-        
         clearMonsters();
         addNewMonster(0, 1, 3, 0);
         addNewMonster(1, 6, 5, 1);
@@ -115,7 +113,6 @@ int main() {
         prepareForGameMode(gm_encounter);
         commitNewGameMode();
         mainDispatchLoop();
-        
         gCurrentDungeonIndex= 0;
         prepareForGameMode(gm_dungeon);
         commitNewGameMode();

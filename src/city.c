@@ -25,6 +25,7 @@ const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
 
+
 void runGuildMenu(void) {
     const char menu[]= "  L)ist guild members  T)raining\n"
                        "  N)ew guild member    S)pells\n"

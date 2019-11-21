@@ -21,14 +21,14 @@ delete dungeon
 delete encounter
 delete charset
 delete map*
-write cbm/loader loader
-write cbm/sjload sjload
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
 write bin/drmain.plus4.3 encounter
 write bin/drcharset charset
 write mapdata/library.d mapa
+write cbm/loader sd2iecload
+write cbm/sjload sjload
 EOF
 
 c1541 disc/drock.d64 -delete fmsg*
