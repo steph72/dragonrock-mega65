@@ -61,13 +61,25 @@ character *chooseRandomCharacter(void) {
     return ret;
 }
 
-void doHitTest(monster *aMonster, character *opponent, hitResult *result) {
+void doMonsterDamage(monster *aMonster, hitResult *result) {
+    if (result->critical) {
+        result->damage = aMonster->level * (aMonster->def->hitDice + aMonster->def->hitModifier);
+    } else {
+        result->damage = aMonster->level * (drand(aMonster->def->hitDice) + aMonster->def->hitModifier);
+    }
+    return;
+}
+
+void doMonsterHit(monster *aMonster, character *opponent, hitResult *result) {
     result->toHit= getArmorClassForCharacter(opponent);
     result->hitRoll= drand(20);
     result->critical= (result->hitRoll == 20);
     result->hitBonus= aMonster->def->hitModifier;
     result->acHit= 20 - (result->hitRoll + result->hitBonus);
     result->success = ((result->acHit <= result->toHit) || result->critical);
+    if (result->success) {
+        doMonsterDamage(aMonster, result);
+    }
 }
 
 void doMonsterTurn(byte row, byte column) {
@@ -78,7 +90,7 @@ void doMonsterTurn(byte row, byte column) {
 
     theMonster= gMonsterRow[row][column];
     opponent= chooseRandomCharacter();
-    doHitTest(theMonster, opponent, &hitRes);
+    doMonsterHit(theMonster, opponent, &hitRes);
 
     clearText();
     printf("%s (i %d at %d,%d) attacks %s:\n"
@@ -87,6 +99,15 @@ void doMonsterTurn(byte row, byte column) {
            hitRes.hitRoll, hitRes.hitBonus, hitRes.acHit, hitRes.toHit);
     if (hitRes.success) {
         printf("*HIT*\n");
+        printf("%s takes %d points of damage.\n",opponent->name,hitRes.damage);
+        opponent->aHP -= hitRes.damage;
+        if (opponent->aHP<(-3-bonusValueForAttribute(opponent->attributes[aCON]))) {
+            printf("%s dies!",opponent->name);
+            opponent->status = dead;
+        } else if (opponent->aHP<=0) {
+            printf("%s goes down!",opponent->name);
+            opponent->status = down;
+        }
     } else {
         printf("*MISS*\n");
     }

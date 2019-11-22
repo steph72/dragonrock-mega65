@@ -122,6 +122,7 @@ typedef struct _hresult {		// hit result
 	int hitBonus;
 	int acHit;
 	int toHit;
+	int damage;
 } hitResult;
 
 typedef struct _ditem {			// dungeon item
