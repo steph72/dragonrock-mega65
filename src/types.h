@@ -32,8 +32,12 @@
 extern char* drbuf;
 typedef unsigned char byte;
 
-typedef byte  attrT;
-typedef byte  itemT;
+typedef byte attrT;
+typedef byte itemT;
+
+typedef enum attribute {
+	aSTR, aINT, aWIS, aDEX, aCON, aCHR
+} attrKind;
 
 typedef enum _classT {
 	ct_fighter,
@@ -106,10 +110,19 @@ typedef struct _item {			// inventory item
 	byte id;
 	char *name;
 	byte type;
-	byte val1;
-	byte val2;
+	byte val1;					// armor: minStrength needed
+	byte val2;					// armor: ac bonus
 	int price;
 } item;
+
+typedef struct _hresult {		// hit result
+	byte success;
+	byte critical;
+	int hitRoll;
+	int hitBonus;
+	int acHit;
+	int toHit;
+} hitResult;
 
 typedef struct _ditem {			// dungeon item
     byte mapItem;

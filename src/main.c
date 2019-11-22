@@ -107,15 +107,13 @@ int main() {
         gCurrentCityIndex= party[0]->city;
     } else if (choice == 'd') {
         clearMonsters();
+        gCurrentGameMode = gm_dungeon;
+        gCurrentDungeonIndex = 0;
         addNewMonster(0, 1, 3, 0);
         addNewMonster(1, 6, 5, 1);
         addNewMonster(2, 2, 1, 2);
         prepareForGameMode(gm_encounter);
-        commitNewGameMode();
         mainDispatchLoop();
-        gCurrentDungeonIndex= 0;
-        prepareForGameMode(gm_dungeon);
-        commitNewGameMode();
     } else {
         // remove saved party if not loading saved game
         for (choice= 0; choice < PARTYSIZE; party[choice++]= 0)

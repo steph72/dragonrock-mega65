@@ -89,6 +89,8 @@ void enterCurrentGameMode() {
 
 void mainDispatchLoop(void) {
     while (gNextGameMode != gm_end) {
+        // printf("COMMIT GAME MODE %d",gNextGameMode);
+        // cgetc();
         commitNewGameMode();
         enterCurrentGameMode();
     }

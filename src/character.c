@@ -68,6 +68,49 @@ itemT addInventoryItem(itemT anItemID, character *aCharacter) {
 
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 
+item* getWeapon(character *aCharacter) {
+    if (aCharacter->weapon) {
+        return inventoryItemForID(aCharacter->weapon);
+    } else {
+        return NULL;
+    }
+}
+
+item* getArmor(character *aCharacter) {
+    if (aCharacter->armor) {
+        return inventoryItemForID(aCharacter->armor);
+    } else {
+        return NULL;
+    }
+}
+
+item* getShield(character *aCharacter) {
+    if (aCharacter->shield) {
+        return inventoryItemForID(aCharacter->shield);
+    } else {
+        return NULL;
+    }
+}
+
+int getArmorClassForCharacter(character *aCharacter) {
+    int retAC = 10;
+    item *armor;
+    item *shield;
+
+    retAC -= bonusValueForAttribute(aCharacter->attributes[aDEX]);
+    armor = getArmor(aCharacter);
+    shield = getShield(aCharacter);
+    if (armor) {
+        retAC -= armor->val1;
+    }
+    if (shield) {
+        retAC -= shield->val1;
+    }
+    // todo: test for rings etc.
+    return retAC;
+
+}
+
 char *bonusStrForAttribute(attrT a) {
     static char ret[6];
     signed char b= bonusValueForAttribute(a);

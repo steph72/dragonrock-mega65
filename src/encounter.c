@@ -23,6 +23,8 @@ char *gEncounterAction[]= {"thrusts", "attacks", "slashes",
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
 
+void clearText(void);
+
 void giveCoins(unsigned int coins) {
     opcode fakeOpcode;
     fakeOpcode.id= 0x8a;
@@ -45,12 +47,49 @@ byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
     return (width * mPos) + (width / 2) - (mWidth / 2);
 }
 
+character *chooseRandomCharacter(void) {
+    byte i;
+    character *ret;
+
+    ret= NULL;
+    do {
+        i= drand(partyMemberCount());
+        if (party[i]->status != dead && party[i]->status != down) {
+            ret= party[i];
+        }
+    } while (ret == NULL);
+    return ret;
+}
+
+void doHitTest(monster *aMonster, character *opponent, hitResult *result) {
+    result->toHit= getArmorClassForCharacter(opponent);
+    result->hitRoll= drand(20);
+    result->critical= (result->hitRoll == 20);
+    result->hitBonus= aMonster->def->hitModifier;
+    result->acHit= 20 - (result->hitRoll + result->hitBonus);
+    result->success = ((result->acHit <= result->toHit) || result->critical);
+}
+
 void doMonsterTurn(byte row, byte column) {
 
     monster *theMonster;
+    character *opponent;
+    hitResult hitRes;
+
     theMonster= gMonsterRow[row][column];
-    printf("doing %s(%d at %d,%d)\n", theMonster->def->name,
-           theMonster->initiative, row, column);
+    opponent= chooseRandomCharacter();
+    doHitTest(theMonster, opponent, &hitRes);
+
+    clearText();
+    printf("%s (i %d at %d,%d) attacks %s:\n"
+           "hit roll %d+%d (AC %d) vs. AC %d: ",
+           theMonster->def->name, theMonster->initiative, row, column, opponent->name,
+           hitRes.hitRoll, hitRes.hitBonus, hitRes.acHit, hitRes.toHit);
+    if (hitRes.success) {
+        printf("*HIT*\n");
+    } else {
+        printf("*MISS*\n");
+    }
     cgetc();
 }
 
@@ -59,14 +98,17 @@ void doPartyTurn(byte idx) {
     encCommand encounterCommand;
     byte encSpell;
     byte encDestinationRank;
-    
-    theCharacter= party[idx];
-    encounterCommand = theCharacter->currentEncounterCommand;
-    encSpell = theCharacter->encSpell;
-    encDestinationRank = theCharacter->encDestRank;
 
-    printf("doing %s(%d): encC %d encS %d encDR %d\n", theCharacter->name, theCharacter->initiative, encounterCommand,encSpell,encDestinationRank);
-    
+    theCharacter= party[idx];
+    encounterCommand= theCharacter->currentEncounterCommand;
+    encSpell= theCharacter->encSpell;
+    encDestinationRank= theCharacter->encDestRank;
+
+    clearText();
+    printf("should do %s (i %d): encC %d encS %d encDR %d\n",
+           theCharacter->name, theCharacter->initiative, encounterCommand,
+           encSpell, encDestinationRank);
+
     cgetc();
 }
 
@@ -102,6 +144,13 @@ void plotCharacter(byte idx) {
     plotSprite(x, y, party[idx]->spriteID);
 }
 
+/**
+ * @brief loads a sprite into memory
+ *
+ * @param id the id of the sprite to load.
+ * after loading, the start address of the sprite is
+ * added to the sprite index table
+ */
 void loadSprite(byte id) {
     byte *addr;
     FILE *spritefile;
@@ -111,7 +160,8 @@ void loadSprite(byte id) {
     spritefile= fopen("spr128", "rb");
     cputc('.');
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
-    // printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex, addr);
+    // printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex,
+    // addr);
     if (spritefile) {
         fread(addr, 144, 1, spritefile);
         fclose(spritefile);
@@ -131,6 +181,11 @@ void loadSprite(byte id) {
     gCurrentSpriteCharacterIndex+= 18;
 }
 
+/**
+ * @brief adds a sprite to the sprite pool if needed
+ *
+ * @param id the sprite id
+ */
 void loadSpriteIfNeeded(byte id) {
 
     if (idxTable[id] != 255) {
@@ -366,11 +421,11 @@ void getChoicesForPartyMember(byte idx) {
 
     do {
         clearText();
-        repeat=false;
+        repeat= false;
         cputs(guy->name);
-        cputs(
-            ":\r\nA)ttack  S)lash  T)hrust  P)arry\r\nF)ire bow  C)ast spell  "
-            "O)ptions\r\n>");
+        cputs(":\r\nA)ttack  S)lash  T)hrust  P)arry\r\nF)ire bow  C)ast "
+              "spell  "
+              "O)ptions\r\n>");
         cursor(1);
 
         do {
@@ -406,18 +461,18 @@ void getChoicesForPartyMember(byte idx) {
         case 'c':
             guy->currentEncounterCommand= ec_magic;
             characterChooseSpell(guy);
-            if (guy->encSpell==0) {
+            if (guy->encSpell == 0) {
                 cputs("spell not known!");
                 cg_getkey();
-                repeat=true;
+                repeat= true;
             }
             break;
 
         default:
             break;
         }
-    
-    } while (repeat==true);
+
+    } while (repeat == true);
 
     cursor(0);
 }
