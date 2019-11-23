@@ -314,6 +314,8 @@ clean:
 	$(call RMFILES,$(DEPENDS))
 	$(call RMFILES,$(REMOVES))
 	$(call RMFILES,$(PROGRAM))
+	rm -rf bin/*
+
 
 else # $(words $(TARGETLIST)),1
 

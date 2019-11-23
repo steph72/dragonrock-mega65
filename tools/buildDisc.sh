@@ -1,6 +1,7 @@
 #!/bin/sh
 
 tools/buildCharset.sh
+tools/buildSprites.sh
 
 python3 tools/mc.py mapsrc/library.drs mapdata/library.d
 
@@ -34,4 +35,8 @@ EOF
 c1541 disc/drock.d64 -delete fmsg*
 c1541 disc/drock.d64 -delete spr*
 c1541 disc/drock.d64 -write mapdata/fmsg*
-c1541 disc/drock.d64 -write graphics/spr*
+
+for filename in bin/spr*; do
+  c1541 disc/drock.d64 -write $filename
+done
+# c1541 disc/drock.d64 -write bin/spr*
