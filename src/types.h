@@ -110,20 +110,11 @@ typedef struct _item {			// inventory item
 	byte id;
 	char *name;
 	byte type;
-	byte val1;					// armor: minStrength needed
-	byte val2;					// armor: ac bonus
+	byte val1;					// armor, weapon: minStrength needed
+	byte val2;					// armor: ac bonus; weapon: hit dice
+	byte val3;					// weapon: bonus
 	int price;
 } item;
-
-typedef struct _hresult {		// hit result
-	byte success;
-	byte critical;
-	int hitRoll;
-	int hitBonus;
-	int acHit;
-	int toHit;
-	int damage;
-} hitResult;
 
 typedef struct _ditem {			// dungeon item
     byte mapItem;
@@ -204,5 +195,18 @@ typedef struct _dungeonDescriptorS {
     byte startX;
     byte startY;
 } dungeonDescriptor;
+
+typedef struct _hresult {		// hit result
+	byte success;
+	byte critical;
+	int hitRoll;
+	int hitBonus;
+	int damageBonus;
+	int acHit;
+	int toHit;
+	int damage;
+	character *theCharacter;
+	monster *theMonster;
+} hitResult;
 
 #endif

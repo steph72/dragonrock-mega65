@@ -7,6 +7,7 @@ byte iteratorColumn= 0;
 
 byte gCurrentSpriteCharacterIndex;
 byte idxTable[255]; // sprite index cache
+
 static char sfname[8];
 static char hasDoneTurn[6];
 
@@ -20,9 +21,6 @@ char *gEncounterAction_p[]= {"Thrust", "Attack", "Slash",
 char *gEncounterAction[]= {"thrusts", "attacks", "slashes",
                            "parries", "casts",   "shoots"};
 
-// clang-format off
-#pragma code-name(push, "OVERLAY3");
-// clang-format on
 
 /*
     ==========
@@ -64,12 +62,6 @@ byte isPartyDefeated(void) {
     return true;
 }
 
-byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
-    byte width;
-    width= 40 / numMonsters;
-    return (width * mPos) + (width / 2) - (mWidth / 2);
-}
-
 character *chooseRandomCharacter(void) {
     byte i;
     character *ret;
@@ -82,6 +74,25 @@ character *chooseRandomCharacter(void) {
         }
     } while (ret == NULL);
     return ret;
+}
+
+void characterChooseSpell(character *guy) {
+    char sp;
+    cputs("cast spell nr.? ");
+    fgets(drbuf, 10, stdin);
+    sp= atoi(drbuf);
+    guy->encSpell= sp;
+}
+
+
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
+
+byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
+    byte width;
+    width= 40 / numMonsters;
+    return (width * mPos) + (width / 2) - (mWidth / 2);
 }
 
 void doMonsterDamage(monster *aMonster, hitResult *result) {
@@ -163,10 +174,76 @@ monster *opponentOnRank(byte rank) {
     return returnMonster;
 }
 
-void doCharacterHit(character *aCharacter, byte rank) {
+void doCharacterDamage(hitResult *result) {
+
+    item *weapon;
+    character *aCharacter;
+    int hitDice;
+    int bonus;
+
+    aCharacter= result->theCharacter;
+
+    weapon= getWeapon(aCharacter);
+    hitDice= getHitDiceForCharacter(aCharacter);
+    bonus= bonusValueForAttribute(aCharacter->attributes[aSTR]);
+
+    if (weapon) {
+        bonus+= (weapon->val3);
+    }
+
+    result->damageBonus= bonus;
+
+    if (result->critical) {
+        result->damage= hitDice + bonus;
+    } else {
+        result->damage= (drand(hitDice) + bonus);
+    }
+}
+
+void doCharacterHit(character *aCharacter, byte rank, hitResult *result) {
     monster *opponent;
     opponent= opponentOnRank(rank);
-    printf("opponent: %s",opponent->def->name);
+
+    if (!opponent) {
+        printf("no opponent!");
+        return;
+    }
+
+    result->theCharacter= aCharacter;
+    result->theMonster= opponent;
+
+    result->toHit= opponent->def->armorClass;
+    result->hitRoll= drand(20);
+    result->critical= (result->hitRoll == 20);
+    result->hitBonus= bonusValueForAttribute(
+        aCharacter->attributes[aSTR]); // todo: DEX when using bow
+    result->acHit= 20 - (result->hitRoll + result->hitBonus);
+    result->success= ((result->acHit <= result->toHit) || result->critical);
+    if (result->success) {
+        doCharacterDamage(result);
+    }
+}
+
+void performCharacterHitResult(hitResult *res) {
+
+    textcolor(BCOLOR_LIGHTBLUE | CATTR_LUMA5);
+    cputs(res->theCharacter->name);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA7);
+
+    cputs(" attacks ");
+    textcolor(BCOLOR_RED | CATTR_LUMA4);
+    cputs(res->theMonster->def->name);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA7);
+
+    printf(":\nhit roll %d+%d (AC %d) vs. AC %d: ",
+            res->hitRoll, res->hitBonus, res->acHit,
+           res->toHit);    
+    if (!res->success) {
+        printf("MISS\n");
+        return;
+    } 
+    printf("*HIT*\n");
+
 }
 
 void doPartyTurn(byte idx) {
@@ -182,12 +259,15 @@ void doPartyTurn(byte idx) {
     encDestinationRank= theCharacter->encDestRank;
 
     clearText();
+    /*
     printf("should do %s (i %d): encC %d encS %d encDR %d\n",
            theCharacter->name, theCharacter->initiative, encounterCommand,
            encSpell, encDestinationRank);
+           */
 
     if (encounterCommand == ec_attack) {
-        doCharacterHit(theCharacter, encDestinationRank);
+        doCharacterHit(theCharacter, encDestinationRank, &hitRes);
+        performCharacterHitResult(&hitRes);
     }
 
     hasDoneTurn[idx]= true;
@@ -531,13 +611,6 @@ void prepareCharacters(void) {
     }
 }
 
-void characterChooseSpell(character *guy) {
-    char sp;
-    cputs("cast spell nr.? ");
-    fgets(drbuf, 10, stdin);
-    sp= atoi(drbuf);
-    guy->encSpell= sp;
-}
 
 void getChoicesForPartyMember(byte idx) {
     character *guy;

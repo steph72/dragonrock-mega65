@@ -92,6 +92,15 @@ item* getShield(character *aCharacter) {
     }
 }
 
+int getHitDiceForCharacter(character *aCharacter) {
+    item *weapon;
+    if (aCharacter->weapon) {
+        weapon = getWeapon(aCharacter);
+        return weapon->val2;
+    }
+    return 3;
+}
+
 int getArmorClassForCharacter(character *aCharacter) {
     int retAC = 10;
     item *armor;

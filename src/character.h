@@ -18,7 +18,10 @@ byte partyMemberCount(void);
 signed char bonusValueForAttribute(attrT a);
 char* bonusStrForAttribute(attrT a);
 
+item* getWeapon(character *aCharacter);
+
 int getArmorClassForCharacter(character *aCharacter);
+int getHitDiceForCharacter(character *aCharacter);
 
 void showCurrentParty(char small);
 void inspectCharacter(byte idx);
