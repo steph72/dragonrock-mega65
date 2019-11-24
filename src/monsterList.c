@@ -8,7 +8,7 @@ monsterDef gMonsters[]= {
     // -------------------- minor monsters ---------------------- */
 
     {
-        0x00, 1, 10, mt_humanoid,           // ID, default level, spriteID
+        0x00, 1, 0x10, mt_humanoid,           // ID, default level, spriteID
         "Noob", NULL,         // name, pluralname
         9, 6, 6, 0, 1,        // armorClass, hit dice, hit points, mag points, numAttacks
         0, 0,                 // courageMod, hitMod
@@ -17,7 +17,7 @@ monsterDef gMonsters[]= {
     },
 
     {
-        0x01, 1, 11, mt_humanoid,           // ID, default level, spriteID
+        0x01, 1, 0x11, mt_humanoid,           // ID, default level, spriteID
         "Kobold", NULL,       // name, pluralname
         10, 6, 6, 0, 1,        // armorClass, hit dice, hit points, numAttacks
         0, 0,                 // courageMod, hitMod
@@ -26,7 +26,7 @@ monsterDef gMonsters[]= {
     },
 
         {
-        0x02, 1, 12, mt_humanoid,           // ID, default level, spriteID
+        0x02, 1, 0x12, mt_humanoid,           // ID, default level, spriteID
         "Orc", NULL,          // name, pluralname
         9, 6, 6, 0, 1,        // armorClass, hit dice, hit points, numAttacks
         0, 0,                 // courageMod, hitMod
@@ -35,7 +35,7 @@ monsterDef gMonsters[]= {
     },
 
     {
-        0x03, 1, 13, mt_humanoid,           // ID, default level, spriteID
+        0x03, 1, 0x13, mt_humanoid,           // ID, default level, spriteID
         "Kobold General", NULL,       // name, pluralname
         10, 6, 6, 0, 2,        // armorClass, hit dice, hit points, numAttacks
         0, 0,                 // courageMod, hitMod
