@@ -4,4 +4,4 @@
 
 cd bin
 rm -rf spr*
-split -a2 -b144 -d ../graphics/monsters1-charset.bin spr0
+split -a1 -b144 -x ../graphics/monsters1-charset.bin spr0

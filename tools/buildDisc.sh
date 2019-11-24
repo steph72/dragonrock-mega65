@@ -14,7 +14,6 @@ fi
 
 c1541 <<EOF
 attach disc/drock.d64
-delete loader
 delete sjload
 delete main
 delete city
@@ -34,7 +33,10 @@ EOF
 
 c1541 disc/drock.d64 -delete fmsg*
 c1541 disc/drock.d64 -delete spr*
-c1541 disc/drock.d64 -write mapdata/fmsg*
+
+for filename in mapdata/fmsg*; do 
+  c1541 disc/drock.d64 -write $filename
+done
 
 for filename in bin/spr*; do
   c1541 disc/drock.d64 -write $filename

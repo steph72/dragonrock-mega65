@@ -58,6 +58,7 @@ EMUCMD :=
 #PREEMUCMD := osascript -e "tell application \"X11\" to activate"
 #POSTEMUCMD := osascript -e "tell application \"System Events\" to tell process \"X11\" to set visible to false"
 #POSTEMUCMD := osascript -e "tell application \"Terminal\" to activate"
+BUILDRESCMD := /bin/bash tools/buildDisc.sh
 PREEMUCMD := /bin/bash tools/buildDisc.sh
 POSTEMUCMD :=
 
@@ -243,6 +244,7 @@ endif
 .PHONY: all test clean zap love
 
 all: $(PROGRAM)
+	$(BUILDRESCMD)
 
 -include $(DEPENDS)
 -include $(STATEFILE)

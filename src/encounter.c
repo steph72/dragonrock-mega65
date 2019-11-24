@@ -145,11 +145,36 @@ void doMonsterTurn(byte row, byte column) {
     cgetc();
 }
 
+monster *opponentOnRank(byte rank) {
+    byte i;
+    byte monsterCount= 0;
+    monster *returnMonster;
+    for (i= 0; i < MONSTER_SLOTS; ++i) {
+        if (gMonsterRow[rank][i]->hp > 0) {
+            monsterCount++;
+        }
+    }
+    if (monsterCount == 0) {
+        return NULL;
+    }
+    do {
+        returnMonster= gMonsterRow[rank][drand(MONSTER_SLOTS)];
+    } while (!(returnMonster && returnMonster->hp > 0));
+    return returnMonster;
+}
+
+void doCharacterHit(character *aCharacter, byte rank) {
+    monster *opponent;
+    opponent= opponentOnRank(rank);
+    printf("opponent: %s",opponent->def->name);
+}
+
 void doPartyTurn(byte idx) {
     character *theCharacter;
     encCommand encounterCommand;
     byte encSpell;
     byte encDestinationRank;
+    hitResult hitRes;
 
     theCharacter= party[idx];
     encounterCommand= theCharacter->currentEncounterCommand;
@@ -160,6 +185,10 @@ void doPartyTurn(byte idx) {
     printf("should do %s (i %d): encC %d encS %d encDR %d\n",
            theCharacter->name, theCharacter->initiative, encounterCommand,
            encSpell, encDestinationRank);
+
+    if (encounterCommand == ec_attack) {
+        doCharacterHit(theCharacter, encDestinationRank);
+    }
 
     hasDoneTurn[idx]= true;
     plotCharacter(idx, true);
@@ -245,18 +274,17 @@ void loadSprite(byte id) {
     byte *addr;
     FILE *spritefile;
 
-    sprintf(sfname, "spr%03d", id);
+    sprintf(sfname, "spr%02x", id);
     spritefile= fopen(sfname, "rb");
     cputc('.');
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
-    // printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex,
-    // addr);
+    printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex, addr);
     if (spritefile) {
         fread(addr, 144, 1, spritefile);
         fclose(spritefile);
     } else {
         printf("\n!spritefile %s not found", sfname);
-        spritefile= fopen("spr001", "rb");
+        spritefile= fopen("spr01", "rb");
         fread(addr, 144, 1, spritefile);
         fclose(spritefile);
     }
