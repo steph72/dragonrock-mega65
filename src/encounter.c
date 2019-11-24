@@ -220,7 +220,7 @@ void plotCharacter(byte idx, byte variant) {
     y= 13;
 
     if (party[idx]->status == down) {
-        eraseSprite(x, y);
+        plotSprite(x, y, 0, true, BCOLOR_LIGHTBLUE | CATTR_LUMA3);
         return;
     }
 
