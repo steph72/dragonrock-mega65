@@ -8,6 +8,7 @@ byte iteratorColumn= 0;
 byte gCurrentSpriteCharacterIndex;
 byte idxTable[255]; // sprite index cache
 static char sfname[8];
+static char hasDoneTurn[6];
 
 int partyAuthorityLevel;
 int monsterAuthorityLevel;
@@ -23,9 +24,19 @@ char *gEncounterAction[]= {"thrusts", "attacks", "slashes",
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
 
+/*
+    ==========
+    prototypes
+    ==========
+*/
+
 void clearText(void);
 void redrawMonsters(void);
 void redrawParty(void);
+void plotMonster(byte row, byte idx, byte variant);
+void plotCharacter(byte idx, byte variant);
+
+/* code starts here */
 
 void giveCoins(unsigned int coins) {
     opcode fakeOpcode;
@@ -105,6 +116,7 @@ void doMonsterTurn(byte row, byte column) {
     theMonster= gMonsterRow[row][column];
     opponent= chooseRandomCharacter();
     doMonsterHit(theMonster, opponent, &hitRes);
+    plotMonster(row, column, true);
 
     clearText();
     printf("%s (i %d at %d,%d) attacks %s:\n"
@@ -149,20 +161,33 @@ void doPartyTurn(byte idx) {
            theCharacter->name, theCharacter->initiative, encounterCommand,
            encSpell, encDestinationRank);
 
+    hasDoneTurn[idx]= true;
+    plotCharacter(idx, true);
+
     cgetc();
 }
 
-void plotSprite(byte x, byte y, char spriteID) {
+/**
+ * @brief plots sprite spriteID at x,y using avariant if specified
+ */
+void plotSprite(byte x, byte y, byte spriteID, byte variant, byte colour) {
     byte i, j;
     byte *screenPtr;
+    byte *colourPtr;
     byte charIdx;
     screenPtr= SCREEN + (x - 1 + (y * 40));
+    colourPtr= COLOR_RAM + (x - 1 + (y * 40));
     charIdx= idxTable[spriteID] - 1;
+    if (variant) {
+        charIdx+= 9;
+    }
     for (i= 0; i < 3; ++i) {
         for (j= 0; j < 3; ++j) {
             *(++screenPtr)= ++charIdx;
+            *(++colourPtr)= colour;
         }
-        screenPtr+= 37;
+        screenPtr+= 37; // move on to next row (40 - 3 already printed chars)
+        colourPtr+= 37;
     }
 }
 
@@ -178,16 +203,17 @@ void eraseSprite(byte x, byte y) {
     }
 }
 
-void plotMonster(byte row, byte idx) {
+void plotMonster(byte row, byte idx, byte variant) {
     byte x, y;
 
     x= xposForMonster(gNumMonsters[row], idx, 3);
     y= ((2 - row) * 4);
 
-    plotSprite(x, y, gMonsterRow[row][idx]->def->spriteID);
+    plotSprite(x, y, gMonsterRow[row][idx]->def->spriteID, variant,
+               BCOLOR_BLUEGREEN | CATTR_LUMA5);
 }
 
-void plotCharacter(byte idx) {
+void plotCharacter(byte idx, byte variant) {
     byte x, y;
 
     x= xposForMonster(partyMemberCount(), idx, 3);
@@ -199,11 +225,13 @@ void plotCharacter(byte idx) {
     }
 
     if (party[idx]->status == dead) {
-        plotSprite(x, y, 0);
+        plotSprite(x, y, 0, false, BCOLOR_PURPLE | CATTR_LUMA3);
+
         return;
     }
 
-    plotSprite(x, y, party[idx]->spriteID);
+    plotSprite(x, y, party[idx]->spriteID, variant,
+               BCOLOR_YELLOW | CATTR_LUMA5);
 }
 
 /**
@@ -462,7 +490,7 @@ void prepareMonsters(void) {
     while (iterateMonsters(&aMonster, &i, &j)) {
         loadSpriteIfNeeded(aMonster->def->spriteID);
         aMonster->initiative=
-            (byte)(drand(20)); // todo: honor monster attributes
+            (byte)(drand(19)); // todo: honor monster attributes
     }
 }
 
@@ -551,7 +579,7 @@ void redrawMonsters(void) {
     byte i, j;
     monster *aMonster;
     while (iterateMonsters(&aMonster, &i, &j)) {
-        plotMonster(i, j);
+        plotMonster(i, j, false);
     }
 }
 
@@ -559,7 +587,7 @@ void redrawParty(void) {
     byte j;
     for (j= 0; j < PARTYSIZE; ++j) {
         if (party[j]) {
-            plotCharacter(j);
+            plotCharacter(j, hasDoneTurn[j]);
         }
     }
 }
@@ -603,6 +631,10 @@ encResult encLoop(void) {
 
         cg_clear();
         gotoxy(0, 17);
+
+        for (j= 0; j < 6; j++) {
+            hasDoneTurn[j]= false;
+        }
 
         redrawMonsters();
         redrawParty();
@@ -648,6 +680,10 @@ encResult encLoop(void) {
                         doMonsterTurn(i, j);
                     }
                 } else {
+                    // kill off all down members and exit battle
+                    for (j= 0; j < PARTYSIZE; ++j) {
+                        party[j]->status= dead;
+                    }
                     return encDead;
                 }
             }
@@ -742,10 +778,11 @@ encResult doEncounter(void) {
     encResult res;
 
     res= encLoop();
+
     displayPostfightPrompt(res);
 
+    bordercolor(BCOLOR_BLACK);
     setSplitEnable(0);
-
     clrscr();
 
     if (res == encWon || res == encSurrender) {
