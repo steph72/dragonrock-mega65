@@ -155,6 +155,7 @@ typedef struct monster {
 	characterStateT status;
 	byte hasDoneTurn;
 	byte level;
+	byte row;
 	signed char initiative;
 	int hp;
 	int mp;
