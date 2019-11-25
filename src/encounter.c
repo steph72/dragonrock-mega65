@@ -371,11 +371,7 @@ void plotCharacter(byte idx, byte variant) {
 }
 
 char* filenameForSpriteID(int id) {
-    byte ones = 0;
-    byte tens = 0;
-    ones = id%16;
-    tens = id/16;
-    sprintf(sfname,"spr%c%c",'a'+tens,'a'+ones);
+    sprintf(sfname,"spr%c%c",'a'+id/16,'a'+id%16);
     return sfname;
 }
 
