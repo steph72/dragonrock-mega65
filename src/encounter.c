@@ -21,7 +21,6 @@ char *gEncounterAction_p[]= {"Thrust", "Attack", "Slash",
 char *gEncounterAction[]= {"thrusts", "attacks", "slashes",
                            "parries", "casts",   "shoots"};
 
-
 /*
     ==========
     prototypes
@@ -50,6 +49,10 @@ void giveExperience(unsigned int exp) {
     fakeOpcode.param1= exp % 256;
     fakeOpcode.param2= exp / 256;
     performAddCoinsOpcode(&fakeOpcode);
+}
+
+byte isMonsterDown(monster *aMonster) {
+    return (aMonster->status == dead || aMonster->status == asleep);
 }
 
 byte isPartyDefeated(void) {
@@ -83,7 +86,6 @@ void characterChooseSpell(character *guy) {
     sp= atoi(drbuf);
     guy->encSpell= sp;
 }
-
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
@@ -125,6 +127,16 @@ void doMonsterTurn(byte row, byte column) {
     hitResult hitRes;
 
     theMonster= gMonsterRow[row][column];
+
+    if (theMonster->status == dead) {
+        return;
+    }
+
+    if (theMonster->status == asleep) {
+        // todo: handle wakeup timer
+        return;
+    }
+
     opponent= chooseRandomCharacter();
     doMonsterHit(theMonster, opponent, &hitRes);
     plotMonster(row, column, true);
@@ -235,15 +247,22 @@ void performCharacterHitResult(hitResult *res) {
     cputs(res->theMonster->def->name);
     textcolor(BCOLOR_WHITE | CATTR_LUMA7);
 
-    printf(":\nhit roll %d+%d (AC %d) vs. AC %d: ",
-            res->hitRoll, res->hitBonus, res->acHit,
-           res->toHit);    
+    printf(":\nhit roll %d+%d (AC %d) vs. AC %d: ", res->hitRoll, res->hitBonus,
+           res->acHit, res->toHit);
     if (!res->success) {
         printf("MISS\n");
         return;
-    } 
-    printf("*HIT*\n");
+    }
+    printf("*HIT*\n\n");
+    printf("%s takes %d points of damage\n", res->theMonster->def->name,
+           res->damage);
 
+    res->theMonster->hp-= res->damage;
+    if (res->theMonster->hp <= 0) {
+        printf("%s dies!\n", res->theMonster->def->name);
+        res->theMonster->status= dead;
+        redrawMonsters();
+    }
 }
 
 void doPartyTurn(byte idx) {
@@ -310,6 +329,14 @@ void eraseSprite(byte x, byte y) {
         }
         screenPtr+= 37;
     }
+}
+
+void eraseMonster(byte row, byte idx) {
+    byte x, y;
+
+    x= xposForMonster(gNumMonsters[row], idx, 3);
+    y= ((2 - row) * 4);
+    eraseSprite(x,y);
 }
 
 void plotMonster(byte row, byte idx, byte variant) {
@@ -515,9 +542,12 @@ encResult preEncounter(void) {
     // display ranks and compute authority level while we're at it
     totalMonsterCount= 0;
     while (iterateMonsters(&aMonster, &i, &j)) {
-        ++totalMonsterCount;
-        monsterAuthorityLevel+= aMonster->level;
-        monsterAuthorityLevel+= aMonster->def->courageModifier;
+        if (aMonster->status == awake) {
+            aMonster->hasDoneTurn= false;
+            ++totalMonsterCount;
+            monsterAuthorityLevel+= aMonster->level;
+            monsterAuthorityLevel+= aMonster->def->courageModifier;
+        }
     }
 
     for (i= 0; i < MONSTER_ROWS; ++i) {
@@ -597,6 +627,7 @@ void prepareMonsters(void) {
 
     while (iterateMonsters(&aMonster, &i, &j)) {
         loadSpriteIfNeeded(aMonster->def->spriteID);
+        aMonster->status= awake;
         aMonster->initiative=
             (byte)(drand(19)); // todo: honor monster attributes
     }
@@ -610,7 +641,6 @@ void prepareCharacters(void) {
         loadSpriteIfNeeded(party[i]->spriteID);
     }
 }
-
 
 void getChoicesForPartyMember(byte idx) {
     character *guy;
@@ -680,7 +710,11 @@ void redrawMonsters(void) {
     byte i, j;
     monster *aMonster;
     while (iterateMonsters(&aMonster, &i, &j)) {
-        plotMonster(i, j, false);
+        if (aMonster->status != dead) {
+            plotMonster(i, j, aMonster->hasDoneTurn);
+        } else {
+            eraseMonster(i, j);
+        }
     }
 }
 
@@ -818,7 +852,7 @@ void postKill(byte takeLoot) {
 
     while (iterateMonsters(&aMonster, &i, &j)) {
         newCoins= 0;
-        if (aMonster->hp <= 0) {
+        if (aMonster->status == dead || aMonster->status == asleep) {
             experience+= aMonster->def->xpBaseValue;
             newCoins= aMonster->def->xpBaseValue / 10;
         }

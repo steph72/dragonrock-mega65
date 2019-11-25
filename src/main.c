@@ -110,8 +110,8 @@ int main() {
         gCurrentGameMode = gm_dungeon;
         gCurrentDungeonIndex = 0;
         addNewMonster(0, 1, 3, 0);
-        addNewMonster(1, 6, 5, 1);
-        addNewMonster(2, 2, 1, 2);
+        addNewMonster(1, 1, 5, 1);
+        addNewMonster(2, 1, 1, 2);
         prepareForGameMode(gm_encounter);
         mainDispatchLoop();
     } else {

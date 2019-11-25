@@ -152,6 +152,8 @@ typedef struct _monsterDef {
 
 typedef struct monster {
 	monsterDef *def;
+	characterStateT status;
+	byte hasDoneTurn;
 	byte level;
 	signed char initiative;
 	int hp;
