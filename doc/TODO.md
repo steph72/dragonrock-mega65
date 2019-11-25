@@ -1,7 +1,7 @@
 # TODO
 
 ## encounter:
-- keep monsters in list and disconnect them from row/column structure
+- fix last monster on row killed bug
 - reformat row once monsters have been killed
 - advance rows if a row is completely killed
 - remove encounter commands dead/down characters
