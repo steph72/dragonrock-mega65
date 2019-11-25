@@ -4,6 +4,7 @@
 monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
 monster *gMonsterRoster[MROSTER_SIZE];
 byte gNumMonstersForRow[MONSTER_SLOTS];
+
 byte gMonsterCount;
 
 // add monster to row
@@ -13,7 +14,7 @@ void addMonster(monster *aMonster, byte row) {
         exit(0);
     }
     aMonster->row= row;
-    aMonster->column= -1;
+    aMonster->column= 0;
     gMonsterRoster[gMonsterCount++]= aMonster;
 }
 
@@ -23,7 +24,7 @@ void clearMonsters(void) {
     gMonsterCount= 0;
     for (x= 0; x < MROSTER_SIZE; x++) {
         if (gMonsterRoster[x]) {
-            free(gMonsterRoster[x]);
+            // free(gMonsterRoster[x]);
             gMonsterRoster[x]= NULL;
         }
     }
@@ -80,8 +81,8 @@ monster *createMonster(byte monsterID, byte level) {
 
     newMonster->def= aDef;
     for (i= 0; i < level; i++) {
-        newMonster->hp+= drand(aDef->hpPerLevel);
-        newMonster->mp+= drand(aDef->mpPerLevel);
+        newMonster->hp+= drand(aDef->hpPerLevel)+1;
+        newMonster->mp+= drand(aDef->mpPerLevel)+1;
     }
     newMonster->level= level;
 
