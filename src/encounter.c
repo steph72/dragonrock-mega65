@@ -370,6 +370,15 @@ void plotCharacter(byte idx, byte variant) {
                BCOLOR_YELLOW | CATTR_LUMA5);
 }
 
+char* filenameForSpriteID(int id) {
+    byte ones = 0;
+    byte tens = 0;
+    ones = id%16;
+    tens = id/16;
+    sprintf(sfname,"spr%c%c",'a'+tens,'a'+ones);
+    return sfname;
+}
+
 /**
  * @brief loads a sprite into memory
  *
@@ -381,8 +390,8 @@ void loadSprite(byte id) {
     byte *addr;
     FILE *spritefile;
 
-    sprintf(sfname, "spr%02x", id);
-    spritefile= fopen(sfname, "rb");
+    // sprintf(sfname, "spr%02x", id);
+    spritefile= fopen(filenameForSpriteID(id), "rb");
     cputc('.');
     addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
     printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex, addr);
@@ -391,7 +400,7 @@ void loadSprite(byte id) {
         fclose(spritefile);
     } else {
         printf("\n!spritefile %s not found", sfname);
-        spritefile= fopen("spr01", "rb");
+        spritefile= fopen(filenameForSpriteID(1), "rb");
         fread(addr, 144, 1, spritefile);
         fclose(spritefile);
     }
