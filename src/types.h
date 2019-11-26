@@ -56,6 +56,7 @@ typedef enum _raceT {
 } raceT;
 
 typedef enum _encCommand {
+	ec_nothing,
 	ec_thrust,
 	ec_attack,
 	ec_slash,
@@ -155,7 +156,7 @@ typedef struct monster {
 	characterStateT status;
 	byte hasDoneTurn;
 	byte level;
-	byte row;
+	signed char row;
 	signed char column;
 	signed char initiative;
 	int hp;

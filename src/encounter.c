@@ -28,6 +28,7 @@ void clearText(void);
 void redrawMonsters(void);
 void redrawParty(void);
 void plotMonster(byte row, byte idx, byte variant);
+void eraseMonster(byte row, byte idx);
 void plotCharacter(byte idx, byte variant);
 
 /* code starts here */
@@ -46,18 +47,6 @@ void giveExperience(unsigned int exp) {
     fakeOpcode.param1= exp % 256;
     fakeOpcode.param2= exp / 256;
     performAddCoinsOpcode(&fakeOpcode);
-}
-
-byte liveMonstersForRow(byte aRow) {
-    byte i;
-    byte count= 0;
-    for (i= 0; i < gMonsterCount; i++) {
-        if (gMonsterRoster[i]->row == aRow &&
-            gMonsterRoster[i]->status != dead) {
-            count++;
-        }
-    }
-    return count;
 }
 
 byte isMonsterDown(monster *aMonster) {
@@ -182,16 +171,26 @@ void doMonsterTurn(monster *theMonster) {
 monster *opponentOnRank(byte rank) {
 
     byte i;
+    byte found;
+    byte liveMonsterCount;
+    static monster *liveMonsters[10];
     monster *returnMonster;
 
+    liveMonsterCount= 0;
+    found= false;
     for (i= 0; i < gMonsterCount; i++) {
         returnMonster= gMonsterRoster[i];
         if (returnMonster->row == rank && returnMonster->hp > 0) {
-            return returnMonster;
+            found= true;
+            liveMonsters[liveMonsterCount++]= returnMonster;
         }
     }
 
-    return NULL;
+    if (!found) {
+        return NULL;
+    }
+
+    return liveMonsters[drand(liveMonsterCount)];
 }
 
 void doCharacterDamage(hitResult *result) {
@@ -201,7 +200,6 @@ void doCharacterDamage(hitResult *result) {
     int hitDice;
     int bonus;
 
-    printf("c");
     aCharacter= result->theCharacter;
 
     weapon= getWeapon(aCharacter);
@@ -214,7 +212,6 @@ void doCharacterDamage(hitResult *result) {
 
     result->damageBonus= bonus;
 
-    printf("d");
     if (result->critical) {
         result->damage= hitDice + bonus;
     } else {
@@ -227,7 +224,6 @@ void doCharacterHit(character *aCharacter, byte rank, hitResult *result) {
 
     result->theCharacter= aCharacter;
 
-    printf("a");
     opponent= opponentOnRank(rank);
 
     if (!opponent) {
@@ -244,7 +240,6 @@ void doCharacterHit(character *aCharacter, byte rank, hitResult *result) {
         aCharacter->attributes[aSTR]); // todo: DEX when using bow
     result->acHit= 20 - (result->hitRoll + result->hitBonus);
     result->success= ((result->acHit <= result->toHit) || result->critical);
-    printf("b");
     if (result->success) {
         doCharacterDamage(result);
     }
@@ -280,7 +275,7 @@ void performCharacterHitResult(hitResult *res) {
     if (res->theMonster->hp <= 0) {
         printf("%s dies!\n", res->theMonster->def->name);
         res->theMonster->status= dead;
-        redrawMonsters();
+        eraseMonster(res->theMonster->row, res->theMonster->column);
     }
 }
 
@@ -522,9 +517,35 @@ encResult checkGreet() {
 }
 
 void rebuildMonsterPositions(void) {
-    byte i, row;
+    byte i, row, x;
     byte column;
     monster *aMonster;
+    byte rowOccupied;
+
+    for (i= 0; i < gMonsterCount; i++) {
+        aMonster= gMonsterRoster[i];
+        if (aMonster->status == dead) {
+            aMonster->row= -1;
+        }
+    }
+
+    for (x= 0; x < 1; ++x) {
+        for (row= 0; row < MONSTER_ROWS; row++) {
+            rowOccupied= false;
+            for (i= 0; i < gMonsterCount; i++) {
+                aMonster= gMonsterRoster[i];
+                if (aMonster->row == row && aMonster->status != dead) {
+                    rowOccupied= true;
+                }
+            }
+            if (!rowOccupied && row < 2) {
+                for (i= 0; i < gMonsterCount; i++) {
+                    aMonster= gMonsterRoster[i];
+                        aMonster->row--;
+                }
+            }
+        }
+    }
 
     for (row= 0; row < MONSTER_ROWS; row++) {
         column= 0;
@@ -537,13 +558,6 @@ void rebuildMonsterPositions(void) {
             gNumMonstersForRow[row]= column;
         }
     }
-
-    for (i= 0; i < gMonsterCount; i++) {
-        aMonster= gMonsterRoster[i];
-        printf("%s r:%d c:%d hp:%d \n", aMonster->def->name, aMonster->row,
-               aMonster->column, aMonster->hp);
-    }
-    cgetc();
 }
 
 encResult preEncounter(void) {
@@ -744,6 +758,9 @@ void redrawMonsters(void) {
 
     for (c= 0; c < gMonsterCount; c++) {
         aMonster= gMonsterRoster[c];
+        if (aMonster->row == -1) {
+            continue;
+        }
         if (aMonster->status != dead) {
             plotMonster(aMonster->row, aMonster->column, aMonster->hasDoneTurn);
         } else {
@@ -813,6 +830,7 @@ encResult encLoop(void) {
         gotChoices= false;
         do {
             for (j= 0; j < PARTYSIZE; ++j) {
+                party[j]->currentEncounterCommand= ec_nothing;
                 if (party[j]->status == awake) {
                     getChoicesForPartyMember(j);
                 }
