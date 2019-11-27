@@ -1,10 +1,5 @@
 #!/bin/sh
 
-tools/buildCharset.sh
-tools/buildSprites.sh
-
-python3 tools/mc.py mapsrc/library.drs mapdata/library.d
-
 # printf "00" | cat - graphics/dr_charset.bin > bin/charset
 
 if [ ! -f "disc/drock.d64" ]; then
@@ -31,14 +26,5 @@ write cbm/loader sd2iecload
 write cbm/sjload sjload
 EOF
 
-c1541 disc/drock.d64 -delete fmsg*
-c1541 disc/drock.d64 -delete spr*
 
-for filename in mapdata/fmsg*; do 
-  c1541 disc/drock.d64 -write $filename
-done
-
-for filename in bin/spr*; do
-  c1541 disc/drock.d64 -write $filename
-done
 # c1541 disc/drock.d64 -write bin/spr*

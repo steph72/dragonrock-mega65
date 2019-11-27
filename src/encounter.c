@@ -541,7 +541,9 @@ void rebuildMonsterPositions(void) {
             if (!rowOccupied && row < 2) {
                 for (i= 0; i < gMonsterCount; i++) {
                     aMonster= gMonsterRoster[i];
+                    if (aMonster->row>0) {
                         aMonster->row--;
+                    }
                 }
             }
         }
