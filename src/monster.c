@@ -1,7 +1,6 @@
 #include "monster.h"
 #include "utils.h"
 
-// monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
 monster *gMonsterRoster[MROSTER_SIZE];
 byte gNumMonstersForRow[MONSTER_SLOTS];
 

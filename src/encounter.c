@@ -27,8 +27,8 @@ char *gEncounterAction[]= {"thrusts", "attacks", "slashes",
 void clearText(void);
 void redrawMonsters(void);
 void redrawParty(void);
-void plotMonster(byte row, byte idx, byte variant);
-void eraseMonster(byte row, byte idx);
+void plotMonster(monster *aMonster);
+void eraseMonster(monster *aMonster);
 void plotCharacter(byte idx, byte variant);
 
 /* code starts here */
@@ -85,10 +85,6 @@ void characterChooseSpell(character *guy) {
     guy->encSpell= sp;
 }
 
-// clang-format off
-#pragma code-name(push, "OVERLAY3");
-// clang-format on
-
 byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
     byte width;
     width= 40 / numMonsters;
@@ -138,8 +134,8 @@ void doMonsterTurn(monster *theMonster) {
 
     opponent= chooseRandomCharacter();
     doMonsterHit(theMonster, opponent, &hitRes);
-    plotMonster(row, column, true);
     theMonster->hasDoneTurn= true;
+    plotMonster(theMonster);
 
     clearText();
     printf("%s (i %d at %d,%d) attacks %s:\n"
@@ -275,7 +271,7 @@ void performCharacterHitResult(hitResult *res) {
     if (res->theMonster->hp <= 0) {
         printf("%s dies!\n", res->theMonster->def->name);
         res->theMonster->status= dead;
-        eraseMonster(res->theMonster->row, res->theMonster->column);
+        eraseMonster(res->theMonster);
     }
 }
 
@@ -292,10 +288,11 @@ void doPartyTurn(byte idx) {
     encDestinationRank= theCharacter->encDestRank;
 
     clearText();
-
+    /*
     printf("should do %s (i %d): encC %d encS %d encDR %d\n",
            theCharacter->name, theCharacter->initiative, encounterCommand,
            encSpell, encDestinationRank);
+           */
 
     switch (encounterCommand) {
 
@@ -319,6 +316,10 @@ void doPartyTurn(byte idx) {
 
     cgetc();
 }
+
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
 
 /**
  * @brief plots sprite spriteID at x,y using avariant if specified
@@ -356,21 +357,21 @@ void eraseSprite(byte x, byte y) {
     }
 }
 
-void eraseMonster(byte row, byte idx) {
+void eraseMonster(monster *aMonster) {
     byte x, y;
 
-    x= xposForMonster(gNumMonstersForRow[row], idx, 3);
-    y= ((2 - row) * 4);
+    x= xposForMonster(gNumMonstersForRow[aMonster->row], aMonster->column, 3);
+    y= ((2 - aMonster->row) * 4);
     eraseSprite(x, y);
 }
 
-void plotMonster(byte row, byte idx, byte variant) {
+void plotMonster(monster *aMonster) {
     byte x, y;
 
-    x= xposForMonster(gNumMonstersForRow[row], idx, 3);
-    y= ((2 - row) * 4);
+    x= xposForMonster(gNumMonstersForRow[aMonster->row], aMonster->column, 3);
+    y= ((2 - aMonster->row) * 4);
 
-    plotSprite(x, y, gMonsterRow[row][idx]->def->spriteID, variant,
+    plotSprite(x, y, aMonster->def->spriteID, aMonster->hasDoneTurn,
                BCOLOR_BLUEGREEN | CATTR_LUMA5);
 }
 
@@ -555,11 +556,35 @@ void rebuildMonsterPositions(void) {
             aMonster= gMonsterRoster[i];
             if (aMonster->row == row && aMonster->status != dead) {
                 aMonster->column= column++;
-                gMonsterRow[row][aMonster->column]= aMonster;
             }
             gNumMonstersForRow[row]= column;
         }
     }
+}
+
+monster* getMonsterAtPos(char row, char column) {
+    monster *aMonster;
+    char i;
+    for (i=0;i<gMonsterCount;i++) {
+        aMonster = gMonsterRoster[i];
+        if (aMonster->row==row && aMonster->column==column) {
+            return aMonster;
+        }
+    }
+    return NULL;
+}
+
+// TODO
+monster* getMonsterForRow(char row) {
+    monster *aMonster;
+    char i;
+    for (i=0;i<gMonsterCount;i++) {
+        aMonster = gMonsterRoster[i];
+        if (aMonster->row==row) {
+            return aMonster;
+        }
+    }
+    return NULL;
 }
 
 encResult preEncounter(void) {
@@ -599,7 +624,7 @@ encResult preEncounter(void) {
     for (i= 0; i < MONSTER_ROWS; ++i) {
         j= gNumMonstersForRow[i];
         if (j) {
-            aMonster= gMonsterRow[i][0];
+            aMonster= getMonsterForRow(i);
             printf("Rank %d: %d %s(s)\n", i + 1, gNumMonstersForRow[i],
                    aMonster->def->name);
         }
@@ -764,9 +789,9 @@ void redrawMonsters(void) {
             continue;
         }
         if (aMonster->status != dead) {
-            plotMonster(aMonster->row, aMonster->column, aMonster->hasDoneTurn);
+            plotMonster(aMonster);
         } else {
-            eraseMonster(aMonster->row, aMonster->column);
+            eraseMonster(aMonster);
         }
     }
 }

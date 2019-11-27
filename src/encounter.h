@@ -11,7 +11,6 @@
 #include "monster.h"
 #include "irq.h"
 
-extern monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
 extern byte gNumMonstersForRow[MONSTER_ROWS];
 extern monster *gMonsterRoster[MROSTER_SIZE];
 extern byte gMonsterCount;
