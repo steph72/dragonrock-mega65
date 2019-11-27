@@ -248,6 +248,10 @@ all: $(PROGRAM)
 res: 
 	$(BUILDRESCMD)
 
+full: $(PROGRAM) 
+	$(BUILDRESCMD)
+	$(PREEMUCMD)
+
 -include $(DEPENDS)
 -include $(STATEFILE)
 
