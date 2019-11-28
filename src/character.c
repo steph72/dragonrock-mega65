@@ -56,7 +56,7 @@ byte nextFreeInventorySlot(character *aCharacter) {
     return 0xff;
 }
 
-itemT addInventoryItem(itemT anItemID, character *aCharacter) {
+byte addInventoryItem(byte anItemID, character *aCharacter) {
     byte i;
     i= nextFreeInventorySlot(aCharacter);
     if (i != 0xff) {
@@ -68,7 +68,7 @@ itemT addInventoryItem(itemT anItemID, character *aCharacter) {
 
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 
-item* getWeapon(character *aCharacter) {
+item *getWeapon(character *aCharacter) {
     if (aCharacter->weapon) {
         return inventoryItemForID(aCharacter->weapon);
     } else {
@@ -76,7 +76,7 @@ item* getWeapon(character *aCharacter) {
     }
 }
 
-item* getArmor(character *aCharacter) {
+item *getArmor(character *aCharacter) {
     if (aCharacter->armor) {
         return inventoryItemForID(aCharacter->armor);
     } else {
@@ -84,7 +84,7 @@ item* getArmor(character *aCharacter) {
     }
 }
 
-item* getShield(character *aCharacter) {
+item *getShield(character *aCharacter) {
     if (aCharacter->shield) {
         return inventoryItemForID(aCharacter->shield);
     } else {
@@ -95,29 +95,28 @@ item* getShield(character *aCharacter) {
 int getHitDiceForCharacter(character *aCharacter) {
     item *weapon;
     if (aCharacter->weapon) {
-        weapon = getWeapon(aCharacter);
+        weapon= getWeapon(aCharacter);
         return weapon->val2;
     }
     return 3;
 }
 
 int getArmorClassForCharacter(character *aCharacter) {
-    int retAC = 10;
+    int retAC= 10;
     item *armor;
     item *shield;
 
-    retAC -= bonusValueForAttribute(aCharacter->attributes[aDEX]);
-    armor = getArmor(aCharacter);
-    shield = getShield(aCharacter);
+    retAC-= bonusValueForAttribute(aCharacter->attributes[aDEX]);
+    armor= getArmor(aCharacter);
+    shield= getShield(aCharacter);
     if (armor) {
-        retAC -= armor->val1;
+        retAC-= armor->val1;
     }
     if (shield) {
-        retAC -= shield->val1;
+        retAC-= shield->val1;
     }
     // todo: test for rings etc.
     return retAC;
-
 }
 
 char *bonusStrForAttribute(attrT a) {
@@ -229,7 +228,15 @@ item *whichItem(character *ic) {
     return anItem;
 }
 
-void useItem(character *ic) {
+void removeItem(character *ic) {
+    // TODO
+}
+
+void equipItem(item *anItem, character *ic) {
+    // TODO
+}
+
+void useOrEquipItem(character *ic) {
     item *anItem;
     cg_clearLower(3);
     gotoxy(0, 22);
@@ -244,6 +251,14 @@ void useItem(character *ic) {
 
     case it_scroll:
         useScroll(anItem);
+        break;
+
+    case it_armor:
+    case it_missile:
+    case it_shield:
+    case it_weapon:
+        equipItem(anItem, ic);
+        break;
 
     default:
         break;
@@ -306,42 +321,38 @@ void inspectCharacter(byte idx) {
                    nameOfInventoryItemWithID(ic->inventory[i]));
         }
         gotoxy(0, 22);
-        revers(1);
-        cputs("u");
-        revers(0);
-        cputs("se/ready ");
-        revers(1);
-        cputs("r");
-        revers(0);
-        cputs("emove ");
-        revers(1);
-        cputs("g");
-        revers(0);
-        cputs("ive ");
-        if (gCurrentGameMode == gm_city) {
-            revers(1);
-            cputs("s");
-            revers(0);
-            cputs("ell ");
-        }
-        revers(1);
-        cputs("q");
-        revers(0);
-        cputs("uit");
+        cputs ("u)se/ready r)emove g)ive q)uit");    
         cputs(">");
         cursor(1);
         cmd= cgetc();
         cursor(0);
 
-        if (cmd == 'q') {
+        if (cmd>='1' && cmd<='6') {
+            i = cmd-'1';
+            if (party[i]!=NULL) {
+                idx = i;
+            }
+        }
+
+        switch (cmd) {
+        case 'q':
             quitInspect= true;
-        } else if (cmd == 'u') {
-            useItem(ic);
+            break;
+
+        case 'u':
+            useOrEquipItem(ic);
+            break;
+
+        case 'r':
+            removeItem(ic);
+            break;
+
+        default:
+            break;
         }
 
     } // while !quitInspect
 }
-
 
 byte loadParty(void) {
     static FILE *infile;
@@ -353,13 +364,13 @@ byte loadParty(void) {
         return false;
     }
 
-    count = fgetc(infile);
+    count= fgetc(infile);
 
-    for (i=0;i<count;++i) {
+    for (i= 0; i < count; ++i) {
         cputs(".");
-        newChar = malloc(sizeof(character));
-        fread(newChar,sizeof(character),1,infile);
-        party[i]=newChar;
+        newChar= malloc(sizeof(character));
+        fread(newChar, sizeof(character), 1, infile);
+        party[i]= newChar;
     }
 
     fclose(infile);

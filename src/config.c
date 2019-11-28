@@ -1,6 +1,6 @@
-#include <stddef.h>
 #include "config.h"
 #include "types.h"
+#include <stddef.h>
 
 char *gRaces[NUM_RACES]= {"Human", "Dwarf", "Elf", "Half-Elf", "Gnome"};
 char *gRacesS[NUM_RACES]= {"H", "D", "E", "HE", "G"};
@@ -10,7 +10,7 @@ char *gAttributes[]= {"Strength",  "Intelligence", "Wisdom",
 
 char *gAttributesS[]= {"STR", "INT", "WIS", "DEX", "CON", "CHR"};
 
-char *gStateDesc[]= {"deleted", "down", "asleep", "dead", "ok"};
+char *gStateDesc[]= {"deleted", "down", "asleep", "dead", "ok", "fled"};
 
 int gRaceModifiers[NUM_RACES][6]= {
     {0, 0, 0, 0, 0, 0},   // human
@@ -26,8 +26,6 @@ char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH"};
 char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
                             "Tia's Grove", "Modder",        "Foodim"};
 
-
-
 // equipment
 
 item gItems[]= {
@@ -42,6 +40,11 @@ item gItems[]= {
     {0x02, "Staff", it_weapon, 1, 3, 0, 1},
     {0x03, "Dagger", it_weapon, 1, 4, 0, 10},
     {0x04, "Short sword", it_weapon, 1, 6, 0, 20},
+
+    // --- bows & slings ---
+
+    {0x10, "Sling", it_missile, 1, 4, 0, 1},
+    {0x11, "Short bow", it_missile, 3, 6, 0, 1},
 
     // --- shields ---
 

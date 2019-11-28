@@ -84,12 +84,12 @@ void initEngine(void) {
 
 void debugEncounter(void) {
     clearMonsters();
-    gCurrentGameMode= gm_init;
+    gCurrentGameMode= gm_dungeon;
     gCurrentDungeonIndex= 0;
     addNewMonster(0, 1, 6, 0);
     addNewMonster(1, 1, 3, 1);
     addNewMonster(2, 1, 1, 2);
-    prepareForGameMode(gm_dungeon); 
+    prepareForGameMode(gm_encounter); 
     mainDispatchLoop();
 }
 

@@ -10,7 +10,7 @@
 #define DLDEBUG
 #endif
 
-#undef DLDEBUG
+// #undef DLDEBUG
 
 unsigned int dungeonSize;
 byte numFeels;
@@ -18,11 +18,9 @@ byte numOpcs;
 byte *mapdata;
 byte *seenMap;
 
-
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
 // clang-format on
-
 
 byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc);
 
@@ -77,11 +75,10 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("mapdata at %x\n", mapdata);
 #endif
 
-
     while (!feof(infile)) {
         ++i;
         bytesRead= fread(currentDungeonPtr, 1, BUFSIZE, infile);
-        if (!(i%8))
+        if (!(i % 8))
             cputc('.');
         currentDungeonPtr+= bytesRead;
     }
@@ -95,7 +92,7 @@ dungeonDescriptor *loadMap(char *filename) {
     desc->startX= *(mapdata + 2);
     desc->startY= *(mapdata + 3);
     desc->dungeon= (dungeonItem *)(mapdata + 4);
-    desc->mapdata = mapdata;
+    desc->mapdata= mapdata;
 
 #ifdef DLDEBUG
     printf("dungeon at %x\n", desc->dungeon);
@@ -164,6 +161,7 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
            (int)debugPtr - (int)desc);
     free(debugPtr);
+    cgetc();
 #endif
 
     return desc;
@@ -187,7 +185,8 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     while (currentFeelIdx < numFeels) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DLDEBUG
-        printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,currentPtr);
+        printf("feel %x at %x\n", currentFeelIdx, currentPtr);
+        // printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr, currentPtr);
 #endif
         while (*currentPtr != 0) {
             currentPtr++;
@@ -199,6 +198,6 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
     return currentPtr;
 }
 
-// clang-format on
-#pragma code-name(pop);
 // clang-format off
+#pragma code-name(pop);
+// clang-format on

@@ -10,9 +10,3 @@ tools/buildSprites.sh
 
 python3 tools/mc.py mapsrc/library.drs mapdata/library.d
 
-c1541 disc/drock.d64 -delete fmsg*
-
-for filename in mapdata/fmsg*; do 
-  c1541 disc/drock.d64 -write $filename
-done
-

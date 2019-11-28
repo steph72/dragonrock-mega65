@@ -87,7 +87,7 @@ typedef enum _cstateType {
 } characterStateT;
 
 typedef enum _itemType {
-	it_armor, it_shield, it_weapon, it_potion, it_scroll, it_special 
+	it_armor, it_shield, it_weapon, it_missile, it_potion, it_scroll, it_special 
 } itemType;
 
 typedef enum _monstertype {
@@ -111,7 +111,7 @@ typedef enum _attackType {
 typedef struct _item {			// inventory item
 	byte id;
 	char *name;
-	byte type;
+	itemType type;
 	byte val1;					// armor, weapon: minStrength needed
 	byte val2;					// armor: ac bonus; weapon: hit dice
 	byte val3;					// weapon: bonus

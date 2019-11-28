@@ -1,7 +1,7 @@
 # TODO
 
 ## encounter:
-- implement combat abort when won
+- implement equip/remove
+- implement ranged weapons
 - implement spells
 - implement sleep
-- implement ranged weapons
