@@ -321,8 +321,7 @@ void inspectCharacter(byte idx) {
                    nameOfInventoryItemWithID(ic->inventory[i]));
         }
         gotoxy(0, 22);
-        cputs ("u)se/ready r)emove g)ive q)uit");    
-        cputs(">");
+        cputs ("u)se/ready r)emove g)ive q)uit\r\n>");    
         cursor(1);
         cmd= cgetc();
         cursor(0);

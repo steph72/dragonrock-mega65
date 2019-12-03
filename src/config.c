@@ -28,6 +28,7 @@ char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
 
 // equipment
 
+
 item gItems[]= {
 
     // --- nothing ---
