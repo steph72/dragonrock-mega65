@@ -73,27 +73,15 @@ byte addInventoryItem(byte anItemID, character *aCharacter) {
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 
 item *getWeapon(character *aCharacter) {
-    if (aCharacter->weapon) {
-        return inventoryItemForID(aCharacter->weapon);
-    } else {
-        return NULL;
-    }
+    return inventoryItemForID(aCharacter->weapon);
 }
 
 item *getArmor(character *aCharacter) {
-    if (aCharacter->armor) {
-        return inventoryItemForID(aCharacter->armor);
-    } else {
-        return NULL;
-    }
+    return inventoryItemForID(aCharacter->armor);
 }
 
 item *getShield(character *aCharacter) {
-    if (aCharacter->shield) {
-        return inventoryItemForID(aCharacter->shield);
-    } else {
-        return NULL;
-    }
+    return inventoryItemForID(aCharacter->shield);
 }
 
 int getHitDiceForCharacter(character *aCharacter) {
@@ -173,6 +161,8 @@ void showCurrentParty(byte small) {
             if (!small) {
                 cputsxy(20, y, gRacesS[c->aRace]);
                 cputsxy(24, y, gClassesS[c->aClass]);
+                gotoxy(28,y);
+                cprintf("%3d",c->aHP);
             }
             cputsxy(34, y, gStateDesc[c->status]);
         }
@@ -295,7 +285,6 @@ void removeItem(character *ic) {
 }
 
 const char *removeMsg= "remove your durrent %s first\r\n--key--";
-const char *equipMsg= "%s equipped!\r\n--key--";
 
 void equipItem(item *anItem, byte inventorySlot, character *ic) {
     cg_clearLower(2);
@@ -333,8 +322,6 @@ void equipItem(item *anItem, byte inventorySlot, character *ic) {
     default:
         break;
     }
-    cprintf (equipMsg,nameOfInventoryItem(anItem));
-    cg_getkey();
 }
 
 void useOrEquipItem(character *ic) {
@@ -437,7 +424,7 @@ void inspectCharacter(byte idx) {
             cputs(nameOfInventoryItemWithID(ic->inventory[i]));
         }
         gotoxy(0, 23);
-        cputs("u)se/ready r)emove g)ive q)uit\r\n>");
+        cputs("u)se/ready r)emove g)ive ex)it\r\n>");
         cursor(1);
         cmd= cgetc();
         cursor(0);
@@ -450,7 +437,7 @@ void inspectCharacter(byte idx) {
         }
 
         switch (cmd) {
-        case 'q':
+        case 'x':
             quitInspect= true;
             break;
 

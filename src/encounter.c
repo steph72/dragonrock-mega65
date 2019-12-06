@@ -751,7 +751,7 @@ void prepareMonsters(void) {
 void prepareCharacters(void) {
     byte i;
     for (i= 0; i < partyMemberCount(); ++i) {
-         addInventoryItem(0x10, party[i]); // add sling for testing
+        addInventoryItem(0x10, party[i]); // add sling for testing
 
         party[i]->initiative=
             (drand(20) + bonusValueForAttribute(party[i]->attributes[3]));
@@ -761,15 +761,18 @@ void prepareCharacters(void) {
 
 void getChoicesForPartyMember(byte idx) {
     character *guy;
+    byte melee, ranged;
     char choice;
     char repeat;
     guy= party[idx];
 
     do {
         clearText();
+        melee= false;
+        ranged= false;
         repeat= false;
         cputs(guy->name);
-        cputs(":\r\nA)ttack  S)lash  T)hrust  P)arry\r\nF)ire bow  C)ast "
+        cputs(":\r\nA)ttack  S)lash  T)hrust  P)arry\r\nF)ire  C)ast "
               "spell  "
               "O)ptions\r\n>");
         cursor(1);
@@ -781,10 +784,17 @@ void getChoicesForPartyMember(byte idx) {
         switch (choice) {
 
         case 'a':
-            guy->currentEncounterCommand= ec_attack;
+            if (getWeapon(guy)->type == it_missile) {
+                guy->currentEncounterCommand= ec_fireBow;
+                ranged= true;
+            } else {
+                guy->currentEncounterCommand= ec_attack;
+                melee= true;
+            }
             break;
 
         case 's':
+            melee= true;
             if (guy->aClass == ct_fighter && guy->level >= 4) {
                 guy->currentEncounterCommand= ec_slash;
             } else {
@@ -793,6 +803,7 @@ void getChoicesForPartyMember(byte idx) {
             break;
 
         case 't':
+            melee= true;
             if (guy->aClass == ct_fighter && guy->level >= 2) {
                 guy->currentEncounterCommand= ec_thrust;
             } else {
@@ -802,10 +813,6 @@ void getChoicesForPartyMember(byte idx) {
 
         case 'p':
             guy->currentEncounterCommand= ec_parry;
-            break;
-
-        case 'f':
-            guy->currentEncounterCommand= ec_fireBow;
             break;
 
         case 'c':
@@ -820,6 +827,14 @@ void getChoicesForPartyMember(byte idx) {
 
         default:
             break;
+        }
+
+        if (melee) {
+            if (getWeapon(guy)->type != it_weapon) {
+                cputs("fire\r\nequip a melee weapon first!\r\n--key--");
+                cg_getkey();
+                repeat= true;
+            }
         }
 
         if (repeat == false) {
