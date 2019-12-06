@@ -33,6 +33,10 @@ char *nameOfInventoryItem(item *anItem) {
     if (!anItem) {
         return "--";
     }
+    if (anItem->type == it_scroll) {
+        sprintf(drbuf, "%s %d", anItem->name, anItem->val1);
+        return drbuf;
+    }
     return anItem->name;
 }
 
@@ -56,7 +60,7 @@ byte nextFreeInventorySlot(character *aCharacter) {
     return 0xff;
 }
 
-itemT addInventoryItem(itemT anItemID, character *aCharacter) {
+byte addInventoryItem(byte anItemID, character *aCharacter) {
     byte i;
     i= nextFreeInventorySlot(aCharacter);
     if (i != 0xff) {
@@ -68,56 +72,43 @@ itemT addInventoryItem(itemT anItemID, character *aCharacter) {
 
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 
-item* getWeapon(character *aCharacter) {
-    if (aCharacter->weapon) {
-        return inventoryItemForID(aCharacter->weapon);
-    } else {
-        return NULL;
-    }
+item *getWeapon(character *aCharacter) {
+    return inventoryItemForID(aCharacter->weapon);
 }
 
-item* getArmor(character *aCharacter) {
-    if (aCharacter->armor) {
-        return inventoryItemForID(aCharacter->armor);
-    } else {
-        return NULL;
-    }
+item *getArmor(character *aCharacter) {
+    return inventoryItemForID(aCharacter->armor);
 }
 
-item* getShield(character *aCharacter) {
-    if (aCharacter->shield) {
-        return inventoryItemForID(aCharacter->shield);
-    } else {
-        return NULL;
-    }
+item *getShield(character *aCharacter) {
+    return inventoryItemForID(aCharacter->shield);
 }
 
 int getHitDiceForCharacter(character *aCharacter) {
     item *weapon;
     if (aCharacter->weapon) {
-        weapon = getWeapon(aCharacter);
+        weapon= getWeapon(aCharacter);
         return weapon->val2;
     }
     return 3;
 }
 
 int getArmorClassForCharacter(character *aCharacter) {
-    int retAC = 10;
+    int retAC= 10;
     item *armor;
     item *shield;
 
-    retAC -= bonusValueForAttribute(aCharacter->attributes[aDEX]);
-    armor = getArmor(aCharacter);
-    shield = getShield(aCharacter);
+    retAC-= bonusValueForAttribute(aCharacter->attributes[aDEX]);
+    armor= getArmor(aCharacter);
+    shield= getShield(aCharacter);
     if (armor) {
-        retAC -= armor->val1;
+        retAC-= armor->val1;
     }
     if (shield) {
-        retAC -= shield->val1;
+        retAC-= shield->val1;
     }
     // todo: test for rings etc.
     return retAC;
-
 }
 
 char *bonusStrForAttribute(attrT a) {
@@ -170,6 +161,8 @@ void showCurrentParty(byte small) {
             if (!small) {
                 cputsxy(20, y, gRacesS[c->aRace]);
                 cputsxy(24, y, gClassesS[c->aClass]);
+                gotoxy(28,y);
+                cprintf("%3d",c->aHP);
             }
             cputsxy(34, y, gStateDesc[c->status]);
         }
@@ -178,8 +171,8 @@ void showCurrentParty(byte small) {
 
 void useSpecial(item *anItem) {
     if (anItem->id == 0) {
-        cg_clearLower(3);
-        gotoxy(0, 22);
+        cg_clearLower(2);
+        gotoxy(0, 23);
         cputs("\r\nCurious. Nothing happens.\r\n--key--");
         cgetc();
     }
@@ -217,24 +210,128 @@ void useScroll(item *anItem) {
     more(drbuf);
 }
 
-item *whichItem(character *ic) {
+item *getEquippedItem(character *ic, byte itemIdxChar, byte *equipSlot) {
+    *equipSlot= itemIdxChar - 'a';
+    switch (*equipSlot) {
+    case 0:
+        return inventoryItemForID(ic->weapon);
+        break;
+
+    case 1:
+        return inventoryItemForID(ic->armor);
+        break;
+
+    case 2:
+        return inventoryItemForID(ic->shield);
+        break;
+
+    default:
+        break;
+    }
+    return NULL;
+}
+
+item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
     item *anItem;
     byte itemIdxChar;
+
+    *equipSlot= 255;
+    *inventorySlot= 255;
 
     cputs("which item (A-L)? ");
     cursor(1);
     itemIdxChar= cgetc();
     cursor(0);
-    anItem= inventoryItemForID(ic->inventory[itemIdxChar - 'a']);
+    if (itemIdxChar >= 'a' && itemIdxChar <= 'c') {
+        anItem= getEquippedItem(ic, itemIdxChar, equipSlot);
+        return anItem;
+    }
+    *inventorySlot= itemIdxChar - 'd';
+    anItem= inventoryItemForID(ic->inventory[*inventorySlot]);
     return anItem;
 }
 
-void useItem(character *ic) {
+void removeItem(character *ic) {
     item *anItem;
-    cg_clearLower(3);
-    gotoxy(0, 22);
+    byte equipmentSlot;
+    byte inventorySlot;
+    cg_clearLower(2);
+    gotoxy(0, 23);
+    cputs("remove ");
+    anItem= whichItem(ic, &inventorySlot, &equipmentSlot);
+    cg_clearLower(2);
+    gotoxy(0, 23);
+    if (equipmentSlot == 255) {
+        cputs("not equipped item!\r\n--key--");
+        cg_getkey();
+        return;
+    }
+    addInventoryItem(anItem->id, ic);
+    switch (equipmentSlot) {
+    case 0:
+        ic->weapon= NULL;
+        break;
+
+    case 1:
+        ic->armor= NULL;
+        break;
+
+    case 2:
+        ic->shield= NULL;
+
+    default:
+        break;
+    }
+}
+
+const char *removeMsg= "remove your durrent %s first\r\n--key--";
+
+void equipItem(item *anItem, byte inventorySlot, character *ic) {
+    cg_clearLower(2);
+    gotoxy(0, 23);
+    switch (anItem->type) {
+    case it_weapon:
+    case it_missile:
+        if (ic->weapon != NULL) {
+            cprintf(removeMsg, "weapon");
+            cg_getkey();
+            return;
+        }
+        ic->weapon= ic->inventory[inventorySlot];
+        ic->inventory[inventorySlot]= NULL;
+        break;
+    case it_armor:
+        if (ic->armor != NULL) {
+            cprintf(removeMsg, "armor");
+            cg_getkey();
+            return;
+        }
+        ic->armor= ic->inventory[inventorySlot];
+        ic->inventory[inventorySlot]= 0;
+        break;
+    case it_shield:
+        if (ic->armor != NULL) {
+            cprintf(removeMsg, "shield");
+            cg_getkey();
+            return;
+        }
+        ic->shield= ic->inventory[inventorySlot];
+        ic->inventory[inventorySlot]= 0;
+        break;
+
+    default:
+        break;
+    }
+}
+
+void useOrEquipItem(character *ic) {
+    item *anItem;
+    byte equipmentSlot;
+    byte inventorySlot;
+    cg_clearLower(2);
+    gotoxy(0, 23);
     cputs("use ");
-    anItem= whichItem(ic);
+    anItem= whichItem(ic, &inventorySlot, &equipmentSlot);
 
     switch (anItem->type) {
 
@@ -244,6 +341,14 @@ void useItem(character *ic) {
 
     case it_scroll:
         useScroll(anItem);
+        break;
+
+    case it_armor:
+    case it_missile:
+    case it_shield:
+    case it_weapon:
+        equipItem(anItem, inventorySlot, ic);
+        break;
 
     default:
         break;
@@ -284,64 +389,72 @@ void inspectCharacter(byte idx) {
         gotoxy(0, i + 4);
         printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);
         printf(" MP: %d/%d\n", ic->aMP, ic->aMaxMP);
-        gotoxy(16, 3);
+        printf(" AC: %d", getArmorClassForCharacter(ic));
+        gotoxy(18, 3);
         printf("   Age: %d", ic->age);
-        gotoxy(16, 4);
+        gotoxy(18, 4);
         printf(" Level: %d", ic->level);
-        gotoxy(16, 5);
+        gotoxy(18, 5);
         printf("    XP: %d", ic->xp);
-        gotoxy(16, 6);
+        gotoxy(18, 6);
         printf(" Coins: %d", ic->gold);
         gotoxy(16, 8);
-        printf("Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
+        revers(1);
+        cputc('A');
+        revers(0);
+        printf(" Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
         gotoxy(16, 9);
-        printf(" Armor: %s", nameOfInventoryItemWithID(ic->armor));
+        revers(1);
+        cputc('B');
+        revers(0);
+        printf("  Armor: %s", nameOfInventoryItemWithID(ic->armor));
         gotoxy(16, 10);
-        printf("Shield: %s", nameOfInventoryItemWithID(ic->shield));
-        gotoxy(0, 13);
+        revers(1);
+        cputc('C');
+        revers(0);
+        printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
+        gotoxy(0, 14);
         puts("Inventory:");
         for (i= 0; i < INV_SIZE; i++) {
-            gotoxy(20 * (i / (INV_SIZE / 2)), 15 + (i % (INV_SIZE / 2)));
-            printf("%c : %s", 'A' + i,
-                   nameOfInventoryItemWithID(ic->inventory[i]));
-        }
-        gotoxy(0, 22);
-        revers(1);
-        cputs("u");
-        revers(0);
-        cputs("se/ready ");
-        revers(1);
-        cputs("r");
-        revers(0);
-        cputs("emove ");
-        revers(1);
-        cputs("g");
-        revers(0);
-        cputs("ive ");
-        if (gCurrentGameMode == gm_city) {
+            gotoxy(20 * (i / (INV_SIZE / 2)), 16 + (i % (INV_SIZE / 2)));
             revers(1);
-            cputs("s");
+            cputc('D' + i);
             revers(0);
-            cputs("ell ");
+            cputc(32);
+            cputs(nameOfInventoryItemWithID(ic->inventory[i]));
         }
-        revers(1);
-        cputs("q");
-        revers(0);
-        cputs("uit");
-        cputs(">");
+        gotoxy(0, 23);
+        cputs("u)se/ready r)emove g)ive ex)it\r\n>");
         cursor(1);
         cmd= cgetc();
         cursor(0);
 
-        if (cmd == 'q') {
+        if (cmd >= '1' && cmd <= '6') {
+            i= cmd - '1';
+            if (party[i] != NULL) {
+                idx= i;
+            }
+        }
+
+        switch (cmd) {
+        case 'x':
             quitInspect= true;
-        } else if (cmd == 'u') {
-            useItem(ic);
+            break;
+
+        case 'u':
+            useOrEquipItem(ic);
+            break;
+
+        case 'r':
+            removeItem(ic);
+            break;
+
+        default:
+            break;
         }
 
     } // while !quitInspect
 }
-
 
 byte loadParty(void) {
     static FILE *infile;
@@ -353,13 +466,13 @@ byte loadParty(void) {
         return false;
     }
 
-    count = fgetc(infile);
+    count= fgetc(infile);
 
-    for (i=0;i<count;++i) {
+    for (i= 0; i < count; ++i) {
         cputs(".");
-        newChar = malloc(sizeof(character));
-        fread(newChar,sizeof(character),1,infile);
-        party[i]=newChar;
+        newChar= malloc(sizeof(character));
+        fread(newChar, sizeof(character), 1, infile);
+        party[i]= newChar;
     }
 
     fclose(infile);

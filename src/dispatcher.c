@@ -9,6 +9,7 @@
 #include "dungeon.h"
 #include "encounter.h"
 #include "guild.h"
+#include <plus4.h>
 
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
@@ -42,16 +43,19 @@ void commitNewGameMode(void) {
     switch (gNextGameMode) {
 
     case gm_dungeon:
+        bordercolor(BCOLOR_DARKBLUE | CATTR_LUMA3);
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
         break;
 
     case gm_city:
+        bordercolor(BCOLOR_GREEN | CATTR_LUMA3);
         loadfile("city", _OVERLAY2_LOAD__, _OVERLAY2_SIZE__);
         break;
 
     case gm_encounter:
         clrscr();
         cputs("An encounter...");
+        bordercolor(BCOLOR_RED | CATTR_LUMA3);
         loadfile("encounter", _OVERLAY3_LOAD__, _OVERLAY3_SIZE__);
         break;
 

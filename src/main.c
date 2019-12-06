@@ -60,7 +60,6 @@ const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
                      "at Hundehaus im Reinhardswald\n\n"
                      "Copyright (c) 2019 7Turtles Software\n";
 
-
 void initEngine(void) {
     unsigned int rseed;
 
@@ -83,10 +82,22 @@ void initEngine(void) {
     gLoadedDungeonIndex= 255;
 }
 
+void debugEncounter(void) {
+    clearMonsters();
+    gCurrentGameMode= gm_dungeon;
+    gCurrentDungeonIndex= 0;
+    addNewMonster(0, 1, 6, 0);
+    addNewMonster(1, 1, 3, 1);
+    addNewMonster(2, 1, 1, 2);
+    prepareForGameMode(gm_encounter); 
+    mainDispatchLoop();
+}
+
 int main() {
     static char choice;
 
     initEngine();
+    debugEncounter();
     clrscr();
     cg_borders();
     cputsxy(2, 4, "Welcome to");
@@ -105,15 +116,6 @@ int main() {
     if (choice == '1' && hasLoadedGame) {
         // determine last city from saved party
         gCurrentCityIndex= party[0]->city;
-    } else if (choice == 'd') {
-        clearMonsters();
-        gCurrentGameMode = gm_dungeon;
-        gCurrentDungeonIndex = 0;
-        addNewMonster(0, 1, 3, 0);
-        addNewMonster(1, 1, 5, 1);
-        addNewMonster(2, 1, 1, 2);
-        prepareForGameMode(gm_encounter);
-        mainDispatchLoop();
     } else {
         // remove saved party if not loading saved game
         for (choice= 0; choice < PARTYSIZE; party[choice++]= 0)

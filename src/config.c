@@ -1,6 +1,6 @@
-#include <stddef.h>
 #include "config.h"
 #include "types.h"
+#include <stddef.h>
 
 char *gRaces[NUM_RACES]= {"Human", "Dwarf", "Elf", "Half-Elf", "Gnome"};
 char *gRacesS[NUM_RACES]= {"H", "D", "E", "HE", "G"};
@@ -10,7 +10,7 @@ char *gAttributes[]= {"Strength",  "Intelligence", "Wisdom",
 
 char *gAttributesS[]= {"STR", "INT", "WIS", "DEX", "CON", "CHR"};
 
-char *gStateDesc[]= {"deleted", "down", "asleep", "dead", "ok"};
+char *gStateDesc[]= {"deleted", "down", "asleep", "dead", "ok", "fled"};
 
 int gRaceModifiers[NUM_RACES][6]= {
     {0, 0, 0, 0, 0, 0},   // human
@@ -25,8 +25,6 @@ char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH"};
 
 char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
                             "Tia's Grove", "Modder",        "Foodim"};
-
-
 
 // equipment
 
@@ -43,6 +41,11 @@ item gItems[]= {
     {0x03, "Dagger", it_weapon, 1, 4, 0, 10},
     {0x04, "Short sword", it_weapon, 1, 6, 0, 20},
 
+    // --- bows & slings ---
+
+    {0x10, "Sling", it_missile, 1, 4, 0, 1},
+    {0x11, "Short bow", it_missile, 3, 6, 0, 1},
+
     // --- shields ---
 
     {0x40, "Small shield", it_shield, 0, 2, 0, 10},
@@ -55,16 +58,16 @@ item gItems[]= {
 
     // --- scrolls and books ---
 
-    {0xa0, "Scroll 1", it_scroll, 1, 0, 0, 1},
-    {0xa1, "Scroll 2", it_scroll, 2, 0, 0, 1},
-    {0xa2, "Scroll 3", it_scroll, 3, 0, 0, 1},
-    {0xa3, "Scroll 4", it_scroll, 4, 0, 0, 1},
-    {0xa4, "Scroll 5", it_scroll, 5, 0, 0, 1},
-    {0xa5, "Scroll 6", it_scroll, 6, 0, 0, 1},
-    {0xa6, "Scroll 7", it_scroll, 7, 0, 0, 1},
-    {0xa7, "Scroll 8", it_scroll, 8, 0, 0, 1},
-    {0xa8, "Scroll 9", it_scroll, 9, 0, 0, 1},
-    {0xa9, "Scroll 10", it_scroll, 10, 0, 0, 1},
+    {0xa0, "Scroll", it_scroll, 1, 0, 0, 1},
+    {0xa1, "Scroll", it_scroll, 2, 0, 0, 1},
+    {0xa2, "Scroll", it_scroll, 3, 0, 0, 1},
+    {0xa3, "Scroll", it_scroll, 4, 0, 0, 1},
+    {0xa4, "Scroll", it_scroll, 5, 0, 0, 1},
+    {0xa5, "Scroll", it_scroll, 6, 0, 0, 1},
+    {0xa6, "Scroll", it_scroll, 7, 0, 0, 1},
+    {0xa7, "Scroll", it_scroll, 8, 0, 0, 1},
+    {0xa8, "Scroll", it_scroll, 9, 0, 0, 1},
+    {0xa9, "Scroll", it_scroll, 10, 0, 0, 1},
 
     // --- special ---
     {0xf0, "Rusty Key", it_special, 0, 0, 0, 65535u},

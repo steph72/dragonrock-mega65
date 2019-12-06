@@ -11,7 +11,8 @@ JITSA is a software development model, just like Scrum. Or rather, not at all li
 
 JITSA is the abbreviation for "**J**ust **I**mplement **T**hat **S**hit **A**lready". It was conceived during hours and hours of endless and meaningless meetings, retros, refinements, shitshiftings and other assorted what-have-yous, burning tons of company money and getting nowhere slowly.
 
-It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. Scrum & friends surely come with the best intentions, but unfortunately they encourage such behaviour, especially when applied the wrong way. 
+It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. Or, even 
+worse, people who never ever wrote one single line of useful code debate about how an application should be written. Scrum & friends surely come with the best intentions, but unfortunately they encourage such behaviour, especially when applied the wrong way. 
 
 (In fact, a big portion of this text was written while I had to endure helping out on a project consisting mainly of overpaid people conducting endless discussions, scheming their petty little schemes in the background and finally flushing months and months of work down the sink because some outside consultant told the CEO that the only solution would be to "go crossplatform" with fluttter or some shit like that. This - of course - didn't solve any of the real problems of the company, which were deeply rooted in a totally messsed up 'agile' team structure and the fact that nobody was able or willing to get their fucking act together and just implement that shit already; but I digress...)
 

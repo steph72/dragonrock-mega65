@@ -56,6 +56,7 @@ typedef enum _raceT {
 } raceT;
 
 typedef enum _encCommand {
+	ec_nothing,
 	ec_thrust,
 	ec_attack,
 	ec_slash,
@@ -81,11 +82,12 @@ typedef enum _cstateType {
 	down=1, 
 	asleep=2,
 	dead=3, 
-	awake=4
+	awake=4,
+	surrendered=5
 } characterStateT;
 
 typedef enum _itemType {
-	it_armor, it_shield, it_weapon, it_potion, it_scroll, it_special 
+	it_armor, it_shield, it_weapon, it_missile, it_potion, it_scroll, it_special 
 } itemType;
 
 typedef enum _monstertype {
@@ -106,13 +108,34 @@ typedef enum _attackType {
 	at_fire    = 0x80
 } attackType;
 
+// -------------- equipment ----------------
+
+typedef struct _weapon {
+	byte minStrength;
+	byte hitDice;
+	byte bonus;
+} weaponT;
+
+typedef struct _armor {
+	byte minStrength;
+	byte acBonusValue;
+	byte bonus;
+} armorT;
+
+typedef struct _scroll {
+	byte scrollNo;
+	byte padding1;
+	byte padding2;
+} scrollT;
+
+
 typedef struct _item {			// inventory item
 	byte id;
 	char *name;
-	byte type;
-	byte val1;					// armor, weapon: minStrength needed
-	byte val2;					// armor: ac bonus; weapon: hit dice
-	byte val3;					// weapon: bonus
+	itemType type;
+	byte val1;					// armor, weapon: minStrength needed; scroll: scrollID
+	byte val2;					// armor: ac value; weapon: hit dice
+	byte val3;					// weapon, armor, ring: bonus
 	int price;
 } item;
 
@@ -155,6 +178,8 @@ typedef struct monster {
 	characterStateT status;
 	byte hasDoneTurn;
 	byte level;
+	signed char row;
+	signed char column;
 	signed char initiative;
 	int hp;
 	int mp;

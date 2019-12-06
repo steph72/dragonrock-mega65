@@ -26,7 +26,7 @@ int getHitDiceForCharacter(character *aCharacter);
 void showCurrentParty(char small);
 void inspectCharacter(byte idx);
 
-item *whichItem(character *ic);
+item *whichItem(character *ic, byte *inventorySlot, byte *equipmentSlot);
 void useItem(character *ic);
 
 #endif

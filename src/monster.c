@@ -1,42 +1,35 @@
 #include "monster.h"
+#include "utils.h"
 
-monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
-byte gNumMonsters[MONSTER_ROWS];
+monster *gMonsterRoster[MROSTER_SIZE];
+byte gNumMonstersForRow[MONSTER_SLOTS];
+
+byte gMonsterCount;
 
 // add monster to row
 void addMonster(monster *aMonster, byte row) {
-    byte i;
-    byte added;
-    added= false;
-    for (i= 0; i < MONSTER_SLOTS; ++i) {
-        if (gMonsterRow[row][i] == NULL) {
-            gMonsterRow[row][i]= aMonster;
-            ++gNumMonsters[row];
-            added= true;
-            break;
-        }
-    }
-    if (!added) {
-        printf("err addm %d row %d", aMonster->def->id, row);
+    if (gMonsterCount>=MROSTER_SIZE) {
+        printf("no more space for monsters");
         exit(0);
     }
+    aMonster->row= row;
+    aMonster->column= 0;
+    gMonsterRoster[gMonsterCount++]= aMonster;
 }
 
 // clear monster roster
 void clearMonsters(void) {
-    byte x, y;
-    for (x= 0; x < MONSTER_ROWS; x++) {
-        gNumMonsters[x]= 0;
-        for (y= 0; y < MONSTER_SLOTS; y++) {
-            if (gMonsterRow[x][y]) {
-                free(gMonsterRow[x][y]);
-                gMonsterRow[x][y]= NULL;
-            }
+    byte x;
+    gMonsterCount= 0;
+    for (x= 0; x < MROSTER_SIZE; x++) {
+        if (gMonsterRoster[x]) {
+            // free(gMonsterRoster[x]);
+            gMonsterRoster[x]= NULL;
         }
     }
 }
 
-/* 
+/*
 char* pluralname(monsterDef *aMonsterDef) {
     byte i;
     if (aMonsterDef->pluralname) {
@@ -82,10 +75,15 @@ monster *createMonster(byte monsterID, byte level) {
         level= aDef->level;
     }
 
+    newMonster->hp= 0;
+    newMonster->mp= 0;
+
     newMonster->def= aDef;
-    newMonster->hp= aDef->hpPerLevel * level;
-    newMonster->mp= aDef->mpPerLevel * level;
-    newMonster->level = level;
+    for (i= 0; i < level; i++) {
+        newMonster->hp+= drand(aDef->hpPerLevel)+1;
+        newMonster->mp+= drand(aDef->mpPerLevel)+1;
+    }
+    newMonster->level= level;
 
     return newMonster;
 }

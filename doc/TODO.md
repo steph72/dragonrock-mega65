@@ -1,8 +1,7 @@
 # TODO
 
 ## encounter:
-- advance rows if a row is completely killed
-- remove encounter commands dead/down characters
+- implement equip/remove
+- implement ranged weapons
 - implement spells
 - implement sleep
-- implement ranged weapons

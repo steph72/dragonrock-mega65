@@ -11,8 +11,11 @@
 #include "monster.h"
 #include "irq.h"
 
-extern monster *gMonsterRow[MONSTER_ROWS][MONSTER_SLOTS];
-extern byte gNumMonsters[MONSTER_ROWS];
+extern byte gNumMonstersForRow[MONSTER_ROWS];
+extern monster *gMonsterRoster[MROSTER_SIZE];
+extern byte gMonsterCount;
+
+
 
 /**
  * @brief iterates over the monster positions in a battle
