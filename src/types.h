@@ -108,13 +108,34 @@ typedef enum _attackType {
 	at_fire    = 0x80
 } attackType;
 
+// -------------- equipment ----------------
+
+typedef struct _weapon {
+	byte minStrength;
+	byte hitDice;
+	byte bonus;
+} weaponT;
+
+typedef struct _armor {
+	byte minStrength;
+	byte acBonusValue;
+	byte bonus;
+} armorT;
+
+typedef struct _scroll {
+	byte scrollNo;
+	byte padding1;
+	byte padding2;
+} scrollT;
+
+
 typedef struct _item {			// inventory item
 	byte id;
 	char *name;
 	itemType type;
-	byte val1;					// armor, weapon: minStrength needed
-	byte val2;					// armor: ac bonus; weapon: hit dice
-	byte val3;					// weapon: bonus
+	byte val1;					// armor, weapon: minStrength needed; scroll: scrollID
+	byte val2;					// armor: ac value; weapon: hit dice
+	byte val3;					// weapon, armor, ring: bonus
 	int price;
 } item;
 

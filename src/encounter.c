@@ -751,6 +751,8 @@ void prepareMonsters(void) {
 void prepareCharacters(void) {
     byte i;
     for (i= 0; i < partyMemberCount(); ++i) {
+         addInventoryItem(0x10, party[i]); // add sling for testing
+
         party[i]->initiative=
             (drand(20) + bonusValueForAttribute(party[i]->attributes[3]));
         loadSpriteIfNeeded(party[i]->spriteID);
