@@ -160,8 +160,8 @@ void doMonsterTurn(monster *theMonster) {
     if (hitRes.success) {
         cputs(": ");
         textcolor(BCOLOR_RED | CATTR_LUMA4);
-        cprintf("\r\n\r\n%s takes %d points of damage.\r\n", opponent->name,
-                hitRes.damage);
+        printf("\n%s takes %d points of damage.\n", opponent->name,
+               hitRes.damage);
         opponent->aHP-= hitRes.damage;
         if (opponent->aHP <
             (-3 - bonusValueForAttribute(opponent->attributes[aCON]))) {
@@ -172,6 +172,7 @@ void doMonsterTurn(monster *theMonster) {
         } else if (opponent->aHP <= 0) {
             cprintf("%s goes down!", opponent->name);
             opponent->status= down;
+            opponent->aHP= 0; // cap HP at 0 regardless of damage
             redrawParty();
         }
     } else {
@@ -260,16 +261,18 @@ void doCharacterHit(character *aCharacter, byte rank, hitResult *result) {
 
 void performCharacterHitResult(hitResult *res) {
 
-    textcolor(BCOLOR_LEMON | CATTR_LUMA4);
-
     cputs(res->theCharacter->name);
     if (!res->theMonster) {
         cputs(" stumps his feet\r\ninto the ground.\r\n");
         return;
     }
 
-    cputs(" attacks ");
-    cputs(res->theMonster->def->name);
+    if (res->theCharacter->currentEncounterCommand == ec_fireBow) {
+        printf(" fires at rank %d ",res->theCharacter->encDestRank+1);
+    } else {
+        cputs(" attacks ");
+        cputs(res->theMonster->def->name);
+    }
 
     /*
     printf(":\nhit roll %d+%d (AC %d) vs. AC %d: ", res->hitRoll, res->hitBonus,
@@ -277,15 +280,14 @@ void performCharacterHitResult(hitResult *res) {
            */
 
     if (!res->success) {
-        cputs("and misses.\r\n");
-        textcolor(BCOLOR_WHITE | CATTR_LUMA7);
+        cputs(" and misses.");
         return;
     }
 
-    cputs(":\r\n\r\n");
-    textcolor(BCOLOR_ORANGE | CATTR_LUMA5);
-    cprintf("%s takes %d points of damage\r\n", res->theMonster->def->name,
-            res->damage);
+    cputc(':');
+    textcolor(BCOLOR_BLUE | CATTR_LUMA5);
+    printf("\n%s takes %d points of damage\n", res->theMonster->def->name,
+           res->damage);
 
     res->theMonster->hp-= res->damage;
     if (res->theMonster->hp <= 0) {
@@ -318,9 +320,8 @@ void doPartyTurn(byte idx) {
     switch (encounterCommand) {
 
     case ec_attack:
+    case ec_fireBow:
         doCharacterHit(theCharacter, encDestinationRank, &hitRes);
-        hitRes.damage= 20;
-        hitRes.success= true;
         performCharacterHitResult(&hitRes);
         break;
 
@@ -751,7 +752,7 @@ void prepareMonsters(void) {
 void prepareCharacters(void) {
     byte i;
     for (i= 0; i < partyMemberCount(); ++i) {
-        addInventoryItem(0x10, party[i]); // add sling for testing
+        addInventoryItem(0x24, party[i]); // add magical short bow for testing
 
         party[i]->initiative=
             (drand(20) + bonusValueForAttribute(party[i]->attributes[3]));

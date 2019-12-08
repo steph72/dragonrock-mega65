@@ -44,7 +44,11 @@ item gItems[]= {
     // --- bows & slings ---
 
     {0x10, "Sling", it_missile, 1, 4, 0, 1},
-    {0x11, "Short bow", it_missile, 3, 6, 0, 1},
+    {0x20, "Short bow", it_missile, 3, 6, 0, 10},
+    {0x21, "Short bow", it_missile, 5, 6, 1, 100},
+    {0x22, "Short bow", it_missile, 8, 6, 2, 1000},
+    {0x23, "Short bow", it_missile, 12, 6, 3, 5000},
+    {0x24, "Short bow", it_missile, 12, 6, 5, 20000},
 
     // --- shields ---
 

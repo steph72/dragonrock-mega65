@@ -30,11 +30,12 @@ char *nameOfInventoryItemWithID(itemT anItemID) {
 }
 
 char *nameOfInventoryItem(item *anItem) {
-    if (!anItem) {
-        return "--";
-    }
     if (anItem->type == it_scroll) {
         sprintf(drbuf, "%s %d", anItem->name, anItem->val1);
+        return drbuf;
+    }
+    if (anItem->val3>0) {
+        sprintf(drbuf,"%s +%d",anItem->name, anItem->val3);
         return drbuf;
     }
     return anItem->name;
@@ -161,8 +162,10 @@ void showCurrentParty(byte small) {
             if (!small) {
                 cputsxy(20, y, gRacesS[c->aRace]);
                 cputsxy(24, y, gClassesS[c->aClass]);
-                gotoxy(28,y);
-                cprintf("%3d",c->aHP);
+                if (gCurrentGameMode == gm_encounter) {
+                    gotoxy(28, y);
+                    cprintf("%3d", c->aHP);
+                }
             }
             cputsxy(34, y, gStateDesc[c->status]);
         }
@@ -284,7 +287,7 @@ void removeItem(character *ic) {
     }
 }
 
-const char *removeMsg= "remove your durrent %s first\r\n--key--";
+const char *removeMsg= "(removing your durrent %s first)";
 
 void equipItem(item *anItem, byte inventorySlot, character *ic) {
     cg_clearLower(2);
@@ -293,27 +296,21 @@ void equipItem(item *anItem, byte inventorySlot, character *ic) {
     case it_weapon:
     case it_missile:
         if (ic->weapon != NULL) {
-            cprintf(removeMsg, "weapon");
-            cg_getkey();
-            return;
+            addInventoryItem(ic->weapon,ic);
         }
         ic->weapon= ic->inventory[inventorySlot];
         ic->inventory[inventorySlot]= NULL;
         break;
     case it_armor:
         if (ic->armor != NULL) {
-            cprintf(removeMsg, "armor");
-            cg_getkey();
-            return;
+            addInventoryItem(ic->armor,ic);
         }
         ic->armor= ic->inventory[inventorySlot];
         ic->inventory[inventorySlot]= 0;
         break;
     case it_shield:
-        if (ic->armor != NULL) {
-            cprintf(removeMsg, "shield");
-            cg_getkey();
-            return;
+        if (ic->shield != NULL) {
+            addInventoryItem(ic->armor,ic);
         }
         ic->shield= ic->inventory[inventorySlot];
         ic->inventory[inventorySlot]= 0;
