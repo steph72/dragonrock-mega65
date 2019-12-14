@@ -290,6 +290,7 @@ void performCharacterHitResult(hitResult *res) {
            res->damage);
 
     res->theMonster->hp-= res->damage;
+    
     if (res->theMonster->hp <= 0) {
         printf("%s dies!\n", res->theMonster->def->name);
         res->theMonster->status= dead;

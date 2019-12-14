@@ -5,7 +5,6 @@
 if [ ! -f "disc/drock.d64" ]; then
   mkdir -p disc
   c1541 -format drock,sk d64 disc/drock.d64
-  /bin/sh tools/buildResources.sh
 fi
 
 c1541 <<EOF
@@ -32,6 +31,8 @@ c1541 disc/drock.d64 -delete fmsg*
 for filename in mapdata/fmsg*; do 
   c1541 disc/drock.d64 -write $filename
 done
+
+/bin/sh tools/buildResources.sh
 
 
 # c1541 disc/drock.d64 -write bin/spr*
