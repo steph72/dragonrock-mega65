@@ -1,4 +1,5 @@
 #include <conio.h>
+#include <plus4.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,8 +35,8 @@ char *nameOfInventoryItem(item *anItem) {
         sprintf(drbuf, "%s %d", anItem->name, anItem->val1);
         return drbuf;
     }
-    if (anItem->val3>0) {
-        sprintf(drbuf,"%s +%d",anItem->name, anItem->val3);
+    if (anItem->val3 > 0) {
+        sprintf(drbuf, "%s +%d", anItem->name, anItem->val3);
         return drbuf;
     }
     return anItem->name;
@@ -254,6 +255,46 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
     return anItem;
 }
 
+void dispCharacterActionError(char *msg) {
+    cg_clearLower(2);
+    gotoxy(0, 23);
+    textcolor(BCOLOR_RED | CATTR_LUMA3);
+    cputs(msg);
+    cputs("\r\n--key--");
+    textcolor(BCOLOR_WHITE | CATTR_LUMA7);
+    cg_getkey();
+}
+
+void giveItem(character *ic) {
+    character *destCharacter;
+    item *anItem;
+    byte inventorySlot;
+    byte equipSlot;
+    byte memberIdx;
+
+    cg_clearLower(2);
+    gotoxy(0, 23);
+    cputs("give ");
+    anItem= whichItem(ic, &inventorySlot, &equipSlot);
+    if (inventorySlot == 255) {
+        dispCharacterActionError("unequip item first!");
+        return;
+    }
+    cputs("\r\nto party member #");
+    memberIdx= cgetc() - '1';
+    if (memberIdx > 6 || party[memberIdx] == NULL) {
+        dispCharacterActionError("...to whom?!");
+        return;
+    }
+    destCharacter= party[memberIdx];
+    if (!addInventoryItem(ic->inventory[inventorySlot], destCharacter)) {
+        dispCharacterActionError("no space in inventory!");        
+        return;
+    }
+    ic->inventory[inventorySlot]= 0;
+    return;
+}
+
 void removeItem(character *ic) {
     item *anItem;
     byte equipmentSlot;
@@ -265,8 +306,7 @@ void removeItem(character *ic) {
     cg_clearLower(2);
     gotoxy(0, 23);
     if (equipmentSlot == 255) {
-        cputs("not equipped item!\r\n--key--");
-        cg_getkey();
+        dispCharacterActionError("not equipped item!");
         return;
     }
     addInventoryItem(anItem->id, ic);
@@ -296,21 +336,21 @@ void equipItem(item *anItem, byte inventorySlot, character *ic) {
     case it_weapon:
     case it_missile:
         if (ic->weapon != NULL) {
-            addInventoryItem(ic->weapon,ic);
+            addInventoryItem(ic->weapon, ic);
         }
         ic->weapon= ic->inventory[inventorySlot];
         ic->inventory[inventorySlot]= NULL;
         break;
     case it_armor:
         if (ic->armor != NULL) {
-            addInventoryItem(ic->armor,ic);
+            addInventoryItem(ic->armor, ic);
         }
         ic->armor= ic->inventory[inventorySlot];
         ic->inventory[inventorySlot]= 0;
         break;
     case it_shield:
         if (ic->shield != NULL) {
-            addInventoryItem(ic->armor,ic);
+            addInventoryItem(ic->armor, ic);
         }
         ic->shield= ic->inventory[inventorySlot];
         ic->inventory[inventorySlot]= 0;
@@ -444,6 +484,10 @@ void inspectCharacter(byte idx) {
 
         case 'r':
             removeItem(ic);
+            break;
+
+        case 'g':
+            giveItem(ic);
             break;
 
         default:
