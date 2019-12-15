@@ -832,8 +832,9 @@ void getChoicesForPartyMember(byte idx) {
         }
 
         if (melee) {
-            if (getWeapon(guy)->type != it_weapon) {
-                cputs("fire\r\nequip a melee weapon first!\r\n--key--");
+            if (getWeapon(guy)->type == it_missile) {
+                cputs(gEncounterAction_p[guy->currentEncounterCommand]);
+                cputs("\r\nequip a melee weapon first!\r\n--key--");
                 cg_getkey();
                 repeat= true;
             }
@@ -969,7 +970,6 @@ encResult encLoop(void) {
         } while (!gotChoices);
 
         for (c= 30; c != 0; c--) {
-            // while (iterateMonsters(&aMonster, &i, &j)) {
             for (i= 0; i < gMonsterCount; i++) {
                 aMonster= gMonsterRoster[i];
                 if (!isPartyDefeated()) {
