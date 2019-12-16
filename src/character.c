@@ -8,6 +8,7 @@
 #include "config.h"
 #include "congui.h"
 #include "types.h"
+#include "spell.h"
 
 character *party[PARTYSIZE];
 
@@ -242,9 +243,12 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
     *equipSlot= 255;
     *inventorySlot= 255;
 
-    cputs("which item (A-L)? ");
+    cputs("which item (A-O)? ");
     cursor(1);
-    itemIdxChar= cgetc();
+    do {
+        itemIdxChar= cgetc();
+    } while (itemIdxChar < 'a' || itemIdxChar > 'o');
+
     cursor(0);
     if (itemIdxChar >= 'a' && itemIdxChar <= 'c') {
         anItem= getEquippedItem(ic, itemIdxChar, equipSlot);
@@ -288,7 +292,7 @@ void giveItem(character *ic) {
     }
     destCharacter= party[memberIdx];
     if (!addInventoryItem(ic->inventory[inventorySlot], destCharacter)) {
-        dispCharacterActionError("no space in inventory!");        
+        dispCharacterActionError("no space in inventory!");
         return;
     }
     ic->inventory[inventorySlot]= 0;
@@ -326,8 +330,6 @@ void removeItem(character *ic) {
         break;
     }
 }
-
-const char *removeMsg= "(removing your durrent %s first)";
 
 void equipItem(item *anItem, byte inventorySlot, character *ic) {
     cg_clearLower(2);
@@ -397,6 +399,8 @@ void inspectCharacter(byte idx) {
     byte i;
     byte quitInspect;
     byte cmd;
+    
+    byte spellLine;
 
     if (party[idx] == NULL) {
         return;
@@ -406,46 +410,55 @@ void inspectCharacter(byte idx) {
 
     while (!quitInspect) {
 
+        spellLine=0;
         ic= party[idx];
         clrscr();
         revers(1);
         cputs(ic->name);
         revers(0);
         printf(" (%s, %s)\n", gRaces[ic->aRace], gClasses[ic->aClass]);
-        for (i= 0; i < strlen(ic->name); ++i) {
-            cputc('=');
-        }
-        puts("\n");
         for (i= 0; i < NUM_ATTRS; i++) {
-            cputsxy(0, i + 3, gAttributesS[i]);
-            cputsxy(3, i + 3, ":");
-            gotoxy(5, i + 3);
+            cputsxy(0, i + 2, gAttributesS[i]);
+            cputsxy(3, i + 2, ":");
+            gotoxy(5, i + 2);
             cprintf("%2d %s", ic->attributes[i],
                     bonusStrForAttribute(ic->attributes[i]));
         }
-        gotoxy(0, i + 4);
+        gotoxy(0, i + 3);
         printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);
         printf(" MP: %d/%d\n", ic->aMP, ic->aMaxMP);
         printf(" AC: %d", getArmorClassForCharacter(ic));
-        gotoxy(18, 3);
-        printf("   Age: %d", ic->age);
-        gotoxy(18, 4);
-        printf(" Level: %d", ic->level);
-        gotoxy(18, 5);
-        printf("    XP: %d", ic->xp);
-        gotoxy(18, 6);
-        printf(" Coins: %d", ic->gold);
-        gotoxy(16, 8);
+        gotoxy(24, 2);
+        cputs("Spells:");
+        gotoxy(24,3);
+        for (i=1;i<64;++i) {
+            if (hasSpell(ic,i)) {
+                printf("%2d ",i);
+            }
+            if (wherex()>=38) {
+                ++spellLine;
+                gotoxy(24,3+spellLine);
+            }
+        }
+        gotoxy(13, 2);
+        printf("Age: %d", ic->age);
+        gotoxy(13, 3);
+        printf("Lvl: %d", ic->level);
+        gotoxy(13, 4);
+        printf(" XP: %d", ic->xp);
+        gotoxy(13, 5);
+        printf("Cns: %d", ic->gold);
+        gotoxy(16, 10);
         revers(1);
         cputc('A');
         revers(0);
         printf(" Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
-        gotoxy(16, 9);
+        gotoxy(16, 11);
         revers(1);
         cputc('B');
         revers(0);
         printf("  Armor: %s", nameOfInventoryItemWithID(ic->armor));
-        gotoxy(16, 10);
+        gotoxy(16, 12);
         revers(1);
         cputc('C');
         revers(0);

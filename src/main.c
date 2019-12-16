@@ -40,6 +40,7 @@
 
 #include "encounter.h"
 #include "monster.h"
+#include "spell.h"
 
 #include "dispatcher.h"
 
@@ -89,17 +90,22 @@ void debugEncounter(void) {
     addNewMonster(0, 1, 6, 0);
     addNewMonster(1, 1, 3, 1);
     addNewMonster(2, 1, 1, 2);
-    prepareForGameMode(gm_encounter); 
+    prepareForGameMode(gm_encounter);
     mainDispatchLoop();
 }
 
 int main() {
     static char choice;
+    byte i;
 
     initEngine();
-    debugEncounter();
     clrscr();
     cg_borders();
+    
+    for (i= 0; i < 50; i+=2) {
+        setHasSpell(party[0], i);
+    }
+
     cputsxy(2, 4, "Welcome to");
     cputsxy(5, 6, "Dragon Rock 1 - The Escape");
     cputsxy(2, 12, "1 - load saved game");
@@ -112,6 +118,10 @@ int main() {
     do {
         choice= cgetc();
     } while (strchr("12d", choice) == NULL);
+
+    if (choice == 'd') {
+        debugEncounter();
+    }
 
     if (choice == '1' && hasLoadedGame) {
         // determine last city from saved party

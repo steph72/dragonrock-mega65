@@ -25,7 +25,6 @@ const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
 
-
 void runGuildMenu(void) {
     const char menu[]= "  L)ist guild members  T)raining\n"
                        "  N)ew guild member    S)pells\n"
@@ -104,7 +103,8 @@ void runCityMenu(void) {
     quitCity= 0;
 
     while (!quitCity) {
-        sprintf(drbuf, "%s (%d)", gCities[gCurrentCityIndex], gCurrentCityIndex + 1);
+        sprintf(drbuf, "%s (%d)", gCities[gCurrentCityIndex],
+                gCurrentCityIndex + 1);
         cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 1,
                   drbuf);
         showCurrentParty(false);
@@ -248,12 +248,19 @@ void newGuildMember(byte city) {
     newC->status= awake;
     newC->aRace= race;
     newC->aClass= class;
+
     for (i= 0; i < NUM_ATTRS; i++) {
         newC->attributes[i]= tempAttr[i];
     }
+
+    // empty inventory & known spells
     for (i= 0; i < INV_SIZE; i++) {
         newC->inventory[i]= 0;
     }
+    for (i= 0; i < 8; i++) {
+        newC->spellMap[i]= 0;
+    }
+    
     addInventoryItem(0xff, newC); // add white orb for testing
     newC->weapon= 0x01;           // add club
     newC->armor= 0x80;            // add robes

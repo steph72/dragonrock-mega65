@@ -76,7 +76,6 @@ typedef enum _encResult {
 	encDead		// the party is dead
 } encResult;
 
-
 typedef enum _cstateType {
 	deleted=0,
 	down=1, 
@@ -108,26 +107,18 @@ typedef enum _attackType {
 	at_fire    = 0x80
 } attackType;
 
+// --------------- spells ------------------
+
+typedef struct _spell {
+	char *name;
+	byte spellLevel;
+	byte minLevel;
+	byte mpNeeded;
+	byte minDmg;
+	byte maxDmg;
+} spell;
+
 // -------------- equipment ----------------
-
-typedef struct _weapon {
-	byte minStrength;
-	byte hitDice;
-	byte bonus;
-} weaponT;
-
-typedef struct _armor {
-	byte minStrength;
-	byte acBonusValue;
-	byte bonus;
-} armorT;
-
-typedef struct _scroll {
-	byte scrollNo;
-	byte padding1;
-	byte padding2;
-} scrollT;
-
 
 typedef struct _item {			// inventory item
 	byte id;
@@ -196,6 +187,7 @@ typedef struct _character {
 	raceT	aRace;
 	classT	aClass;
 	attrT   attributes[NUM_ATTRS];
+	byte	spellMap[8];
 	int		aMaxHP;
 	int		aMaxMP;
 	int		aHP;
