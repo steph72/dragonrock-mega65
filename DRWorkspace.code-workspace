@@ -19,7 +19,8 @@
 			"conio.h": "c",
 			"guild.h": "c",
 			"time.h": "c",
-			"cbm.h": "c"
+			"cbm.h": "c",
+			"dispatcher.h": "c"
 		}
 	}
 }

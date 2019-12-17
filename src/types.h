@@ -201,7 +201,7 @@ typedef struct _character {
 	signed char initiative;
 	encCommand	currentEncounterCommand;
 	byte		encSpell;
-	byte		encDestRank;
+	byte		encDestination;
 } character;
 
 typedef struct _dungeonDescriptorS {

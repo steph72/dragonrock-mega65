@@ -9,13 +9,14 @@ byte hasSpell(character *aChar, byte spellID);
 void setHasSpell(character *aChar, byte spellID);
 
 // return spell for given spell ID
-spell spellForSpellID(byte spellID);
-
-// return name for spell with given spell ID
-char *nameOfSpellWithSpellID(byte spellID);
+#define spellForSpellID(spellID) gSpells[spellID]
 
 // return name for given spell
 char *nameOfSpell(spell *aSpell);
+char *nameOfSpellWithID(byte spellID);
 
 // cast spell
 byte castSpell(character *aChar, spell *aSpell);
+
+// determine whether spell takes character destination
+byte spellNeedsCharacterDestination(byte spellID);

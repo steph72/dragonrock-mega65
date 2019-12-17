@@ -11,6 +11,7 @@
 #include "guild.h"
 #include <plus4.h>
 
+extern void _OVERLAY_SIZE__;
 extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 extern void _OVERLAY3_LOAD__[], _OVERLAY3_SIZE__[];
@@ -111,8 +112,8 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     x= wherex();
     y= wherey();
     gotoxy(0, 24);
-    printf("l %s $%x @ $%x ", name, size, addr);
-    printf("$%x rem", 0x2000 - (int)size);
+    printf("l %s size $%x @ $%x ", name, size, addr);
+    printf("$%x rem", 0x2400 - (int)size);
     gotoxy(x, y);
 #endif
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {

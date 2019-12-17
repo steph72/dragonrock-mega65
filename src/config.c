@@ -33,10 +33,15 @@ spell gSpells[]= {
 
     /*  0 */ {"--", 0, 0, 0, 0, 0}, // nothing
 
-    /*  1 */ {"Heal", 1, 1, 2, 1, 4},  // heal 1
-    /*  2 */ {"Heal", 2, 3, 4, 2, 8},  // heal 2
-    /*  3 */ {"Heal", 3, 6, 6, 4, 10}, // heal 3
-    /*  4 */ {"Heal", 4, 8, 8, 6, 15}, // heal 4
+    /*  1 */ {"Heal", 1, 1, 2, 1, 4},   // heal 1
+    /*  2 */ {"Heal", 2, 3, 4, 2, 8},   // heal 2
+    /*  3 */ {"Heal", 3, 6, 8, 4, 10},  // heal 3
+    /*  4 */ {"Heal", 4, 8, 16, 6, 15}, // heal 4
+
+    /*  5 */ {"Fireflash", 1, 1, 2, 1, 4},   // fireflash 1
+    /*  6 */ {"Fireflash", 2, 3, 4, 2, 8},   // fireflash 2
+    /*  7 */ {"Fireflash", 3, 6, 8, 4, 10},  // fireflash 3
+    /*  8 */ {"Fireflash", 4, 8, 16, 6, 15}, // fireflash 4
 
 };
 
@@ -68,7 +73,7 @@ item gItems[]= {
 
     {0x40, "Small shield", it_shield, 0, 2, 0, 10},
     {0x41, "Medium shield", it_shield, 1, 3, 0, 20},
-    {0x42, "Large schield", it_shield, 2, 4, 0, 30},
+    {0x42, "Large shield", it_shield, 2, 4, 0, 30},
 
     // --- armor ---
 

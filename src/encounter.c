@@ -1,4 +1,5 @@
 #include "encounter.h"
+#include "spell.h"
 #include "utils.h"
 #include <unistd.h>
 
@@ -49,6 +50,18 @@ void giveExperience(unsigned int exp) {
     performAddCoinsOpcode(&fakeOpcode);
 }
 
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
+
+/*
+
+           ==================================================
+                          encounter overlay
+           ==================================================
+
+*/
+
 byte areMonstersDefeated(void) {
     byte i;
     monster *aMonster;
@@ -73,6 +86,7 @@ byte isPartyDefeated(void) {
     return true;
 }
 
+
 character *chooseRandomCharacter(void) {
     byte i;
     character *ret;
@@ -88,11 +102,30 @@ character *chooseRandomCharacter(void) {
 }
 
 void characterChooseSpell(character *guy) {
-    char sp;
+    char val;
     cputs("cast spell nr.? ");
     fgets(drbuf, 10, stdin);
-    sp= atoi(drbuf);
-    guy->encSpell= sp;
+    val= atoi(drbuf);
+    if (!hasSpell(guy, val)) {
+        cputs("\r\nspell not known!");
+        return;
+    }
+    if (gSpells[val].mpNeeded > guy->aMP) {
+        cputs("\r\nnot enough MP!");
+        return;
+    }
+    guy->encSpell= val;
+    if (spellNeedsCharacterDestination(val)) {
+        cputs("on character #");
+        fgets(drbuf, 10, stdin);
+        val= atoi(drbuf) - 1;
+        if (val > 5 || party[val] == NULL) {
+            guy->encSpell= 0;
+            cputs("\r\ninvalid character!");
+        } else {
+            guy->encDestination = val;
+        }
+    }
 }
 
 byte xposForMonster(byte numMonsters, byte mPos, byte mWidth) {
@@ -109,7 +142,6 @@ void doMonsterDamage(monster *aMonster, hitResult *result) {
         result->damage= aMonster->level * (drand(aMonster->def->hitDice) +
                                            aMonster->def->hitModifier);
     }
-    return;
 }
 
 void doMonsterHit(monster *aMonster, character *opponent, hitResult *result) {
@@ -268,7 +300,7 @@ void performCharacterHitResult(hitResult *res) {
     }
 
     if (res->theCharacter->currentEncounterCommand == ec_fireBow) {
-        printf(" fires at rank %d ",res->theCharacter->encDestRank+1);
+        printf(" fires at rank %d ", res->theCharacter->encDestination + 1);
     } else {
         cputs(" attacks ");
         cputs(res->theMonster->def->name);
@@ -290,7 +322,7 @@ void performCharacterHitResult(hitResult *res) {
            res->damage);
 
     res->theMonster->hp-= res->damage;
-    
+
     if (res->theMonster->hp <= 0) {
         printf("%s dies!\n", res->theMonster->def->name);
         res->theMonster->status= dead;
@@ -309,7 +341,7 @@ void doPartyTurn(byte idx) {
     theCharacter= party[idx];
     encounterCommand= theCharacter->currentEncounterCommand;
     encSpell= theCharacter->encSpell;
-    encDestinationRank= theCharacter->encDestRank;
+    encDestinationRank= theCharacter->encDestination;
 
     clearText();
     /*
@@ -474,17 +506,6 @@ void loadSpriteIfNeeded(byte id) {
     loadSprite(id);
 }
 
-// clang-format off
-#pragma code-name(push, "OVERLAY3");
-// clang-format on
-
-/*
-
-           ==================================================
-                          encounter overlay
-           ==================================================
-
-*/
 
 void clearText(void) {
     cg_clearLower(7);
@@ -821,7 +842,6 @@ void getChoicesForPartyMember(byte idx) {
             guy->currentEncounterCommand= ec_magic;
             characterChooseSpell(guy);
             if (guy->encSpell == 0) {
-                cputs("spell not known!");
                 cg_getkey();
                 repeat= true;
             }
@@ -849,8 +869,8 @@ void getChoicesForPartyMember(byte idx) {
                 cprintf("%s at rank ",
                         gEncounterAction_p[guy->currentEncounterCommand]);
                 do {
-                    guy->encDestRank= cgetc() - '1';
-                } while (guy->encDestRank > 3);
+                    guy->encDestination= cgetc() - '1';
+                } while (guy->encDestination > 3);
             }
         }
 
@@ -939,7 +959,7 @@ encResult encLoop(void) {
             for (j= 0; j < PARTYSIZE; ++j) {
                 party[j]->currentEncounterCommand= ec_nothing;
                 party[j]->encSpell= 0;
-                party[j]->encDestRank= 0;
+                party[j]->encDestination= 0;
                 if (party[j]->status == awake) {
                     getChoicesForPartyMember(j);
                 }
@@ -952,10 +972,15 @@ encResult encLoop(void) {
                     cputs(
                         gEncounterAction_p[party[j]->currentEncounterCommand]);
                     if (party[j]->encSpell) {
-                        printf(" %d ", party[j]->encSpell);
-                    }
-                    if (party[j]->encDestRank) {
-                        printf(" at rank %d", party[j]->encDestRank + 1);
+                        printf(" %s", nameOfSpellWithID(party[j]->encSpell));
+                        if (party[j]->encDestination) {
+                            printf(" on %s",
+                                   party[party[j]->encDestination]->name);
+                        }
+                    } else {
+                        if (party[j]->encDestination) {
+                            printf(" at rank %d", party[j]->encDestination + 1);
+                        }
                     }
                     cputs("\r\n");
                 }

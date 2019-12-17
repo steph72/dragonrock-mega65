@@ -101,9 +101,10 @@ int main() {
     initEngine();
     clrscr();
     cg_borders();
-    
-    for (i= 0; i < 50; i+=2) {
+
+    for (i= 0; i < 5; i++) {
         setHasSpell(party[0], i);
+        setHasSpell(party[1], i+5);
     }
 
     cputsxy(2, 4, "Welcome to");
