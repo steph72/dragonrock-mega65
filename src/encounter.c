@@ -34,6 +34,18 @@ void plotCharacter(byte idx, byte variant);
 
 /* code starts here */
 
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
+
+/*
+
+           ==================================================
+                          encounter overlay
+           ==================================================
+
+*/
+
 void giveCoins(unsigned int coins) {
     opcode fakeOpcode;
     fakeOpcode.id= 0x8a;
@@ -49,18 +61,6 @@ void giveExperience(unsigned int exp) {
     fakeOpcode.param2= exp / 256;
     performAddCoinsOpcode(&fakeOpcode);
 }
-
-// clang-format off
-#pragma code-name(push, "OVERLAY3");
-// clang-format on
-
-/*
-
-           ==================================================
-                          encounter overlay
-           ==================================================
-
-*/
 
 byte areMonstersDefeated(void) {
     byte i;
@@ -356,6 +356,10 @@ void doPartyTurn(byte idx) {
     case ec_fireBow:
         doCharacterHit(theCharacter, encDestinationRank, &hitRes);
         performCharacterHitResult(&hitRes);
+        break;
+
+    case ec_magic:
+        castSpell(theCharacter);
         break;
 
     case ec_parry:

@@ -16,7 +16,7 @@ char *nameOfSpell(spell *aSpell);
 char *nameOfSpellWithID(byte spellID);
 
 // cast spell
-byte castSpell(character *aChar, spell *aSpell);
+byte castSpell(character *aChar);
 
 // determine whether spell takes character destination
 byte spellNeedsCharacterDestination(byte spellID);

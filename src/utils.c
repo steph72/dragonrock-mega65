@@ -13,3 +13,7 @@ unsigned int drand(unsigned int max) {
 
     return x;
 }
+
+unsigned int dmrand(unsigned int min, unsigned int max) {
+    return min+(drand(max-min));
+}

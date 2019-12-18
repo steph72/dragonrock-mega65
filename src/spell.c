@@ -1,4 +1,6 @@
 #include "spell.h"
+#include "utils.h"
+#include <conio.h>
 #include <stdio.h>
 
 static byte spellMapByteIdx;
@@ -26,6 +28,53 @@ char *nameOfSpell(spell *aSpell) {
 
 char *nameOfSpellWithID(byte spellID) { return nameOfSpell(&gSpells[spellID]); }
 
+byte isHealingSpell(byte spellID) { return (spellID >= 1 && spellID <= 4); }
+
 byte spellNeedsCharacterDestination(byte spellID) {
-    return (spellID >= 1 && spellID <= 4);  // healing spells
+    return isHealingSpell(spellID);
+}
+
+void announceSpell(character *aChar) {
+    cprintf("%s casts %s\r\n", aChar->name,
+            nameOfSpellWithID(aChar->encSpell));
+}
+
+byte castHealingSpell(character *srcCharacter) {
+    byte healVal;
+    character *destCharacter;
+    spell *aSpell;
+
+    destCharacter= party[srcCharacter->encDestination];
+    aSpell= &gSpells[srcCharacter->encSpell];
+
+    announceSpell(srcCharacter);
+
+    healVal= dmrand(aSpell->minDmg, aSpell->maxDmg);
+    if (destCharacter->aHP + healVal > destCharacter->aMaxHP) {
+        healVal-= (destCharacter->aHP + healVal - destCharacter->aMaxHP);
+    }
+    destCharacter->aHP+= healVal;
+    cprintf("%s is healed for %d points", destCharacter->name, healVal);
+    srcCharacter->aMP-= aSpell->mpNeeded;
+
+    return true;
+}
+
+byte castSpell(character *aChar) {
+
+    if (aChar->encSpell == 0) {
+        return false;
+    }
+    switch (aChar->encSpell) {
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        castHealingSpell(aChar);
+        break;
+
+    default:
+        break;
+    }
+    return true;
 }
