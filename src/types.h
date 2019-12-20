@@ -198,6 +198,7 @@ typedef struct _character {
 	itemT   weapon;
 	itemT   shield;
 	itemT   armor;
+	// encounter attributes
 	signed char initiative;
 	encCommand	currentEncounterCommand;
 	byte		encSpell;

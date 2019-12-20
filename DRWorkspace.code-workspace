@@ -20,7 +20,10 @@
 			"guild.h": "c",
 			"time.h": "c",
 			"cbm.h": "c",
-			"dispatcher.h": "c"
+			"dispatcher.h": "c",
+			"typeinfo": "c",
+			"character.h": "c",
+			"config.h": "c"
 		}
 	}
 }

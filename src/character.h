@@ -10,6 +10,7 @@ extern character *party[PARTYSIZE];
 
 char *nameOfInventoryItem(item *anItem);
 char *nameOfInventoryItemWithID(itemT anItemID);
+item *inventoryItemForID(itemT anItemID);
 itemT addInventoryItem(itemT anItemID, character *aCharacter);
 byte hasInventoryItem(character *aCharacter, itemT anItemID);
 byte nextFreeInventorySlot(character *aCharacter);

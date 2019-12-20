@@ -44,7 +44,7 @@ byte castHealingSpell(character *srcCharacter) {
     character *destCharacter;
     spell *aSpell;
 
-    destCharacter= party[srcCharacter->encDestination];
+    destCharacter= party[srcCharacter->encDestination-1];
     aSpell= &gSpells[srcCharacter->encSpell];
 
     announceSpell(srcCharacter);
@@ -55,12 +55,12 @@ byte castHealingSpell(character *srcCharacter) {
     }
     destCharacter->aHP+= healVal;
     cprintf("%s is healed for %d points", destCharacter->name, healVal);
-    srcCharacter->aMP-= aSpell->mpNeeded;
-
     return true;
 }
 
 byte castSpell(character *aChar) {
+
+    byte castSuccessful = false;
 
     if (aChar->encSpell == 0) {
         return false;
@@ -70,11 +70,17 @@ byte castSpell(character *aChar) {
     case 2:
     case 3:
     case 4:
-        castHealingSpell(aChar);
+        castSuccessful = castHealingSpell(aChar);
         break;
 
     default:
         break;
     }
-    return true;
+
+    if (castSuccessful) {
+        aChar->aMP -= gSpells[aChar->encSpell].mpNeeded;
+    }
+
+
+    return castSuccessful;
 }

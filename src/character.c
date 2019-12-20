@@ -488,6 +488,9 @@ void inspectCharacter(byte idx) {
 
         switch (cmd) {
         case 'x':
+        case '\n':
+        case '\r':
+        case ' ':
             quitInspect= true;
             break;
 

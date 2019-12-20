@@ -12,20 +12,37 @@
 #include "guild.h"
 #include "types.h"
 #include "utils.h"
+#include "armory.h"
 
 #include "dungeon.h"
 
 extern character *guild;
-
 extern byte hasLoadedGame;
-
 const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
 
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
 
-void runGuildMenu(void) {
+void runCityMenu(void);
+
+void leaveCityMode(void) {
+    free(guild);
+    saveArmory();
+    releaseArmory();
+}
+
+void enterCityMode(void) {
+    clrscr();
+    gotoxy(4, 12);
+    printf("Welcome to %s", gCities[gCurrentCityIndex]);
+    initGuild();
+    initArmory();
+    runCityMenu();
+    leaveCityMode();
+}
+
+void doGuild(void) {
     const char menu[]= "  L)ist guild members  T)raining\n"
                        "  N)ew guild member    S)pells\n"
                        "  P)urge guild member\n"
@@ -124,24 +141,38 @@ void runCityMenu(void) {
         }
 
         switch (cmd) {
+
         case 'l':
-            quitCity= 1;
+            clrscr();
+            gotoxy(0, 23);
+            printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
+            do {
+                cursor(1);
+                cmd= cgetc();
+                cursor(0);
+            } while (strchr("yn", cmd) == NULL);
+            if (cmd == 'y') {
+                quitCity= 1;
+            }
+            cmd= 0;
+            break;
+
+        case 'a':
+            doArmory();
             break;
 
         case 'g':
-            runGuildMenu();
+            doGuild();
             break;
 
         case 's':
-            saveGuild();
+            saveGuildAndParty();
             break;
 
         default:
             break;
         }
     }
-
-    free(guild);
 }
 
 void newGuildMember(byte city) {
@@ -260,7 +291,7 @@ void newGuildMember(byte city) {
     for (i= 0; i < 8; i++) {
         newC->spellMap[i]= 0;
     }
-    
+
     addInventoryItem(0xff, newC); // add white orb for testing
     newC->weapon= 0x01;           // add club
     newC->armor= 0x80;            // add robes

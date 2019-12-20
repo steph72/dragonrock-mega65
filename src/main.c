@@ -50,7 +50,7 @@ byte hasLoadedGame;
 
 void initEngine(void);
 void runCityMenu(void);
-void runGuildMenu(void);
+void doGuild(void);
 void loadSaved(void);
 void installCharset(void);
 
@@ -102,9 +102,11 @@ int main() {
     clrscr();
     cg_borders();
 
+    // TESTING
     for (i= 0; i < 5; i++) {
         setHasSpell(party[0], i);
-        setHasSpell(party[1], i+5);
+        setHasSpell(party[1], i + 5);
+        party[i]->gold= 100;
     }
 
     cputsxy(2, 4, "Welcome to");

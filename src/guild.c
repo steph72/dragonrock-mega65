@@ -36,6 +36,11 @@ void _listGuildMembers(void) {
             x= (20 * (i / charsPerRow));
             y= (4 + (i % charsPerRow));
             gotoxy(x, y);
+            if (isInParty(i)) {
+                cputc('*');
+            } else {
+                cputc(' ');
+            }
             cprintf("%2d %.10s", i + 1, tempChar->name);
             gotoxy(x + 14, y);
             cprintf("%s-%d", gClassesS[tempChar->aClass], tempChar->city + 1);
@@ -190,7 +195,7 @@ signed char nextFreeGuildSlot(void) {
     return -1;
 }
 
-void saveGuild(void) {
+void saveGuildAndParty(void) {
     static FILE *outfile;
     static byte i, c;
     clrscr();
@@ -235,7 +240,10 @@ void initGuildMem(void) {
     static unsigned int sizeBytes= 0;
     sizeBytes= GUILDSIZE * sizeof(character);
     guild= (character *)malloc(sizeBytes);
-    printf("guild size is $%x bytes at $%x\n", sizeBytes,guild);
+#ifdef DEBUG
+    gotoxy(0, 24);
+    printf("guild: $%x bytes at $%x", sizeBytes, guild);
+#endif
     if (guild == NULL) {
         puts("???fatal: no memory for guild");
         exit(0);

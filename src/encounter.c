@@ -101,27 +101,43 @@ character *chooseRandomCharacter(void) {
     return ret;
 }
 
+void dispMiniRoster(void) {
+    char i,x,y;
+    x= wherex();
+    y= wherey();
+    for (i=0;i<PARTYSIZE;++i) {
+        if (party[i]) {
+            gotoxy(28,17+i);
+            cprintf("%d %-10s",i+1,party[i]->name);
+        }
+    }
+    gotoxy(x,y);
+}
+
 void characterChooseSpell(character *guy) {
-    char val;
-    cputs("cast spell nr.? ");
+    int val;
+    clearText();
+    printf("%s\ncast spell nr.? ",guy->name);
     fgets(drbuf, 10, stdin);
     val= atoi(drbuf);
+    // scanf("%d",&val);
     if (!hasSpell(guy, val)) {
-        cputs("\r\nspell not known!");
+        puts("spell not known!");
         return;
     }
     if (gSpells[val].mpNeeded > guy->aMP) {
-        cputs("\r\nnot enough MP!");
+        puts("not enough MP!");
         return;
     }
     guy->encSpell= val;
     if (spellNeedsCharacterDestination(val)) {
-        cputs("on character #");
+        dispMiniRoster();
+        printf("on character #");
         fgets(drbuf, 10, stdin);
-        val= atoi(drbuf) - 1;
-        if (val > 5 || party[val] == NULL) {
+        val= atoi(drbuf); 
+        if (val<1 || val > 6 || party[val-1] == NULL) {
             guy->encSpell= 0;
-            cputs("\r\ninvalid character!");
+            puts("invalid character!");
         } else {
             guy->encDestination = val;
         }
@@ -978,8 +994,9 @@ encResult encLoop(void) {
                     if (party[j]->encSpell) {
                         printf(" %s", nameOfSpellWithID(party[j]->encSpell));
                         if (party[j]->encDestination) {
+                            // spell destination is own party?
                             printf(" on %s",
-                                   party[party[j]->encDestination]->name);
+                                   party[party[j]->encDestination-1]->name);
                         }
                     } else {
                         if (party[j]->encDestination) {

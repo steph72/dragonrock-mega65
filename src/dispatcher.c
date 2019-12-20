@@ -40,6 +40,8 @@ void commitNewGameMode(void) {
 
     lastGameMode= gCurrentGameMode;
     gCurrentGameMode= gNextGameMode;
+    
+    clrscr();
 
     switch (gNextGameMode) {
 
@@ -70,8 +72,7 @@ void enterCurrentGameMode() {
     switch (gCurrentGameMode) {
 
     case gm_city:
-        initGuild();
-        runCityMenu();
+        enterCityMode();
         break;
 
     case gm_dungeon:
