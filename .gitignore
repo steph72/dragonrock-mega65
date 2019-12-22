@@ -4,3 +4,9 @@ bin/*
 disc/*
 
 .vscode/c_cpp_properties.json
+manual/manual.aux
+manual/manual.dvi
+manual/manual.fdb_latexmk
+manual/manual.fls
+manual/manual.log
+manual/manual.synctex.gz
