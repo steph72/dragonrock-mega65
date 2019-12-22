@@ -40,7 +40,7 @@ void commitNewGameMode(void) {
 
     lastGameMode= gCurrentGameMode;
     gCurrentGameMode= gNextGameMode;
-    
+
     clrscr();
 
     switch (gNextGameMode) {
@@ -68,6 +68,8 @@ void commitNewGameMode(void) {
 }
 
 void enterCurrentGameMode() {
+
+    bordercolor(BCOLOR_BLACK);
 
     switch (gCurrentGameMode) {
 

@@ -56,7 +56,7 @@ item gItems[]= {
     // --- weapons ---
 
     {0x01, "Club", it_weapon, 1, 3, 0, 1},
-    {0x02, "Staff", it_weapon, 1, 3, 0, 1},
+    {0x02, "Staff", it_weapon, 1, 3, 0, 5},
     {0x03, "Dagger", it_weapon, 1, 4, 0, 10},
     {0x04, "Short sword", it_weapon, 1, 6, 0, 20},
 
@@ -77,7 +77,7 @@ item gItems[]= {
 
     // --- armor ---
 
-    {0x80, "Robe", it_armor, 0, 1, 0, 1},
+    {0x80, "Robe", it_armor, 0, 1, 0, 2},
 
     // --- scrolls and books ---
 

@@ -78,7 +78,7 @@ void dispInvFromIndex(byte idx) {
         gotoxy(3, 3 + i);
         if (shopInventory[itemIdx]) {
             anItem= inventoryItemForID(shopInventory[itemIdx]);
-            printf("%c %d %16.s %4d", 'A' + i, shopInventory[itemIdx],
+            printf("%c %d %10.s %4d", 'A' + i, shopInventory[itemIdx],
                    anItem->name, anItem->price);
         }
     }

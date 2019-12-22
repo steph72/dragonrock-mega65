@@ -127,7 +127,7 @@ typedef struct _item {			// inventory item
 	byte val1;					// armor, weapon: minStrength needed; scroll: scrollID
 	byte val2;					// armor: ac value; weapon: hit dice
 	byte val3;					// weapon, armor, ring: bonus
-	long price;
+	int price;
 } item;
 
 typedef struct _ditem {			// dungeon item
