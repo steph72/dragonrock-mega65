@@ -11,10 +11,10 @@
 #include "guild.h"
 #include <plus4.h>
 
-extern void _OVERLAY_SIZE__;
-extern void _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
-extern void _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
-extern void _OVERLAY3_LOAD__[], _OVERLAY3_SIZE__[];
+// extern unsigned int _OVERLAY_SIZE__;
+extern unsigned int _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
+extern unsigned int _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
+extern unsigned int _OVERLAY3_LOAD__[], _OVERLAY3_SIZE__[];
 
 gameModeT gCurrentGameMode;
 gameModeT gNextGameMode;

@@ -13,6 +13,8 @@
 
 character *guild;
 
+static FILE *outfile;
+
 extern character *party[PARTYSIZE];
 
 void newGuildMember(byte city);
@@ -195,18 +197,14 @@ signed char nextFreeGuildSlot(void) {
     return -1;
 }
 
-void saveGuildAndParty(void) {
-    static FILE *outfile;
-    static byte i, c;
-    clrscr();
-    cg_borders();
-    puts("\nPlease wait, "
-         "saving guild...");
+void saveGuild(void) {
     outfile= fopen("gdata", "w");
     fwrite(guild, GUILDSIZE * sizeof(character), 1, outfile);
     fclose(outfile);
+}
 
-    puts("saving party...");
+void saveParty(void) {
+    static byte i, c;
     outfile= fopen("pdata", "w");
     c= partyMemberCount();
     fputc(c, outfile);
@@ -214,8 +212,6 @@ void saveGuildAndParty(void) {
         fwrite(party[i], sizeof(character), 1, outfile);
     }
     fclose(outfile);
-    puts("\n\n...done.");
-    cgetc();
 }
 
 byte loadGuild(void) {

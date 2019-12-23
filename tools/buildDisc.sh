@@ -11,6 +11,7 @@ fi
 
 c1541 <<EOF
 attach disc/drock.d64
+delete loader
 delete sjload
 delete main
 delete city
@@ -18,14 +19,14 @@ delete dungeon
 delete encounter
 delete charset
 delete map*
+write cbm/loader loader
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
 write bin/drmain.plus4.3 encounter
+write cbm/sjload sjload
 write bin/drcharset charset
 write mapdata/library.d mapa
-write cbm/loader sd2iecload
-write cbm/sjload sjload
 EOF
 
 c1541 disc/drock.d64 -delete fmsg*

@@ -526,7 +526,6 @@ byte loadParty(void) {
     count= fgetc(infile);
 
     for (i= 0; i < count; ++i) {
-        cputs(".");
         newChar= malloc(sizeof(character));
         fread(newChar, sizeof(character), 1, infile);
         party[i]= newChar;

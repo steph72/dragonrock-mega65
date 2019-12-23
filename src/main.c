@@ -54,31 +54,20 @@ void doGuild(void);
 void loadSaved(void);
 void installCharset(void);
 
-const char prompt[]= "ARCHAIC(tm) engine for TED/64k\n"
-                     "Version 0.1 alpha\n\n"
-                     "Written by Stephan Kleinert\n"
-                     "at K-Burg, Bad Honnef, and\n"
-                     "at Hundehaus im Reinhardswald\n\n"
-                     "Copyright (c) 2019 7Turtles Software\n";
-
 void initEngine(void) {
     unsigned int rseed;
 
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
 
     cg_init();
-    puts(prompt);
     rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
-    cputs("please wait.");
     if (cbm_load("charset", getcurrentdevice(), (void *)0xf800) == 0) {
         puts("Failed loading charset.");
         exit(0);
     }
-    cputs(".");
     installIRQ();
     hasLoadedGame= loadParty();
-    cputs(".");
     enableCustomCharset();
     gLoadedDungeonIndex= 255;
 }

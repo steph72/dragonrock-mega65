@@ -4,7 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/share/cc65/include/**"
+                "/usr/local/share/cc65/include/**",
+                "/usr/share/cc65/include/**"
             ],
             "defines": [],
             "compilerPath": "/usr/local/bin/cc65",

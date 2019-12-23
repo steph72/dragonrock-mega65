@@ -20,7 +20,8 @@ void initGuildMem(void);
 byte initGuild(void);
 byte loadGuild(void);
 
-void saveGuildAndParty(void);
+void saveGuild(void);
+void saveParty(void);
 
 extern character *party[PARTYSIZE];
 

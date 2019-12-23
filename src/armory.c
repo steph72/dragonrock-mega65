@@ -20,20 +20,46 @@ byte numCityVisits;
 #pragma code-name(push, "OVERLAY2");    // "CITY" segment
 // clang-format on
 
-void addItemIDToShopInventory(byte itemID) {
+byte addItemIDToShopInventory(byte itemID) {
     byte i;
     for (i= 0; i < SHOP_INV_SIZE; ++i) {
         if (!shopInventory[i]) {
             shopInventory[i]= itemID;
-            return;
+            return true;
         }
+    }
+    return false;
+}
+
+byte numberOfItemsWithID(byte itemID) {
+    byte i;
+    byte count= 0;
+    for (i= 0; i < SHOP_INV_SIZE; ++i) {
+        if (shopInventory[i] == itemID) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+void restockItem(byte itemID, byte count) {
+    byte currentCount;
+    byte toAdd;
+    currentCount= numberOfItemsWithID(itemID);
+    if (currentCount >= count) {
+        return;
+    }
+    toAdd= count - currentCount;
+    while (toAdd > 0) {
+        addItemIDToShopInventory(itemID);
+        toAdd--;
     }
 }
 
 void restockShop(void) {
-    addItemIDToShopInventory(0x01);
-    addItemIDToShopInventory(0x02);
-    addItemIDToShopInventory(0x03);
+    restockItem(0x01, 3);
+    restockItem(0x02, 3);
+    restockItem(0x03, 3);
 }
 
 void releaseArmory(void) { free(shopInventory); }
@@ -78,8 +104,7 @@ void dispInvFromIndex(byte idx) {
         gotoxy(3, 3 + i);
         if (shopInventory[itemIdx]) {
             anItem= inventoryItemForID(shopInventory[itemIdx]);
-            printf("%c %d %10.s %4d", 'A' + i, shopInventory[itemIdx],
-                   anItem->name, anItem->price);
+            printf("%c %-10s %4d", 'A' + i, anItem->name, anItem->price);
         }
     }
 }
@@ -98,15 +123,23 @@ void doArmory(void) {
         return;
     }
 
-    cursor(0);
     shopper= party[cmd];
-    sprintf(drbuf, "%s Armory", gCities[gCurrentCityIndex]);
-    cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 0, drbuf);
-    gotoxy(0, 22);
-    printf("%s coins: %d", shopper->name, shopper->gold);
-    dispInvFromIndex(0);
 
-    cgetc();
+    do {
+        cursor(0);
+        sprintf(drbuf, "%s Armory", gCities[gCurrentCityIndex]);
+        cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 0,
+                  drbuf);
+        gotoxy(0, 19);
+        printf("%s coins: %d", shopper->name, shopper->gold);
+        puts("\n\nA)-L) buy item  S)ell item  eX)it shop");
+        dispInvFromIndex(0);
+        gotoxy(0, 22);
+        cputs(">");
+        cursor(1);
+        cmd= cgetc();
+        cursor(0);
+    } while (cmd != 'x');
 }
 
 // clang-format off

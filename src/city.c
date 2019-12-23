@@ -6,13 +6,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "armory.h"
 #include "character.h"
 #include "config.h"
 #include "congui.h"
 #include "guild.h"
 #include "types.h"
 #include "utils.h"
-#include "armory.h"
 
 #include "dungeon.h"
 
@@ -28,7 +28,6 @@ void runCityMenu(void);
 
 void leaveCityMode(void) {
     free(guild);
-    saveArmory();
     releaseArmory();
 }
 
@@ -166,7 +165,16 @@ void runCityMenu(void) {
             break;
 
         case 's':
-            saveGuildAndParty();
+            clrscr();
+            cg_borders();
+            puts("\nPlease wait\nSaving economy...");
+            saveArmory();
+            puts("Saving guild...");
+            saveGuild();
+            puts("Saving party...");
+            saveParty();
+            puts("\n\n...done.\n\n --key--");
+            cgetc();
             break;
 
         default:
