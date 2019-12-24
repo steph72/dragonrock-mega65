@@ -8,6 +8,7 @@ void cg_emptyBuffer(void);
 char cg_getkey(void);
 
 void cg_clearLower(byte num);
+void cg_clearFromTo(byte start, byte end);
 void cg_clearGraphics(void);
 void cg_clearText(void);
 void cg_clear(void);

@@ -236,10 +236,6 @@ void initGuildMem(void) {
     static unsigned int sizeBytes= 0;
     sizeBytes= GUILDSIZE * sizeof(character);
     guild= (character *)malloc(sizeBytes);
-#ifdef DEBUG
-    gotoxy(0, 24);
-    printf("guild: $%x bytes at $%x", sizeBytes, guild);
-#endif
     if (guild == NULL) {
         puts("???fatal: no memory for guild");
         exit(0);

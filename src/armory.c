@@ -109,6 +109,39 @@ void dispInvFromIndex(byte idx) {
     }
 }
 
+void sellItem(character *shopper) {
+    byte val;
+    unsigned int price;
+    item *anItem;
+    cg_clearFromTo(3, 23);
+    gotoxy(1,4);
+    puts("--- selling an item ---");
+    gotoxy(0, 23);
+    displayInventoryAtRow(shopper, 7, 'A');
+    gotoxy(0, 20);
+    cputs("Sell which item (x to abort) ");
+    cursor(1);
+    val= cg_getkey();
+    cursor(0);
+    val -= 'a';
+    if (val>INV_SIZE) {
+        return;
+    }
+    if (shopper->inventory[val]==0) {
+        return;
+    }
+    anItem = inventoryItemForID(shopper->inventory[val]);
+    price = anItem->price;
+    gotoxy(0,20);
+    printf("\nSell %s for %ud coins (y/n)?",anItem->name,price);
+    cursor(1);
+    do {
+        val = cg_getkey();
+    } while (val!='y' && val!='n');
+    cputc(val);
+    cursor(0);
+}
+
 void doArmory(void) {
     char cmd;
     character *shopper;
@@ -139,6 +172,9 @@ void doArmory(void) {
         cursor(1);
         cmd= cgetc();
         cursor(0);
+        if (cmd == 's') {
+            sellItem(shopper);
+        }
     } while (cmd != 'x');
 }
 

@@ -21,13 +21,12 @@
 #include <cbm.h>
 #include <conio.h>
 #include <plus4.h>
-#include <string.h>
 #include <stdio.h>
-
+#include <string.h>
 
 void cg_emptyBuffer(void) {
     while (kbhit()) {
-      cgetc();
+        cgetc();
     }
 }
 
@@ -36,21 +35,25 @@ char cg_getkey(void) {
     return cgetc();
 }
 
-void cg_clearLower(byte num) {
+void cg_clearFromTo(byte start, byte end) {
     byte i;
-    for (i= 24-num; i <= 24; ++i) {
-        cclearxy(0, i, 40);
+    for (i= start; i < end; ++i) {
+        cclearxy(0,i,40);
     }
 }
 
-void cg_clearGraphics(void){
-    char *hiadr = (char*)0xc00; // graphics area
-    memset(hiadr,0xff,680); // clear 17 lines with 0xff
+void cg_clearLower(byte num) {
+    cg_clearFromTo(24-num,24);
 }
 
-void cg_clearText(void){
-    char *loadr = (char*)0xea8; // text area
-    memset(loadr,0x20,320); // clear 8 lines with 0x20
+void cg_clearGraphics(void) {
+    char *hiadr= (char *)0xc00; // graphics area
+    memset(hiadr, 0xff, 680);   // clear 17 lines with 0xff
+}
+
+void cg_clearText(void) {
+    char *loadr= (char *)0xea8; // text area
+    memset(loadr, 0x20, 320);   // clear 8 lines with 0x20
 }
 
 void cg_clear(void) {
@@ -62,9 +65,9 @@ void cg_init() {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     textcolor(BCOLOR_LEMON + CATTR_LUMA5);
-    cbm_k_bsout(11); // disable shift+cmd on c128 & 364
-    cbm_k_bsout(14); // lowercase charset
-    bzero((byte*)0xf7f8,8); // create empty space for graphics screen
+    cbm_k_bsout(11);          // disable shift+cmd on c128 & 364
+    cbm_k_bsout(14);          // lowercase charset
+    bzero((byte *)0xf7f8, 8); // create empty space for graphics screen
     clrscr();
 }
 

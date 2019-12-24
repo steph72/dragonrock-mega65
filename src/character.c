@@ -7,8 +7,8 @@
 #include "character.h"
 #include "config.h"
 #include "congui.h"
-#include "types.h"
 #include "spell.h"
+#include "types.h"
 
 character *party[PARTYSIZE];
 
@@ -394,12 +394,24 @@ void useOrEquipItem(character *ic) {
     }
 }
 
+void displayInventoryAtRow(character *ic, byte row, char firstChar) {
+    byte i;
+    for (i= 0; i < INV_SIZE; i++) {
+        gotoxy(20 * (i / (INV_SIZE / 2)), row + (i % (INV_SIZE / 2)));
+        revers(1);
+        cputc(firstChar + i);
+        revers(0);
+        cputc(32);
+        cputs(nameOfInventoryItemWithID(ic->inventory[i]));
+    }
+}
+
 void inspectCharacter(byte idx) {
     character *ic;
     byte i;
     byte quitInspect;
     byte cmd;
-    
+
     byte spellLine;
 
     if (party[idx] == NULL) {
@@ -410,7 +422,7 @@ void inspectCharacter(byte idx) {
 
     while (!quitInspect) {
 
-        spellLine=0;
+        spellLine= 0;
         ic= party[idx];
         clrscr();
         revers(1);
@@ -430,14 +442,14 @@ void inspectCharacter(byte idx) {
         printf(" AC: %d", getArmorClassForCharacter(ic));
         gotoxy(24, 2);
         cputs("Spells:");
-        gotoxy(24,3);
-        for (i=1;i<64;++i) {
-            if (hasSpell(ic,i)) {
-                printf("%2d ",i);
+        gotoxy(24, 3);
+        for (i= 1; i < 64; ++i) {
+            if (hasSpell(ic, i)) {
+                printf("%2d ", i);
             }
-            if (wherex()>=38) {
+            if (wherex() >= 38) {
                 ++spellLine;
-                gotoxy(24,3+spellLine);
+                gotoxy(24, 3 + spellLine);
             }
         }
         gotoxy(13, 2);
@@ -465,14 +477,7 @@ void inspectCharacter(byte idx) {
         printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
         gotoxy(0, 14);
         puts("Inventory:");
-        for (i= 0; i < INV_SIZE; i++) {
-            gotoxy(20 * (i / (INV_SIZE / 2)), 16 + (i % (INV_SIZE / 2)));
-            revers(1);
-            cputc('D' + i);
-            revers(0);
-            cputc(32);
-            cputs(nameOfInventoryItemWithID(ic->inventory[i]));
-        }
+        displayInventoryAtRow(ic,16,'D');
         gotoxy(0, 23);
         cputs("u)se/ready r)emove g)ive ex)it\r\n>");
         cursor(1);
