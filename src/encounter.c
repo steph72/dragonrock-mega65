@@ -31,8 +31,309 @@ void redrawParty(void);
 void plotMonster(monster *aMonster);
 void eraseMonster(monster *aMonster);
 void plotCharacter(byte idx, byte variant);
+void rebuildMonsterPositions(void);
 
 /* code starts here */
+
+/*
+
+           ==================================================
+                pre-encounter actions in main code segment
+           ==================================================
+
+*/
+
+void clearText(void) {
+    cg_clearLower(7);
+    gotoxy(0, 17);
+}
+
+void showFightOptionStatus(char *status) {
+    clearText();
+    cputs(status);
+    sleep(1);
+}
+
+void displayPostfightPrompt(encResult res) {
+    switch (res) {
+
+    case encSurrender:
+        showFightOptionStatus("The monsters surrender!");
+        break;
+
+    case encMercy:
+        showFightOptionStatus("The monsters have mercy!");
+        break;
+
+    case encWon:
+        showFightOptionStatus("The party wins!");
+        break;
+
+    case encFled:
+        showFightOptionStatus("The party flees!");
+        break;
+
+    case encDead:
+        showFightOptionStatus("All party members have fallen!");
+        break;
+
+    case encGreet:
+        showFightOptionStatus("The monsters greet you.");
+        break;
+
+    default:
+        showFightOptionStatus("?you should not see this");
+        break;
+    }
+}
+
+void rebuildMonsterPositions(void) {
+    byte i, row, x;
+    byte column;
+    monster *aMonster;
+    byte rowOccupied;
+
+    for (i= 0; i < gMonsterCount; i++) {
+        aMonster= gMonsterRoster[i];
+        if (aMonster->status == dead || aMonster->status == surrendered) {
+            aMonster->row= -1;
+        }
+    }
+
+    for (x= 0; x < 1; ++x) {
+        for (row= 0; row < MONSTER_ROWS; row++) {
+            rowOccupied= false;
+            for (i= 0; i < gMonsterCount; i++) {
+                aMonster= gMonsterRoster[i];
+                if (aMonster->row == row && aMonster->status != dead &&
+                    aMonster->status != surrendered) {
+                    rowOccupied= true;
+                }
+            }
+            if (!rowOccupied && row < 2) {
+                for (i= 0; i < gMonsterCount; i++) {
+                    aMonster= gMonsterRoster[i];
+                    if (aMonster->row > 0) {
+                        aMonster->row--;
+                    }
+                }
+            }
+        }
+    }
+
+    for (row= 0; row < MONSTER_ROWS; row++) {
+        column= 0;
+        for (i= 0; i < gMonsterCount; i++) {
+            aMonster= gMonsterRoster[i];
+            if (aMonster->row == row && aMonster->status != dead &&
+                aMonster->status != surrendered) {
+                aMonster->column= column++;
+            }
+            gNumMonstersForRow[row]= column;
+        }
+    }
+}
+
+encResult checkSurrender() {
+    unsigned int tMonsterAuth;
+    tMonsterAuth= monsterAuthorityLevel + drand(3);
+    if (tMonsterAuth < partyAuthorityLevel) {
+        return encSurrender;
+    }
+    return encFight;
+}
+
+encResult checkMercy() {
+    encResult res= encFight;
+    if (monsterAuthorityLevel < partyAuthorityLevel) {
+        if ((drand(10)) > 7) {
+            res= encMercy;
+        }
+    }
+    if (drand(10) > 3) {
+        res= encMercy;
+    }
+
+    return res;
+}
+
+encResult checkGreet() {
+    encResult res= encFight;
+    int greetChance= 0;
+    int greetRoll= 0;
+
+    if (fightStarted) {
+        return encFight;
+    }
+
+    if (monsterAuthorityLevel + 5 < partyAuthorityLevel) {
+        return encGreet;
+    }
+
+    if (monsterAuthorityLevel < partyAuthorityLevel) {
+        greetChance= 60;
+    } else {
+        greetChance= 50 - ((monsterAuthorityLevel - partyAuthorityLevel) * 10);
+    }
+
+    greetRoll= drand(100);
+
+    printf("greet chance, roll: %d %d", greetChance, greetRoll);
+    cgetc();
+
+    if (greetChance > greetRoll) {
+        return encGreet;
+    } else {
+        return encFight;
+    }
+}
+
+// TODO
+monster *getMonsterForRow(char row) {
+    monster *aMonster;
+    char i;
+    for (i= 0; i < gMonsterCount; i++) {
+        aMonster= gMonsterRoster[i];
+        if (aMonster->row == row) {
+            return aMonster;
+        }
+    }
+    return NULL;
+}
+
+encResult getStartOfRoundResult(void) {
+
+    static byte i, j;
+    static byte totalMonsterCount;
+    static byte livePartyMembersCount;
+    static monster *aMonster;
+    static char choice;
+    character *aCharacter;
+
+    monsterAuthorityLevel= 0;
+
+    // display ranks and compute authority level while we're at it
+    totalMonsterCount= 0;
+    for (i= 0; i < gMonsterCount; i++) {
+        aMonster= gMonsterRoster[i];
+        if (aMonster->status == awake) {
+            aMonster->hasDoneTurn= false;
+            ++totalMonsterCount;
+            monsterAuthorityLevel+= aMonster->level;
+            monsterAuthorityLevel+= aMonster->def->courageModifier;
+        }
+    }
+
+    monsterAuthorityLevel/= totalMonsterCount;
+
+    // calc party authority level
+    partyAuthorityLevel= 0;
+    livePartyMembersCount= 0;
+    for (i= 0; i < partyMemberCount(); ++i) {
+        aCharacter= party[i];
+        if (aCharacter->status == awake) {
+            ++livePartyMembersCount;
+            partyAuthorityLevel+= aCharacter->level;
+            partyAuthorityLevel+=
+                bonusValueForAttribute(aCharacter->attributes[0]);
+        }
+    }
+    partyAuthorityLevel/= livePartyMembersCount;
+
+    do {
+
+        clrscr();
+
+        textcolor(BCOLOR_RED | CATTR_LUMA3);
+        chlinexy(0, 10, 40);
+        chlinexy(0, 16, 40);
+        textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+        showCurrentParty(false);
+        gotoxy(0, 12);
+
+        for (i= 0; i < MONSTER_ROWS; ++i) {
+            j= gNumMonstersForRow[i];
+            if (j) {
+                aMonster= getMonsterForRow(i);
+                printf("Rank %d: %d %s(s)\n", i + 1, gNumMonstersForRow[i],
+                       aMonster->def->name);
+            }
+        }
+
+#ifdef DEBUG
+        gotoxy(30, 17);
+        printf("(P%d/M%d)", partyAuthorityLevel, monsterAuthorityLevel);
+#endif
+        gotoxy(0, 18);
+        puts("F)ight       A)ccept Surrender");
+        puts("G)reet       B)eg for mercy");
+        puts("R)un away\n");
+        cputs(">");
+        cursor(1);
+
+        do {
+            choice= cgetc();
+        } while (strchr("fagbr123456", choice) == NULL);
+
+        if (choice >= '1' && choice <= '6') {
+            inspectCharacter(choice - '1');
+        }
+
+    } while (strchr("fagbr", choice) == NULL);
+
+    cursor(0);
+
+    switch (choice) {
+    case 'f':
+        return encFight; // just fight
+        break;
+
+    case 'a':
+        return checkSurrender();
+        break;
+
+    case 'g':
+        return checkGreet();
+
+    case 'b':
+        return checkMercy();
+        break;
+
+#ifdef DEBUG
+    case '6':
+        return encWon; // debug win
+        break;
+#endif
+
+    default:
+        break;
+    }
+
+    return encFight;
+}
+
+encResult doPreEncounter(void) {
+
+    encResult res;
+
+    bordercolor(BCOLOR_RED | CATTR_LUMA0);
+    bgcolor(BCOLOR_BLACK);
+    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+    clrscr();
+
+    rebuildMonsterPositions();
+    res= getStartOfRoundResult();
+
+    if (res != encFight) {
+        clrscr();
+        displayPostfightPrompt(res);
+        return res;
+    }
+
+    cputs("The monsters don't respond...");
+
+    prepareForGameMode(gm_encounter);
+}
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
@@ -86,7 +387,6 @@ byte isPartyDefeated(void) {
     return true;
 }
 
-
 character *chooseRandomCharacter(void) {
     byte i;
     character *ret;
@@ -102,22 +402,22 @@ character *chooseRandomCharacter(void) {
 }
 
 void dispMiniRoster(void) {
-    char i,x,y;
+    char i, x, y;
     x= wherex();
     y= wherey();
-    for (i=0;i<PARTYSIZE;++i) {
+    for (i= 0; i < PARTYSIZE; ++i) {
         if (party[i]) {
-            gotoxy(28,17+i);
-            cprintf("%d %-10s",i+1,party[i]->name);
+            gotoxy(28, 17 + i);
+            cprintf("%d %-10s", i + 1, party[i]->name);
         }
     }
-    gotoxy(x,y);
+    gotoxy(x, y);
 }
 
 void characterChooseSpell(character *guy) {
     int val;
     clearText();
-    printf("%s\ncast spell nr.? ",guy->name);
+    printf("%s\ncast spell nr.? ", guy->name);
     fgets(drbuf, 10, stdin);
     val= atoi(drbuf);
     // scanf("%d",&val);
@@ -134,12 +434,12 @@ void characterChooseSpell(character *guy) {
         dispMiniRoster();
         printf("on character #");
         fgets(drbuf, 10, stdin);
-        val= atoi(drbuf); 
-        if (val<1 || val > 6 || party[val-1] == NULL) {
+        val= atoi(drbuf);
+        if (val < 1 || val > 6 || party[val - 1] == NULL) {
             guy->encSpell= 0;
             puts("invalid character!");
         } else {
-            guy->encDestination = val;
+            guy->encDestination= val;
         }
     }
 }
@@ -526,119 +826,6 @@ void loadSpriteIfNeeded(byte id) {
     loadSprite(id);
 }
 
-
-void clearText(void) {
-    cg_clearLower(7);
-    gotoxy(0, 17);
-}
-
-void showFightOptionStatus(char *status) {
-    clearText();
-    cputs(status);
-    sleep(1);
-}
-
-encResult checkSurrender() {
-    unsigned int tMonsterAuth;
-    tMonsterAuth= monsterAuthorityLevel + drand(3);
-    if (tMonsterAuth < partyAuthorityLevel) {
-        return encSurrender;
-    }
-    return encFight;
-}
-
-encResult checkMercy() {
-    encResult res= encFight;
-    if (monsterAuthorityLevel < partyAuthorityLevel) {
-        if ((drand(10)) > 7) {
-            res= encMercy;
-        }
-    }
-    if (drand(10) > 3) {
-        res= encMercy;
-    }
-
-    return res;
-}
-
-encResult checkGreet() {
-    encResult res= encFight;
-    int greetChance= 0;
-    int greetRoll= 0;
-
-    if (fightStarted) {
-        return encFight;
-    }
-
-    if (monsterAuthorityLevel + 5 < partyAuthorityLevel) {
-        return encGreet;
-    }
-
-    if (monsterAuthorityLevel < partyAuthorityLevel) {
-        greetChance= 60;
-    } else {
-        greetChance= 50 - ((monsterAuthorityLevel - partyAuthorityLevel) * 10);
-    }
-
-    greetRoll= drand(100);
-
-    printf("greet chance, roll: %d %d", greetChance, greetRoll);
-    cgetc();
-
-    if (greetChance > greetRoll) {
-        return encGreet;
-    } else {
-        return encFight;
-    }
-}
-
-void rebuildMonsterPositions(void) {
-    byte i, row, x;
-    byte column;
-    monster *aMonster;
-    byte rowOccupied;
-
-    for (i= 0; i < gMonsterCount; i++) {
-        aMonster= gMonsterRoster[i];
-        if (aMonster->status == dead || aMonster->status == surrendered) {
-            aMonster->row= -1;
-        }
-    }
-
-    for (x= 0; x < 1; ++x) {
-        for (row= 0; row < MONSTER_ROWS; row++) {
-            rowOccupied= false;
-            for (i= 0; i < gMonsterCount; i++) {
-                aMonster= gMonsterRoster[i];
-                if (aMonster->row == row && aMonster->status != dead &&
-                    aMonster->status != surrendered) {
-                    rowOccupied= true;
-                }
-            }
-            if (!rowOccupied && row < 2) {
-                for (i= 0; i < gMonsterCount; i++) {
-                    aMonster= gMonsterRoster[i];
-                    if (aMonster->row > 0) {
-                        aMonster->row--;
-                    }
-                }
-            }
-        }
-    }
-
-    for (row= 0; row < MONSTER_ROWS; row++) {
-        column= 0;
-        for (i= 0; i < gMonsterCount; i++) {
-            aMonster= gMonsterRoster[i];
-            if (aMonster->row == row && aMonster->status != dead &&
-                aMonster->status != surrendered) {
-                aMonster->column= column++;
-            }
-            gNumMonstersForRow[row]= column;
-        }
-    }
-}
-
 monster *getMonsterAtPos(char row, char column) {
     monster *aMonster;
     char i;
@@ -649,132 +836,6 @@ monster *getMonsterAtPos(char row, char column) {
         }
     }
     return NULL;
-}
-
-// TODO
-monster *getMonsterForRow(char row) {
-    monster *aMonster;
-    char i;
-    for (i= 0; i < gMonsterCount; i++) {
-        aMonster= gMonsterRoster[i];
-        if (aMonster->row == row) {
-            return aMonster;
-        }
-    }
-    return NULL;
-}
-
-encResult preEncounter(void) {
-
-    static byte i, j;
-    static byte totalMonsterCount;
-    static byte livePartyMembersCount;
-    static monster *aMonster;
-    static char choice;
-    character *aCharacter;
-
-    monsterAuthorityLevel= 0;
-
-    rebuildMonsterPositions();
-
-    // display ranks and compute authority level while we're at it
-    totalMonsterCount= 0;
-    for (i= 0; i < gMonsterCount; i++) {
-        aMonster= gMonsterRoster[i];
-        if (aMonster->status == awake) {
-            aMonster->hasDoneTurn= false;
-            ++totalMonsterCount;
-            monsterAuthorityLevel+= aMonster->level;
-            monsterAuthorityLevel+= aMonster->def->courageModifier;
-        }
-    }
-
-    monsterAuthorityLevel/= totalMonsterCount;
-
-    // calc party authority level
-    partyAuthorityLevel= 0;
-    livePartyMembersCount= 0;
-    for (i= 0; i < partyMemberCount(); ++i) {
-        aCharacter= party[i];
-        if (aCharacter->status == awake) {
-            ++livePartyMembersCount;
-            partyAuthorityLevel+= aCharacter->level;
-            partyAuthorityLevel+=
-                bonusValueForAttribute(aCharacter->attributes[0]);
-        }
-    }
-    partyAuthorityLevel/= livePartyMembersCount;
-
-    do {
-
-        clrscr();
-
-        textcolor(BCOLOR_RED | CATTR_LUMA3);
-        chlinexy(0, 10, 40);
-        chlinexy(0, 16, 40);
-        textcolor(BCOLOR_WHITE | CATTR_LUMA6);
-        showCurrentParty(false);
-        gotoxy(0, 12);
-
-        for (i= 0; i < MONSTER_ROWS; ++i) {
-            j= gNumMonstersForRow[i];
-            if (j) {
-                aMonster= getMonsterForRow(i);
-                printf("Rank %d: %d %s(s)\n", i + 1, gNumMonstersForRow[i],
-                       aMonster->def->name);
-            }
-        }
-
-#ifdef DEBUG
-        gotoxy(30, 17);
-        printf("(P%d/M%d)", partyAuthorityLevel, monsterAuthorityLevel);
-#endif
-        gotoxy(0, 18);
-        puts("F)ight       A)ccept Surrender");
-        puts("G)reet       B)eg for mercy");
-        puts("R)un away\n");
-        cputs(">");
-        cursor(1);
-
-        do {
-            choice= cgetc();
-        } while (strchr("fagbr123456", choice) == NULL);
-
-        if (choice >= '1' && choice <= '6') {
-            inspectCharacter(choice - '1');
-        }
-
-    } while (strchr("fagbr", choice) == NULL);
-
-    cursor(0);
-
-    switch (choice) {
-    case 'f':
-        return encFight; // just fight
-        break;
-
-    case 'a':
-        return checkSurrender();
-        break;
-
-    case 'g':
-        return checkGreet();
-
-    case 'b':
-        return checkMercy();
-        break;
-
-#ifdef DEBUG
-    case '6':
-        return encWon; // debug win
-        break;
-#endif
-
-    default:
-        break;
-    }
-
-    return encFight;
 }
 
 void prepareMonsters(void) {
@@ -936,11 +997,6 @@ encResult encLoop(void) {
 
     gCurrentSpriteCharacterIndex= 0;
 
-    bordercolor(BCOLOR_RED | CATTR_LUMA0);
-    bgcolor(BCOLOR_BLACK);
-    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
-    clrscr();
-
     memset(idxTable, 255, 255);
     loadSprite(0); // tombstone
     prepareMonsters();
@@ -951,13 +1007,7 @@ encResult encLoop(void) {
 
     do {
 
-        setSplitEnable(0);
-        cg_emptyBuffer();
-        res= preEncounter();
-
-        if (res != encFight) {
-            return res;
-        }
+        rebuildMonsterPositions();
 
         fightStarted= true;
         setSplitEnable(1);
@@ -996,7 +1046,7 @@ encResult encLoop(void) {
                         if (party[j]->encDestination) {
                             // spell destination is own party?
                             printf(" on %s",
-                                   party[party[j]->encDestination-1]->name);
+                                   party[party[j]->encDestination - 1]->name);
                         }
                     } else {
                         if (party[j]->encDestination) {
@@ -1038,6 +1088,17 @@ encResult encLoop(void) {
                         doPartyTurn(j);
                     }
                 }
+            }
+        }
+
+        if (!stopEncounter) {
+            setSplitEnable(0);
+            cg_emptyBuffer();
+
+            res= getStartOfRoundResult();
+
+            if (res != encFight) {
+                return res;
             }
         }
 
@@ -1085,39 +1146,6 @@ void postKill(byte takeLoot) {
 
     if (experience > 0) {
         giveExperience(experience);
-    }
-}
-
-void displayPostfightPrompt(encResult res) {
-    switch (res) {
-
-    case encSurrender:
-        showFightOptionStatus("The monsters surrender!");
-        break;
-
-    case encMercy:
-        showFightOptionStatus("The monsters have mercy!");
-        break;
-
-    case encWon:
-        showFightOptionStatus("The party wins!");
-        break;
-
-    case encFled:
-        showFightOptionStatus("The party flees!");
-        break;
-
-    case encDead:
-        showFightOptionStatus("All party members have fallen!");
-        break;
-
-    case encGreet:
-        showFightOptionStatus("The monsters greet you.");
-        break;
-
-    default:
-        showFightOptionStatus("?you should not see this");
-        break;
     }
 }
 

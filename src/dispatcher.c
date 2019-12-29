@@ -56,8 +56,6 @@ void commitNewGameMode(void) {
         break;
 
     case gm_encounter:
-        clrscr();
-        cputs("An encounter...");
         bordercolor(BCOLOR_RED | CATTR_LUMA3);
         loadfile("encounter", _OVERLAY3_LOAD__, _OVERLAY3_SIZE__);
         break;

@@ -74,12 +74,12 @@ void initEngine(void) {
 
 void debugEncounter(void) {
     clearMonsters();
-    gCurrentGameMode= gm_dungeon;
+    // gCurrentGameMode= gm_dungeon;
     gCurrentDungeonIndex= 0;
     addNewMonster(0, 1, 6, 0);
     addNewMonster(1, 1, 3, 1);
     addNewMonster(2, 1, 1, 2);
-    prepareForGameMode(gm_encounter);
+    prepareForGameMode(gm_dungeon);
     mainDispatchLoop();
 }
 
@@ -89,7 +89,12 @@ int main() {
 
     initEngine();
     clrscr();
-    cg_borders();
+    gotoxy(0,0);
+    puts("Dragon Rock I");
+    gotoxy(28,0);
+    puts("Version 0.1a");
+    gotoxy(30,1);
+    puts("12/29/2019");
 
     // TESTING
     for (i= 0; i < 5; i++) {
@@ -98,8 +103,6 @@ int main() {
         party[i]->gold= 100;
     }
 
-    cputsxy(2, 4, "Welcome to");
-    cputsxy(5, 6, "Dragon Rock 1 - The Escape");
     cputsxy(2, 12, "1 - load saved game");
     cputsxy(2, 14, "2 - start in ");
     cputs(gCities[0]);

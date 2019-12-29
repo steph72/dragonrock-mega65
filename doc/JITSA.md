@@ -14,9 +14,7 @@ JITSA is the abbreviation for "**J**ust **I**mplement **T**hat **S**hit **A**lre
 It is rooted in the realization that in modern software development methodologies, people often rather spend their time talking about their work than acutally getting any work done. Or, even 
 worse, people who never ever wrote one single line of useful code debate about how an application should be written. Scrum & friends surely come with the best intentions, but unfortunately they encourage such behaviour, especially when applied the wrong way. 
 
-(In fact, a big portion of this text was written while I had to endure helping out on a project consisting mainly of overpaid people conducting endless discussions, scheming their petty little schemes in the background and finally flushing months and months of work down the sink because some outside consultant told the CEO that the only solution would be to "go crossplatform" with fluttter or some shit like that. This - of course - didn't solve any of the real problems of the company, which were deeply rooted in a totally messsed up 'agile' team structure and the fact that nobody was able or willing to get their fucking act together and just implement that shit already; but I digress...)
-
-If you - like me - have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of "work" can be terribly frustrating,to say the least. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong with Scrum.
+If you - like me - have learned your craft back in the golden days of writing C64 and Amiga Intros and hacking your way into the (newly invented) WWW, this mode of "work" can be terribly frustrating,to say the least. I've been a software developer for nearly 30 years now, and I have witnessed my trade getting horribly mutilated and devalued by all kinds of religiously applied methodology bullshit. So I tried to come up with an alternative to the so-called 12 principles of agile programming... by writing my own 12 principles which address some of the things that are going horribly wrong in today's development techniques.
 
 Here they are:
 
@@ -26,11 +24,11 @@ Here they are:
 
 1. Complete customer ignorance. Customers suck. There's no customer. Because we're doing this shit exclusively for ourselves, and not for some puffed up suits who have no idea what the world needs or wants.
 
-2. Requirement changes late in development are a sure sign of business people being involved in our shit. We don't want business people involved in our shit (see: 4)
+2. Requirement changes late in development are a telltale sign of clueless business people being involved in our shit. We don't want business people involved in our shit (see: 4)
 
-3. We deliver working shit when it's fucking ready. Not after that, and certainly not before that. If it takes another three months, so be it. There's no need to calm down product owners or investors with shiny trinkets and baubles. Just do what has to be done in the time that it takes.
+3. We deliver working shit when it's fucking ready. Not after that, and certainly not before that. If it takes another three months, so be it. There's no need to calm down product owners or investors with shiny MVP baubles or slide shows (which are nowadays called 'prototypes'). Just do what has to be done in the time that it takes.
 
-4. Absolutely no effing cooperation between business people and developers, because nobody needs business people. 
+4. Absolutely no effing cooperation between business people and developers, because nobody needs business people. Yes, that's right, repeat after me: Nobody needs business people.
 
 5. Projects are built around the fact that we want to get this shit running, damnit.
 
@@ -38,15 +36,15 @@ Here they are:
 
 7. A shit's pure awesomeness is the primary measure of progress. 
 
-8. Maintaining a constant pace is for accountants and other overpaid losers with suits. If you need to sit down for three days to think about how to make this shit work, then by all means do just that. And then just implement that shit already.
+8. "Maintaining a constant pace" is for accountants and other overpaid losers with suits. If you need to sit down for three days to think about how to make this shit work, then by all means do just that. If it takes three weeks, well, that's also fine. Don't worry and take all the time you need. And then just implement that shit already.
 
 9. "Technical excellence" and "good design" are lame buzzwords for people who don't know how to fill their time sheets. Todays good design is tomorrows legacy technology. We simply want our shit to be awesome. Give it your best, and don't let snake oil merchants selling fads like flutter and reactve programming dictate your doings.
 
-10. Just implementing that shit already (as opposed to reading long essays written by people who never coded even once in their lives) is essential.
+10. Just implementing that shit already (as opposed to reading long essays written by people who never coded even once in their lives) is essential. In fact, you shouldn't even be reading long essays written by people who spent all their live coding awesome shit. You should immediately get up and implement that shit already.
 
-11. Best architectures, requirements and designs emerge from people who just implement that shit already.
+11. Best architectures, requirements and designs emerge from people who don't use words like "architectures", "requirements" and "designs" and rather just implement that shit already.
 
-12. Regularly, the team gets intoxicated on beer or mate or grass or whatever your preferred poison might be. Then, they talk about the awesome time they had by just implementing that shit already, and how to have an even better time.
+12. Regularly, the team gets intoxicated on beer or mate or grass or whatever your preferred poison might be. Then, they talk about the awesome time they had by just implementing that shit already, and how to have an even better time next time.
 
 
 Of course JITSA is not really meant as an alternative to Scrum or Spiral or Waterfall or whatever it is they make you do. It doesn't work in every situation - in fact it probably won't work at all for most of the common scenarios. 

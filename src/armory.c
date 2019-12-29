@@ -104,42 +104,63 @@ void dispInvFromIndex(byte idx) {
         gotoxy(3, 3 + i);
         if (shopInventory[itemIdx]) {
             anItem= inventoryItemForID(shopInventory[itemIdx]);
-            printf("%c %-10s %4d", 'A' + i, anItem->name, anItem->price);
+            printf("%c %-10s %5u", 'A' + i, anItem->name, anItem->price);
         }
     }
 }
 
 void sellItem(character *shopper) {
     byte val;
+    byte slot;
     unsigned int price;
     item *anItem;
-    cg_clearFromTo(3, 23);
-    gotoxy(1,4);
-    puts("--- selling an item ---");
-    gotoxy(0, 23);
-    displayInventoryAtRow(shopper, 7, 'A');
-    gotoxy(0, 20);
-    cputs("Sell which item (x to abort) ");
-    cursor(1);
-    val= cg_getkey();
-    cursor(0);
-    val -= 'a';
-    if (val>INV_SIZE) {
-        return;
-    }
-    if (shopper->inventory[val]==0) {
-        return;
-    }
-    anItem = inventoryItemForID(shopper->inventory[val]);
-    price = anItem->price;
-    gotoxy(0,20);
-    printf("\nSell %s for %ud coins (y/n)?",anItem->name,price);
-    cursor(1);
+    byte sellQuit;
+    sellQuit= false;
     do {
-        val = cg_getkey();
-    } while (val!='y' && val!='n');
-    cputc(val);
-    cursor(0);
+        cg_clearFromTo(3, 23);
+        gotoxy(1, 4);
+        puts("--- selling an item ---");
+        gotoxy(0, 23);
+        displayInventoryAtRow(shopper, 7, 'A');
+        gotoxy(0, 20);
+        cputs("Sell which item (x to abort) ");
+        cursor(1);
+        slot= cg_getkey();
+        cursor(0);
+        slot-= 'a';
+        if (slot > INV_SIZE) {
+            return;
+        }
+        if (shopper->inventory[slot] == 0) {
+            return;
+        }
+        anItem= inventoryItemForID(shopper->inventory[slot]);
+        price= anItem->price;
+        gotoxy(0, 20);
+        printf("\nSell %s for %u coins (y/n)?", anItem->name, price);
+        cursor(1);
+        do {
+            val= cg_getkey();
+        } while (val != 'y' && val != 'n');
+        cputc(val);
+        cursor(0);
+        if (val!='y') {
+            return;
+        }
+        if (addItemIDToShopInventory(anItem->id)) {
+            shopper->inventory[slot] = 0;
+            cursor(1);
+            cputs("\r\nSell another (y/n)? ");
+            val=cg_getkey();
+            if (val=='n') {
+                sellQuit=true;
+            }  
+        } else {
+            puts("\nshop is full!\n--key--");
+            cg_getkey();
+            return;
+        }
+    } while (!sellQuit);
 }
 
 void doArmory(void) {

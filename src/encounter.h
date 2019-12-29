@@ -31,3 +31,4 @@ byte iterateMonsters(monster **currentMonster, byte *row, byte *column);
 
 byte performAddCoinsOpcode(opcode *anOpcode);
 encResult doEncounter(void);
+encResult doPreEncounter(void);

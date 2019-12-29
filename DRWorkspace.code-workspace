@@ -25,7 +25,8 @@
 			"character.h": "c",
 			"config.h": "c",
 			"stdlib.h": "c",
-			"stdio.h": "c"
+			"stdio.h": "c",
+			"pce.h": "c"
 		}
 	}
 }

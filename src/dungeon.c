@@ -332,10 +332,17 @@ byte performAddencOpcode(opcode *anOpcode) {
 
 // 0x0f DOENC
 byte performDoencOpcode(opcode *anOpcode) {
-    prepareForGameMode(gm_encounter);
     encounterWonOpcIdx= anOpcode->param1;
     encounterLostOpcIdx= anOpcode->param2;
-    quitDungeon= true;
+    gEncounterResult = doPreEncounter();
+    if (gEncounterResult == encFight) {
+        quitDungeon= true;
+        // a real fight? -->
+        // quit dungeon and let dispatcher handle loading the 
+        // rest of the encounter module
+    } else {
+        redrawAll();
+    }
     return 0;
 }
 
@@ -682,7 +689,8 @@ void dungeonLoop() {
                 performOpcodeAtIndex(encounterLostOpcIdx);
             }
 
-            gEncounterResult = encUndef; // reset global encounter result for next time...
+            gEncounterResult=
+                encUndef; // reset global encounter result for next time...
         }
 
         if (!performedImpassableOpcode) {
