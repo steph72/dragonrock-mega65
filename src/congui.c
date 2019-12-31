@@ -24,6 +24,9 @@
 #include <stdio.h>
 #include <string.h>
 
+char *waitChars = "/-\\|";
+byte waitIdx;
+
 void cg_emptyBuffer(void) {
     while (kbhit()) {
         cgetc();

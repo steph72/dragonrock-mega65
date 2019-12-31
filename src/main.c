@@ -44,6 +44,9 @@
 
 #include "dispatcher.h"
 
+#define DRE_VERSION "0.1a"
+#define DRE_DATE "12/29/2019"
+
 char *drbuf;
 
 byte hasLoadedGame;
@@ -54,12 +57,23 @@ void doGuild(void);
 void loadSaved(void);
 void installCharset(void);
 
+const char *prompt= "DREngine/364 V" DRE_VERSION "\n\n" DRE_DATE "\n\n"
+                    "Written by Stephan Kleinert\n"
+                    "at Hundehaus im Reinhardswald,\n"
+                    "and at K-Burg, Bad Honnef, 2018-2019\n\n"
+                    "With very special thanks to\n"
+                    "Frau K., Buba K., Candor K.,\n"
+                    "and - of course - to the 7 turtles\n\n"
+                    "Copyright (C) 2019 Stephan Kleinert\n"
+                    "See LICENSE file for details.";
+
 void initEngine(void) {
     unsigned int rseed;
 
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
 
     cg_init();
+    puts(prompt);
     rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
     srand(rseed);
     if (cbm_load("charset", getcurrentdevice(), (void *)0xf800) == 0) {
@@ -80,6 +94,15 @@ void debugEncounter(void) {
     addNewMonster(1, 1, 3, 1);
     addNewMonster(2, 1, 1, 2);
     prepareForGameMode(gm_dungeon);
+    gEncounterResult= doPreEncounter(); // try pre-encounter first
+    if (gEncounterResult == encFight) {
+        prepareForGameMode(gm_encounter);
+        /*
+             a real fight? -->
+             quit dungeon and let dispatcher handle loading the
+             rest of the encounter module
+        */
+    } 
     mainDispatchLoop();
 }
 
@@ -89,12 +112,7 @@ int main() {
 
     initEngine();
     clrscr();
-    gotoxy(0,0);
-    puts("Dragon Rock I");
-    gotoxy(28,0);
-    puts("Version 0.1a");
-    gotoxy(30,1);
-    puts("12/29/2019");
+    cg_borders();
 
     // TESTING
     for (i= 0; i < 5; i++) {
@@ -102,17 +120,20 @@ int main() {
         setHasSpell(party[1], i + 5);
         party[i]->gold= 100;
     }
-
-    cputsxy(2, 12, "1 - load saved game");
-    cputsxy(2, 14, "2 - start in ");
+    cputsxy(2, 11, "1 - load saved game");
+    cputsxy(2, 13, "2 - start in ");
     cputs(gCities[0]);
 
     gCurrentCityIndex= 0;
     prepareForGameMode(gm_city);
 
+    cputsxy(2, 20, "Select option: ");
+
+    cursor(1);
     do {
         choice= cgetc();
     } while (strchr("12d", choice) == NULL);
+    cursor(0);
 
     if (choice == 'd') {
         debugEncounter();

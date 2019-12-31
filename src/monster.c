@@ -94,6 +94,7 @@ void addNewMonster(byte monsterID, byte level, byte num, byte row) {
     monster *theMonster;
     for (i= 0; i < num; ++i) {
         theMonster= createMonster(monsterID, level);
+        theMonster->status = awake; /* TODO */
         addMonster(theMonster, row);
     }
 }

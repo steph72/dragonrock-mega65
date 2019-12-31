@@ -221,6 +221,8 @@ encResult getStartOfRoundResult(void) {
             ++totalMonsterCount;
             monsterAuthorityLevel+= aMonster->level;
             monsterAuthorityLevel+= aMonster->def->courageModifier;
+            printf("MA %d",monsterAuthorityLevel);
+            cg_getkey();
         }
     }
 
@@ -294,6 +296,7 @@ encResult getStartOfRoundResult(void) {
 
     case 'g':
         return checkGreet();
+        break;
 
     case 'b':
         return checkMercy();
@@ -332,7 +335,6 @@ encResult doPreEncounter(void) {
 
     cputs("The monsters don't respond...");
 
-    prepareForGameMode(gm_encounter);
 }
 
 // clang-format off
@@ -348,19 +350,19 @@ encResult doPreEncounter(void) {
 */
 
 void giveCoins(unsigned int coins) {
-    opcode fakeOpcode;
-    fakeOpcode.id= 0x8a;
-    fakeOpcode.param1= coins % 256;
-    fakeOpcode.param2= coins / 256;
-    performAddCoinsOpcode(&fakeOpcode);
+    opcode anOpcode;
+    anOpcode.id= 0x8a;
+    anOpcode.param1= coins % 256;
+    anOpcode.param2= coins / 256;
+    performAddCoinsOpcode(&anOpcode);
 }
 
 void giveExperience(unsigned int exp) {
-    opcode fakeOpcode;
-    fakeOpcode.id= 0x8b;
-    fakeOpcode.param1= exp % 256;
-    fakeOpcode.param2= exp / 256;
-    performAddCoinsOpcode(&fakeOpcode);
+    opcode anOpcode;
+    anOpcode.id= 0x8b;
+    anOpcode.param1= exp % 256;
+    anOpcode.param2= exp / 256;
+    performAddCoinsOpcode(&anOpcode);
 }
 
 byte areMonstersDefeated(void) {

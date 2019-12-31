@@ -332,14 +332,19 @@ byte performAddencOpcode(opcode *anOpcode) {
 
 // 0x0f DOENC
 byte performDoencOpcode(opcode *anOpcode) {
-    encounterWonOpcIdx= anOpcode->param1;
-    encounterLostOpcIdx= anOpcode->param2;
-    gEncounterResult = doPreEncounter();
+    encounterWonOpcIdx=
+        anOpcode->param1; // save result opcode indices for later on
+    encounterLostOpcIdx= anOpcode->param2; // when re-entering dungeon module
+
+    gEncounterResult= doPreEncounter(); // try pre-encounter first
     if (gEncounterResult == encFight) {
+        prepareForGameMode(gm_encounter);
         quitDungeon= true;
-        // a real fight? -->
-        // quit dungeon and let dispatcher handle loading the 
-        // rest of the encounter module
+        /*
+             a real fight? -->
+             quit dungeon and let dispatcher handle loading the
+             rest of the encounter module
+        */
     } else {
         redrawAll();
     }
