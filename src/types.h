@@ -29,7 +29,6 @@
 #define SCREEN ((unsigned char *)0xc00)
 #define BUFSIZE 0xb0
 
-extern char* drbuf;
 typedef unsigned char byte;
 
 typedef byte attrT;
@@ -38,6 +37,16 @@ typedef byte itemT;
 typedef enum attribute {
 	aSTR, aINT, aWIS, aDEX, aCON, aCHR
 } attrKind;
+
+
+typedef enum _gameMode {
+    gm_init,
+    gm_city,
+    gm_outdoor,
+    gm_dungeon,
+    gm_encounter,
+    gm_end
+} gameModeT;
 
 typedef enum _classT {
 	ct_fighter,

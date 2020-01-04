@@ -1,8 +1,7 @@
 #ifndef __guild
 #define __guild
 
-#include "config.h"
-#include "types.h"
+#include "globals.h"
 
 void newGuildMember(byte city);
 void listGuildMembers(void);
@@ -15,7 +14,6 @@ byte isInParty(byte guildIdx);
 signed char nextFreeGuildSlot(void);
 signed char nextFreePartySlot(void);
 
-
 void initGuildMem(void);
 byte initGuild(void);
 byte loadGuild(void);
@@ -24,5 +22,6 @@ void saveGuild(void);
 void saveParty(void);
 
 extern character *party[PARTYSIZE];
+extern character *guild;
 
 #endif

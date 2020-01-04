@@ -1,5 +1,5 @@
 #include "dungeon.h"
-#include "types.h"
+#include "globals.h"
 #include <conio.h>
 #include <plus4.h>
 #include <stdio.h>

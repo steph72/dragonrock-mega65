@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
 #include "character.h"
-#include "config.h"
 #include "congui.h"
-#include "types.h"
 
 #define SHOP_INV_SIZE 32
 #define ITEMS_PER_PAGE 12

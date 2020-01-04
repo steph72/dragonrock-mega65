@@ -1,5 +1,6 @@
 #include "spell.h"
 #include "utils.h"
+#include "globals.h"
 #include <conio.h>
 #include <stdio.h>
 
@@ -35,8 +36,7 @@ byte spellNeedsCharacterDestination(byte spellID) {
 }
 
 void announceSpell(character *aChar) {
-    cprintf("%s casts %s\r\n", aChar->name,
-            nameOfSpellWithID(aChar->encSpell));
+    cprintf("%s casts %s\r\n", aChar->name, nameOfSpellWithID(aChar->encSpell));
 }
 
 byte castHealingSpell(character *srcCharacter) {
@@ -44,23 +44,29 @@ byte castHealingSpell(character *srcCharacter) {
     character *destCharacter;
     spell *aSpell;
 
-    destCharacter= party[srcCharacter->encDestination-1];
+    destCharacter= party[srcCharacter->encDestination - 1];
     aSpell= &gSpells[srcCharacter->encSpell];
 
     announceSpell(srcCharacter);
 
     healVal= dmrand(aSpell->minDmg, aSpell->maxDmg);
-    if (destCharacter->aHP + healVal > destCharacter->aMaxHP) {
-        healVal-= (destCharacter->aHP + healVal - destCharacter->aMaxHP);
+    destCharacter->aHP+= healVal;
+
+    if (destCharacter->aMaxHP > destCharacter->aMaxHP) {
+        destCharacter->aHP= destCharacter->aMaxHP;
     }
     destCharacter->aHP+= healVal;
-    cprintf("%s is healed for %d points", destCharacter->name, healVal);
+    cprintf("%s is healed.", destCharacter->name);
+    if (destCharacter->status == down && destCharacter->aHP > 0) {
+        cprintf("\r\n%s gets up again!",destCharacter->name);
+        destCharacter->status = awake;
+    }
     return true;
 }
 
 byte castSpell(character *aChar) {
 
-    byte castSuccessful = false;
+    byte castSuccessful= false;
 
     if (aChar->encSpell == 0) {
         return false;
@@ -70,7 +76,7 @@ byte castSpell(character *aChar) {
     case 2:
     case 3:
     case 4:
-        castSuccessful = castHealingSpell(aChar);
+        castSuccessful= castHealingSpell(aChar);
         break;
 
     default:
@@ -78,9 +84,8 @@ byte castSpell(character *aChar) {
     }
 
     if (castSuccessful) {
-        aChar->aMP -= gSpells[aChar->encSpell].mpNeeded;
+        aChar->aMP-= gSpells[aChar->encSpell].mpNeeded;
     }
-
 
     return castSuccessful;
 }

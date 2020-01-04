@@ -6,16 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
 #include "character.h"
 #include "congui.h"
 #include "guild.h"
-#include "types.h"
 
 character *guild;
 
 static FILE *outfile;
-
-extern character *party[PARTYSIZE];
 
 void newGuildMember(byte city);
 void _listGuildMembers(void);

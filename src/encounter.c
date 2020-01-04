@@ -1,9 +1,10 @@
+#include "globals.h"
 #include "encounter.h"
 #include "spell.h"
 #include "utils.h"
 #include <unistd.h>
 
-byte gCurrentSpriteCharacterIndex;
+byte currentSpriteCharacterIndex;
 byte idxTable[255]; // sprite index cache
 
 static char sfname[8];
@@ -13,10 +14,10 @@ int partyAuthorityLevel;
 int monsterAuthorityLevel;
 byte fightStarted;
 
-char *gEncounterAction_p[]= {"Wait",  "Thrust", "Attack", "Slash",
+char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
                              "Parry", "Cast",   "Shoot"};
 
-char *gEncounterAction[]= {"waits",   "thrusts", "attacks", "slashes",
+char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                            "parries", "casts",   "shoots"};
 
 /*
@@ -221,8 +222,6 @@ encResult getStartOfRoundResult(void) {
             ++totalMonsterCount;
             monsterAuthorityLevel+= aMonster->level;
             monsterAuthorityLevel+= aMonster->def->courageModifier;
-            printf("MA %d",monsterAuthorityLevel);
-            cg_getkey();
         }
     }
 
@@ -318,6 +317,9 @@ encResult getStartOfRoundResult(void) {
 encResult doPreEncounter(void) {
 
     encResult res;
+    
+    puts("An encounter!");
+    sleep(1);
 
     bordercolor(BCOLOR_RED | CATTR_LUMA0);
     bgcolor(BCOLOR_BLACK);
@@ -791,7 +793,7 @@ void loadSprite(byte id) {
     // sprintf(sfname, "spr%02x", id);
     spritefile= fopen(filenameForSpriteID(id), "rb");
     cputc('.');
-    addr= (byte *)0xf000 + (gCurrentSpriteCharacterIndex * 8);
+    addr= (byte *)0xf000 + (currentSpriteCharacterIndex * 8);
     // printf("\n%s -> %d @ $%x", sfname, gCurrentSpriteCharacterIndex, addr);
     if (spritefile) {
         fread(addr, 144, 1, spritefile);
@@ -802,7 +804,7 @@ void loadSprite(byte id) {
         fread(addr, 144, 1, spritefile);
         fclose(spritefile);
     }
-    idxTable[id]= gCurrentSpriteCharacterIndex;
+    idxTable[id]= currentSpriteCharacterIndex;
 
     /*
         one sprite takes 18 characters (144 bytes),
@@ -812,7 +814,7 @@ void loadSprite(byte id) {
 
     */
 
-    gCurrentSpriteCharacterIndex+= 18;
+    currentSpriteCharacterIndex+= 18;
 }
 
 /**
@@ -936,7 +938,7 @@ void getChoicesForPartyMember(byte idx) {
 
         if (melee) {
             if (getWeapon(guy)->type == it_missile) {
-                cputs(gEncounterAction_p[guy->currentEncounterCommand]);
+                cputs(encounterActionNoun[guy->currentEncounterCommand]);
                 cputs("\r\nequip a melee weapon first!\r\n--key--");
                 cg_getkey();
                 repeat= true;
@@ -950,7 +952,7 @@ void getChoicesForPartyMember(byte idx) {
                   guy->currentEncounterCommand == ec_slash ||
                   guy->currentEncounterCommand == ec_thrust))) {
                 cprintf("%s at rank ",
-                        gEncounterAction_p[guy->currentEncounterCommand]);
+                        encounterActionNoun[guy->currentEncounterCommand]);
                 do {
                     guy->encDestination= cgetc() - '1';
                 } while (guy->encDestination > 3);
@@ -997,7 +999,7 @@ encResult encLoop(void) {
 
     byte gotChoices;
 
-    gCurrentSpriteCharacterIndex= 0;
+    currentSpriteCharacterIndex= 0;
 
     memset(idxTable, 255, 255);
     loadSprite(0); // tombstone
@@ -1042,7 +1044,7 @@ encResult encLoop(void) {
                     cputs(party[j]->name);
                     cputs(": ");
                     cputs(
-                        gEncounterAction_p[party[j]->currentEncounterCommand]);
+                        encounterActionNoun[party[j]->currentEncounterCommand]);
                     if (party[j]->encSpell) {
                         printf(" %s", nameOfSpellWithID(party[j]->encSpell));
                         if (party[j]->encDestination) {

@@ -6,19 +6,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
 #include "armory.h"
 #include "character.h"
-#include "config.h"
 #include "congui.h"
 #include "guild.h"
-#include "types.h"
 #include "utils.h"
 
 #include "dungeon.h"
 
-extern character *guild;
-extern byte hasLoadedGame;
-const char *invError= "Fatal error: Couldn't create inventory entry (%d)";
+const char *invError= "INVERR (%d)";
 
 // clang-format off
 #pragma code-name(push, "OVERLAY2");

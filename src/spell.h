@@ -1,6 +1,4 @@
-#include "types.h"
-#include "character.h"
-#include "config.h"
+#include "globals.h"
 
 // check whether spell is available for aChar
 byte hasSpell(character *aChar, byte spellID);

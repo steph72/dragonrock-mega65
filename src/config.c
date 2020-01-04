@@ -1,5 +1,4 @@
-#include "config.h"
-#include "types.h"
+#include "globals.h"
 #include <stddef.h>
 
 char *gRaces[NUM_RACES]= {"Human", "Dwarf", "Elf", "Half-Elf", "Gnome"};

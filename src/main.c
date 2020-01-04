@@ -28,15 +28,16 @@
 #include <device.h>
 #include <time.h>
 
+
 #include "charset.h"
 #include "irq.h"
 
-#include "config.h"
+#include "globals.h"
+
 #include "congui.h"
 #include "debug.h"
 #include "dungeon.h"
 #include "guild.h"
-#include "types.h"
 
 #include "encounter.h"
 #include "monster.h"
@@ -48,6 +49,7 @@
 #define DRE_DATE "12/29/2019"
 
 char *drbuf;
+char *drbuf2;
 
 byte hasLoadedGame;
 
@@ -63,14 +65,15 @@ const char *prompt= "DREngine/364 V" DRE_VERSION "\n\n" DRE_DATE "\n\n"
                     "and at K-Burg, Bad Honnef, 2018-2019\n\n"
                     "With very special thanks to\n"
                     "Frau K., Buba K., Candor K.,\n"
-                    "and - of course - to the 7 turtles\n\n"
+                    "and the 7 turtles\n\n"
                     "Copyright (C) 2019 Stephan Kleinert\n"
                     "See LICENSE file for details.";
 
 void initEngine(void) {
     unsigned int rseed;
 
-    drbuf= (char *)0xff40; // use ram at top of i/o for buffer
+    drbuf= (char *)0xff40;  // use ram at top of i/o for buffer
+    drbuf2= (char *)0xff80;
 
     cg_init();
     puts(prompt);
@@ -84,6 +87,8 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     enableCustomCharset();
     gLoadedDungeonIndex= 255;
+    gPartyExperience = 0;
+    gPartyGold = 0;
 }
 
 void debugEncounter(void) {

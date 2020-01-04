@@ -15,8 +15,6 @@
 
 #define DR_GUILD_ID "**bkckkksk7t_dr**"
 
-extern gameModeT gCurrentGameMode;
-
 extern char *gRaces[NUM_RACES];
 extern char *gRacesS[NUM_RACES];
 extern char *gClasses[NUM_CLASSES];

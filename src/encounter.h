@@ -4,10 +4,10 @@
 #include <string.h>
 #include <plus4.h>
 
+
+#include "globals.h"
 #include "character.h"
-#include "config.h"
 #include "congui.h"
-#include "types.h"
 #include "monster.h"
 #include "irq.h"
 

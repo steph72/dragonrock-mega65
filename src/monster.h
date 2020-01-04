@@ -4,9 +4,8 @@
 #include <string.h>
 
 #include "character.h"
-#include "config.h"
 #include "congui.h"
-#include "types.h"
+#include "globals.h"
 
 #define MONSTER_ROWS  3
 #define MONSTER_SLOTS 6

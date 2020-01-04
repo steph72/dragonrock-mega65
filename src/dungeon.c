@@ -5,7 +5,7 @@
 #include "dungeonLoader.h"
 #include "encounter.h"
 #include "monster.h"
-#include "types.h"
+#include "globals.h"
 
 #include <conio.h>
 #include <plus4.h>
@@ -258,37 +258,26 @@ byte performAlterOpcode(opcode *anOpcode) {
 
 // 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
 byte performAddCoinsOpcode(opcode *anOpcode) {
-    byte charIdx;
     byte opcodeID;
     int *coins;
-    int numMembers;
-    int coinsPerMember;
 
     opcodeID= anOpcode->id & 31;
 
-    numMembers= partyMemberCount();
     coins= (int *)&(
         anOpcode->param1); // ...try to do something like that in Swift!
-    coinsPerMember= *coins / numMembers;
 
-    for (charIdx= 0; charIdx < PARTYSIZE; ++charIdx) {
-        if (party[charIdx]) {
-            if (opcodeID == 0x0a) {
-                party[charIdx]->gold+= coinsPerMember;
-            } else if (opcodeID == 0x0b) {
-                party[charIdx]->xp+= coinsPerMember;
-            }
-        }
-    }
-
-    if (anOpcode->id & 128) {
-        if (opcodeID == 0x0a) {
+    if (opcodeID == 0x0a) {
+        gPartyGold+= *coins;
+        if (anOpcode->id & 128) {
             printf("The party gets %d coins\n", *coins);
-        } else if (opcodeID == 0x0b) {
-            printf("The party gets %d experience points\n", *coins);
+        }
+
+    } else {
+        gPartyExperience+= *coins;
+        if (anOpcode->id & 128) {
+            printf("The party gets %d experience\n", *coins);
         }
     }
-
     return 0;
 }
 

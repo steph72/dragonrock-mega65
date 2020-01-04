@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
-char *waitChars = "/-\\|";
+char *waitChars= "/-\\|";
 byte waitIdx;
 
 void cg_emptyBuffer(void) {
@@ -41,13 +41,11 @@ char cg_getkey(void) {
 void cg_clearFromTo(byte start, byte end) {
     byte i;
     for (i= start; i < end; ++i) {
-        cclearxy(0,i,40);
+        cclearxy(0, i, 40);
     }
 }
 
-void cg_clearLower(byte num) {
-    cg_clearFromTo(24-num,24);
-}
+void cg_clearLower(byte num) { cg_clearFromTo(24 - num, 24); }
 
 void cg_clearGraphics(void) {
     char *hiadr= (char *)0xc00; // graphics area
@@ -86,7 +84,7 @@ void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
     cg_borders();
     if (splitScreen)
         chlinexy(0, 12, 40);
+    cputsxy(20 - (strlen(t) / 2), 0, t);
     textcolor(tcol);
-    cputsxy(20 - (strlen(t) / 2), 1, t);
     gotoxy(0, 3);
 }

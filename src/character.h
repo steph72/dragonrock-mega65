@@ -1,12 +1,9 @@
 #ifndef _characterH
 #define _characterH
 
-#include "types.h"
-#include "config.h"
+#include "globals.h"
 
 byte loadParty(void);
-
-extern character *party[PARTYSIZE];
 
 char *nameOfInventoryItem(item *anItem);
 char *nameOfInventoryItemWithID(itemT anItemID);

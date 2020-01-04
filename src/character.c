@@ -5,12 +5,14 @@
 #include <string.h>
 
 #include "character.h"
-#include "config.h"
 #include "congui.h"
 #include "spell.h"
-#include "types.h"
+#include "globals.h"
 
 character *party[PARTYSIZE];
+
+long int gPartyGold;
+long int gPartyExperience;
 
 item *inventoryItemForID(itemT anItemID) {
     register byte i;
@@ -147,7 +149,13 @@ void showCurrentParty(byte small) {
         x= 19;
     } else {
         x= 0;
+        cputsxy(18,2,"MP");
+        cputsxy(26,2,"HP");
+        cputsxy(2,2,"Name");
+        cputsxy(0,2,"#");
+        cputsxy(34,2,"Status");
     }
+
 
     for (i= 0; i < PARTYSIZE; i++) {
         if (party[i]) {
@@ -162,12 +170,10 @@ void showCurrentParty(byte small) {
                 printf("%d %s", i + 1, c->name);
             }
             if (!small) {
-                cputsxy(20, y, gRacesS[c->aRace]);
-                cputsxy(24, y, gClassesS[c->aClass]);
-                if (gCurrentGameMode == gm_encounter) {
-                    gotoxy(28, y);
-                    cprintf("%3d", c->aHP);
-                }
+                gotoxy(18,y);
+                cprintf("%d/%d",c->aMP,c->aMaxMP);
+                gotoxy(26,y);
+                cprintf("%d/%d",c->aHP,c->aMaxHP);
             }
             cputsxy(34, y, gStateDesc[c->status]);
         }
