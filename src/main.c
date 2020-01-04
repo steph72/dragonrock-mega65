@@ -28,7 +28,6 @@
 #include <device.h>
 #include <time.h>
 
-
 #include "charset.h"
 #include "irq.h"
 
@@ -45,8 +44,13 @@
 
 #include "dispatcher.h"
 
+#ifndef DRE_VERSION
 #define DRE_VERSION "0.1a"
+#endif
+
+#ifndef DRE_DATE
 #define DRE_DATE "12/29/2019"
+#endif
 
 char *drbuf;
 char *drbuf2;
@@ -59,20 +63,12 @@ void doGuild(void);
 void loadSaved(void);
 void installCharset(void);
 
-const char *prompt= "DREngine/364 V" DRE_VERSION "\n\n" DRE_DATE "\n\n"
-                    "Written by Stephan Kleinert\n"
-                    "at Hundehaus im Reinhardswald,\n"
-                    "and at K-Burg, Bad Honnef, 2018-2019\n\n"
-                    "With very special thanks to\n"
-                    "Frau K., Buba K., Candor K.,\n"
-                    "and the 7 turtles\n\n"
-                    "Copyright (C) 2019 Stephan Kleinert\n"
-                    "See LICENSE file for details.";
+const char *prompt= "DREngine/364 V" DRE_VERSION "\n" DRE_DATE "\n\n";
 
 void initEngine(void) {
     unsigned int rseed;
 
-    drbuf= (char *)0xff40;  // use ram at top of i/o for buffer
+    drbuf= (char *)0xff40; // use ram at top of i/o for buffer
     drbuf2= (char *)0xff80;
 
     cg_init();
@@ -87,8 +83,8 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     enableCustomCharset();
     gLoadedDungeonIndex= 255;
-    gPartyExperience = 0;
-    gPartyGold = 0;
+    gPartyExperience= 0;
+    gPartyGold= 0;
 }
 
 void debugEncounter(void) {
@@ -107,7 +103,7 @@ void debugEncounter(void) {
              quit dungeon and let dispatcher handle loading the
              rest of the encounter module
         */
-    } 
+    }
     mainDispatchLoop();
 }
 

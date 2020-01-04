@@ -7,6 +7,9 @@
 ### In order to override defaults - values can be assigned to the variables ###
 ###############################################################################
 
+BUILDDATE := $(shell date -Iminutes)
+VERSION = 0.1a
+
 # Space or comma separated list of cc65 supported target platforms to build for.
 # Default: c64 (lowercase!)
 TARGETS := plus4
@@ -27,7 +30,9 @@ CONFIG  :=
 
 # Additional C compiler flags and options.
 # Default: none
-CFLAGS  = -DDEBUG
+CFLAGS += -DDEBUG
+CFLAGS += -DDRE_DATE="\"$(BUILDDATE)\""
+CFLAGS += -DRE_VERSION="\"$(VERSION)\""
 
 # Additional assembler flags and options.
 # Default: none

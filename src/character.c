@@ -143,17 +143,17 @@ void showCurrentParty(byte small) {
     static byte i, x, y;
     static character *c;
 
-    y= 2;
+    y= 3;
 
     if (small) {
         x= 19;
     } else {
         x= 0;
-        cputsxy(18,2,"MP");
-        cputsxy(26,2,"HP");
+        cputsxy(17,2,"MP");
+        cputsxy(25,2,"HP");
         cputsxy(2,2,"Name");
         cputsxy(0,2,"#");
-        cputsxy(34,2,"Status");
+        cputsxy(33,2,"Status");
     }
 
 
@@ -170,12 +170,12 @@ void showCurrentParty(byte small) {
                 printf("%d %s", i + 1, c->name);
             }
             if (!small) {
-                gotoxy(18,y);
+                gotoxy(17,y);
                 cprintf("%d/%d",c->aMP,c->aMaxMP);
-                gotoxy(26,y);
+                gotoxy(25,y);
                 cprintf("%d/%d",c->aHP,c->aMaxHP);
             }
-            cputsxy(34, y, gStateDesc[c->status]);
+            cputsxy(33, y, gStateDesc[c->status]);
         }
     }
 }
