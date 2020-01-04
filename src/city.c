@@ -6,10 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
 #include "armory.h"
 #include "character.h"
 #include "congui.h"
+#include "globals.h"
 #include "guild.h"
 #include "utils.h"
 
@@ -28,12 +28,48 @@ void leaveCityMode(void) {
     releaseArmory();
 }
 
+void distributeSpoils(void) {
+    byte i;
+    byte sharePerMember[PARTYSIZE];
+    byte totalShares= 0;
+    unsigned int moneyShare;
+    unsigned int xpShare;
+    clrscr();
+    cg_borders();
+    revers(1);
+    cputsxy(2, 3, "Distribute gold and experience\n\n");
+    revers(0);
+    cursor(1);
+    for (i= 0; i < partyMemberCount(); ++i) {
+        gotoxy(5, 6 + i);
+        cprintf("Shares for %-10s: ", party[i]->name);
+        do {
+            sharePerMember[i]= cg_getkey() - '0';
+        } while (sharePerMember[i] < 1 || sharePerMember[i]> 3);
+        cputc('0' + sharePerMember[i]);
+        totalShares+= sharePerMember[i];
+    }
+    moneyShare= gPartyGold / totalShares;
+    xpShare= gPartyExperience / totalShares;
+    gotoxy(0,14);
+    cprintf("Each share is %u xp and %u coins.",moneyShare,xpShare);
+    for (i=0;i<partyMemberCount();++i) {
+        party[i]->gold += sharePerMember[i]*moneyShare;
+        party[i]->xp += sharePerMember[i]*xpShare;
+    }
+    cputsxy(1,18,"--key--");
+    cg_getkey();
+}
+
 void enterCityMode(void) {
     clrscr();
     gotoxy(4, 12);
     printf("Welcome to %s", gCities[gCurrentCityIndex]);
     initGuild();
     initArmory();
+    if (gPartyExperience || gPartyGold) {
+        distributeSpoils();
+    }
     runCityMenu();
     leaveCityMode();
 }

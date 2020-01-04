@@ -53,7 +53,6 @@
 #endif
 
 char *drbuf;
-char *drbuf2;
 
 byte hasLoadedGame;
 
@@ -69,7 +68,6 @@ void initEngine(void) {
     unsigned int rseed;
 
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
-    drbuf2= (char *)0xff80;
 
     cg_init();
     puts(prompt);
@@ -83,8 +81,8 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     enableCustomCharset();
     gLoadedDungeonIndex= 255;
-    gPartyExperience= 0;
-    gPartyGold= 0;
+    gPartyExperience= 1000;
+    gPartyGold= 1000;
 }
 
 void debugEncounter(void) {
