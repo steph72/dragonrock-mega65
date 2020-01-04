@@ -1,6 +1,3 @@
-#ifndef __dwConfig
-#define __dwConfig
-
 #include "types.h"
 #include "dispatcher.h"
 
@@ -30,6 +27,3 @@ extern spell gSpells[];
 extern monsterDef gMonsters[];
 
 extern int gRaceModifiers[NUM_RACES][6];
-
-
-#endif

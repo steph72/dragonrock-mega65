@@ -10,14 +10,9 @@
 #ifndef dispatcher_d
 #define dispatcher_d
 
-#include "types.h"
+#include "globals.h"
 
-extern gameModeT gCurrentGameMode;
-extern byte gCurrentDungeonIndex;
-extern byte gLoadedDungeonIndex;
-extern byte gCurrentCityIndex;
 
-extern encResult gEncounterResult;
 
 /**
  * mainDispatchLoop:

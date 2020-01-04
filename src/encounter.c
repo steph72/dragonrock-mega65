@@ -1,5 +1,5 @@
-#include "globals.h"
 #include "encounter.h"
+#include "globals.h"
 #include "spell.h"
 #include "utils.h"
 #include <unistd.h>
@@ -15,10 +15,10 @@ int monsterAuthorityLevel;
 byte fightStarted;
 
 char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
-                             "Parry", "Cast",   "Shoot"};
+                              "Parry", "Cast",   "Shoot"};
 
 char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
-                           "parries", "casts",   "shoots"};
+                              "parries", "casts",   "shoots"};
 
 /*
     ==========
@@ -244,13 +244,11 @@ encResult getStartOfRoundResult(void) {
     do {
 
         clrscr();
+        cg_titlec(BCOLOR_RED | CATTR_LUMA3, BCOLOR_WHITE | CATTR_LUMA6, 15,
+                  "Encounter");
 
-        textcolor(BCOLOR_RED | CATTR_LUMA3);
-        chlinexy(0, 10, 40);
-        chlinexy(0, 16, 40);
-        textcolor(BCOLOR_WHITE | CATTR_LUMA6);
         showCurrentParty(false);
-        gotoxy(0, 12);
+        gotoxy(0, 11);
 
         for (i= 0; i < MONSTER_ROWS; ++i) {
             j= gNumMonstersForRow[i];
@@ -317,7 +315,7 @@ encResult getStartOfRoundResult(void) {
 encResult doPreEncounter(void) {
 
     encResult res;
-    
+
     puts("An encounter!");
     sleep(1);
 
@@ -336,7 +334,6 @@ encResult doPreEncounter(void) {
     }
 
     cputs("The monsters don't respond...");
-
 }
 
 // clang-format off

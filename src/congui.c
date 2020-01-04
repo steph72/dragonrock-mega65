@@ -17,7 +17,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "types.h"
+#include "globals.h"
 #include <cbm.h>
 #include <conio.h>
 #include <plus4.h>
@@ -79,12 +79,23 @@ void cg_borders(void) {
 }
 
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
+    byte xpos;
+    byte splitPos = 12;
+
+    xpos= 20 - (strlen(t) / 2);
     clrscr();
     textcolor(lcol);
     cg_borders();
-    if (splitScreen)
-        chlinexy(0, 12, 40);
-    cputsxy(20 - (strlen(t) / 2), 0, t);
+    if (splitScreen) {
+        if (splitScreen!=true) {
+            splitPos=splitScreen;
+        }
+        chlinexy(0, splitPos, 40);
+    }
+    cputsxy(xpos, 0, t);
+    cputcxy(xpos - 1, 0, 32);
+    cputcxy(xpos + strlen(t), 0, 32);
+
     textcolor(tcol);
     gotoxy(0, 3);
 }
