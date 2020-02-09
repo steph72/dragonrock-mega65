@@ -65,7 +65,8 @@ void installCharset(void);
 
 const char *prompt= "DREngine/364 V" DRE_VERSION "\n" DRE_DATE "\n\n";
 
-void initEngine(void) {
+    void
+    initEngine(void) {
     unsigned int rseed;
 
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
@@ -83,8 +84,9 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     enableCustomCharset();
     gLoadedDungeonIndex= 255;
-    gPartyExperience= 0;
-    gPartyGold= 0;
+    gPartyExperience= 1000;
+    gPartyGold= 1000;
+    gCurrentGameMode= gm_init;
 }
 
 void debugEncounter(void) {

@@ -7,7 +7,7 @@
 ### In order to override defaults - values can be assigned to the variables ###
 ###############################################################################
 
-BUILDDATE := $(shell date -Iminutes)
+BUILDDATE := $(shell date)
 VERSION = 0.1a
 
 # Space or comma separated list of cc65 supported target platforms to build for.

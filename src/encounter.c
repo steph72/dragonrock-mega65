@@ -334,6 +334,7 @@ encResult doPreEncounter(void) {
     }
 
     cputs("The monsters don't respond...");
+    return res;
 }
 
 // clang-format off
