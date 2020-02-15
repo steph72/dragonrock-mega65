@@ -45,6 +45,7 @@ void commitNewGameMode(void) {
     switch (gNextGameMode) {
 
     case gm_dungeon:
+    case gm_outdoor:
         bordercolor(BCOLOR_DARKBLUE | CATTR_LUMA3);
         loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
         break;
@@ -57,6 +58,11 @@ void commitNewGameMode(void) {
     case gm_encounter:
         bordercolor(BCOLOR_RED | CATTR_LUMA3);
         loadfile("encounter", _OVERLAY3_LOAD__, _OVERLAY3_SIZE__);
+        break;
+
+    case gm_init:
+        puts("??gamemode init");
+        exit(0);
         break;
 
     default:
@@ -75,6 +81,7 @@ void enterCurrentGameMode() {
         break;
 
     case gm_dungeon:
+    case gm_outdoor:
         enterDungeonMode();
         break;
 

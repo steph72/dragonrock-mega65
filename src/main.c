@@ -65,8 +65,7 @@ void installCharset(void);
 
 const char *prompt= "DREngine/364 V" DRE_VERSION "\n" DRE_DATE "\n\n";
 
-    void
-    initEngine(void) {
+void initEngine(void) {
     unsigned int rseed;
 
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
@@ -91,7 +90,6 @@ const char *prompt= "DREngine/364 V" DRE_VERSION "\n" DRE_DATE "\n\n";
 
 void debugEncounter(void) {
     clearMonsters();
-    // gCurrentGameMode= gm_dungeon;
     gCurrentDungeonIndex= 0;
     addNewMonster(0, 1, 6, 0);
     addNewMonster(1, 1, 3, 1);
@@ -99,6 +97,7 @@ void debugEncounter(void) {
     prepareForGameMode(gm_dungeon);
     gEncounterResult= doPreEncounter(); // try pre-encounter first
     if (gEncounterResult == encFight) {
+        gCurrentGameMode= gm_dungeon; // simulate coming from dungeon
         prepareForGameMode(gm_encounter);
         /*
              a real fight? -->

@@ -4,8 +4,8 @@
 #include "debug.h"
 #include "dungeonLoader.h"
 #include "encounter.h"
-#include "monster.h"
 #include "globals.h"
+#include "monster.h"
 
 #include <conio.h>
 #include <plus4.h>
@@ -815,7 +815,11 @@ void unloadDungeon(void) {
 
 void loadNewDungeon(void) {
 
-    char *mfile= "mapa";
+    char *mfile;
+    char *dungeonFile= "mapa";
+    char *outdoorFile= "outa";
+
+    mfile= gCurrentGameMode == gm_dungeon ? dungeonFile : outdoorFile;
 
     unloadDungeon();
 
@@ -854,6 +858,16 @@ void loadNewDungeon(void) {
 }
 
 void enterDungeonMode(void) {
+    #ifdef DEBUG
+    if (gCurrentGameMode == gm_dungeon) {
+        puts("entering dungeon mode");
+    } else if (gCurrentGameMode == gm_outdoor) {
+        puts("entering outdoor mode");
+    } else {
+        puts("??unknown game mode in dungeon!");
+        exit(0);
+    }
+    #endif
     if (gLoadedDungeonIndex != gCurrentDungeonIndex) {
         loadNewDungeon();
     }
