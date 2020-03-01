@@ -143,7 +143,7 @@ void showCurrentParty(byte small) {
     static byte i, x, y;
     static character *c;
 
-    y= 3;
+    y= 2;
 
     if (small) {
         x= 19;

@@ -53,7 +53,6 @@
 #endif
 
 char *drbuf;
-char *drbuf2;
 
 byte hasLoadedGame;
 
@@ -69,7 +68,6 @@ void initEngine(void) {
     unsigned int rseed;
 
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
-    drbuf2= (char *)0xff80;
 
     cg_init();
     puts(prompt);
