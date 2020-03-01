@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!python3
 
 import locale
 import curses
@@ -21,11 +21,26 @@ class mapEditor():
     kLowerTop = kMapWinHeight+6
     kScrollMargin = 2
 
-    kDisplayCharacters = ['.',        # 0 : space/floor
-                          u"\u25c6",  # 1 : item = diamond
-                          u"\u007C",  # 2 : vertical line (door)
-                          u"\u2015",  # 3 : horizontal line (door)
-                          u"\u2588",  # 4 : wall = solid block
+    kDisplayCharacters = [
+                        # ---------- dungeon tiles ---------------
+                          '.',        #  0 : space/floor
+                          u"\u25c6",  #  1 : item = diamond
+                          u"\u007C",  #  2 : vertical line (door)
+                          u"\u2015",  #  3 : horizontal line (door)
+                          u"\u2588",  #  4 : wall = solid block
+                        # ------------ outdoor tiles -------------
+                          ',',        #  6 : grass
+                          '%',        #  7 : sand
+                          '#',        #  7 : stone path
+                          't',        #  7 : small trees
+                          'T',        #  8 : large trees
+                          'w',        #  9 : small water
+                          'W',        # 10 : lg water
+                          '^',        # 11 : sm mountain
+                          'M',        # 12 : lg mountain
+                          'c',        # 13 : village
+                          'i',        # 14 : inn
+                          'd'         # 15 : dungeon
                           ]
 
     def setupEmptyMap(self):

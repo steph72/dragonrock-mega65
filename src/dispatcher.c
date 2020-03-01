@@ -46,8 +46,10 @@ void commitNewGameMode(void) {
 
     case gm_dungeon:
     case gm_outdoor:
-        bordercolor(BCOLOR_DARKBLUE | CATTR_LUMA3);
-        loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
+        if (lastGameMode != gm_dungeon && lastGameMode != gm_outdoor) {
+            bordercolor(BCOLOR_DARKBLUE | CATTR_LUMA3);
+            loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
+        }
         break;
 
     case gm_city:
