@@ -53,7 +53,6 @@
 #endif
 
 char *drbuf;
-char *drbuf2;
 
 byte hasLoadedGame;
 
@@ -70,7 +69,6 @@ const char *prompt= "DREngine/364 V" DRE_VERSION "\n" DRE_DATE "\n\n";
     unsigned int rseed;
 
     drbuf= (char *)0xff40; // use ram at top of i/o for buffer
-    drbuf2= (char *)0xff80;
 
     cg_init();
     puts(prompt);

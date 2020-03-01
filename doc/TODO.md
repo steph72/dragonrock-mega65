@@ -13,7 +13,7 @@
 
 ## overall
 - implement outdoors
-- implement user defined shares of xp and coins
+- DONE implement user defined shares of xp and coins
 - implement armory
 - implement inn
 - implement irq loading spinner
