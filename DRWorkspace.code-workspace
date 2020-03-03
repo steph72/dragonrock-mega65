@@ -27,7 +27,7 @@
 			"stdlib.h": "c",
 			"stdio.h": "c",
 			"pce.h": "c",
-			"string.h": "c"
+			"string.h": "c",
 			"congui.h": "c"
 		}
 	}
