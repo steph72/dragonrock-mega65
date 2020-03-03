@@ -330,10 +330,9 @@ encResult doPreEncounter(void) {
     if (res != encFight) {
         clrscr();
         displayPostfightPrompt(res);
-        return res;
     }
 
-    cputs("The monsters don't respond...");
+    return res;
 }
 
 // clang-format off
@@ -431,6 +430,7 @@ void characterChooseSpell(character *guy) {
         return;
     }
     guy->encSpell= val;
+    // todo: maybe put this into getChoicesForPartyMember
     if (spellNeedsCharacterDestination(val)) {
         dispMiniRoster();
         printf("on character #");
@@ -944,6 +944,8 @@ void getChoicesForPartyMember(byte idx) {
 
         if (repeat == false) {
             if ((guy->currentEncounterCommand == ec_fireBow) ||
+                (guy->currentEncounterCommand == ec_magic &&
+                 spellNeedsRowDestination(guy->encSpell)) ||
                 (guy->aClass == ct_thief &&
                  (guy->currentEncounterCommand == ec_attack ||
                   guy->currentEncounterCommand == ec_slash ||
@@ -951,8 +953,8 @@ void getChoicesForPartyMember(byte idx) {
                 cprintf("%s at rank ",
                         encounterActionNoun[guy->currentEncounterCommand]);
                 do {
-                    guy->encDestination= cgetc() - '1';
-                } while (guy->encDestination > 3);
+                    guy->encDestination= cgetc() - '0';
+                } while (guy->encDestination > 3 || guy->encDestination < 1);
             }
         }
 
@@ -984,6 +986,19 @@ void redrawParty(void) {
         if (party[j]) {
             plotCharacter(j, hasDoneTurn[j]);
         }
+    }
+}
+
+void printTargetForCharacterIdx(byte idx) {
+    byte spell;
+    if (!party[idx]->encDestination) {
+        return;
+    }
+    spell= party[idx]->encSpell;
+    if (spell && spellNeedsRowDestination(spell)) {
+        printf(" at rank %d", party[idx]->encDestination);
+    } else if (spell && spellNeedsCharacterDestination(spell)) {
+        printf(" on %s", party[party[idx]->encDestination-1]->name);
     }
 }
 
@@ -1044,16 +1059,8 @@ encResult encLoop(void) {
                         encounterActionNoun[party[j]->currentEncounterCommand]);
                     if (party[j]->encSpell) {
                         printf(" %s", nameOfSpellWithID(party[j]->encSpell));
-                        if (party[j]->encDestination) {
-                            // spell destination is own party?
-                            printf(" on %s",
-                                   party[party[j]->encDestination - 1]->name);
-                        }
-                    } else {
-                        if (party[j]->encDestination) {
-                            printf(" at rank %d", party[j]->encDestination + 1);
-                        }
                     }
+                    printTargetForCharacterIdx(j);
                     cputs("\r\n");
                 }
             }

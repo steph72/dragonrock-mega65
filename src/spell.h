@@ -18,3 +18,6 @@ byte castSpell(character *aChar);
 
 // determine whether spell takes character destination
 byte spellNeedsCharacterDestination(byte spellID);
+
+// determine whether spell takes row destination
+byte spellNeedsRowDestination(byte spellID);

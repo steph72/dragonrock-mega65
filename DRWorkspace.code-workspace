@@ -26,7 +26,8 @@
 			"config.h": "c",
 			"stdlib.h": "c",
 			"stdio.h": "c",
-			"pce.h": "c"
+			"pce.h": "c",
+			"congui.h": "c"
 		}
 	}
 }
