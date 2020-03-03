@@ -5,8 +5,9 @@
 - DONE implement exchanging items
 - DONE fix "fire" display when melee attacking
 - DONE fix melee/ranged weapon constraints (hands must be possible)
-- show hp and mp in encounter roster
-- implement spells
+- DONE show hp and mp in encounter roster
+- DONE implement spells
+- implement fireflash spells
 - implement potions
 - implement sleep/awake for monsters and characters
 - disable inventory actions when down

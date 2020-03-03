@@ -1,7 +1,6 @@
 #include "config.h"
 #include "types.h"
 
-
 /*  ----
     main
     ---- */

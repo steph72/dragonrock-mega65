@@ -1,6 +1,7 @@
 #include "spell.h"
-#include "utils.h"
 #include "globals.h"
+#include "utils.h"
+#include "congui.h"
 #include <conio.h>
 #include <stdio.h>
 
@@ -29,7 +30,13 @@ char *nameOfSpell(spell *aSpell) {
 
 char *nameOfSpellWithID(byte spellID) { return nameOfSpell(&gSpells[spellID]); }
 
-byte isHealingSpell(byte spellID) { return (spellID >= 1 && spellID <= 4); }
+byte isHealingSpell(byte spellID) {
+    return (spellID >= 1 && spellID <= 4); // healing spell
+}
+
+byte spellNeedsRowDestination(byte spellID) {
+    return (spellID >= 5 && spellID <= 8); // fireflash spell
+}
 
 byte spellNeedsCharacterDestination(byte spellID) {
     return isHealingSpell(spellID);
@@ -38,6 +45,24 @@ byte spellNeedsCharacterDestination(byte spellID) {
 void announceSpell(character *aChar) {
     cprintf("%s casts %s\r\n", aChar->name, nameOfSpellWithID(aChar->encSpell));
 }
+
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
+
+byte castFireflashSpell(character *aCharacter) {
+    byte dmgVal;
+    spell *aSpell;
+
+    aSpell= &gSpells[aCharacter->encSpell];
+    announceSpell(aCharacter);
+    dmgVal= dmrand(aSpell->minDmg, aSpell->maxDmg);
+    return true;
+}
+
+// clang-format off
+#pragma code-name(pop);
+// clang-format on
 
 byte castHealingSpell(character *srcCharacter) {
     byte healVal;
@@ -58,8 +83,8 @@ byte castHealingSpell(character *srcCharacter) {
     destCharacter->aHP+= healVal;
     cprintf("%s is healed.", destCharacter->name);
     if (destCharacter->status == down && destCharacter->aHP > 0) {
-        cprintf("\r\n%s gets up again!",destCharacter->name);
-        destCharacter->status = awake;
+        cprintf("\r\n%s gets up again!", destCharacter->name);
+        destCharacter->status= awake;
     }
     return true;
 }
@@ -77,6 +102,18 @@ byte castSpell(character *aChar) {
     case 3:
     case 4:
         castSuccessful= castHealingSpell(aChar);
+        break;
+
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    if (gCurrentGameMode==gm_encounter) {
+        castSuccessful= castFireflashSpell(aChar);
+    } else {
+        puts("only in encounter!");
+        cg_getkey();
+    }
         break;
 
     default:
