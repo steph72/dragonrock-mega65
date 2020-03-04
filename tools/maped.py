@@ -18,29 +18,30 @@ class mapEditor():
 
     kMapWinWidth = 20
     kMapWinHeight = 12
-    kLowerTop = kMapWinHeight+6
+    kLowerTop = kMapWinHeight+4
     kScrollMargin = 2
 
     kDisplayCharacters = [
                         # ---------- dungeon tiles ---------------
-                          '.',        #  0 : space/floor
-                          u"\u25c6",  #  1 : item = diamond
-                          u"\u007C",  #  2 : vertical line (door)
-                          u"\u2015",  #  3 : horizontal line (door)
-                          u"\u2588",  #  4 : wall = solid block
+                          ['.', 'D space/floor'],               #  0 : space/floor
+                          [u"\u25c6", 'D item'],                #  1 : item = diamond
+                          [u"\u007C", 'D vertical door'],       #  2 : vertical line (door)
+                          [u"\u2015", 'D horizontal door'],     #  3 : horizontal line (door)
+                          [u"\u2588", 'D wall'],                #  4 : wall = solid block
                         # ------------ outdoor tiles -------------
-                          ',',        #  6 : grass
-                          '%',        #  7 : sand
-                          '#',        #  7 : stone path
-                          't',        #  7 : small trees
-                          'T',        #  8 : large trees
-                          'w',        #  9 : small water
-                          'W',        # 10 : lg water
-                          '^',        # 11 : sm mountain
-                          'M',        # 12 : lg mountain
-                          'c',        # 13 : village
-                          'i',        # 14 : inn
-                          'd'         # 15 : dungeon
+                          [',','O grass'],                      #  6 : grass
+                          ['%','O sand'],                       #  7 : sand
+                          ['#','O stone path'],                 #  7 : stone path
+                          ['t','O small trees'],                #  7 : small trees
+                          ['T','O large trees'],                #  8 : large trees
+                          ['w','O small water'],                #  9 : small water
+                          ['W','O large water'],                # 10 : lg water
+                          ['^','O small mountain'],             # 11 : sm mountain
+                          ['M','O large mountain'],             # 12 : lg mountain
+                          ['c','O village'],                    # 13 : village
+                          ['C','O castle'],                     # 14 : castle
+                          ['i','O inn'],                        # 15 : inn
+                          ['d','O dungeon']                     # 16 : dungeon
                           ]
 
     def setupEmptyMap(self):
@@ -146,7 +147,7 @@ class mapEditor():
                 else:
                     cp = 1
                 self.mapwin.addstr(
-                    y+1, x+1, self.kDisplayCharacters[d], curses.color_pair(cp))
+                    y+1, x+1, self.kDisplayCharacters[d][0], curses.color_pair(cp))
 
     def getCurrentMapEntry(self):
         x = self.originX + self.cursorX - 1
@@ -222,7 +223,7 @@ class mapEditor():
             self.cursorX += 1
 
     def loadMap(self):
-        loadFilename = self.getUserInput("Load file:")
+        loadFilename = self.getUserInput("Load file (.drm appended automatically): mapsrc/")
         self.stdscr.addstr("\nLoading...")
         infile = open(b"mapsrc/"+loadFilename+b".drm", "br")
         self.currentFilename = loadFilename
@@ -379,6 +380,12 @@ class mapEditor():
             self.refreshMap()
             self.refreshStatus()
             self.mapwin.move(self.cursorY, self.cursorX)
+            elem = self.kDisplayCharacters[self.getCurrentMapEntry().mapElementID]
+            elemChar = elem[0]
+            elemDesc = elem[1]
+            self.stdscr.move(self.kLowerTop, 0)
+            self.stdscr.clrtoeol()
+            self.stdscr.addstr(self.kLowerTop,1,'>'+elemChar+'< '+elemDesc)
             self.stdscr.refresh()
             c = self.mapwin.getch()
             func = edcmds.get(c, 0)
