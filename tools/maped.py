@@ -9,10 +9,8 @@ import pickle
 
 from copy import deepcopy
 
-
 class mapElement:
     pass
-
 
 class mapEditor():
 
@@ -221,6 +219,15 @@ class mapEditor():
             self.getCurrentMapEntry().initiallyVisible = self.copyMapElement.initiallyVisible
             self.getCurrentMapEntry().impassable = self.copyMapElement.impassable
             self.cursorX += 1
+    
+    def goto(self):
+        self.clearLower()
+        self.stdscr.move(self.kLowerTop, 0)
+        inCoords = self.getUserInput("goto (x,y):")
+        splitInCoords = inCoords.decode().split(',')    # python3, you SUCK!
+        self.cursorX = int(splitInCoords[0])+1
+        self.cursorY = int(splitInCoords[1])+1
+        self.clearLower()
 
     def loadMap(self):
         loadFilename = self.getUserInput("Load file (.drm appended automatically): mapsrc/")
@@ -270,6 +277,15 @@ class mapEditor():
 
     def saveMapAs(self):
         self._saveMap("")
+    
+    def fillMap(self):
+        elem = self.getCurrentMapEntry()
+        for y in range(self.mapWidth):
+            for x in range(self.mapHeight):
+                self.map[y][x].initiallyVisible = elem.initiallyVisible
+                self.map[y][x].mapElementID = elem.mapElementID
+                self.map[y][x].impassable = elem.impassable
+                self.map[y][x].startOpcodeIndex = elem.startOpcodeIndex
     
     def trimMap(self):
         width = 0
@@ -345,7 +361,7 @@ class mapEditor():
                             "io:\n"
                             "[l] load  [s] save  [S] saveAs\n"
                             "misc:\n"
-                            "[p] start pos")
+                            "[p] start pos  [F] fill  [G] goto")
         self.helpwin.refresh()
 
     def runEditor(self):
@@ -366,7 +382,9 @@ class mapEditor():
             'v': self.toggleInitiallyVisible,
             'g': self.toggleImpassable,
             'p': self.setStartPosition,
-            't': self.trimMap
+            't': self.trimMap,
+            'F': self.fillMap,
+            'G': self.goto
         }
 
         stopEd = 0
