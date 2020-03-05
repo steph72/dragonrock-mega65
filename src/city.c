@@ -34,6 +34,9 @@ void distributeSpoils(void) {
     byte totalShares= 0;
     unsigned int moneyShare;
     unsigned int xpShare;
+    if (partyMemberCount()==0) {
+        return;
+    }
     clrscr();
     cg_borders();
     revers(1);

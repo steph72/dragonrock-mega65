@@ -52,6 +52,10 @@
 #define DRE_DATE "12/29/2019"
 #endif
 
+#ifndef DRE_BUILDNUM
+#define DRE_BUILDNUM "-666"
+#endif
+
 char *drbuf;
 
 byte hasLoadedGame;
@@ -62,7 +66,7 @@ void doGuild(void);
 void loadSaved(void);
 void installCharset(void);
 
-const char *prompt= "DREngine/364 V" DRE_VERSION "\n" DRE_DATE "\n\n";
+const char *prompt= "DREngine/364 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void initEngine(void) {
     unsigned int rseed;
