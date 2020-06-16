@@ -344,12 +344,27 @@ byte performDoencOpcode(opcode *anOpcode) {
 // 0x10: ENTER_D / ENTER_W
 byte performEnterOpcode(opcode *anOpcode) {
     byte opcodeID;
-    opcodeID= anOpcode->id & 31;
+    byte x, y;
+    gameModeT newGameMode;
 
+    opcodeID= anOpcode->id & 31;
     gCurrentDungeonIndex= anOpcode->param1;
     gOutdoorXPos= anOpcode->param2;
     gOutdoorYPos= anOpcode->param3;
 
+    newGameMode = (anOpcode->id & 32) ? gm_dungeon : gm_outdoor;
+
+    if (newGameMode == gm_outdoor) {
+        gCurrentDungeonIndex |= 128; // outdoor maps have bit 7 set in their index
+    }
+
+    #ifdef DEBUG
+        printf("ENTER with game mode %d",newGameMode);
+        cgetc();
+    #endif
+
+    prepareForGameMode(newGameMode);
+    quitDungeon = true;
     return 0;
 }
 
@@ -711,11 +726,6 @@ void dungeonLoop() {
             performOpcodeAtIndex(currentItem->opcodeID);
         }
 
-        if (gCurrentDungeonIndex != gLoadedDungeonIndex) {
-            // end dungeon loop if we switched dungeons (or changed to outdoors)
-            return;
-        }
-
         performedImpassableOpcode= false;
 
         oldX= currentX;
@@ -848,7 +858,8 @@ void loadNewDungeon(void) {
 
     unloadDungeon();
 
-    mfile[3]= 'a' + gCurrentDungeonIndex;
+    mfile[3]= 'a' + (gCurrentDungeonIndex & 127);
+    
     desc= loadMap(mfile);
 
     if (!desc) {

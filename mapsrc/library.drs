@@ -8,6 +8,8 @@ includemap "mapsrc/library.drm"
 ;    history room
 ; ====================
 
+defc exit: 15,0                     ; dungeon exit
+
 defc historyRoom:  17,1 - 24,5
 defc wallWriting1: 19,5
 defc shelves1: 18,2 - 23,2
@@ -38,6 +40,7 @@ This door hangs broken in its hinges.
 A sign above it says 'SCIENCE', but
 below, someone scrawled on the door:
 'OBEZNA WAS HAER'"""
+
 
 historyRoomKobolds:
     CLRENC
@@ -364,7 +367,7 @@ historySign:
     ---
 
 exitDungeon:
-    EXIT 1,0,0
+    ENTER_W 0,0,0   ; load outdoor map 0
     ---
 
 

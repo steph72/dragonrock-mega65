@@ -19,13 +19,15 @@ delete dungeon
 delete encounter
 delete charset
 delete map*
+delete out*
+delete spr*
+delete fmsg*
 write bin/drmain.plus4   main
 write bin/drmain.plus4.1 dungeon
 write bin/drmain.plus4.2 city
 write bin/drmain.plus4.3 encounter
 write cbm/sjload sjload
 write bin/drcharset charset
-write mapdata/library.d mapa
 write cbm/loader loader
 EOF
 
@@ -35,8 +37,14 @@ for filename in mapdata/fmsg*; do
   c1541 disc/drock.d64 -write $filename
 done
 
-c1541 disc/drock.d64 -delete spr*
+for filename in mapdata/map*; do
+  c1541 disc/drock.d64 -write $filename
+done
 
+for filename in mapdata/out*; do
+  c1541 disc/drock.d64 -write $filename
+done
+  
 for filename in bin/spr*; do
   c1541 disc/drock.d64 -write $filename
 done

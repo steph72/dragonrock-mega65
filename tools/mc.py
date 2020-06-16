@@ -365,8 +365,15 @@ class mapCompiler:
                 opc[2] = "__DRLABEL__"+pline.tLoseOpcLabel    
             return opc
 
-        def opCreate_EXIT(pline):
-            opc = [0x1f, 0, 0, 0, 0, 0, 0, 0]
+        def opCreate_ENTER_W(pline):
+            opc = [0x10, 0, 0, 0, 0, 0, 0, 0]
+            opc[1] = int(pline.tMapID)
+            opc[2] = int(pline.tXValue)
+            opc[3] = int(pline.tYValue)
+            return opc
+
+        def opCreate_ENTER_D(pline):
+            opc = [0x30, 0, 0, 0, 0, 0, 0, 0]
             opc[1] = int(pline.tMapID)
             opc[2] = int(pline.tXValue)
             opc[3] = int(pline.tYValue)
@@ -536,7 +543,7 @@ class mapCompiler:
                + p_monsterLevel('tMonsterRow')
                )
 
-            ^ (pp.Keyword("EXIT")('opcode')
+            ^ (pp.Keyword("ENTER_W")('opcode')
                + p_mapID + ","
                + p_xValue + ","
                + p_yValue)
