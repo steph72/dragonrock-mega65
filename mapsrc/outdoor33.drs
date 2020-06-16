@@ -1,0 +1,7 @@
+
+includemap "mapsrc/outdoor33.drm"
+
+defc city_foxhome: 20,15
+
+city_foxhome:
+    

@@ -66,7 +66,8 @@ void doGuild(void);
 void loadSaved(void);
 void installCharset(void);
 
-const char *prompt= "DREngine/364 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+const char *prompt=
+    "DREngine/364 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void initEngine(void) {
     unsigned int rseed;
@@ -90,7 +91,23 @@ void initEngine(void) {
     gCurrentGameMode= gm_init;
 }
 
+void debugDungeon(void) {
+    gCurrentDungeonIndex= 0;
+    gCurrentGameMode= gm_init;
+    prepareForGameMode(gm_dungeon);
+    mainDispatchLoop();
+}
+
 void debugEncounter(void) {
+
+    byte i;
+
+    for (i= 0; i < 5; i++) {
+        setHasSpell(party[0], i);
+        setHasSpell(party[1], i + 5);
+        party[i]->gold= 100;
+    }
+
     clearMonsters();
     gCurrentDungeonIndex= 0;
     addNewMonster(0, 1, 6, 0);
@@ -118,12 +135,6 @@ int main() {
     clrscr();
     cg_borders();
 
-    // TESTING
-    for (i= 0; i < 5; i++) {
-        setHasSpell(party[0], i);
-        setHasSpell(party[1], i + 5);
-        party[i]->gold= 100;
-    }
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");
     cputs(gCities[0]);
@@ -136,10 +147,14 @@ int main() {
     cursor(1);
     do {
         choice= cgetc();
-    } while (strchr("12d", choice) == NULL);
+    } while (strchr("12de", choice) == NULL);
     cursor(0);
 
     if (choice == 'd') {
+        debugDungeon();
+    }
+
+    if (choice == 'e') {
         debugEncounter();
     }
 

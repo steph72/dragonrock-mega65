@@ -21,6 +21,8 @@ gameModeT lastGameMode;
 
 byte gCurrentDungeonIndex;
 byte gLoadedDungeonIndex;
+byte gOutdoorXPos;
+byte gOutdoorYPos;
 byte gCurrentCityIndex;
 
 encResult gEncounterResult;

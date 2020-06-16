@@ -30,7 +30,8 @@
 #define OPC_CLRENC 0x0d /* clear encounter                    */
 #define OPC_ADDENC 0x0e /* add monsters to encounter row      */
 #define OPC_DOENC 0x0f  /* do encounter                       */
-/* ----------------------------------------------------------- */
+#define OPC_ENTER 0x10  /* enter dungeon or wilderness        */
+/* ---------------------------------------------------------- */
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -340,6 +341,18 @@ byte performDoencOpcode(opcode *anOpcode) {
     return 0;
 }
 
+// 0x10: ENTER_D / ENTER_W
+byte performEnterOpcode(opcode *anOpcode) {
+    byte opcodeID;
+    opcodeID= anOpcode->id & 31;
+
+    gCurrentDungeonIndex= anOpcode->param1;
+    gOutdoorXPos= anOpcode->param2;
+    gOutdoorYPos= anOpcode->param3;
+
+    return 0;
+}
+
 // ---------------------------------
 // general opcode handling functions
 // ---------------------------------
@@ -375,7 +388,7 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     gotoxy(xs, ys);
 #endif
 
-    opcodeID= (anOpcode->id) & 31;
+    opcodeID= (anOpcode->id) & 31; // we have 5-bit opcodes from 0x00 - 0x1f
     nextOpcodeIndex= anOpcode->nextOpcodeIndex;
 
     switch (opcodeID) {
@@ -444,6 +457,10 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     case OPC_DOENC:
         rOpcIdx= performDoencOpcode(anOpcode);
         break;
+
+    case OPC_ENTER:
+        rOpcIdx= performEnterOpcode(anOpcode);
+        return (NULL); // enter *always* quits the current dungeon
 
     default:
         rOpcIdx= 0;
@@ -677,18 +694,26 @@ void dungeonLoop() {
                 performOpcodeAtIndex(encounterWonOpcIdx);
             }
 
-            if ((gEncounterResult == encFled || gEncounterResult == encMercy) &&
-                encounterLostOpcIdx) {
+            else if ((gEncounterResult == encFled ||
+                      gEncounterResult == encMercy) &&
+                     encounterLostOpcIdx) {
 
                 performOpcodeAtIndex(encounterLostOpcIdx);
-            }
+            } else {
 
-            gEncounterResult=
-                encUndef; // reset global encounter result for next time...
+                gEncounterResult=
+                    encUndef; // reset global encounter result for next time...
+            }
         }
 
+        // *** perform opcode for this position! **
         if (!performedImpassableOpcode) {
             performOpcodeAtIndex(currentItem->opcodeID);
+        }
+
+        if (gCurrentDungeonIndex != gLoadedDungeonIndex) {
+            // end dungeon loop if we switched dungeons (or changed to outdoors)
+            return;
         }
 
         performedImpassableOpcode= false;
@@ -858,7 +883,7 @@ void loadNewDungeon(void) {
 }
 
 void enterDungeonMode(void) {
-    #ifdef DEBUG
+#ifdef DEBUG
     if (gCurrentGameMode == gm_dungeon) {
         puts("entering dungeon mode");
     } else if (gCurrentGameMode == gm_outdoor) {
@@ -867,7 +892,7 @@ void enterDungeonMode(void) {
         puts("??unknown game mode in dungeon!");
         exit(0);
     }
-    #endif
+#endif
     if (gLoadedDungeonIndex != gCurrentDungeonIndex) {
         loadNewDungeon();
     }
