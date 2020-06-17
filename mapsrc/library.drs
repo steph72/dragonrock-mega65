@@ -198,10 +198,10 @@ librarianRoomDoor:
 librarianStart:
     WKEY msgLR1, True, 1
     SETREG 5,0
-    IFREG 1,65,doKillLibrarian
-    IFREG 1,66,doSearchLibrarian
-    IFREG 1,67,doHealLibrarian
-    IFREG_B 5,0,librarianStart
+    IFREG 1,65,doKillLibrarian      ; these all set register 5
+    IFREG 1,66,doSearchLibrarian    ; so that when the choice is invalid
+    IFREG 1,67,doHealLibrarian      ; the script loops...
+    IFREG_B 5,0,librarianStart      ; ...back to the start.
     REDRAW
     ALTER librarianStart,librarianRoom,0,0
     ---
@@ -358,7 +358,7 @@ corridor:
 
 entrance:
     DISP msgEntrance,True
-    YESNO exitDungeon
+    YESNO_B exitDungeon
     REDRAW
     ---
 
@@ -367,7 +367,7 @@ historySign:
     ---
 
 exitDungeon:
-    ENTER_W 0,0,0   ; load outdoor map 0
+    ENTER_W 0,8,17   ; load outdoor map 0
     ---
 
 

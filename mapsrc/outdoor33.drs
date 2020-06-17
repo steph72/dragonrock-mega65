@@ -3,5 +3,16 @@ includemap "mapsrc/outdoor33.drm"
 
 defc city_foxhome: 20,15
 
+$ msgCity,"""
+The city of Foxhome. Do you want
+to enter? (yes/no):"""
+
 city_foxhome:
-    
+    DISP msgCity,True
+    YESNO enterCity
+    REDRAW
+    ---
+
+enterCity:
+    REDRAW
+    ---

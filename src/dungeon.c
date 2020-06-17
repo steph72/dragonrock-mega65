@@ -127,7 +127,7 @@ byte performWaitkeyOpcode(opcode *anOpcode) {
     return 0;
 }
 
-// 0x04: YESNO
+// 0x04: YESNO / YESNO_B
 byte performYesNoOpcode(opcode *anOpcode) {
     byte inkey;
     cursor(true);
@@ -138,9 +138,19 @@ byte performYesNoOpcode(opcode *anOpcode) {
     printf("%c\n", inkey);
     if (inkey == 'y') {
         registers[0]= true;
+        if (anOpcode->id & 0x40) {
+            return anOpcode->param1; // branch instead of call
+        }
         performOpcodeAtIndex(anOpcode->param1);
     } else if (inkey == 'n') {
         registers[0]= false;
+        if (anOpcode->id & 0x40) { // branch?
+            if (anOpcode->param2) {
+                return anOpcode->param2; // jump there if we acutally got the parameter...
+            } else {
+                return anOpcode->nextOpcodeIndex; // jump to next opcode index
+            }
+        }
         performOpcodeAtIndex(anOpcode->param2);
     }
     return 0;
@@ -344,7 +354,6 @@ byte performDoencOpcode(opcode *anOpcode) {
 // 0x10: ENTER_D / ENTER_W
 byte performEnterOpcode(opcode *anOpcode) {
     byte opcodeID;
-    byte x, y;
     gameModeT newGameMode;
 
     opcodeID= anOpcode->id & 31;
@@ -352,19 +361,15 @@ byte performEnterOpcode(opcode *anOpcode) {
     gOutdoorXPos= anOpcode->param2;
     gOutdoorYPos= anOpcode->param3;
 
-    newGameMode = (anOpcode->id & 32) ? gm_dungeon : gm_outdoor;
+    newGameMode= (anOpcode->id & 32) ? gm_dungeon : gm_outdoor;
 
     if (newGameMode == gm_outdoor) {
-        gCurrentDungeonIndex |= 128; // outdoor maps have bit 7 set in their index
+        gCurrentDungeonIndex|=
+            128; // outdoor maps have bit 7 set in their index
     }
 
-    #ifdef DEBUG
-        printf("ENTER with game mode %d",newGameMode);
-        cgetc();
-    #endif
-
     prepareForGameMode(newGameMode);
-    quitDungeon = true;
+    quitDungeon= true;
     return 0;
 }
 
@@ -475,7 +480,7 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
 
     case OPC_ENTER:
         rOpcIdx= performEnterOpcode(anOpcode);
-        return (NULL); // enter *always* quits the current dungeon
+        break;
 
     default:
         rOpcIdx= 0;
@@ -818,11 +823,25 @@ char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
 
 void setupDungeonScreen(void) {
     byte x;
-    textcolor(COLOR_BLACK);
+    byte dTextCol;
+    byte dBackgroundCol;
+    byte dBorderCol;
+    byte dMapBorderCol;
+    byte isDungeonMode;
+
+    isDungeonMode= gCurrentGameMode == gm_dungeon;
+
+    dTextCol= isDungeonMode ? COLOR_BLACK : BCOLOR_GREEN | CATTR_LUMA5;
+    dBorderCol= isDungeonMode ? BCOLOR_WHITE | CATTR_LUMA3 : COLOR_BLACK;
+    dBackgroundCol= isDungeonMode ? BCOLOR_WHITE | CATTR_LUMA6 : COLOR_BLACK;
+    dMapBorderCol= isDungeonMode ? BCOLOR_BLUEGREEN | CATTR_LUMA1
+                                 : BCOLOR_BLUE | CATTR_LUMA3;
+
+    textcolor(dTextCol);
     clrscr();
-    bordercolor(BCOLOR_WHITE | CATTR_LUMA3);
-    bgcolor(BCOLOR_WHITE | CATTR_LUMA6);
-    textcolor(BCOLOR_BLUEGREEN | CATTR_LUMA1);
+    bordercolor(dBorderCol);
+    bgcolor(dBackgroundCol);
+    textcolor(dMapBorderCol);
     revers(1);
 
     for (x= 0; x < mapWindowSize + 1; ++x) {
@@ -833,7 +852,7 @@ void setupDungeonScreen(void) {
     }
     revers(0);
 
-    textcolor(COLOR_BLACK);
+    textcolor(dTextCol);
 }
 
 void unloadDungeon(void) {
@@ -859,7 +878,7 @@ void loadNewDungeon(void) {
     unloadDungeon();
 
     mfile[3]= 'a' + (gCurrentDungeonIndex & 127);
-    
+
     desc= loadMap(mfile);
 
     if (!desc) {
@@ -875,7 +894,7 @@ void loadNewDungeon(void) {
     dungeonMapWidth= desc->dungeonMapWidth;
     gLoadedDungeonIndex= gCurrentDungeonIndex;
 
-    lastFeelIndex= 0;
+    lastFeelIndex= 255;
 
     currentX= desc->startX;
     currentY= desc->startY;
