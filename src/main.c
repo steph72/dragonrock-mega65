@@ -25,7 +25,6 @@
 #include <string.h>
 #include <unistd.h>
 
-
 #include <cbm.h>
 #include <device.h>
 #include <time.h>
@@ -45,6 +44,8 @@
 #include "spell.h"
 
 #include "dispatcher.h"
+
+#include "c65.h"
 
 #ifndef DRE_VERSION
 #define DRE_VERSION "0.1a"
@@ -69,11 +70,25 @@ void loadSaved(void);
 void installCharset(void);
 
 const char *prompt=
-    "DREngine/M65 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+    "DREngine/C65 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+
+void testMachine(void) {
+    if (!testVIC3()) {
+        bordercolor(0);
+        bgcolor(0);
+        textcolor(COLOR_LIGHTRED);
+        clrscr();
+        cputs("We're awfully sorry, but DragonRock\r\n"
+              "needs a C65 or MEGA65 computer to run.\r\n");
+        exit(0);
+    }
+}
 
 void initEngine(void) {
     unsigned int rseed;
-    drbuf = malloc(0xff);
+
+    testMachine();
+    drbuf= malloc(0xff);
     cg_init();
     puts(prompt);
     sleep(1);

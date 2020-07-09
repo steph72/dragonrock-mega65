@@ -56,7 +56,7 @@ OBJDIR :=
 
 # Command used to run the emulator.
 # Default: depending on target platform. For default (c64) target: x64 -kernal kernal -VICIIdsize -autoload
-EMUCMD :=
+EMUCMD := xc65.native -go64 -8 
 
 # Optional commands used before starting the emulation process, and after finishing it.
 # Default: none

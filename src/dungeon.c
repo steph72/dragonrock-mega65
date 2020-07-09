@@ -6,6 +6,7 @@
 #include "encounter.h"
 #include "globals.h"
 #include "monster.h"
+#include "c65.h"
 
 #include <conio.h>
 #include <c64.h>
@@ -668,6 +669,7 @@ void dungeonLoop() {
     dungeonItem *dItem;
     dungeonItem *currentItem;
 
+    setFastVIC3Mode();
     redrawAll();
     performedImpassableOpcode= false;
 

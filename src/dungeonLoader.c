@@ -1,7 +1,8 @@
 #include "dungeon.h"
 #include "globals.h"
-#include <conio.h>
+#include "memory.h"
 #include <c64.h>
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,10 +47,11 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("load map %s\n\nloading map header\n", filename);
 #endif
 
+    mega65_io_enable();
     infile= fopen(filename, "rb");
 
     if (!infile) {
-        cputs ("file not found: ");
+        cputs("file not found: ");
         cputs(filename);
         exit(0);
     }
