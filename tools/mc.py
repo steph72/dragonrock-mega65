@@ -262,6 +262,11 @@ class mapCompiler:
                 opc[2] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
+        def opCreate_YESNO_B(pline):
+            opc = opCreate_YESNO(pline)
+            opc[0] = 0x44
+            return opc
+
         def opCreate_IFREG(pline):
             opc = [5, int(pline.tRegIndex), int(
                 pline.tRegValue), 0, 0, 0, 0, 0]
@@ -362,11 +367,18 @@ class mapCompiler:
             if (pline.tWinOpcLabel):
                 opc[1] = "__DRLABEL__"+pline.tWinOpcLabel
             if (pline.tLoseOpcLabel):
-                opc[2] = "__DRLABEL__"+pline.tLoseOpcLabel    
+                opc[2] = "__DRLABEL__"+pline.tLoseOpcLabel
             return opc
 
-        def opCreate_EXIT(pline):
-            opc = [0x1f, 0, 0, 0, 0, 0, 0, 0]
+        def opCreate_ENTER_W(pline):
+            opc = [0x10, 0, 0, 0, 0, 0, 0, 0]
+            opc[1] = int(pline.tMapID)
+            opc[2] = int(pline.tXValue)
+            opc[3] = int(pline.tYValue)
+            return opc
+
+        def opCreate_ENTER_D(pline):
+            opc = [0x30, 0, 0, 0, 0, 0, 0, 0]
             opc[1] = int(pline.tMapID)
             opc[2] = int(pline.tXValue)
             opc[3] = int(pline.tYValue)
@@ -487,6 +499,8 @@ class mapCompiler:
 
             ^ pp.Keyword("YESNO")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
 
+            ^ pp.Keyword("YESNO_B")('opcode')+p_trueOpcLabel+pp.Optional(","+p_falseOpcLabel)
+
             ^ (pp.Keyword("IFPOS")('opcode') + p_itemID +
                ","+p_trueOpcLabel+","+p_falseOpcLabel +
                ","+p_regIdx)
@@ -536,7 +550,7 @@ class mapCompiler:
                + p_monsterLevel('tMonsterRow')
                )
 
-            ^ (pp.Keyword("EXIT")('opcode')
+            ^ (pp.Keyword("ENTER_W")('opcode')
                + p_mapID + ","
                + p_xValue + ","
                + p_yValue)

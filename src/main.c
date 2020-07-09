@@ -52,6 +52,10 @@
 #define DRE_DATE "12/29/2019"
 #endif
 
+#ifndef DRE_BUILDNUM
+#define DRE_BUILDNUM "-666"
+#endif
+
 char *drbuf;
 
 byte hasLoadedGame;
@@ -62,7 +66,8 @@ void doGuild(void);
 void loadSaved(void);
 void installCharset(void);
 
-const char *prompt= "DREngine/364 V" DRE_VERSION "\n" DRE_DATE "\n\n";
+const char *prompt=
+    "DREngine/364 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void initEngine(void) {
     unsigned int rseed;
@@ -83,11 +88,27 @@ void initEngine(void) {
     gLoadedDungeonIndex= 255;
     gPartyExperience= 1000;
     gPartyGold= 1000;
+    gCurrentGameMode= gm_init;
+}
+
+void debugDungeon(void) {
+    gCurrentDungeonIndex= 0;
+    gCurrentGameMode= gm_init;
+    prepareForGameMode(gm_dungeon);
+    mainDispatchLoop();
 }
 
 void debugEncounter(void) {
+
+    byte i;
+
+    for (i= 0; i < 5; i++) {
+        setHasSpell(party[0], i);
+        setHasSpell(party[1], i + 5);
+        party[i]->gold= 100;
+    }
+
     clearMonsters();
-    // gCurrentGameMode= gm_dungeon;
     gCurrentDungeonIndex= 0;
     addNewMonster(0, 1, 6, 0);
     addNewMonster(1, 1, 3, 1);
@@ -95,6 +116,7 @@ void debugEncounter(void) {
     prepareForGameMode(gm_dungeon);
     gEncounterResult= doPreEncounter(); // try pre-encounter first
     if (gEncounterResult == encFight) {
+        gCurrentGameMode= gm_dungeon; // simulate coming from dungeon
         prepareForGameMode(gm_encounter);
         /*
              a real fight? -->
@@ -113,12 +135,6 @@ int main() {
     clrscr();
     cg_borders();
 
-    // TESTING
-    for (i= 0; i < 5; i++) {
-        setHasSpell(party[0], i);
-        setHasSpell(party[1], i + 5);
-        party[i]->gold= 100;
-    }
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");
     cputs(gCities[0]);
@@ -131,10 +147,14 @@ int main() {
     cursor(1);
     do {
         choice= cgetc();
-    } while (strchr("12d", choice) == NULL);
+    } while (strchr("12de", choice) == NULL);
     cursor(0);
 
     if (choice == 'd') {
+        debugDungeon();
+    }
+
+    if (choice == 'e') {
         debugEncounter();
     }
 

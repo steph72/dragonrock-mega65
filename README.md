@@ -40,6 +40,3 @@ Of course, "Dragon Rock" comes with its own map editor...
 ...and map compiler, which translates a 'mapscript' file into bytecode, which then
 gets interpreted by the main binary on the TED machine.
 
-
-
-

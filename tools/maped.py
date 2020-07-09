@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 import locale
 import curses
@@ -9,23 +9,37 @@ import pickle
 
 from copy import deepcopy
 
-
 class mapElement:
     pass
-
 
 class mapEditor():
 
     kMapWinWidth = 20
     kMapWinHeight = 12
-    kLowerTop = kMapWinHeight+6
+    kLowerTop = kMapWinHeight+4
     kScrollMargin = 2
 
-    kDisplayCharacters = ['.',        # 0 : space/floor
-                          u"\u25c6",  # 1 : item = diamond
-                          u"\u007C",  # 2 : vertical line (door)
-                          u"\u2015",  # 3 : horizontal line (door)
-                          u"\u2588",  # 4 : wall = solid block
+    kDisplayCharacters = [
+                        # ---------- dungeon tiles ---------------
+                          ['.', 'D space/floor'],               #  0 : space/floor
+                          [u"\u25c6", 'D item'],                #  1 : item = diamond
+                          [u"\u007C", 'D vertical door'],       #  2 : vertical line (door)
+                          [u"\u2015", 'D horizontal door'],     #  3 : horizontal line (door)
+                          [u"\u2588", 'D wall'],                #  4 : wall = solid block
+                        # ------------ outdoor tiles -------------
+                          [',','O grass'],                      #  6 : grass
+                          ['%','O sand'],                       #  7 : sand
+                          ['#','O stone path'],                 #  7 : stone path
+                          ['t','O small trees'],                #  7 : small trees
+                          ['T','O large trees'],                #  8 : large trees
+                          ['w','O small water'],                #  9 : small water
+                          ['W','O large water'],                # 10 : lg water
+                          ['^','O small mountain'],             # 11 : sm mountain
+                          ['M','O large mountain'],             # 12 : lg mountain
+                          ['c','O village'],                    # 13 : village
+                          ['C','O castle'],                     # 14 : castle
+                          ['i','O inn'],                        # 15 : inn
+                          ['d','O dungeon']                     # 16 : dungeon
                           ]
 
     def setupEmptyMap(self):
@@ -131,7 +145,7 @@ class mapEditor():
                 else:
                     cp = 1
                 self.mapwin.addstr(
-                    y+1, x+1, self.kDisplayCharacters[d], curses.color_pair(cp))
+                    y+1, x+1, self.kDisplayCharacters[d][0], curses.color_pair(cp))
 
     def getCurrentMapEntry(self):
         x = self.originX + self.cursorX - 1
@@ -205,9 +219,18 @@ class mapEditor():
             self.getCurrentMapEntry().initiallyVisible = self.copyMapElement.initiallyVisible
             self.getCurrentMapEntry().impassable = self.copyMapElement.impassable
             self.cursorX += 1
+    
+    def goto(self):
+        self.clearLower()
+        self.stdscr.move(self.kLowerTop, 0)
+        inCoords = self.getUserInput("goto (x,y):")
+        splitInCoords = inCoords.decode().split(',')    # python3, you SUCK!
+        self.cursorX = int(splitInCoords[0])+1
+        self.cursorY = int(splitInCoords[1])+1
+        self.clearLower()
 
     def loadMap(self):
-        loadFilename = self.getUserInput("Load file:")
+        loadFilename = self.getUserInput("Load file (.drm appended automatically): mapsrc/")
         self.stdscr.addstr("\nLoading...")
         infile = open(b"mapsrc/"+loadFilename+b".drm", "br")
         self.currentFilename = loadFilename
@@ -254,6 +277,15 @@ class mapEditor():
 
     def saveMapAs(self):
         self._saveMap("")
+    
+    def fillMap(self):
+        elem = self.getCurrentMapEntry()
+        for y in range(self.mapWidth):
+            for x in range(self.mapHeight):
+                self.map[y][x].initiallyVisible = elem.initiallyVisible
+                self.map[y][x].mapElementID = elem.mapElementID
+                self.map[y][x].impassable = elem.impassable
+                self.map[y][x].startOpcodeIndex = elem.startOpcodeIndex
     
     def trimMap(self):
         width = 0
@@ -329,7 +361,7 @@ class mapEditor():
                             "io:\n"
                             "[l] load  [s] save  [S] saveAs\n"
                             "misc:\n"
-                            "[p] start pos")
+                            "[p] start pos  [F] fill  [G] goto")
         self.helpwin.refresh()
 
     def runEditor(self):
@@ -350,7 +382,9 @@ class mapEditor():
             'v': self.toggleInitiallyVisible,
             'g': self.toggleImpassable,
             'p': self.setStartPosition,
-            't': self.trimMap
+            't': self.trimMap,
+            'F': self.fillMap,
+            'G': self.goto
         }
 
         stopEd = 0
@@ -364,6 +398,12 @@ class mapEditor():
             self.refreshMap()
             self.refreshStatus()
             self.mapwin.move(self.cursorY, self.cursorX)
+            elem = self.kDisplayCharacters[self.getCurrentMapEntry().mapElementID]
+            elemChar = elem[0]
+            elemDesc = elem[1]
+            self.stdscr.move(self.kLowerTop, 0)
+            self.stdscr.clrtoeol()
+            self.stdscr.addstr(self.kLowerTop,1,'>'+elemChar+'< '+elemDesc)
             self.stdscr.refresh()
             c = self.mapwin.getch()
             func = edcmds.get(c, 0)

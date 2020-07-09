@@ -18,6 +18,9 @@ Register 0 -> true on 'yes', otherwise false.
 if *y* and *trueOpcIdx*!=0 -> jump to *trueOpcIdx*
 if *n* and *falseOpcIdx*!=0 -> jump to *falseOpcodeIdx*
 
+## 0x44 YESNO_B <01:trueOpcIdx> <02:falseOpcodeIdx>
+Like YESNO, but **branch** to trueOpcIdx instead of calling it
+
 ## 0x05 IFREG <01:regNr> <02:regValue> <03:trueOpcIdx> <04:falseOpcIdx>
 If register *regNr* contains *regValue*, perform *trueOpcIdx*, else *falseOpcIdx*
 
@@ -68,5 +71,12 @@ Add <count> monsters with monster ID <mID> of level <mLvl> to encounter row <row
 ## 0x0f DOENC <01:winOpcIdx> <02:loseOpcIdx>
 Start encounter
 
-## 0x1f EXIT <01:mapId> <02:xpos> <03:ypos>
-Exits the dungeon module back into wilderness map *mapID* at coords *xpos*, *ypos* 
+## 0x10 ENTER_W <01:mapId> <02:xpos> <03:ypos>
+Enter wilderness map *mapID* at coords *xpos*, *ypos* and switch to outdoor mode
+
+## 0x30 ENTER_D <01:dungeonId>
+Enter dungeon *dungeonId* and switch to dungeon mode
+
+
+# Outdoor and dungeon maps
+Outdoor maps are registered by setting bit 7 in their id (i.e. "128+mapnum")

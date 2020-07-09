@@ -10,7 +10,7 @@
 
 #define SHOP_INV_SIZE 32
 #define ITEMS_PER_PAGE 12
-#define RESTOCK_FREQ 5
+#define RESTOCK_FREQ 5          // restock every n visits
 
 byte *shopInventory;
 byte numCityVisits;
@@ -151,9 +151,7 @@ void sellItem(character *shopper) {
             cursor(1);
             cputs("\r\nSell another (y/n)? ");
             val=cg_getkey();
-            if (val=='n') {
-                sellQuit=true;
-            }  
+            sellQuit = (val=='n');
         } else {
             puts("\nshop is full!\n--key--");
             cg_getkey();

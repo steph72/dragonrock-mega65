@@ -47,6 +47,13 @@ dungeonDescriptor *loadMap(char *filename) {
 #endif
 
     infile= fopen(filename, "rb");
+
+    if (!infile) {
+        cputs ("file not found: ");
+        cputs(filename);
+        exit(0);
+    }
+
     fread(drbuf, 3, 1, infile);
     drbuf[3]= 0;
 
@@ -186,7 +193,8 @@ byte *buildFeelsTable(byte *startAddr, dungeonDescriptor *desc) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DLDEBUG
         printf("feel %x at %x\n", currentFeelIdx, currentPtr);
-        // printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr, currentPtr);
+        // printf("feel %x at %x: %s\n", currentFeelIdx, currentPtr,
+        // currentPtr);
 #endif
         while (*currentPtr != 0) {
             currentPtr++;

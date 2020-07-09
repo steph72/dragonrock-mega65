@@ -4,8 +4,8 @@
 #include "debug.h"
 #include "dungeonLoader.h"
 #include "encounter.h"
-#include "monster.h"
 #include "globals.h"
+#include "monster.h"
 
 #include <conio.h>
 #include <plus4.h>
@@ -30,7 +30,8 @@
 #define OPC_CLRENC 0x0d /* clear encounter                    */
 #define OPC_ADDENC 0x0e /* add monsters to encounter row      */
 #define OPC_DOENC 0x0f  /* do encounter                       */
-/* ----------------------------------------------------------- */
+#define OPC_ENTER 0x10  /* enter dungeon or wilderness        */
+/* ---------------------------------------------------------- */
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -126,7 +127,7 @@ byte performWaitkeyOpcode(opcode *anOpcode) {
     return 0;
 }
 
-// 0x04: YESNO
+// 0x04: YESNO / YESNO_B
 byte performYesNoOpcode(opcode *anOpcode) {
     byte inkey;
     cursor(true);
@@ -137,9 +138,19 @@ byte performYesNoOpcode(opcode *anOpcode) {
     printf("%c\n", inkey);
     if (inkey == 'y') {
         registers[0]= true;
+        if (anOpcode->id & 0x40) {
+            return anOpcode->param1; // branch instead of call
+        }
         performOpcodeAtIndex(anOpcode->param1);
     } else if (inkey == 'n') {
         registers[0]= false;
+        if (anOpcode->id & 0x40) { // branch?
+            if (anOpcode->param2) {
+                return anOpcode->param2; // jump there if we acutally got the parameter...
+            } else {
+                return anOpcode->nextOpcodeIndex; // jump to next opcode index
+            }
+        }
         performOpcodeAtIndex(anOpcode->param2);
     }
     return 0;
@@ -340,6 +351,28 @@ byte performDoencOpcode(opcode *anOpcode) {
     return 0;
 }
 
+// 0x10: ENTER_D / ENTER_W
+byte performEnterOpcode(opcode *anOpcode) {
+    byte opcodeID;
+    gameModeT newGameMode;
+
+    opcodeID= anOpcode->id & 31;
+    gCurrentDungeonIndex= anOpcode->param1;
+    gOutdoorXPos= anOpcode->param2;
+    gOutdoorYPos= anOpcode->param3;
+
+    newGameMode= (anOpcode->id & 32) ? gm_dungeon : gm_outdoor;
+
+    if (newGameMode == gm_outdoor) {
+        gCurrentDungeonIndex|=
+            128; // outdoor maps have bit 7 set in their index
+    }
+
+    prepareForGameMode(newGameMode);
+    quitDungeon= true;
+    return 0;
+}
+
 // ---------------------------------
 // general opcode handling functions
 // ---------------------------------
@@ -375,7 +408,7 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     gotoxy(xs, ys);
 #endif
 
-    opcodeID= (anOpcode->id) & 31;
+    opcodeID= (anOpcode->id) & 31; // we have 5-bit opcodes from 0x00 - 0x1f
     nextOpcodeIndex= anOpcode->nextOpcodeIndex;
 
     switch (opcodeID) {
@@ -443,6 +476,10 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
 
     case OPC_DOENC:
         rOpcIdx= performDoencOpcode(anOpcode);
+        break;
+
+    case OPC_ENTER:
+        rOpcIdx= performEnterOpcode(anOpcode);
         break;
 
     default:
@@ -677,16 +714,19 @@ void dungeonLoop() {
                 performOpcodeAtIndex(encounterWonOpcIdx);
             }
 
-            if ((gEncounterResult == encFled || gEncounterResult == encMercy) &&
-                encounterLostOpcIdx) {
+            else if ((gEncounterResult == encFled ||
+                      gEncounterResult == encMercy) &&
+                     encounterLostOpcIdx) {
 
                 performOpcodeAtIndex(encounterLostOpcIdx);
-            }
+            } else {
 
-            gEncounterResult=
-                encUndef; // reset global encounter result for next time...
+                gEncounterResult=
+                    encUndef; // reset global encounter result for next time...
+            }
         }
 
+        // *** perform opcode for this position! **
         if (!performedImpassableOpcode) {
             performOpcodeAtIndex(currentItem->opcodeID);
         }
@@ -783,11 +823,25 @@ char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
 
 void setupDungeonScreen(void) {
     byte x;
-    textcolor(COLOR_BLACK);
+    byte dTextCol;
+    byte dBackgroundCol;
+    byte dBorderCol;
+    byte dMapBorderCol;
+    byte isDungeonMode;
+
+    isDungeonMode= gCurrentGameMode == gm_dungeon;
+
+    dTextCol= isDungeonMode ? COLOR_BLACK : BCOLOR_GREEN | CATTR_LUMA5;
+    dBorderCol= isDungeonMode ? BCOLOR_WHITE | CATTR_LUMA3 : COLOR_BLACK;
+    dBackgroundCol= isDungeonMode ? BCOLOR_WHITE | CATTR_LUMA6 : COLOR_BLACK;
+    dMapBorderCol= isDungeonMode ? BCOLOR_BLUEGREEN | CATTR_LUMA1
+                                 : BCOLOR_BLUE | CATTR_LUMA3;
+
+    textcolor(dTextCol);
     clrscr();
-    bordercolor(BCOLOR_WHITE | CATTR_LUMA3);
-    bgcolor(BCOLOR_WHITE | CATTR_LUMA6);
-    textcolor(BCOLOR_BLUEGREEN | CATTR_LUMA1);
+    bordercolor(dBorderCol);
+    bgcolor(dBackgroundCol);
+    textcolor(dMapBorderCol);
     revers(1);
 
     for (x= 0; x < mapWindowSize + 1; ++x) {
@@ -798,7 +852,7 @@ void setupDungeonScreen(void) {
     }
     revers(0);
 
-    textcolor(COLOR_BLACK);
+    textcolor(dTextCol);
 }
 
 void unloadDungeon(void) {
@@ -815,11 +869,16 @@ void unloadDungeon(void) {
 
 void loadNewDungeon(void) {
 
-    char *mfile= "mapa";
+    char *mfile;
+    char *dungeonFile= "mapa";
+    char *outdoorFile= "outa";
+
+    mfile= gCurrentGameMode == gm_dungeon ? dungeonFile : outdoorFile;
 
     unloadDungeon();
 
-    mfile[3]= 'a' + gCurrentDungeonIndex;
+    mfile[3]= 'a' + (gCurrentDungeonIndex & 127);
+
     desc= loadMap(mfile);
 
     if (!desc) {
@@ -835,7 +894,7 @@ void loadNewDungeon(void) {
     dungeonMapWidth= desc->dungeonMapWidth;
     gLoadedDungeonIndex= gCurrentDungeonIndex;
 
-    lastFeelIndex= 0;
+    lastFeelIndex= 255;
 
     currentX= desc->startX;
     currentY= desc->startY;
@@ -854,6 +913,16 @@ void loadNewDungeon(void) {
 }
 
 void enterDungeonMode(void) {
+#ifdef DEBUG
+    if (gCurrentGameMode == gm_dungeon) {
+        puts("entering dungeon mode");
+    } else if (gCurrentGameMode == gm_outdoor) {
+        puts("entering outdoor mode");
+    } else {
+        puts("??unknown game mode in dungeon!");
+        exit(0);
+    }
+#endif
     if (gLoadedDungeonIndex != gCurrentDungeonIndex) {
         loadNewDungeon();
     }

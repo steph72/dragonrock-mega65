@@ -8,6 +8,7 @@
 ###############################################################################
 
 BUILDDATE := $(shell date -Iminutes)
+BUILDNUM := $(shell cat BUILDIDX)
 VERSION = 0.1a
 
 # Space or comma separated list of cc65 supported target platforms to build for.
@@ -32,7 +33,8 @@ CONFIG  :=
 # Default: none
 CFLAGS += -DDEBUG
 CFLAGS += -DDRE_DATE="\"$(BUILDDATE)\""
-CFLAGS += -DRE_VERSION="\"$(VERSION)\""
+CFLAGS += -DDRE_VERSION="\"$(VERSION)\""
+CFLAGS += -DDRE_BUILDNUM="\"$(BUILDNUM)\""
 
 # Additional assembler flags and options.
 # Default: none
@@ -63,6 +65,7 @@ EMUCMD :=
 #PREEMUCMD := osascript -e "tell application \"X11\" to activate"
 #POSTEMUCMD := osascript -e "tell application \"System Events\" to tell process \"X11\" to set visible to false"
 #POSTEMUCMD := osascript -e "tell application \"Terminal\" to activate"
+INCBUILDCMD := /bin/bash tools/increaseBuild.sh
 BUILDRESCMD := /bin/bash tools/buildResources.sh
 PREEMUCMD :=  /bin/bash tools/buildDisc.sh
 POSTEMUCMD :=
@@ -316,6 +319,8 @@ $(TARGETOBJDIR)/%.o: %.a65 | $(TARGETOBJDIR)
 
 $(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
 	cl65 -t $(CC65TARGET) $(LDFLAGS) -o $@ $(patsubst %.cfg,-C %.cfg,$^)
+	$(INCBUILDCMD)
+
 
 test: $(PROGRAM)
 	$(PREEMUCMD)

@@ -21,6 +21,8 @@ gameModeT lastGameMode;
 
 byte gCurrentDungeonIndex;
 byte gLoadedDungeonIndex;
+byte gOutdoorXPos;
+byte gOutdoorYPos;
 byte gCurrentCityIndex;
 
 encResult gEncounterResult;
@@ -45,8 +47,11 @@ void commitNewGameMode(void) {
     switch (gNextGameMode) {
 
     case gm_dungeon:
-        bordercolor(BCOLOR_DARKBLUE | CATTR_LUMA3);
-        loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
+    case gm_outdoor:
+        if (lastGameMode != gm_dungeon && lastGameMode != gm_outdoor) {
+            bordercolor(BCOLOR_DARKBLUE | CATTR_LUMA3);
+            loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
+        }
         break;
 
     case gm_city:
@@ -57,6 +62,11 @@ void commitNewGameMode(void) {
     case gm_encounter:
         bordercolor(BCOLOR_RED | CATTR_LUMA3);
         loadfile("encounter", _OVERLAY3_LOAD__, _OVERLAY3_SIZE__);
+        break;
+
+    case gm_init:
+        puts("??gamemode init");
+        exit(0);
         break;
 
     default:
@@ -75,6 +85,7 @@ void enterCurrentGameMode() {
         break;
 
     case gm_dungeon:
+    case gm_outdoor:
         enterDungeonMode();
         break;
 
