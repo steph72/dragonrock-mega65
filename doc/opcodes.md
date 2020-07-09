@@ -18,6 +18,9 @@ Register 0 -> true on 'yes', otherwise false.
 if *y* and *trueOpcIdx*!=0 -> jump to *trueOpcIdx*
 if *n* and *falseOpcIdx*!=0 -> jump to *falseOpcodeIdx*
 
+## 0x44 YESNO_B <01:trueOpcIdx> <02:falseOpcodeIdx>
+Like YESNO, but **branch** to trueOpcIdx instead of calling it
+
 ## 0x05 IFREG <01:regNr> <02:regValue> <03:trueOpcIdx> <04:falseOpcIdx>
 If register *regNr* contains *regValue*, perform *trueOpcIdx*, else *falseOpcIdx*
 
