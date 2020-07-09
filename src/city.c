@@ -1,7 +1,7 @@
 
 
+#include <c64.h>
 #include <conio.h>
-#include <plus4.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +34,7 @@ void distributeSpoils(void) {
     byte totalShares= 0;
     unsigned int moneyShare;
     unsigned int xpShare;
-    if (partyMemberCount()==0) {
+    if (partyMemberCount() == 0) {
         return;
     }
     clrscr();
@@ -48,19 +48,19 @@ void distributeSpoils(void) {
         cprintf("Shares for %-10s: ", party[i]->name);
         do {
             sharePerMember[i]= cg_getkey() - '0';
-        } while (sharePerMember[i] < 1 || sharePerMember[i]> 3);
+        } while (sharePerMember[i] < 1 || sharePerMember[i] > 3);
         cputc('0' + sharePerMember[i]);
         totalShares+= sharePerMember[i];
     }
     moneyShare= gPartyGold / totalShares;
     xpShare= gPartyExperience / totalShares;
-    gotoxy(0,14);
-    cprintf("Each share is %u xp and %u coins.",moneyShare,xpShare);
-    for (i=0;i<partyMemberCount();++i) {
-        party[i]->gold += sharePerMember[i]*moneyShare;
-        party[i]->xp += sharePerMember[i]*xpShare;
+    gotoxy(0, 14);
+    cprintf("Each share is %u xp and %u coins.", moneyShare, xpShare);
+    for (i= 0; i < partyMemberCount(); ++i) {
+        party[i]->gold+= sharePerMember[i] * moneyShare;
+        party[i]->xp+= sharePerMember[i] * xpShare;
     }
-    cputsxy(1,18,"--key--");
+    cputsxy(1, 18, "--key--");
     cg_getkey();
 }
 
@@ -92,8 +92,7 @@ void doGuild(void) {
 
     while (!quitGuild) {
         sprintf(drbuf, "%s Guild", gCities[gCurrentCityIndex]);
-        cg_titlec(BCOLOR_BROWN | CATTR_LUMA4, BCOLOR_GREEN | CATTR_LUMA5, 1,
-                  drbuf);
+        cg_titlec(COLOR_BROWN, COLOR_GREEN, 1, drbuf);
         showCurrentParty(false);
         gotoxy(0, 14);
         puts(menu);
@@ -157,8 +156,7 @@ void runCityMenu(void) {
     while (!quitCity) {
         sprintf(drbuf, "%s (%d)", gCities[gCurrentCityIndex],
                 gCurrentCityIndex + 1);
-        cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 1,
-                  drbuf);
+        cg_titlec(COLOR_BLUE, COLOR_GREEN, 1, drbuf);
         showCurrentParty(false);
         gotoxy(0, 14);
         puts(menu);
@@ -236,8 +234,7 @@ void newGuildMember(byte city) {
     const char margin= 14;
     const char delSpaces= 40 - margin;
 
-    cg_titlec(BCOLOR_BLUEGREEN | CATTR_LUMA2, BCOLOR_CYAN | CATTR_LUMA5, 0,
-              "New Guild Member");
+    cg_titlec(COLOR_GREEN, COLOR_CYAN, 0, "New Guild Member");
 
     slot= nextFreeGuildSlot();
     if (slot == -1) {

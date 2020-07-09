@@ -13,7 +13,7 @@ VERSION = 0.1a
 
 # Space or comma separated list of cc65 supported target platforms to build for.
 # Default: c64 (lowercase!)
-TARGETS := plus4
+TARGETS := c64
 
 # Name of the final, single-file executable.
 # Default: name of the current dir with target name appended
@@ -256,6 +256,8 @@ all: $(PROGRAM)
 res: 
 	$(BUILDRESCMD)
 
+disc: full
+
 full: $(PROGRAM) 
 	$(BUILDRESCMD)
 	$(PREEMUCMD)
@@ -324,7 +326,7 @@ $(PROGRAM): $(CONFIG) $(OBJECTS) $(LIBS)
 
 test: $(PROGRAM)
 	$(PREEMUCMD)
-	$(EMUCMD) disc/drock.d64
+	$(EMUCMD) disc/drock.d81
 	$(POSTEMUCMD)
 
 clean:

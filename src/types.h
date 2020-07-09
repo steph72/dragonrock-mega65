@@ -26,7 +26,7 @@
 #define true   1
 #define false  0
 
-#define SCREEN ((unsigned char *)0xc00)
+#define SCREEN ((unsigned char *)0x400)
 #define BUFSIZE 0xb0
 
 typedef unsigned char byte;

@@ -1,7 +1,7 @@
 #include "dungeon.h"
 #include "globals.h"
 #include <conio.h>
-#include <plus4.h>
+#include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

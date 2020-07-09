@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <plus4.h>
+#include <c64.h>
 
 
 #include "globals.h"

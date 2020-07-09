@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
 
 #include <cbm.h>
 #include <device.h>
@@ -67,24 +69,26 @@ void loadSaved(void);
 void installCharset(void);
 
 const char *prompt=
-    "DREngine/364 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+    "DREngine/M65 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void initEngine(void) {
     unsigned int rseed;
-
-    drbuf= (char *)0xff40; // use ram at top of i/o for buffer
-
+    drbuf = malloc(0xff);
     cg_init();
     puts(prompt);
-    rseed= *(unsigned int *)0xff02; // ted free running timer for random seed
+    sleep(1);
+    rseed= 42;
     srand(rseed);
+    /*
+    // TODO
     if (cbm_load("charset", getcurrentdevice(), (void *)0xf800) == 0) {
         puts("Failed loading charset.");
         exit(0);
     }
     installIRQ();
+    */
     hasLoadedGame= loadParty();
-    enableCustomCharset();
+    /* enableCustomCharset(); */
     gLoadedDungeonIndex= 255;
     gPartyExperience= 1000;
     gPartyGold= 1000;

@@ -9,7 +9,7 @@
 #include "dungeon.h"
 #include "encounter.h"
 #include "guild.h"
-#include <plus4.h>
+#include <c64.h>
 
 extern unsigned int _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern unsigned int _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
@@ -49,18 +49,18 @@ void commitNewGameMode(void) {
     case gm_dungeon:
     case gm_outdoor:
         if (lastGameMode != gm_dungeon && lastGameMode != gm_outdoor) {
-            bordercolor(BCOLOR_DARKBLUE | CATTR_LUMA3);
+            bordercolor(COLOR_BLUE);
             loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
         }
         break;
 
     case gm_city:
-        bordercolor(BCOLOR_GREEN | CATTR_LUMA3);
+        bordercolor(COLOR_GREEN);
         loadfile("city", _OVERLAY2_LOAD__, _OVERLAY2_SIZE__);
         break;
 
     case gm_encounter:
-        bordercolor(BCOLOR_RED | CATTR_LUMA3);
+        bordercolor(COLOR_RED);
         loadfile("encounter", _OVERLAY3_LOAD__, _OVERLAY3_SIZE__);
         break;
 
@@ -76,7 +76,7 @@ void commitNewGameMode(void) {
 
 void enterCurrentGameMode() {
 
-    bordercolor(BCOLOR_BLACK);
+    bordercolor(COLOR_BLACK);
 
     switch (gCurrentGameMode) {
 
