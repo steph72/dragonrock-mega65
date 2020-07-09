@@ -1,9 +1,19 @@
-# dragonrock-ted
-A role playing game for Commodore TED 64k computers
+# dragonrock-mega65
+A role playing game for MEGA65 & Commodore C65 computers
 
 I got the idea for "Dragon Rock" upon realizing that there are hardly any native role playing
 games for the Commodore TED series of computers (c16, c116, plus/4). Since I always had soft 
 spot for the underdogs and also always wanted to implement a classic CRPG, I decided to fill this gap.
+
+But once I had begun implementing DRs advanced features (such as a compiled dungeon description
+language and a bytecode interpreter along with it), I realized that the poor old TEDs would have
+a hard time processing all the stuff, and the project slowed down and finally was put on hold.
+
+Then along came the amazing MEGA65 re-imagination of Commodore's last 8-bit-machine, and I knew,
+the platform to complete "Dragon Rock" was finally there (actually, some 20 years ago, I was the
+owner of one of the fabled C65 prototypes, there are even still some demos by yours truly 
+floating around on the 'net, so developing for the MEGA65 felt like coming home to me... but that's
+a different story).
 
 Gameplay-wise "Dragon Rock" is modelled after "Phantasie" (my favourite crpg series on 8-bit 
 computers, because it's simple and challenging at the same time). It's still very much work
