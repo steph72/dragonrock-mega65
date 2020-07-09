@@ -1,5 +1,5 @@
 #include <conio.h>
-#include <plus4.h>
+#include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -268,10 +268,10 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
 void dispCharacterActionError(char *msg) {
     cg_clearLower(2);
     gotoxy(0, 23);
-    textcolor(BCOLOR_RED | CATTR_LUMA3);
+    textcolor(COLOR_LIGHTRED);
     cputs(msg);
     cputs("\r\n--key--");
-    textcolor(BCOLOR_WHITE | CATTR_LUMA7);
+    textcolor(COLOR_WHITE);
     cg_getkey();
 }
 

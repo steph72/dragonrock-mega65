@@ -244,7 +244,7 @@ encResult getStartOfRoundResult(void) {
     do {
 
         clrscr();
-        cg_titlec(BCOLOR_RED | CATTR_LUMA3, BCOLOR_WHITE | CATTR_LUMA6, 15,
+        cg_titlec(COLOR_RED, COLOR_WHITE, 15,
                   "Encounter");
 
         showCurrentParty(false);
@@ -319,9 +319,9 @@ encResult doPreEncounter(void) {
     puts("An encounter!");
     sleep(1);
 
-    bordercolor(BCOLOR_RED | CATTR_LUMA0);
-    bgcolor(BCOLOR_BLACK);
-    textcolor(BCOLOR_WHITE | CATTR_LUMA6);
+    bordercolor(COLOR_RED);
+    bgcolor(COLOR_BLACK);
+    textcolor(COLOR_WHITE);
     clrscr();
 
     rebuildMonsterPositions();
@@ -508,13 +508,12 @@ void doMonsterTurn(monster *theMonster) {
            hitRes.toHit);*/
     if (hitRes.success) {
         cputs(": ");
-        textcolor(BCOLOR_RED | CATTR_LUMA4);
+        textcolor(COLOR_LIGHTRED);
         printf("\n%s takes %d points of damage.\n", opponent->name,
                hitRes.damage);
         opponent->aHP-= hitRes.damage;
         if (opponent->aHP <
             (-3 - bonusValueForAttribute(opponent->attributes[aCON]))) {
-            textcolor(BCOLOR_RED | CATTR_LUMA5 | CATTR_BLINK);
             cprintf("%s dies!", opponent->name);
             opponent->status= dead;
             redrawParty();
@@ -527,7 +526,7 @@ void doMonsterTurn(monster *theMonster) {
     } else {
         cputs(" and misses.");
     }
-    textcolor(BCOLOR_WHITE | CATTR_LUMA7);
+    textcolor(COLOR_WHITE);
     cgetc();
 }
 
@@ -634,7 +633,7 @@ void performCharacterHitResult(hitResult *res) {
     }
 
     cputc(':');
-    textcolor(BCOLOR_BLUE | CATTR_LUMA5);
+    textcolor(COLOR_LIGHTBLUE);
     printf("\n%s takes %d points of damage\n", res->theMonster->def->name,
            res->damage);
 
@@ -645,7 +644,7 @@ void performCharacterHitResult(hitResult *res) {
         res->theMonster->status= dead;
         eraseMonster(res->theMonster);
     }
-    textcolor(BCOLOR_WHITE | CATTR_LUMA7);
+    textcolor(COLOR_WHITE);
 }
 
 void doPartyTurn(byte idx) {
@@ -747,7 +746,7 @@ void plotMonster(monster *aMonster) {
     y= ((2 - aMonster->row) * 4);
 
     plotSprite(x, y, aMonster->def->spriteID, aMonster->hasDoneTurn,
-               BCOLOR_BLUEGREEN | CATTR_LUMA5);
+               COLOR_CYAN);
 }
 
 void plotCharacter(byte idx, byte variant) {
@@ -757,18 +756,18 @@ void plotCharacter(byte idx, byte variant) {
     y= 13;
 
     if (party[idx]->status == down) {
-        plotSprite(x, y, 0, true, BCOLOR_LIGHTBLUE | CATTR_LUMA3);
+        plotSprite(x, y, 0, true, COLOR_CYAN);
         return;
     }
 
     if (party[idx]->status == dead) {
-        plotSprite(x, y, 0, false, BCOLOR_PURPLE | CATTR_LUMA3);
+        plotSprite(x, y, 0, false, COLOR_PURPLE);
 
         return;
     }
 
     plotSprite(x, y, party[idx]->spriteID, variant,
-               BCOLOR_YELLOW | CATTR_LUMA5);
+               COLOR_YELLOW);
 }
 
 char *filenameForSpriteID(int id) {
@@ -1165,7 +1164,7 @@ encResult doEncounter(void) {
 
     displayPostfightPrompt(res);
 
-    bordercolor(BCOLOR_BLACK);
+    bordercolor(COLOR_BLACK);
     setSplitEnable(0);
     clrscr();
 

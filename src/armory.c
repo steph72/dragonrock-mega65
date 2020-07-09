@@ -1,5 +1,5 @@
 #include <conio.h>
-#include <plus4.h>
+#include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -179,7 +179,7 @@ void doArmory(void) {
     do {
         cursor(0);
         sprintf(drbuf, "%s Armory", gCities[gCurrentCityIndex]);
-        cg_titlec(BCOLOR_BLUE | CATTR_LUMA3, BCOLOR_GREEN | CATTR_LUMA5, 0,
+        cg_titlec(COLOR_BLUE, COLOR_GREEN, 0,
                   drbuf);
         gotoxy(0, 19);
         printf("%s coins: %d", shopper->name, shopper->gold);

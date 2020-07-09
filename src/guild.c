@@ -1,7 +1,7 @@
 
 #include <cbm.h>
 #include <conio.h>
-#include <plus4.h>
+#include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +49,7 @@ void _listGuildMembers(void) {
 }
 
 void listGuildMembers(void) {
-    cg_titlec(BCOLOR_CYAN | CATTR_LUMA3, BCOLOR_LEMON | CATTR_LUMA5, 0,
+    cg_titlec(COLOR_LIGHTBLUE, COLOR_GREEN, 0,
               "Guild Members");
     _listGuildMembers();
     cputsxy(0, 23, "-- key --");

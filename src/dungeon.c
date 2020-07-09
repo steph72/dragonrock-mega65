@@ -8,7 +8,7 @@
 #include "monster.h"
 
 #include <conio.h>
-#include <plus4.h>
+#include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -831,11 +831,10 @@ void setupDungeonScreen(void) {
 
     isDungeonMode= gCurrentGameMode == gm_dungeon;
 
-    dTextCol= isDungeonMode ? COLOR_BLACK : BCOLOR_GREEN | CATTR_LUMA5;
-    dBorderCol= isDungeonMode ? BCOLOR_WHITE | CATTR_LUMA3 : COLOR_BLACK;
-    dBackgroundCol= isDungeonMode ? BCOLOR_WHITE | CATTR_LUMA6 : COLOR_BLACK;
-    dMapBorderCol= isDungeonMode ? BCOLOR_BLUEGREEN | CATTR_LUMA1
-                                 : BCOLOR_BLUE | CATTR_LUMA3;
+    dTextCol= isDungeonMode ? COLOR_BLACK : COLOR_GREEN;
+    dBorderCol= isDungeonMode ? COLOR_GRAY1 : COLOR_BLACK;
+    dBackgroundCol= isDungeonMode ? COLOR_GRAY3 : COLOR_BLACK;
+    dMapBorderCol= isDungeonMode ? COLOR_GREEN : COLOR_BLUE;
 
     textcolor(dTextCol);
     clrscr();
