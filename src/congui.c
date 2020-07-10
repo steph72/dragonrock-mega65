@@ -65,10 +65,9 @@ void cg_clear(void) {
 void cg_init() {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
-    textcolor(COLOR_LIGHTGREEN);
+    textcolor(COLOR_GREEN);
     cbm_k_bsout(11);          // disable shift+cmd on c128 & 364
     cbm_k_bsout(14);          // lowercase charset
-    bzero((byte *)0xf7f8, 8); // create empty space for graphics screen
     clrscr();
 }
 

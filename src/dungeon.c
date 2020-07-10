@@ -669,7 +669,7 @@ void dungeonLoop() {
     dungeonItem *dItem;
     dungeonItem *currentItem;
 
-    setFastVIC3Mode();
+    mega65_io_enable();
     redrawAll();
     performedImpassableOpcode= false;
 

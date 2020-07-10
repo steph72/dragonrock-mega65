@@ -73,37 +73,51 @@ const char *prompt=
     "DREngine/C65 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void testMachine(void) {
-    if (!testVIC3()) {
+    if (!testVIC4()) {
         bordercolor(0);
         bgcolor(0);
         textcolor(COLOR_LIGHTRED);
         clrscr();
         cputs("We're awfully sorry, but DragonRock\r\n"
-              "needs a C65 or MEGA65 computer to run.\r\n");
+              "needs a MEGA65 computer to run.\r\n");
         exit(0);
     }
 }
 
-void initEngine(void) {
-    unsigned int rseed;
+void enableDRCharset(void) {
+    // switch vic-iv to new charset
+    mega65_io_enable();
+    POKE(0xd068U, 0x00);
+    POKE(0xd069U, 0x80);
+    POKE(0xd06aU, 0x01);
+}
 
+void loadCharset(void) {
+    byte *charTemp;
+    charTemp= (byte *)malloc(4096);
+    printf("char temp at %x", charTemp);
+    if (cbm_load("charset", getcurrentdevice(), (void *)charTemp) == 0) {
+        puts("Failed loading charset.");
+        exit(0);
+    }
+    lcopy((long)charTemp, 0x018000U, 4096); // use bank 2 for charset
+    free(charTemp);
+}
+
+void initEngine(void) {
     testMachine();
     drbuf= malloc(0xff);
     cg_init();
     puts(prompt);
     sleep(1);
-    rseed= 42;
-    srand(rseed);
+    srand(42);
+    loadCharset();
     /*
     // TODO
-    if (cbm_load("charset", getcurrentdevice(), (void *)0xf800) == 0) {
-        puts("Failed loading charset.");
-        exit(0);
-    }
+
     installIRQ();
     */
     hasLoadedGame= loadParty();
-    /* enableCustomCharset(); */
     gLoadedDungeonIndex= 255;
     gPartyExperience= 1000;
     gPartyGold= 1000;
@@ -152,8 +166,12 @@ int main() {
 
     initEngine();
     clrscr();
+    enableDRCharset();
     cg_borders();
-
+    gotoxy(0, 2);
+    cputs("  Dragon Rock 1 - The Escape\r\n"
+          "  Written by Stephan Kleinert\r\n"
+          "  Copyright (c) 2020 7Turtles Software\r\n");
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");
     cputs(gCities[0]);
