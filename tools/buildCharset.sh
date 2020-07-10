@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# create reduced (128 characters) ingame charset 
 # with leading dummy start address suitable to load via cbm kernel
 # from the raw charset file
 
