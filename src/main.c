@@ -106,7 +106,7 @@ void loadCharset(void) {
 
 void initEngine(void) {
     testMachine();
-    drbuf= malloc(0xff);
+    drbuf= malloc(BUFSIZE);
     cg_init();
     puts(prompt);
     sleep(1);

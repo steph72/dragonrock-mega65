@@ -215,10 +215,10 @@ typedef struct _character {
 } character;
 
 typedef struct _dungeonDescriptorS {
-	void *mapdata;			 // pointer to mapdata
-    dungeonItem *dungeon;    // pointer to dungeon map
-    opcode *opcodesAdr;      // pointer to opcode list
-    unsigned char **feelTbl; // pointer to message list
+	long mapdata;			 // external pointer to mapdata
+    long dungeon;    		 // external pointer to dungeon map
+    long opcodesAdr;      	 // external pointer to opcode list
+    long *feelTbl;           // pointer to message list (list of external pointers)
     byte dungeonMapWidth;
     byte dungeonMapHeight;
     byte startX;
