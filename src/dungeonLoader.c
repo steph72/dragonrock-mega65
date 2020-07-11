@@ -13,7 +13,6 @@
 
 // #undef DLDEBUG
 
-typedef long himemPtr;
 
 const himemPtr dungeonBank= 0x050000;
 const himemPtr dungeonAddr= 0x000000;
@@ -40,8 +39,6 @@ dungeonDescriptor *loadMap(char *filename) {
 
     dungeonDescriptor *desc;
 
-    byte *currentDungeonPtr;
-    byte *feelsPtr;
     int smSize;
 
 #ifdef DLDEBUG
@@ -100,6 +97,8 @@ dungeonDescriptor *loadMap(char *filename) {
         currentExternalDungeonPtr+= bytesRead;
     }
 
+    fclose(infile);
+
 #ifdef DLDEBUG
     printf("\nread mapdata up to %lx\n", currentExternalDungeonPtr);
 #endif
@@ -145,7 +144,6 @@ dungeonDescriptor *loadMap(char *filename) {
 
     if (strcmp((char *)drbuf, "feels") != 0) {
         printf("?seg marker");
-        fclose(infile);
         exit(0);
     }
 
@@ -159,30 +157,28 @@ dungeonDescriptor *loadMap(char *filename) {
     externalFeelsPtr= currentExternalDungeonPtr + 6;
     currentExternalDungeonPtr= buildFeelsTable(externalFeelsPtr, desc);
 
-    // -- HIER WEITER --- 
+    // -- HIER WEITER ---
 
-    numOpcs= currentDungeonPtr[4];
-    currentDungeonPtr[4]= 0;
+    numOpcs= lpeek(currentExternalDungeonPtr + 4);
+    lpoke(currentExternalDungeonPtr + 4, 0);
+    lcopy(currentExternalDungeonPtr, (long)drbuf, 16);
 
 #ifdef DLDEBUG
-    printf("segment: '%s'\n", currentDungeonPtr);
+    printf("segment: '%s'\n", drbuf);
 #endif
 
-    if (strcmp(currentDungeonPtr, "opcs") != 0) {
+    if (strcmp(drbuf, "opcs") != 0) {
         printf("?opcs marker");
-        fclose(infile);
         exit(0);
     }
 
-    currentDungeonPtr+= 5; // skip identifier and count
-    desc->opcodesAdr= (opcode *)currentDungeonPtr;
+    currentExternalDungeonPtr+= 5; // skip identifier and count
+    desc->opcodesAdr= currentExternalDungeonPtr;
 
 #ifdef DLDEBUG
-    printf("%d opcodes at %x\n", numOpcs, desc->opcodesAdr);
+    printf("%d opcodes at %lx\n", numOpcs, desc->opcodesAdr);
     printf("%d opcodes remaining.\n", 255 - numOpcs);
 #endif
-
-    fclose(infile);
 
 #ifdef DLDEBUG
     debugPtr= (byte *)malloc(8);
@@ -196,7 +192,7 @@ dungeonDescriptor *loadMap(char *filename) {
 }
 
 himemPtr buildFeelsTable(long startAddr, dungeonDescriptor *desc) {
-    
+
     himemPtr currentPtr;
     unsigned int currentFeelIdx;
 

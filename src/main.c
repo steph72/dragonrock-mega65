@@ -175,6 +175,7 @@ int main() {
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");
     cputs(gCities[0]);
+    cputsxy(2,14, "D -> DEBUG DUNGEON");
 
     gCurrentCityIndex= 0;
     prepareForGameMode(gm_city);
