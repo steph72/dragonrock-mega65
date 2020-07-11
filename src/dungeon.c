@@ -1,4 +1,5 @@
 #include "dungeon.h"
+#include "c65.h"
 #include "character.h"
 #include "congui.h"
 #include "debug.h"
@@ -6,10 +7,9 @@
 #include "encounter.h"
 #include "globals.h"
 #include "monster.h"
-#include "c65.h"
 
-#include <conio.h>
 #include <c64.h>
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,8 +75,10 @@ byte encounterLostOpcIdx;
 // prototypes
 
 void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
-opcode *opcodeForIndex(byte idx);
-char *feelForIndex(byte idx);
+void fetchOpcodeAtIndex(byte idx, opcode *anOpcode);
+void fetchFeelForIndex(byte idx, char *aFeel);
+void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
+
 
 void displayFeel(byte idx);
 void redrawAll(void);
@@ -106,6 +108,7 @@ byte performDisplayFeelOpcode(opcode *anOpcode) {
 
 // 0x02: DISP
 byte performDisplayTextOpcode(opcode *anOpcode) {
+
     byte feelIndex;
 
     feelIndex= anOpcode->param1;
@@ -113,7 +116,8 @@ byte performDisplayTextOpcode(opcode *anOpcode) {
         clrscr();
     }
     // cprintf("%s",feelForIndex(anOpcode->param1));
-    cputs(feelForIndex(anOpcode->param1));
+    fetchFeelForIndex(anOpcode->param1, textbuf);
+    cputs(textbuf);
 
     return 0;
 }
@@ -147,7 +151,8 @@ byte performYesNoOpcode(opcode *anOpcode) {
         registers[0]= false;
         if (anOpcode->id & 0x40) { // branch?
             if (anOpcode->param2) {
-                return anOpcode->param2; // jump there if we acutally got the parameter...
+                return anOpcode
+                    ->param2; // jump there if we acutally got the parameter...
             } else {
                 return anOpcode->nextOpcodeIndex; // jump to next opcode index
             }
@@ -254,14 +259,19 @@ byte performIAddOpcode(opcode *anOpcode) {
 
 // 0x08: ALTER
 byte performAlterOpcode(opcode *anOpcode) {
-    // TODO!
-    /*
-    dungeonItem dItem;
-    dItem= dungeonItemAtPos(anOpcode->param1, anOpcode->param2);
-    dItem->opcodeID= anOpcode->param3;
-    dItem->mapItem= anOpcode->param4;
+
+    byte x,y;
+    dungeonItem newDungeonItem;
+
+    x = anOpcode->param1;
+    y = anOpcode->param2;
+
+    newDungeonItem.opcodeID = anOpcode->param3;
+    newDungeonItem.mapItem = anOpcode->param4;
+
+    setDungeonItemAtPos(x,y,&newDungeonItem);
+
     return 0;
-    */
 }
 
 // CAUTION: 0x0a has to be in the main segment
@@ -382,14 +392,15 @@ byte performEnterOpcode(opcode *anOpcode) {
 // ---------------------------------
 
 void performOpcodeAtIndex(byte idx) {
-    /*
+
+    opcode anOpcode;
     byte next;
     next= idx;
 
     do {
-        next= performOpcode(opcodeForIndex(next), next);
+        fetchOpcodeAtIndex(next, &anOpcode);
+        next= performOpcode(&anOpcode, next);
     } while (next);
-    */
 }
 
 byte performOpcode(opcode *anOpcode, int dbgIdx) {
@@ -500,20 +511,24 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
 }
 
 void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
-    himemPtr adr; 
-    adr = (desc->dungeon)+((x+(y*dungeonMapWidth))*2);
-    anItem->mapItem = lpeek(adr);
-    anItem->opcodeID = lpeek(adr+1); 
+    himemPtr adr;
+    adr= (desc->dungeon) + ((x + (y * dungeonMapWidth)) * 2);
+    anItem->mapItem= lpeek(adr);
+    anItem->opcodeID= lpeek(adr + 1);
 }
 
-/*
-dungeonItem *dungeonItemAtPos(byte x, byte y) {
-    static dungeonItem tempItem; // DANGER. will have to see how this works out...
-    tempItem.mapItem = lpeek((desc->dungeon)+(x+(y*dungeonMapWidth)*2));
-    tempItem.opcodeID = lpeek((desc->dungeon)+(x+(y*dungeonMapWidth)*2)+1);
-    return &tempItem;
+void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
+    himemPtr adr;
+    adr= (desc->dungeon) + ((x + (y * dungeonMapWidth)) * 2);
+    lpoke (adr,anItem->mapItem);
+    lpoke (adr+1,anItem->opcodeID);
 }
-*/
+
+void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
+    himemPtr adr;
+    adr= desc->opcodesAdr + (idx * sizeof(opcode));
+    lcopy(adr, (long)anOpcode, sizeof(opcode));
+}
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
@@ -548,7 +563,8 @@ void plotPlayer(byte x, byte y) {
 void displayFeel(byte feelID) {
     cg_clearLower(5);
     gotoxy(0, 19);
-    puts(feelForIndex(feelID));
+    fetchFeelForIndex(feelID, textbuf);
+    puts(textbuf);
 }
 
 // moves origin and redraws map if player is in scroll area
@@ -617,7 +633,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
 
     for (; n > 0; --n) {
 
-        fetchDungeonItemAtPos(x,y,&anItem);
+        fetchDungeonItemAtPos(x, y, &anItem);
         plotSign= anItem.mapItem & 15;
 
         seenMap[x + (dungeonMapWidth * y)]= anItem.mapItem;
@@ -707,7 +723,7 @@ void dungeonLoop() {
                 mposY= currentY + offsetY + ydiff;
                 if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
                     mposY < desc->dungeonMapHeight) {
-                    fetchDungeonItemAtPos(mposX,mposY,&dItem);
+                    fetchDungeonItemAtPos(mposX, mposY, &dItem);
                     // dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 && ydiff == 0) {
                         currentItem= dItem;
@@ -807,7 +823,7 @@ void dungeonLoop() {
             currentY= oldY;
         } else {
             // what is here?
-            fetchDungeonItemAtPos(mposX,mposY,&dItem);
+            fetchDungeonItemAtPos(mposX, mposY, &dItem);
             // dItem= dungeonItemAtPos(mposX, mposY);
 
 #ifdef DEBUG
@@ -837,9 +853,13 @@ void dungeonLoop() {
     } // of while (!quitDungeon);
 }
 
-opcode *opcodeForIndex(byte idx) { return desc->opcodesAdr + idx; }
+void fetchFeelForIndex(byte idx, char *aFeel) {
+    himemPtr adr;
+    adr= desc->feelTbl[idx];
+    lcopy(adr, (long)aFeel, TEXTBUF_SIZE);
+}
 
-char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
+// char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
 
 void setupDungeonScreen(void) {
     byte x;
@@ -877,9 +897,8 @@ void setupDungeonScreen(void) {
 void unloadDungeon(void) {
 
     if (desc != NULL) {
-        free(desc->dungeon);
         free(desc->feelTbl);
-        free(desc->mapdata);
+        free(seenMap);
         desc= NULL;
     }
 
@@ -960,9 +979,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     byte screenStride;
     byte mapStride;
-    dungeonItem *dungeon;
 
-    dungeon= desc->dungeon;
     screenStride= screenWidth - mapWindowSize;
     mapStride= dungeonMapWidth;
 

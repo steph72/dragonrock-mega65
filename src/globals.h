@@ -5,8 +5,8 @@
     main
     ---- */
 
-extern char *drbuf;  // general purpose buffer, $40 bytes at $ff40
-extern char *drbuf2; // general purpose buffer, $40 bytes at $ff80
+extern char drbuf[];   // general purpose buffer
+extern char textbuf[]; // buffer for text display
 
 /*  ----------
     dispatcher

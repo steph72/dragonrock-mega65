@@ -140,6 +140,7 @@ dungeonDescriptor *loadMap(char *filename) {
 
 #ifdef DLDEBUG
     printf("segment: '%s'\n", drbuf);
+    printf("size of opcode: %d\n",sizeof(opcode));
 #endif
 
     if (strcmp((char *)drbuf, "feels") != 0) {

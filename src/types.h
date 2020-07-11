@@ -28,6 +28,7 @@
 
 #define SCREEN ((unsigned char *)0x400)
 #define BUFSIZE 0xb0
+#define TEXTBUF_SIZE 0x400
 
 typedef unsigned char byte;
 
