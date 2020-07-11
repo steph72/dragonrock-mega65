@@ -15,12 +15,17 @@ class mapCompiler:
 
     def __init__(self):
 
-        self.gLabels = {}
+        # a list of labels in the form of "'labelName:' <line in source code>"
+        self.gLabels = {} 
+
+        # a mapping of source code line numbers to actual opcode indices
+        self.gLinePosMapping = []
+  
+
         self.gStringMapping = {}
         self.gCoordsMapping = {}
         self.gStrings = []
         self.gOpcodes = []
-        self.gLinePosMapping = []
 
         self.mapWidth = 0
         self.mapHeight = 0
@@ -141,24 +146,31 @@ class mapCompiler:
 
         return out
 
+    ## trims labels from srcLines and builds label -> lineNumber mapping
     def scanAndTrimLabels(self, srcLines):
         returnLines = []
         print("Scanning labels")
-        currentLabels = []
+        currentLabels = []  
+        # go through source lines...
         for lineTupel in srcLines:
             lineNum = lineTupel[0]
             line = lineTupel[1]
+            # is it a label?
             if line.endswith(":"):
                 if (self.gLabels.get(line)):
                     print("error: duplicate label definition at line", lineNum)
                     print("       (original definition was at line " +
                           str(self.gLabels.get(line))+")")
                     exit(-1)
+                # add to current labels
                 currentLabels.append(line)
             else:
+                # not a label? append to return lines...
                 returnLines.append((lineNum, line))
+                # ...and let last unresolved label point to this line
                 for i in currentLabels:
                     self.gLabels[i] = lineNum
+                # delete unresolved label list
                 currentLabels = []
         return returnLines
 
@@ -413,7 +425,9 @@ class mapCompiler:
             lastOpcode = newOpcode
 
         print("Calculating branch positions")
+        
         for i in opcodes:
+            labelJumpTable = []
             line = i[0]
             opcode = i[1]
             paramIdx = 0
@@ -429,7 +443,6 @@ class mapCompiler:
                     # print(label, labelLineNumber, opcodeNumber)
                     opcode[paramIdx] = opcodeNumber
                 paramIdx += 1
-        # print(linePosMapping)
         retList = []
         for i in opcodes:
             retList.append(i[1])
@@ -604,8 +617,25 @@ class mapCompiler:
         codeLines = self.scanAndTrimLabels(srcLines)
         self.gOpcodes = self.parseScript(codeLines)
 
-        # for i in range(0, len(self.gOpcodes)):
-        #    print(i, self.gOpcodes[i])
+        # build a list of [labeled map position] -> label line numbers
+        # so that a map element doesn't need the absolute address of its opcode
+        # but an INDEX in a jump table
+
+        print ("building map coords table...")
+        jumpTableIdx = 0
+        jumpTable = []
+        jumpTableMapping = {}
+        for i in self.gCoordsMapping:
+            label = i+":"
+            labelLineNumber = self.gLabels.get(label)
+            opcAddress = 0
+            if not (labelLineNumber is None):
+                opcAddress = self.gLinePosMapping[labelLineNumber]
+            jumpTable.append(opcAddress)
+            jumpTableMapping[label] = jumpTableIdx
+            print ("idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
+            jumpTableIdx += 1
+
         print("Connecting map positions...")
         for i in self.gCoordsMapping:
             label = i+":"
