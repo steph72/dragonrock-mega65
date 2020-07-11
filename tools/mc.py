@@ -644,15 +644,11 @@ class mapCompiler:
             if not (labelLineNumber is None):
                 opcodeNumber = self.gLinePosMapping[labelLineNumber]
                 coords = self.gCoordsMapping.get(i)
-                # print(coords)
-                # print(coords[0], coords[2])
                 for x in range(coords[0], coords[2]+1):
-                    # print(x)
                     for y in range(coords[1], coords[3]+1):
-                        # x = coords[0]
-                        # y = coords[1]
-                        # print(i, opcodeNumber, x, y)
-                        self.map[x][y].startOpcodeIndex = opcodeNumber
+                        # self.map[x][y].startOpcodeIndex = opcodeNumber
+                        self.map[x][y].startOpcodeIndex = jumpTableMapping[label]
+                        # print (x,y,jumpTableMapping[label])
 
         # pp.pprint.pprint (self.opcodeBytes())
         # pp.pprint.pprint (self.feelsBytes())
