@@ -74,8 +74,8 @@ byte encounterLostOpcIdx;
 
 // prototypes
 
+void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
 opcode *opcodeForIndex(byte idx);
-dungeonItem *dungeonItemAtPos(byte x, byte y);
 char *feelForIndex(byte idx);
 
 void displayFeel(byte idx);
@@ -254,11 +254,14 @@ byte performIAddOpcode(opcode *anOpcode) {
 
 // 0x08: ALTER
 byte performAlterOpcode(opcode *anOpcode) {
-    dungeonItem *dItem;
+    // TODO!
+    /*
+    dungeonItem dItem;
     dItem= dungeonItemAtPos(anOpcode->param1, anOpcode->param2);
     dItem->opcodeID= anOpcode->param3;
     dItem->mapItem= anOpcode->param4;
     return 0;
+    */
 }
 
 // CAUTION: 0x0a has to be in the main segment
@@ -379,13 +382,14 @@ byte performEnterOpcode(opcode *anOpcode) {
 // ---------------------------------
 
 void performOpcodeAtIndex(byte idx) {
-
+    /*
     byte next;
     next= idx;
 
     do {
         next= performOpcode(opcodeForIndex(next), next);
     } while (next);
+    */
 }
 
 byte performOpcode(opcode *anOpcode, int dbgIdx) {
@@ -495,9 +499,21 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
     return nextOpcodeIndex;
 }
 
-dungeonItem *dungeonItemAtPos(byte x, byte y) {
-    return desc->dungeon + x + (y * dungeonMapWidth);
+void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
+    himemPtr adr; 
+    adr = (desc->dungeon)+((x+(y*dungeonMapWidth))*2);
+    anItem->mapItem = lpeek(adr);
+    anItem->opcodeID = lpeek(adr+1); 
 }
+
+/*
+dungeonItem *dungeonItemAtPos(byte x, byte y) {
+    static dungeonItem tempItem; // DANGER. will have to see how this works out...
+    tempItem.mapItem = lpeek((desc->dungeon)+(x+(y*dungeonMapWidth)*2));
+    tempItem.opcodeID = lpeek((desc->dungeon)+(x+(y*dungeonMapWidth)*2)+1);
+    return &tempItem;
+}
+*/
 
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
@@ -584,7 +600,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
     int x_inc, y_inc;
     int error;
 
-    dungeonItem *anItem;
+    dungeonItem anItem;
     byte plotSign;
 
     dx= abs(x1 - x0);
@@ -601,10 +617,10 @@ void look_bh(int x0, int y0, int x1, int y1) {
 
     for (; n > 0; --n) {
 
-        anItem= dungeonItemAtPos(x, y);
-        plotSign= anItem->mapItem & 15;
+        fetchDungeonItemAtPos(x,y,&anItem);
+        plotSign= anItem.mapItem & 15;
 
-        seenMap[x + (dungeonMapWidth * y)]= anItem->mapItem;
+        seenMap[x + (dungeonMapWidth * y)]= anItem.mapItem;
 
         if (plotSign >= 2) {
             if (x != x0 || y != y0)
@@ -666,8 +682,8 @@ void dungeonLoop() {
 
     signed char xdiff, ydiff;
 
-    dungeonItem *dItem;
-    dungeonItem *currentItem;
+    dungeonItem dItem;
+    dungeonItem currentItem;
 
     mega65_io_enable();
     redrawAll();
@@ -691,14 +707,15 @@ void dungeonLoop() {
                 mposY= currentY + offsetY + ydiff;
                 if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
                     mposY < desc->dungeonMapHeight) {
-                    dItem= dungeonItemAtPos(mposX, mposY);
+                    fetchDungeonItemAtPos(mposX,mposY,&dItem);
+                    // dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 && ydiff == 0) {
                         currentItem= dItem;
                         plotPlayer(currentX, currentY);
                     } else {
                         seenMap[mposX + (dungeonMapWidth * mposY)]=
-                            dItem->mapItem;
-                        plotDungeonItem(dItem, currentX + xdiff,
+                            dItem.mapItem;
+                        plotDungeonItem(&dItem, currentX + xdiff,
                                         currentY + ydiff);
                     }
                 }
@@ -730,7 +747,7 @@ void dungeonLoop() {
 
         // *** perform opcode for this position! **
         if (!performedImpassableOpcode) {
-            performOpcodeAtIndex(currentItem->opcodeID);
+            performOpcodeAtIndex(currentItem.opcodeID);
         }
 
         performedImpassableOpcode= false;
@@ -790,22 +807,23 @@ void dungeonLoop() {
             currentY= oldY;
         } else {
             // what is here?
-            dItem= dungeonItemAtPos(mposX, mposY);
+            fetchDungeonItemAtPos(mposX,mposY,&dItem);
+            // dItem= dungeonItemAtPos(mposX, mposY);
 
 #ifdef DEBUG
             xs= wherex();
             ys= wherey();
             gotoxy(27, 24);
-            printf("%2d,%2d: %02x %02x", mposX, mposY, dItem->opcodeID,
-                   dItem->mapItem);
+            printf("%2d,%2d: %02x %02x", mposX, mposY, dItem.opcodeID,
+                   dItem.mapItem);
             gotoxy(xs, ys);
 #endif
 
-            if (dItem->mapItem & 32) { // check impassable flag
+            if (dItem.mapItem & 32) { // check impassable flag
                 // can't go there: reset pass register...
                 registers[R_PASS]= 255;
                 // ...perform opcode...
-                performOpcodeAtIndex(dItem->opcodeID);
+                performOpcodeAtIndex(dItem.opcodeID);
                 performedImpassableOpcode= true;
                 // ...and check if 'pass' register has become valid...
                 if (registers[R_PASS] == 255) {

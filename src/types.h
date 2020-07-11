@@ -214,11 +214,14 @@ typedef struct _character {
 	byte		encDestination;
 } character;
 
+typedef long himemPtr;
+
+
 typedef struct _dungeonDescriptorS {
-	void *mapdata;			 // pointer to mapdata
-    dungeonItem *dungeon;    // pointer to dungeon map
-    opcode *opcodesAdr;      // pointer to opcode list
-    unsigned char **feelTbl; // pointer to message list
+	himemPtr mapdata;			 // external pointer to mapdata
+    himemPtr dungeon;    		 // external pointer to dungeon map
+    himemPtr opcodesAdr;      	 // external pointer to opcode list
+    himemPtr *feelTbl;           // pointer to message list (list of external pointers)
     byte dungeonMapWidth;
     byte dungeonMapHeight;
     byte startX;

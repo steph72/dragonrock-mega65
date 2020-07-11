@@ -10,3 +10,4 @@ manual/manual.fdb_latexmk
 manual/manual.fls
 manual/manual.log
 manual/manual.synctex.gz
+dump.mem

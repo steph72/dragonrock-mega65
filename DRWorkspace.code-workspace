@@ -28,7 +28,8 @@
 			"stdio.h": "c",
 			"pce.h": "c",
 			"string.h": "c",
-			"congui.h": "c"
+			"congui.h": "c",
+			"cstddef": "c"
 		}
 	}
 }
