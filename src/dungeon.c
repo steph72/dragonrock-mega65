@@ -530,6 +530,14 @@ void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
     lcopy(adr, (long)anOpcode, sizeof(opcode));
 }
 
+int fetchOpcodeForCoordsEntry(byte entry) {
+    himemPtr adr;
+    int result;
+    adr = desc->coordsAdr + (entry*2);
+    lcopy(adr,(long)&result,2);
+    return result;
+}
+
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void redrawAll() {
@@ -701,7 +709,8 @@ void dungeonLoop() {
     dungeonItem dItem;
     dungeonItem currentItem;
 
-    mega65_io_enable();
+    byte idx;
+
     redrawAll();
     performedImpassableOpcode= false;
 
@@ -763,7 +772,8 @@ void dungeonLoop() {
 
         // *** perform opcode for this position! **
         if (!performedImpassableOpcode) {
-            performOpcodeAtIndex(currentItem.opcodeID);
+            idx = fetchOpcodeForCoordsEntry(currentItem.opcodeID);
+            performOpcodeAtIndex(idx);
         }
 
         performedImpassableOpcode= false;
@@ -839,7 +849,8 @@ void dungeonLoop() {
                 // can't go there: reset pass register...
                 registers[R_PASS]= 255;
                 // ...perform opcode...
-                performOpcodeAtIndex(dItem.opcodeID);
+                idx = fetchOpcodeForCoordsEntry(dItem.opcodeID);
+                performOpcodeAtIndex(idx);
                 performedImpassableOpcode= true;
                 // ...and check if 'pass' register has become valid...
                 if (registers[R_PASS] == 255) {

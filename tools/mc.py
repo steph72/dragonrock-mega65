@@ -20,8 +20,10 @@ class mapCompiler:
 
         # a mapping of source code line numbers to actual opcode indices
         self.gLinePosMapping = []
-  
 
+        # lookup table for map positions -> opcode indices
+        self.gJumpTable = []
+  
         self.gStringMapping = {}
         self.gCoordsMapping = {}
         self.gStrings = []
@@ -43,6 +45,16 @@ class mapCompiler:
             bytes = bytearray(i)
             arr.extend(bytes)
         return arr
+
+    def coordsBytes(self):
+        arr = bytearray()
+        arr.extend(map(ord,"COORDS"))
+        arr.append(len(self.gJumpTable))
+        for i in self.gJumpTable:
+            arr.append(i%256)
+            arr.append(i//256)
+        return arr
+
 
     def feelsBytes(self):
         arr = bytearray()
@@ -93,14 +105,16 @@ class mapCompiler:
         idbytes.extend(map(ord, "DR0"))
         segment1 = self.mapBytes()
         segment2 = self.feelsBytes()
-        segment3 = self.opcodeBytes()
-        dlength = len(segment1) + len(segment2) + len(segment3)
+        segment3 = self.coordsBytes()
+        segment4 = self.opcodeBytes()
+        dlength = len(segment1) + len(segment2) + len(segment3) + len(segment4)
         idbytes.append(dlength % 256)
         idbytes.append(dlength//256)
         outfile.write(idbytes)
         outfile.write(segment1)
         outfile.write(segment2)
         outfile.write(segment3)
+        outfile.write(segment4)
         outfile.close()
 
 #######################################################################################
@@ -622,16 +636,21 @@ class mapCompiler:
         # but an INDEX in a jump table
 
         print ("building map coords table...")
-        jumpTableIdx = 0
-        jumpTable = []
+        jumpTableIdx = 1
+        self.gJumpTable = []
         jumpTableMapping = {}
+        
+        # special case: coords index 0 always expands to no-op, so that we have
+        # dungeon elements doing absolutely nothing by default. 
+        self.gJumpTable.append(0) 
+        
         for i in self.gCoordsMapping:
             label = i+":"
             labelLineNumber = self.gLabels.get(label)
             opcAddress = 0
             if not (labelLineNumber is None):
                 opcAddress = self.gLinePosMapping[labelLineNumber]
-            jumpTable.append(opcAddress)
+            self.gJumpTable.append(opcAddress)
             jumpTableMapping[label] = jumpTableIdx
             print ("idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
             jumpTableIdx += 1

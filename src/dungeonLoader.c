@@ -13,7 +13,6 @@
 
 // #undef DLDEBUG
 
-
 const himemPtr dungeonBank= 0x050000;
 const himemPtr dungeonAddr= 0x000000;
 
@@ -140,25 +139,49 @@ dungeonDescriptor *loadMap(char *filename) {
 
 #ifdef DLDEBUG
     printf("segment: '%s'\n", drbuf);
-    printf("size of opcode: %d\n",sizeof(opcode));
+    printf("size of opcode: %d\n", sizeof(opcode));
 #endif
 
     if (strcmp((char *)drbuf, "feels") != 0) {
-        printf("?seg marker");
+        printf("?feels marker");
         exit(0);
     }
 
 #ifdef DLDEBUG
     printf("%d feels\n", numFeels);
+    cgetc();
 #endif
 
-    // feelsPtr= currentDungeonPtr + 6;
-    // currentDungeonPtr= buildFeelsTable(feelsPtr, desc);
-    cgetc();
     externalFeelsPtr= currentExternalDungeonPtr + 6;
+
+    // build feels table
     currentExternalDungeonPtr= buildFeelsTable(externalFeelsPtr, desc);
 
-    // -- HIER WEITER ---
+    // -- COORDS --
+
+    desc->numCoords= lpeek(currentExternalDungeonPtr + 6);
+    desc->coordsAdr= currentExternalDungeonPtr + 7;
+    lpoke(currentExternalDungeonPtr + 6, 0);
+    lcopy(currentExternalDungeonPtr, (long)drbuf, 16);
+
+#ifdef DLDEBUG
+    printf("segment: '%s'\n", drbuf);
+#endif
+
+    if (strcmp(drbuf, "coords") != 0) {
+        printf("?coords marker");
+        exit(0);
+    }
+
+#ifdef DLDEBUG
+    printf("num coords %d\n", desc->numCoords);
+    printf("coords at %lx\n", desc->coordsAdr);
+#endif
+
+    currentExternalDungeonPtr+=
+        7 + ((desc->numCoords) * 2); // words in coords table
+
+    // -- OPCS --
 
     numOpcs= lpeek(currentExternalDungeonPtr + 4);
     lpoke(currentExternalDungeonPtr + 4, 0);
