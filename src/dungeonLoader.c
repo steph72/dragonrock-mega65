@@ -27,17 +27,32 @@ himemPtr externalDungeonAddr;
 #pragma code-name(push, "OVERLAY1");
 // clang-format on
 
-himemPtr buildFeelsTable(himemPtr startAddr, dungeonDescriptor *desc);
+void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc);
+
+// check for correct segment header, get number of elemnts and increase himem
+// pointer
+int verifySegment(himemPtr *adr, char *segmentID) {
+    int count;
+#ifdef DLDEBUG
+    printf("=== looking for segment %s\n", segmentID);
+#endif
+    count= lpeek(*adr + strlen(segmentID)); // get count for later
+    lpoke(*adr + strlen(segmentID), 0);     // end of string marker
+    lcopy(*adr, (long)drbuf, 16);
+    if (strcmp(segmentID, drbuf) != 0) {
+        printf("fatal: marker %s found, %s expected\n", drbuf, segmentID);
+        exit(0);
+    }
+    *adr+= strlen(segmentID) + 1;
+    return count;
+}
 
 dungeonDescriptor *loadMap(char *filename) {
 
     byte i= 0;
 
     himemPtr currentExternalDungeonPtr;
-    himemPtr externalFeelsPtr;
-
     dungeonDescriptor *desc;
-
     int smSize;
 
 #ifdef DLDEBUG
@@ -91,7 +106,6 @@ dungeonDescriptor *loadMap(char *filename) {
         bytesRead= fread(drbuf, 1, BUFSIZE, infile);
         if (!(i % 8))
             cputc('.');
-        printf("%lx ", currentExternalDungeonPtr);
         lcopy((long)drbuf, currentExternalDungeonPtr, BUFSIZE);
         currentExternalDungeonPtr+= bytesRead;
     }
@@ -122,8 +136,8 @@ dungeonDescriptor *loadMap(char *filename) {
     memset(seenMap, 255, smSize);
 
 #ifdef DLDEBUG
-    printf("map format is %s, dungeon size %x, width %d, height %d.\n", drbuf,
-           dungeonSize, desc->dungeonMapWidth, desc->dungeonMapHeight);
+    printf("dungeon size %x, width %d, height %d.\n", dungeonSize,
+           desc->dungeonMapWidth, desc->dungeonMapHeight);
     printf("startx: %d, starty: %d\n", desc->startX, desc->startY);
     printf("seen map is at $%x, size $%x\n", seenMap, smSize);
 #endif
@@ -132,90 +146,41 @@ dungeonDescriptor *loadMap(char *filename) {
     currentExternalDungeonPtr=
         externalDungeonAddr + 4 +
         (desc->dungeonMapWidth * desc->dungeonMapHeight * 2);
-    printf("feels should start at %lx", currentExternalDungeonPtr);
-    lcopy(currentExternalDungeonPtr, (long)drbuf, 16);
-    numFeels= *(drbuf + 5);
-    *(drbuf + 5)= 0; // set string terminator for checking segment name
 
-#ifdef DLDEBUG
-    printf("segment: '%s'\n", drbuf);
-    printf("size of opcode: %d\n", sizeof(opcode));
-#endif
-
-    if (strcmp((char *)drbuf, "feels") != 0) {
-        printf("?feels marker");
-        exit(0);
-    }
-
-#ifdef DLDEBUG
-    printf("%d feels\n", numFeels);
-    cgetc();
-#endif
-
-    externalFeelsPtr= currentExternalDungeonPtr + 6;
+    numFeels= verifySegment(&currentExternalDungeonPtr, "feels");
 
     // build feels table
-    currentExternalDungeonPtr= buildFeelsTable(externalFeelsPtr, desc);
+    buildFeelsTable(&currentExternalDungeonPtr, desc);
 
     // -- COORDS --
 
-    desc->numCoords= lpeek(currentExternalDungeonPtr + 6);
-    desc->coordsAdr= currentExternalDungeonPtr + 7;
-    lpoke(currentExternalDungeonPtr + 6, 0);
-    lcopy(currentExternalDungeonPtr, (long)drbuf, 16);
-
-#ifdef DLDEBUG
-    printf("segment: '%s'\n", drbuf);
-#endif
-
-    if (strcmp(drbuf, "coords") != 0) {
-        printf("?coords marker");
-        exit(0);
-    }
-
-#ifdef DLDEBUG
-    printf("num coords %d\n", desc->numCoords);
-    printf("coords at %lx\n", desc->coordsAdr);
-#endif
-
+    desc->numCoords= verifySegment(&currentExternalDungeonPtr, "coords");
+    desc->coordsAdr= currentExternalDungeonPtr;
     currentExternalDungeonPtr+=
-        7 + ((desc->numCoords) * 2); // words in coords table
+        ((desc->numCoords) * 2); // words in coords table
 
     // -- OPCS --
 
-    numOpcs= lpeek(currentExternalDungeonPtr + 4);
-    lpoke(currentExternalDungeonPtr + 4, 0);
-    lcopy(currentExternalDungeonPtr, (long)drbuf, 16);
-
-#ifdef DLDEBUG
-    printf("segment: '%s'\n", drbuf);
-#endif
-
-    if (strcmp(drbuf, "opcs") != 0) {
-        printf("?opcs marker");
-        exit(0);
-    }
-
-    currentExternalDungeonPtr+= 5; // skip identifier and count
+    numOpcs= verifySegment(&currentExternalDungeonPtr, "opcs");
     desc->opcodesAdr= currentExternalDungeonPtr;
 
 #ifdef DLDEBUG
+    printf("%d feels\n", numFeels);
+    printf("num coords %d\n", desc->numCoords);
+    printf("coords at %lx\n", desc->coordsAdr);
     printf("%d opcodes at %lx\n", numOpcs, desc->opcodesAdr);
     printf("%d opcodes remaining.\n", 255 - numOpcs);
-#endif
-
-#ifdef DLDEBUG
     debugPtr= (byte *)malloc(8);
     printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
            (int)debugPtr - (int)desc);
     free(debugPtr);
-    cgetc();
+    // cgetc();
 #endif
 
     return desc;
 }
 
-himemPtr buildFeelsTable(long startAddr, dungeonDescriptor *desc) {
+void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc) {
 
     himemPtr currentPtr;
     unsigned int currentFeelIdx;
@@ -223,13 +188,13 @@ himemPtr buildFeelsTable(long startAddr, dungeonDescriptor *desc) {
 #ifdef DLDEBUG
     printf("\nbuilding feels tbl ");
 #endif
-    currentPtr= startAddr;
+    currentPtr= *startAddr;
     currentFeelIdx= 0;
     desc->feelTbl= (long *)malloc(sizeof(long) * numFeels);
 
 #ifdef DLDEBUG
     printf("at %x in main mem\n", desc->feelTbl);
-    cgetc();
+    // cgetc();
 #endif
 
     while (currentFeelIdx < numFeels) {
@@ -246,7 +211,7 @@ himemPtr buildFeelsTable(long startAddr, dungeonDescriptor *desc) {
         currentFeelIdx++;
         currentPtr++;
     }
-    return currentPtr;
+    *startAddr= currentPtr;
 }
 
 // clang-format off

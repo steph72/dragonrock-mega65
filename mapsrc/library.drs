@@ -377,6 +377,7 @@ exitDungeon:
 
 defc secretDoor1:   21,18                ; secret door in start corridor
 defc secretRoom1:   20,19 - 22,21        ; secret room 
+defc sRoomTableEmpty: 21,20
 defc sRoomTable:    21,20                ; table in secret room
 defc sWind:         20,17
 

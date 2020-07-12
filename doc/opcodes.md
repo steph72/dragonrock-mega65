@@ -41,8 +41,8 @@ Register 1 -> party member who took the item
 ## 0x87 IADD_V
 like IADD; but print '[characterName] took [itemName]' after successful completion
 
-## 0x08 ALTER <01:xpos> <02:ypos> <03:startOpcodeIdx> <04:dungeonItemID>
-Alter map at coordinates *xpos*,*ypos* to *startOpcodeIdx* and *dungeonItemID*
+## 0x08 ALTER <01:xpos> <02:ypos> <03:posOpcodeLabel> <04:dungeonItemID>
+Alter map at coordinates *xpos*,*ypos* to opcode index pointed to by *posOpcodeLabel* and *dungeonItemID*
 
 ## 0x09 REDRAW
 Force redraw the dungeon display

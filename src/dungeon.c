@@ -76,9 +76,9 @@ byte encounterLostOpcIdx;
 
 void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
 void fetchOpcodeAtIndex(byte idx, opcode *anOpcode);
+int fetchOpcodeForCoordsEntry(byte entry);
 void fetchFeelForIndex(byte idx, char *aFeel);
 void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
-
 
 void displayFeel(byte idx);
 void redrawAll(void);
@@ -260,16 +260,19 @@ byte performIAddOpcode(opcode *anOpcode) {
 // 0x08: ALTER
 byte performAlterOpcode(opcode *anOpcode) {
 
-    byte x,y;
+    byte x, y;
     dungeonItem newDungeonItem;
 
-    x = anOpcode->param1;
-    y = anOpcode->param2;
+    x= anOpcode->param1;
+    y= anOpcode->param2;
+    // TODO: Need LUT entry here, not absolute address!
+    printf("new opc %d",anOpcode->param3);
+    cgetc();
 
-    newDungeonItem.opcodeID = anOpcode->param3;
-    newDungeonItem.mapItem = anOpcode->param4;
+    newDungeonItem.opcodeID= anOpcode->param3;
+    newDungeonItem.mapItem= anOpcode->param4;
 
-    setDungeonItemAtPos(x,y,&newDungeonItem);
+    setDungeonItemAtPos(x, y, &newDungeonItem);
 
     return 0;
 }
@@ -520,8 +523,8 @@ void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
 void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
     himemPtr adr;
     adr= (desc->dungeon) + ((x + (y * dungeonMapWidth)) * 2);
-    lpoke (adr,anItem->mapItem);
-    lpoke (adr+1,anItem->opcodeID);
+    lpoke(adr, anItem->mapItem);
+    lpoke(adr + 1, anItem->opcodeID);
 }
 
 void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
@@ -533,8 +536,8 @@ void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
 int fetchOpcodeForCoordsEntry(byte entry) {
     himemPtr adr;
     int result;
-    adr = desc->coordsAdr + (entry*2);
-    lcopy(adr,(long)&result,2);
+    adr= desc->coordsAdr + (entry * 2);
+    lcopy(adr, (long)&result, 2);
     return result;
 }
 
@@ -724,6 +727,12 @@ void dungeonLoop() {
 
         ensureSaneOffset();
 
+        // fov
+        // would have slowed down the plus/4 to a crawl, but is a breeze
+        // on the mega65...
+
+        look(currentX + offsetX, currentY + offsetY);
+
         // draw player surrounding
 
         for (xdiff= -1; xdiff <= 1; xdiff++) {
@@ -772,7 +781,7 @@ void dungeonLoop() {
 
         // *** perform opcode for this position! **
         if (!performedImpassableOpcode) {
-            idx = fetchOpcodeForCoordsEntry(currentItem.opcodeID);
+            idx= fetchOpcodeForCoordsEntry(currentItem.opcodeID);
             performOpcodeAtIndex(idx);
         }
 
@@ -849,7 +858,7 @@ void dungeonLoop() {
                 // can't go there: reset pass register...
                 registers[R_PASS]= 255;
                 // ...perform opcode...
-                idx = fetchOpcodeForCoordsEntry(dItem.opcodeID);
+                idx= fetchOpcodeForCoordsEntry(dItem.opcodeID);
                 performOpcodeAtIndex(idx);
                 performedImpassableOpcode= true;
                 // ...and check if 'pass' register has become valid...

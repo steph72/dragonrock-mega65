@@ -337,7 +337,7 @@ class mapCompiler:
                 exit(-1)
             opc[1] = coords[0]
             opc[2] = coords[1]
-            opc[3] = "__DRLABEL__"+pline.tOpcLabel
+            opc[3] = "__DRLABEL__"+pline.tOpcLabel # NO! NEED LUT ENTRY HERE!
             opc[4] = int(pline.tDungeonItemID)
             return opc
 
@@ -440,23 +440,29 @@ class mapCompiler:
 
         print("Calculating branch positions")
         
+        # replace __DRLabel__<labelName> tokens with actual opcode addresses:
         for i in opcodes:
             labelJumpTable = []
             line = i[0]
             opcode = i[1]
             paramIdx = 0
-            for k in opcode:
-                if type(k) is str:
-                    label = k[len("__DRLABEL__"):]+":"
-                    labelLineNumber = self.gLabels.get(label)
-                    try:
-                        opcodeNumber = self.gLinePosMapping[labelLineNumber]
-                    except:
-                        print("cannot resolve ", label)
-                        exit(0)
-                    # print(label, labelLineNumber, opcodeNumber)
-                    opcode[paramIdx] = opcodeNumber
-                paramIdx += 1
+            if (opcode[0]==8):
+                print ("deferring ALTER opcode label resolution")
+            else:
+                for k in opcode:
+                    if type(k) is str:
+                        label = k[len("__DRLABEL__"):]+":"
+                        labelLineNumber = self.gLabels.get(label)
+                        try:
+                            opcodeNumber = self.gLinePosMapping[labelLineNumber]
+                        except:
+                            print("cannot resolve ", label)
+                            exit(0)
+                        print(opcode, label, labelLineNumber, opcodeNumber)
+                        # all jump destinations are to be 16 bit
+                        opcode[paramIdx] = opcodeNumber
+                        print(opcode)
+                    paramIdx += 1
         retList = []
         for i in opcodes:
             retList.append(i[1])
@@ -643,7 +649,8 @@ class mapCompiler:
         # special case: coords index 0 always expands to no-op, so that we have
         # dungeon elements doing absolutely nothing by default. 
         self.gJumpTable.append(0) 
-        
+
+        # add everything that's in gCoordsMapping to jump table
         for i in self.gCoordsMapping:
             label = i+":"
             labelLineNumber = self.gLabels.get(label)
@@ -654,6 +661,42 @@ class mapCompiler:
             jumpTableMapping[label] = jumpTableIdx
             print ("idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
             jumpTableIdx += 1
+        
+        #add ALTER destinations to jump table
+        for i in self.gOpcodes:
+            if (i[0]==8):
+                print (i)
+                param = i[3]
+                label = param[len("__DRLABEL__"):]+":"
+                try:
+                    lutIndex = jumpTableMapping[label]
+                except:
+                    #destination not yet in jump table
+                    labelLineNumber = self.gLabels.get(label)
+                    opcAddress = 0
+                    if not (labelLineNumber is None):
+                        opcAddress = self.gLinePosMapping[labelLineNumber]
+                    self.gJumpTable.append(opcAddress)
+                    jumpTableMapping[label] = jumpTableIdx
+                    print ("ALTER DEST idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
+                    jumpTableMapping[label] = jumpTableIdx
+                    jumpTableIdx += 1
+
+
+        print ("connecting ALTER opcodes...")     
+        print (jumpTableMapping)
+        for i in self.gOpcodes:
+            if (i[0]==8):
+                print (i)
+                param = i[3]
+                label = param[len("__DRLABEL__"):]+":"
+                try:
+                    lutIndex = jumpTableMapping[label]
+                    i[3] = lutIndex
+                    print ("successfully resolved ",label,i)
+                except:
+                    print("WARNING: cannot resolve ", label)
+                    i[3] = 0
 
         print("Connecting map positions...")
         for i in self.gCoordsMapping:
