@@ -1,5 +1,50 @@
 ** dragon rock map format **
 
++-------------------------------------+
+|= DR0 ===============================|  Mapdata segment header
+| 0-2   C   "DR0"                     |
+| 3-4   W   size of map data          |
+|  5    B   map width                 |
+|  6    B   map height                |
++-------------------------------------+
+|  0    B   map element 1             |  mapdata
+|           0-4 : element type        |
+|            5  : space impassable    |
+|            6  : reserved            |
+|            7  : initially known     |
+|                                    |
+|  1    B   opcodeLUT entry           |
+|           for this space            |
++-------------------------------------+
+|  0    B   map element 2             |
+| [...]                               |
++-------------------------------------+
+|= FEELS =============================|  string table segment header
+| 0-4   C   "FEELS"                   |
+|  5    W   number of strings         |
++-------------------------------------|
+|  0-x  C   string table entry        |
+|           (0-terminated)            |
++-------------------------------------|
+|  0-x  C   string table entry        |
+| [...]                               |
++-------------------------------------|
+|= LKUP ==============================| opcode lookup table segment header
+| 0-3   C   "LKUP"                    |
+|  4    W   number of LUT entries     |
++-------------------------------------|
+|  0-1  W   lookup entry #0           |
++-------------------------------------|
+|  0-1  W   lookup entry #1           |
++-------------------------------------|
+| [...]                               |
++-------------------------------------|
+|= OPCS ==============================| opcode table segment header
+| 0-3    C   "OPCS"                   |
+| 4-5    W   number of opcodes        |
+|-------------------------------------|
+
+
 "DR0" - map data segment
 
 offset  bits        meaning         possible values

@@ -265,9 +265,6 @@ byte performAlterOpcode(opcode *anOpcode) {
 
     x= anOpcode->param1;
     y= anOpcode->param2;
-    // TODO: Need LUT entry here, not absolute address!
-    printf("new opc %d",anOpcode->param3);
-    cgetc();
 
     newDungeonItem.opcodeID= anOpcode->param3;
     newDungeonItem.mapItem= anOpcode->param4;
@@ -529,6 +526,7 @@ void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
 
 void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
     himemPtr adr;
+    byte xs, ys;
     adr= desc->opcodesAdr + (idx * sizeof(opcode));
     lcopy(adr, (long)anOpcode, sizeof(opcode));
 }
@@ -647,6 +645,10 @@ void look_bh(int x0, int y0, int x1, int y1) {
         fetchDungeonItemAtPos(x, y, &anItem);
         plotSign= anItem.mapItem & 15;
 
+        if (x<0 || y<0 || x>desc->dungeonMapWidth || y>desc->dungeonMapHeight ) {
+            continue;
+        }
+
         seenMap[x + (dungeonMapWidth * y)]= anItem.mapItem;
 
         if (plotSign >= 2) {
@@ -732,7 +734,7 @@ void dungeonLoop() {
         // on the mega65...
 
         look(currentX + offsetX, currentY + offsetY);
-
+        
         // draw player surrounding
 
         for (xdiff= -1; xdiff <= 1; xdiff++) {

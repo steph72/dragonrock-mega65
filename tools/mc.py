@@ -4,6 +4,10 @@ import sys
 import pickle
 import pyparsing as pp
 
+gSourceLines = {}
+gListing = {}
+
+
 
 class mapElement:
     pass
@@ -21,8 +25,8 @@ class mapCompiler:
         # a mapping of source code line numbers to actual opcode indices
         self.gLinePosMapping = []
 
-        # lookup table for map positions -> opcode indices
-        self.gJumpTable = []
+        # lookup table for map positions / ALTER destinations -> opcode indices
+        self.gOpcodeLUT = []
   
         self.gStringMapping = {}
         self.gCoordsMapping = {}
@@ -38,28 +42,34 @@ class mapCompiler:
     # low level map exporting
 
     def opcodeBytes(self):
+        length = len(self.gOpcodeLUT)
         arr = bytearray()
         arr.extend(map(ord, "OPCS"))
-        arr.append(len(self.gOpcodes))
+        arr.append(length%256)
+        arr.append(length//256)
         for i in self.gOpcodes:
             bytes = bytearray(i)
             arr.extend(bytes)
         return arr
 
     def coordsBytes(self):
+        length = len(self.gOpcodeLUT)
         arr = bytearray()
         arr.extend(map(ord,"COORDS"))
-        arr.append(len(self.gJumpTable))
-        for i in self.gJumpTable:
+        arr.append(length%256)
+        arr.append(length//256)
+        for i in self.gOpcodeLUT:
             arr.append(i%256)
             arr.append(i//256)
         return arr
 
 
     def feelsBytes(self):
+        length = len(self.gStrings)
         arr = bytearray()
         arr.extend(map(ord, "FEELS"))
-        arr.append(len(self.gStrings))
+        arr.append(length%256)
+        arr.append(length//256)
         for i in self.gStrings:
             commobytes = bytearray()
             unixbytes = bytearray()
@@ -156,6 +166,7 @@ class mapCompiler:
                     i = i[:commentPos]
                 i = i.strip()
                 if (len(i) > 0):
+                    gSourceLines[lineNum]=i
                     out.append((lineNum, i))
 
         return out
@@ -447,7 +458,8 @@ class mapCompiler:
             opcode = i[1]
             paramIdx = 0
             if (opcode[0]==8):
-                print ("deferring ALTER opcode label resolution")
+                pass
+                # print ("deferring ALTER opcode label resolution")
             else:
                 for k in opcode:
                     if type(k) is str:
@@ -458,13 +470,14 @@ class mapCompiler:
                         except:
                             print("cannot resolve ", label)
                             exit(0)
-                        print(opcode, label, labelLineNumber, opcodeNumber)
+                        # print(opcode, label, labelLineNumber, opcodeNumber)
                         # all jump destinations are to be 16 bit
                         opcode[paramIdx] = opcodeNumber
-                        print(opcode)
+                        # print(opcode)
                     paramIdx += 1
         retList = []
         for i in opcodes:
+            gListing[i[0]] = i[1]
             retList.append(i[1])
         return retList
 
@@ -620,6 +633,8 @@ class mapCompiler:
                 print(e)
                 exit(-1)
             p_table.append((lineNum, a))
+
+
         # print("========== p_table ==========")
         # pp.pprint.pprint(p_table)
         # print("======== p_table end ========")
@@ -643,12 +658,12 @@ class mapCompiler:
 
         print ("building map coords table...")
         jumpTableIdx = 1
-        self.gJumpTable = []
+        self.gOpcodeLUT = []
         jumpTableMapping = {}
         
         # special case: coords index 0 always expands to no-op, so that we have
         # dungeon elements doing absolutely nothing by default. 
-        self.gJumpTable.append(0) 
+        self.gOpcodeLUT.append(0) 
 
         # add everything that's in gCoordsMapping to jump table
         for i in self.gCoordsMapping:
@@ -657,15 +672,15 @@ class mapCompiler:
             opcAddress = 0
             if not (labelLineNumber is None):
                 opcAddress = self.gLinePosMapping[labelLineNumber]
-            self.gJumpTable.append(opcAddress)
+            self.gOpcodeLUT.append(opcAddress)
             jumpTableMapping[label] = jumpTableIdx
-            print ("idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
+            # print ("idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
             jumpTableIdx += 1
         
         #add ALTER destinations to jump table
         for i in self.gOpcodes:
             if (i[0]==8):
-                print (i)
+                # print (i)
                 param = i[3]
                 label = param[len("__DRLABEL__"):]+":"
                 try:
@@ -676,24 +691,23 @@ class mapCompiler:
                     opcAddress = 0
                     if not (labelLineNumber is None):
                         opcAddress = self.gLinePosMapping[labelLineNumber]
-                    self.gJumpTable.append(opcAddress)
+                    self.gOpcodeLUT.append(opcAddress)
                     jumpTableMapping[label] = jumpTableIdx
-                    print ("ALTER DEST idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
+                    # print ("ALTER DEST idx "+str(jumpTableIdx)+" : opcAdr "+str(opcAddress)+" ("+label+")")
                     jumpTableMapping[label] = jumpTableIdx
                     jumpTableIdx += 1
 
 
         print ("connecting ALTER opcodes...")     
-        print (jumpTableMapping)
+        # print (jumpTableMapping)
         for i in self.gOpcodes:
             if (i[0]==8):
-                print (i)
                 param = i[3]
                 label = param[len("__DRLABEL__"):]+":"
                 try:
                     lutIndex = jumpTableMapping[label]
                     i[3] = lutIndex
-                    print ("successfully resolved ",label,i)
+                    # print ("successfully resolved ",label,i)
                 except:
                     print("WARNING: cannot resolve ", label)
                     i[3] = 0
@@ -735,4 +749,11 @@ destFilename = sys.argv[2]
 mc.compile(srcFilename)
 print("exporting...")
 mc.export(destFilename)
+num = 0
+for i in gListing:
+    try:
+        print (hex(num),gListing[i],"-->",gSourceLines[i])
+    except:
+        print (hex(num),gListing[i])
+    num +=1
 print("done.")

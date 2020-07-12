@@ -17,8 +17,8 @@ const himemPtr dungeonBank= 0x050000;
 const himemPtr dungeonAddr= 0x000000;
 
 unsigned int dungeonSize;
-byte numFeels;
-byte numOpcs;
+unsigned int numFeels;
+unsigned int numOpcs;
 byte *seenMap;
 
 himemPtr externalDungeonAddr;
@@ -31,19 +31,21 @@ void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc);
 
 // check for correct segment header, get number of elemnts and increase himem
 // pointer
-int verifySegment(himemPtr *adr, char *segmentID) {
-    int count;
+unsigned int verifySegment(himemPtr *adr, char *segmentID) {
+    long count;
+    long countAdr;
 #ifdef DLDEBUG
     printf("=== looking for segment %s\n", segmentID);
 #endif
-    count= lpeek(*adr + strlen(segmentID)); // get count for later
-    lpoke(*adr + strlen(segmentID), 0);     // end of string marker
+    countAdr= (*adr) + (strlen(segmentID));
+    count= lpeek(countAdr) + (256 * lpeek(countAdr + 1)); // get count for later
+    lpoke(*adr + strlen(segmentID), 0); // end of string marker
     lcopy(*adr, (long)drbuf, 16);
     if (strcmp(segmentID, drbuf) != 0) {
         printf("fatal: marker %s found, %s expected\n", drbuf, segmentID);
         exit(0);
     }
-    *adr+= strlen(segmentID) + 1;
+    *adr+= strlen(segmentID) + 2;
     return count;
 }
 
@@ -174,7 +176,7 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
            (int)debugPtr - (int)desc);
     free(debugPtr);
-    // cgetc();
+    cgetc();
 #endif
 
     return desc;
@@ -190,7 +192,7 @@ void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc) {
 #endif
     currentPtr= *startAddr;
     currentFeelIdx= 0;
-    desc->feelTbl= (long *)malloc(sizeof(long) * numFeels);
+    desc->feelTbl= (himemPtr *)malloc(sizeof(himemPtr) * numFeels);
 
 #ifdef DLDEBUG
     printf("at %x in main mem\n", desc->feelTbl);
