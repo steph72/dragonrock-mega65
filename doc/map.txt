@@ -10,11 +10,11 @@
 |  0    B   map element 1             |  mapdata
 |           0-4 : element type        |
 |            5  : space impassable    |
-|            6  : reserved            |
-|            7  : initially known     |
-|                                    |
-|  1    B   opcodeLUT entry           |
-|           for this space            |
+|            6  : bit 8 of opcAdr     |
+|            7  : bit 9 of opcAdr     |
+|                                     |
+|  1    B   bits 0-7 of opcAdr        |
+|                                     |
 +-------------------------------------+
 |  0    B   map element 2             |
 | [...]                               |

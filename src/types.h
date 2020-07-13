@@ -219,7 +219,6 @@ typedef struct _dungeonDescriptorS {
     himemPtr mapdata;    // external pointer to mapdata
     himemPtr dungeon;    // external pointer to dungeon map
     himemPtr opcodesAdr; // external pointer to opcode list
-    himemPtr coordsAdr;  // external pointer to coords lookup table
     himemPtr *feelTbl;   // pointer to message list (list of external pointers)
     int numCoords;       // number of entries in coords lookup table
     byte dungeonMapWidth;

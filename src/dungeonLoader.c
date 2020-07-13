@@ -154,13 +154,6 @@ dungeonDescriptor *loadMap(char *filename) {
     // build feels table
     buildFeelsTable(&currentExternalDungeonPtr, desc);
 
-    // -- COORDS --
-
-    desc->numCoords= verifySegment(&currentExternalDungeonPtr, "coords");
-    desc->coordsAdr= currentExternalDungeonPtr;
-    currentExternalDungeonPtr+=
-        ((desc->numCoords) * 2); // words in coords table
-
     // -- OPCS --
 
     numOpcs= verifySegment(&currentExternalDungeonPtr, "opcs");
@@ -168,8 +161,6 @@ dungeonDescriptor *loadMap(char *filename) {
 
 #ifdef DLDEBUG
     printf("%d feels\n", numFeels);
-    printf("num coords %d\n", desc->numCoords);
-    printf("coords at %lx\n", desc->coordsAdr);
     printf("%d opcodes at %lx\n", numOpcs, desc->opcodesAdr);
     printf("%d opcodes remaining.\n", 255 - numOpcs);
     debugPtr= (byte *)malloc(8);

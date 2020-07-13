@@ -76,7 +76,6 @@ byte encounterLostOpcIdx;
 
 void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
 void fetchOpcodeAtIndex(byte idx, opcode *anOpcode);
-int fetchOpcodeForCoordsEntry(byte entry);
 void fetchFeelForIndex(byte idx, char *aFeel);
 void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
 
@@ -531,14 +530,6 @@ void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
     lcopy(adr, (long)anOpcode, sizeof(opcode));
 }
 
-int fetchOpcodeForCoordsEntry(byte entry) {
-    himemPtr adr;
-    int result;
-    adr= desc->coordsAdr + (entry * 2);
-    lcopy(adr, (long)&result, 2);
-    return result;
-}
-
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void redrawAll() {
@@ -701,6 +692,14 @@ void look(int x, int y) {
     redrawMap();
 }
 
+unsigned int opcodeIndexForDungeonItem(dungeonItem *anItem) {
+    unsigned int idx;
+    unsigned int upperBytes;
+    upperBytes = (anItem->mapItem & 192) << 2;
+    idx = (anItem->opcodeID) | upperBytes;
+    return idx;
+}
+
 void dungeonLoop() {
 
     byte xs, ys;     // save x,y for debugging
@@ -734,7 +733,7 @@ void dungeonLoop() {
         // on the mega65...
 
         look(currentX + offsetX, currentY + offsetY);
-        
+
         // draw player surrounding
 
         for (xdiff= -1; xdiff <= 1; xdiff++) {
@@ -767,6 +766,8 @@ void dungeonLoop() {
                 encounterWonOpcIdx) {
 
                 performOpcodeAtIndex(encounterWonOpcIdx);
+                gEncounterResult = encUndef;
+                encounterWonOpcIdx = 0;
             }
 
             else if ((gEncounterResult == encFled ||
@@ -774,6 +775,8 @@ void dungeonLoop() {
                      encounterLostOpcIdx) {
 
                 performOpcodeAtIndex(encounterLostOpcIdx);
+                 gEncounterResult = encUndef;
+                encounterWonOpcIdx = 0;
             } else {
 
                 gEncounterResult=
@@ -783,7 +786,7 @@ void dungeonLoop() {
 
         // *** perform opcode for this position! **
         if (!performedImpassableOpcode) {
-            idx= fetchOpcodeForCoordsEntry(currentItem.opcodeID);
+            idx = opcodeIndexForDungeonItem(&currentItem);
             performOpcodeAtIndex(idx);
         }
 
@@ -860,7 +863,7 @@ void dungeonLoop() {
                 // can't go there: reset pass register...
                 registers[R_PASS]= 255;
                 // ...perform opcode...
-                idx= fetchOpcodeForCoordsEntry(dItem.opcodeID);
+                idx = opcodeIndexForDungeonItem(&dItem);
                 performOpcodeAtIndex(idx);
                 performedImpassableOpcode= true;
                 // ...and check if 'pass' register has become valid...
