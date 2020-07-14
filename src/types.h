@@ -150,7 +150,7 @@ typedef struct _opcode {
     byte param4;
     byte param5;
     byte param6;
-    byte nextOpcodeIndex;
+    byte param7;
 } opcode;
 
 typedef struct _monsterDef {

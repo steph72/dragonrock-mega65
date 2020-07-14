@@ -323,7 +323,7 @@ class mapCompiler:
 
         def opCreate_IADD_V(pline):
             opc = opCreate_IADD(pline)
-            opc[0] = 0x87
+            opc[7] = 0x1
             return opc
 
         def opCreate_ALTER(pline):
@@ -350,7 +350,7 @@ class mapCompiler:
 
         def opCreate_ADDC_V(pline):
             opc = opCreate_ADDC(pline)
-            opc[0] = 0x8a
+            opc[7] = 0x1
             return opc
 
         def opCreate_ADDE(pline):
@@ -361,7 +361,7 @@ class mapCompiler:
 
         def opCreate_ADDE_V(pline):
             opc = opCreate_ADDE(pline)
-            opc[0] = 0x8b
+            opc[7] = 0x1
             return opc
 
         def opCreate_SETREG(pline):
@@ -451,9 +451,19 @@ class mapCompiler:
                         print("cannot resolve ", label)
                         exit(0)
                     # print(opcode, label, labelLineNumber, opcodeNumber)
-                    # all jump destinations are to be 16 bit
-                    opcode[paramIdx] = opcodeNumber%256
-                    opcode[paramIdx+1] = opcodeNumber//256
+                    if opcode[0]==8:
+                        # special handling for ALTER opcode: 10 bit jump destination
+                        # like used in mapdata
+                        extraBits = (opcodeNumber & 768) >> 2
+                        #mapbytes format: byte 1 == map element + upper 2 bits of opcode index
+                        #                 byte 2 == lower 8 bits of opcode index
+                        opcode[paramIdx]   = opcodeNumber & 255              # 8 bits of opcode
+                        opcode[paramIdx+1] = opcode[paramIdx+1] | extraBits  # ditem + 2 bits opcode
+                        pass
+                    else:
+                        # all other jump destinations are to be 16 bit
+                        opcode[paramIdx] = opcodeNumber%256
+                        opcode[paramIdx+1] = opcodeNumber//256
                     # print(opcode)
                 paramIdx += 1
         retList = []
@@ -673,7 +683,7 @@ num = 0
 
 for i in gListing:
     try:
-        print((num), gListing[i], "-->", gSourceLines[i])
+        print(hex(num), gListing[i], "-->", gSourceLines[i])
     except:
         print((num), gListing[i])
     num += 1

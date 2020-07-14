@@ -83,9 +83,13 @@ void displayFeel(byte idx);
 void redrawAll(void);
 void plotPlayer(byte x, byte y);
 void setupDungeonScreen(void);
-void performOpcodeAtIndex(byte idx);
+void performOpcodeAtIndex(int idx);
 
 int performOpcode(opcode *anOpcode, int addr);
+
+#ifdef DEBUG
+byte singleStepMode;
+#endif
 
 // --------------------------------- opcodes ---------------------------------
 
@@ -266,7 +270,7 @@ byte performIAddOpcode(opcode *anOpcode) {
     if (addInventoryItem(anItemID, party[charIdx])) {
         registers[0]= true;
         registers[1]= charIdx;
-        if (anOpcode->id & 128) {
+        if (anOpcode->param7) {
             cprintf("%s takes %s\r\n", party[charIdx]->name,
                     nameOfInventoryItemWithID(anItemID));
         }
@@ -315,13 +319,13 @@ byte performAddCoinsOpcode(opcode *anOpcode) {
 
     if (opcodeID == 0x0a) {
         gPartyGold+= *coins;
-        if (anOpcode->id & 128) {
+        if (anOpcode->param7) {
             printf("The party gets %d coins\n", *coins);
         }
 
     } else {
         gPartyExperience+= *coins;
-        if (anOpcode->id & 128) {
+        if (anOpcode->param7) {
             printf("The party gets %d experience\n", *coins);
         }
     }
@@ -415,7 +419,7 @@ byte performEnterOpcode(opcode *anOpcode) {
 // general opcode handling functions
 // ---------------------------------
 
-void performOpcodeAtIndex(byte idx) {
+void performOpcodeAtIndex(int idx) {
 
     opcode anOpcode;
     int next;
@@ -427,12 +431,12 @@ void performOpcodeAtIndex(byte idx) {
     } while (next);
 }
 
-int performOpcode(opcode *anOpcode, int addr) {
+int performOpcode(opcode *anOpcode, int currentPC) {
 
     byte xs, ys; // x,y save
     byte opcodeID;
 
-    int nextOpcodeIndex;
+    int newPC;
     int rOpcIdx; // returned opcode index from singular opcodes, used for
                  // branching
 
@@ -440,10 +444,17 @@ int performOpcode(opcode *anOpcode, int addr) {
     xs= wherex();
     ys= wherey();
     gotoxy(0, 24);
-    printf("%02x:%02x%02x%02x%02x%02x%02x%02x>%02x", addr, anOpcode->id,
+    printf("%02x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
            anOpcode->param1, anOpcode->param2, anOpcode->param3,
            anOpcode->param4, anOpcode->param5, anOpcode->param6,
-           anOpcode->nextOpcodeIndex); // DEBUG
+           anOpcode->param7); // DEBUG
+    if (singleStepMode) {
+        gotoxy(28, 23);
+        cputs("-- step --");
+        cgetc();
+        gotoxy(28, 0);
+        cputs("          ");
+    }
     gotoxy(0, 23);
     gotoxy(xs, ys);
 #endif
@@ -526,24 +537,25 @@ int performOpcode(opcode *anOpcode, int addr) {
         break;
     }
 
-    nextOpcodeIndex= addr + 1;
+    // standard behaviour after processing an opcode: increase PC
+    newPC= currentPC + 1;
 
     if (anOpcode->id & 0x80) { // end flag?
-        nextOpcodeIndex= 0;
+        newPC= 0;
     }
 
-    if (anOpcode->id & 0x40) {        // do we have a branch opcode?
-        if (rOpcIdx != 0) {           // return index set?
-            nextOpcodeIndex= rOpcIdx; // use returned index as next index
+    if (anOpcode->id & 0x40) { // do we have a branch opcode?
+        if (rOpcIdx != 0) {    // return index set?
+            newPC= rOpcIdx;    // use returned index as next index
         }
     }
 
-    // special case: address 0 always returns
-    if (addr == 0) {
-        nextOpcodeIndex= 0;
+    // special case: address 0 always results in stopping opcode processing
+    if (currentPC == 0) {
+        newPC= 0;
     }
 
-    return nextOpcodeIndex;
+    return newPC;
 }
 
 void fetchDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
@@ -562,7 +574,6 @@ void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem) {
 
 void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
     himemPtr adr;
-    byte xs, ys;
     adr= desc->opcodesAdr + (idx * sizeof(opcode));
     lcopy(adr, (long)anOpcode, sizeof(opcode));
 }
@@ -867,8 +878,17 @@ void dungeonLoop() {
             currentY++;
             break;
 
+#ifdef DEBUG
         case 'q':
             quitDungeon= true;
+            break;
+
+        case 's':
+            singleStepMode= !singleStepMode;
+            gotoxy(0, 0);
+            printf("single step mode %d   ", singleStepMode);
+            break;
+#endif
 
         default:
             break;
@@ -1023,6 +1043,7 @@ void enterDungeonMode(void) {
         puts("??unknown game mode in dungeon!");
         exit(0);
     }
+    singleStepMode= false;
 #endif
     if (gLoadedDungeonIndex != gCurrentDungeonIndex) {
         loadNewDungeon();
