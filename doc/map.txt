@@ -29,16 +29,6 @@
 |  0-x  C   string table entry        |
 | [...]                               |
 +-------------------------------------|
-|= LKUP ==============================| opcode lookup table segment header
-| 0-3   C   "LKUP"                    |
-|  4    W   number of LUT entries     |
-+-------------------------------------|
-|  0-1  W   lookup entry #0           |
-+-------------------------------------|
-|  0-1  W   lookup entry #1           |
-+-------------------------------------|
-| [...]                               |
-+-------------------------------------|
 |= OPCS ==============================| opcode table segment header
 | 0-3    C   "OPCS"                   |
 | 4-5    W   number of opcodes        |
