@@ -1,5 +1,10 @@
 # TODO
 
+## IMPORTANT - DUNGEONSCRIPT
+- get rid of "nextOpcIndex" mechanism
+- make GOTO a regular dungeon opcode    (param 1/2 == dest)
+- make opc&128 a the stop indicator
+
 ## encounter:
 - DONE implement pre-encounter to shorten loading times
 - DONE implement exchanging items

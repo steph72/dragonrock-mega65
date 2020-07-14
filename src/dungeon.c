@@ -69,8 +69,8 @@ const byte screenWidth= 40;
 const byte screenX= 2;
 const byte screenY= 2;
 
-byte encounterWonOpcIdx;
-byte encounterLostOpcIdx;
+int encounterWonOpcIdx;
+int encounterLostOpcIdx;
 
 // prototypes
 
@@ -84,7 +84,8 @@ void redrawAll(void);
 void plotPlayer(byte x, byte y);
 void setupDungeonScreen(void);
 void performOpcodeAtIndex(byte idx);
-byte performOpcode(opcode *anOpcode, int dbgIdx);
+
+int performOpcode(opcode *anOpcode, int addr);
 
 // --------------------------------- opcodes ---------------------------------
 
@@ -134,6 +135,12 @@ byte performWaitkeyOpcode(opcode *anOpcode) {
 // 0x04: YESNO / YESNO_B
 byte performYesNoOpcode(opcode *anOpcode) {
     byte inkey;
+    int yesAddr;
+    int noAddr;
+
+    yesAddr= anOpcode->param1 + (256 * (anOpcode->param2));
+    noAddr= anOpcode->param3 + (256 * (anOpcode->param4));
+
     cursor(true);
     do {
         inkey= cgetc();
@@ -143,20 +150,20 @@ byte performYesNoOpcode(opcode *anOpcode) {
     if (inkey == 'y') {
         registers[0]= true;
         if (anOpcode->id & 0x40) {
-            return anOpcode->param1; // branch instead of call
+            return yesAddr; // branch instead of call
         }
-        performOpcodeAtIndex(anOpcode->param1);
+        performOpcodeAtIndex(yesAddr);
     } else if (inkey == 'n') {
         registers[0]= false;
         if (anOpcode->id & 0x40) { // branch?
             if (anOpcode->param2) {
-                return anOpcode
-                    ->param2; // jump there if we acutally got the parameter...
+                return noAddr; // jump there if we acutally got the parameter...
             } else {
-                return anOpcode->nextOpcodeIndex; // jump to next opcode index
+                return 0; // jump to next opcode index
             }
         }
-        performOpcodeAtIndex(anOpcode->param2);
+        // no branch: call noAddr
+        performOpcodeAtIndex(noAddr);
     }
     return 0;
 }
@@ -166,20 +173,26 @@ byte performIfregOpcode(opcode *anOpcode) {
 
     byte regNr;
     byte value;
+    int yesAddr;
+    int noAddr;
+
+    yesAddr= anOpcode->param3 + (256 * (anOpcode->param4));
+    noAddr= anOpcode->param5 + (256 * (anOpcode->param6));
+
     regNr= anOpcode->param1;
     value= anOpcode->param2;
 
     if (anOpcode->id & 0x40) {
         if (registers[regNr] == value) {
-            return anOpcode->param3;
+            return yesAddr;
         } else {
-            return anOpcode->nextOpcodeIndex;
+            return 0;
         }
     } else {
         if (registers[regNr] == value) {
-            performOpcodeAtIndex(anOpcode->param3);
+            performOpcodeAtIndex(yesAddr);
         } else {
-            performOpcodeAtIndex(anOpcode->param4);
+            performOpcodeAtIndex(noAddr);
         }
     }
     return 0;
@@ -190,6 +203,11 @@ byte performIfposOpcode(opcode *anOpcode) {
     itemT anItemID;
     byte i;
     byte found;
+    int yesAddr;
+    int noAddr;
+
+    yesAddr= anOpcode->param3 + (256 * (anOpcode->param4));
+    noAddr= anOpcode->param5 + (256 * (anOpcode->param6));
 
     found= 0xff;
     anItemID= anOpcode->param1;
@@ -203,12 +221,12 @@ byte performIfposOpcode(opcode *anOpcode) {
         }
     }
 
-    registers[anOpcode->param4]= found;
+    registers[anOpcode->param2]= found;
 
     if (found != 0xff) {
-        performOpcodeAtIndex(anOpcode->param2);
+        performOpcodeAtIndex(yesAddr);
     } else {
-        performOpcodeAtIndex(anOpcode->param3);
+        performOpcodeAtIndex(noAddr);
     }
     return 0;
 }
@@ -218,6 +236,11 @@ byte performIAddOpcode(opcode *anOpcode) {
     byte charIdx;
     byte anItemID;
     byte found;
+    int yesAddr;
+    int noAddr;
+
+    yesAddr= anOpcode->param3 + (256 * (anOpcode->param4));
+    noAddr= anOpcode->param5 + (256 * (anOpcode->param6));
 
     anItemID= anOpcode->param1;
     charIdx= anOpcode->param2;
@@ -235,7 +258,7 @@ byte performIAddOpcode(opcode *anOpcode) {
         }
         if (!found) {
             registers[0]= false; // failure flag
-            performOpcodeAtIndex(anOpcode->param4);
+            performOpcodeAtIndex(noAddr);
             return 0;
         }
     }
@@ -247,12 +270,12 @@ byte performIAddOpcode(opcode *anOpcode) {
             cprintf("%s takes %s\r\n", party[charIdx]->name,
                     nameOfInventoryItemWithID(anItemID));
         }
-        performOpcodeAtIndex(anOpcode->param3);
+        performOpcodeAtIndex(yesAddr);
         return 0;
     }
 
     registers[0]= false;
-    performOpcodeAtIndex(anOpcode->param4);
+    performOpcodeAtIndex(noAddr);
     return 0;
 }
 
@@ -345,9 +368,11 @@ byte performAddencOpcode(opcode *anOpcode) {
 
 // 0x0f DOENC
 byte performDoencOpcode(opcode *anOpcode) {
-    encounterWonOpcIdx=
-        anOpcode->param1; // save result opcode indices for later on
-    encounterLostOpcIdx= anOpcode->param2; // when re-entering dungeon module
+
+    // save result opcode indices for later on
+    // when re-entering dungeon module
+    encounterWonOpcIdx= anOpcode->param1 + (256 * (anOpcode->param2));
+    encounterLostOpcIdx= anOpcode->param3 + (256 * (anOpcode->param4));
 
     gEncounterResult= doPreEncounter(); // try pre-encounter first
     if (gEncounterResult == encFight) {
@@ -393,7 +418,7 @@ byte performEnterOpcode(opcode *anOpcode) {
 void performOpcodeAtIndex(byte idx) {
 
     opcode anOpcode;
-    byte next;
+    int next;
     next= idx;
 
     do {
@@ -402,20 +427,20 @@ void performOpcodeAtIndex(byte idx) {
     } while (next);
 }
 
-byte performOpcode(opcode *anOpcode, int dbgIdx) {
+int performOpcode(opcode *anOpcode, int addr) {
 
     byte xs, ys; // x,y save
     byte opcodeID;
-    byte nextOpcodeIndex;
 
-    byte rOpcIdx; // returned opcode index from singular opcodes, used for
-                  // branching
+    int nextOpcodeIndex;
+    int rOpcIdx; // returned opcode index from singular opcodes, used for
+                 // branching
 
 #ifdef DEBUG
     xs= wherex();
     ys= wherey();
     gotoxy(0, 24);
-    printf("%02x:%02x%02x%02x%02x%02x%02x%02x>%02x", dbgIdx, anOpcode->id,
+    printf("%02x:%02x%02x%02x%02x%02x%02x%02x>%02x", addr, anOpcode->id,
            anOpcode->param1, anOpcode->param2, anOpcode->param3,
            anOpcode->param4, anOpcode->param5, anOpcode->param6,
            anOpcode->nextOpcodeIndex); // DEBUG
@@ -424,7 +449,6 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
 #endif
 
     opcodeID= (anOpcode->id) & 31; // we have 5-bit opcodes from 0x00 - 0x1f
-    nextOpcodeIndex= anOpcode->nextOpcodeIndex;
 
     switch (opcodeID) {
 
@@ -502,8 +526,21 @@ byte performOpcode(opcode *anOpcode, int dbgIdx) {
         break;
     }
 
-    if (anOpcode->id & 0x40) {    // do we have a branch opcode?
-        nextOpcodeIndex= rOpcIdx; // use returned index as next index
+    nextOpcodeIndex= addr + 1;
+
+    if (anOpcode->id & 0x80) { // end flag?
+        nextOpcodeIndex= 0;
+    }
+
+    if (anOpcode->id & 0x40) {        // do we have a branch opcode?
+        if (rOpcIdx != 0) {           // return index set?
+            nextOpcodeIndex= rOpcIdx; // use returned index as next index
+        }
+    }
+
+    // special case: address 0 always returns
+    if (addr == 0) {
+        nextOpcodeIndex= 0;
     }
 
     return nextOpcodeIndex;
@@ -636,7 +673,8 @@ void look_bh(int x0, int y0, int x1, int y1) {
         fetchDungeonItemAtPos(x, y, &anItem);
         plotSign= anItem.mapItem & 15;
 
-        if (x<0 || y<0 || x>desc->dungeonMapWidth || y>desc->dungeonMapHeight ) {
+        if (x < 0 || y < 0 || x > desc->dungeonMapWidth ||
+            y > desc->dungeonMapHeight) {
             continue;
         }
 
@@ -695,8 +733,8 @@ void look(int x, int y) {
 unsigned int opcodeIndexForDungeonItem(dungeonItem *anItem) {
     unsigned int idx;
     unsigned int upperBytes;
-    upperBytes = (anItem->mapItem & 192) << 2;
-    idx = (anItem->opcodeID) | upperBytes;
+    upperBytes= (anItem->mapItem & 192) << 2;
+    idx= (anItem->opcodeID) | upperBytes;
     return idx;
 }
 
@@ -766,8 +804,8 @@ void dungeonLoop() {
                 encounterWonOpcIdx) {
 
                 performOpcodeAtIndex(encounterWonOpcIdx);
-                gEncounterResult = encUndef;
-                encounterWonOpcIdx = 0;
+                gEncounterResult= encUndef;
+                encounterWonOpcIdx= 0;
             }
 
             else if ((gEncounterResult == encFled ||
@@ -775,8 +813,8 @@ void dungeonLoop() {
                      encounterLostOpcIdx) {
 
                 performOpcodeAtIndex(encounterLostOpcIdx);
-                 gEncounterResult = encUndef;
-                encounterWonOpcIdx = 0;
+                gEncounterResult= encUndef;
+                encounterWonOpcIdx= 0;
             } else {
 
                 gEncounterResult=
@@ -786,7 +824,7 @@ void dungeonLoop() {
 
         // *** perform opcode for this position! **
         if (!performedImpassableOpcode) {
-            idx = opcodeIndexForDungeonItem(&currentItem);
+            idx= opcodeIndexForDungeonItem(&currentItem);
             performOpcodeAtIndex(idx);
         }
 
@@ -863,7 +901,7 @@ void dungeonLoop() {
                 // can't go there: reset pass register...
                 registers[R_PASS]= 255;
                 // ...perform opcode...
-                idx = opcodeIndexForDungeonItem(&dItem);
+                idx= opcodeIndexForDungeonItem(&dItem);
                 performOpcodeAtIndex(idx);
                 performedImpassableOpcode= true;
                 // ...and check if 'pass' register has become valid...

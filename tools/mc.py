@@ -255,7 +255,7 @@ class mapCompiler:
 
         def opCreate_GOTO(pline):
             opc = [0, 0, 0, 0, 0, 0, 0, 0]
-            opc[7] = "__DRLABEL__"+pline.tOpcLabel
+            opc[1] = "__DRLABEL__"+pline.tOpcLabel
             return opc
 
         def opCreate_NSTAT(pline):
@@ -283,7 +283,7 @@ class mapCompiler:
             if (pline.tTrueOpcLabel):
                 opc[1] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[2] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[3] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_YESNO_B(pline):
@@ -297,7 +297,7 @@ class mapCompiler:
             if (pline.tTrueOpcLabel):
                 opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[4] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_IFREG_B(pline):
@@ -306,11 +306,11 @@ class mapCompiler:
             return opc
 
         def opCreate_IFPOS(pline):
-            opc = [6, int(pline.tItemID), 0, 0, int(pline.tRegIndex), 0, 0, 0]
+            opc = [6, int(pline.tItemID), int(pline.tRegIndex), 0, 0, 0, 0, 0]
             if (pline.tTrueOpcLabel):
-                opc[2] = "__DRLABEL__"+pline.tTrueOpcLabel
+                opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[3] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_IADD(pline):
@@ -318,7 +318,7 @@ class mapCompiler:
             if (pline.tTrueOpcLabel):
                 opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[4] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_IADD_V(pline):
@@ -391,7 +391,7 @@ class mapCompiler:
             if (pline.tWinOpcLabel):
                 opc[1] = "__DRLABEL__"+pline.tWinOpcLabel
             if (pline.tLoseOpcLabel):
-                opc[2] = "__DRLABEL__"+pline.tLoseOpcLabel
+                opc[3] = "__DRLABEL__"+pline.tLoseOpcLabel
             return opc
 
         def opCreate_ENTER_W(pline):
@@ -415,6 +415,7 @@ class mapCompiler:
             lineNum = i[0]
             src = i[1]
             if src.metaCmd == "---":
+                lastOpcode[0] = lastOpcode[0] | 128 # set stop flag
                 lastOpcode = []
             if not src.opcode:
                 continue
@@ -427,11 +428,6 @@ class mapCompiler:
             newOpcodeIndex = len(opcodes)-1
             # add position to mapping
             self.gLinePosMapping[lineNum] = newOpcodeIndex
-
-            if (lastOpcode):
-                if (lastOpcode[7] == 0):
-                    # link last opcode to current...
-                    lastOpcode[7] = newOpcodeIndex
 
             # ...and remember this opcode for next link
             lastOpcode = newOpcode
@@ -456,7 +452,8 @@ class mapCompiler:
                         exit(0)
                     # print(opcode, label, labelLineNumber, opcodeNumber)
                     # all jump destinations are to be 16 bit
-                    opcode[paramIdx] = opcodeNumber
+                    opcode[paramIdx] = opcodeNumber%256
+                    opcode[paramIdx+1] = opcodeNumber//256
                     # print(opcode)
                 paramIdx += 1
         retList = []

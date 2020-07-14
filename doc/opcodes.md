@@ -1,7 +1,7 @@
 # DragonRock Opcodes
 
-## 0x00 NOP / GOTO
-No operation
+## 0x00 NOP / GOTO <01/02:destOpcodeIndex>
+No operation or GOTO
 
 ## 0x01 NSTAT <01:msgID>
 Change current status message to *msgID*
