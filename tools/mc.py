@@ -4,6 +4,10 @@ import sys
 import pickle
 import pyparsing as pp
 
+gSourceLines = {}
+gListing = {}
+gReverseLabels = {}
+
 
 class mapElement:
     pass
@@ -15,12 +19,15 @@ class mapCompiler:
 
     def __init__(self):
 
+        # a list of labels in the form of "'labelName:' <line in source code>"
         self.gLabels = {}
+
+        # a mapping of source code line numbers to actual opcode indices
+        self.gLinePosMapping = []
         self.gStringMapping = {}
         self.gCoordsMapping = {}
         self.gStrings = []
         self.gOpcodes = []
-        self.gLinePosMapping = []
 
         self.mapWidth = 0
         self.mapHeight = 0
@@ -31,18 +38,22 @@ class mapCompiler:
     # low level map exporting
 
     def opcodeBytes(self):
+        length = len(self.gOpcodes)
         arr = bytearray()
         arr.extend(map(ord, "OPCS"))
-        arr.append(len(self.gOpcodes))
+        arr.append(length % 256)
+        arr.append(length//256)
         for i in self.gOpcodes:
             bytes = bytearray(i)
             arr.extend(bytes)
         return arr
 
     def feelsBytes(self):
+        length = len(self.gStrings)
         arr = bytearray()
         arr.extend(map(ord, "FEELS"))
-        arr.append(len(self.gStrings))
+        arr.append(length % 256)
+        arr.append(length//256)
         for i in self.gStrings:
             commobytes = bytearray()
             unixbytes = bytearray()
@@ -59,10 +70,7 @@ class mapCompiler:
         return arr
 
     def mapElementByte(self, currentMapElem):
-        mID = currentMapElem.mapElementID
         outbyte1 = currentMapElem.mapElementID
-        if currentMapElem.initiallyVisible:
-            outbyte1 = outbyte1 | 128
         if currentMapElem.impassable:
             outbyte1 = outbyte1 | 32
         return outbyte1
@@ -76,8 +84,15 @@ class mapCompiler:
         for y in range(self.mapHeight):
             for x in range(self.mapWidth):
                 currentMapElem = self.map[x][y]
-                outbyte1 = self.mapElementByte(currentMapElem)
-                outbyte2 = currentMapElem.startOpcodeIndex
+                # currentMapElem.impassable = False
+                # currentMapElem.startOpcodeIndex = 257
+                # currentMapElem.mapElementID = 0
+                extraBits = (currentMapElem.startOpcodeIndex & 768) >> 2
+                #mapbytes format: byte 1 == map element + upper 2 bits of opcode index
+                #                 byte 2 == lower 8 bits of opcode index
+                outbyte1 = self.mapElementByte(currentMapElem) | extraBits
+                outbyte2 = currentMapElem.startOpcodeIndex & 255
+                # print (outbyte1,outbyte2)
                 mapbytes.append(outbyte1)
                 mapbytes.append(outbyte2)
         return mapbytes
@@ -137,28 +152,37 @@ class mapCompiler:
                     i = i[:commentPos]
                 i = i.strip()
                 if (len(i) > 0):
+                    gSourceLines[lineNum] = i
                     out.append((lineNum, i))
 
         return out
 
+    # trims labels from srcLines and builds label -> lineNumber mapping
     def scanAndTrimLabels(self, srcLines):
         returnLines = []
         print("Scanning labels")
         currentLabels = []
+        # go through source lines...
         for lineTupel in srcLines:
             lineNum = lineTupel[0]
             line = lineTupel[1]
+            # is it a label?
             if line.endswith(":"):
                 if (self.gLabels.get(line)):
                     print("error: duplicate label definition at line", lineNum)
                     print("       (original definition was at line " +
                           str(self.gLabels.get(line))+")")
                     exit(-1)
+                # add to current labels
                 currentLabels.append(line)
             else:
+                # not a label? append to return lines...
                 returnLines.append((lineNum, line))
+                # ...and let last unresolved label point to this line
                 for i in currentLabels:
                     self.gLabels[i] = lineNum
+                    gReverseLabels[lineNum] = i
+                # delete unresolved label list
                 currentLabels = []
         return returnLines
 
@@ -231,7 +255,7 @@ class mapCompiler:
 
         def opCreate_GOTO(pline):
             opc = [0, 0, 0, 0, 0, 0, 0, 0]
-            opc[7] = "__DRLABEL__"+pline.tOpcLabel
+            opc[1] = "__DRLABEL__"+pline.tOpcLabel
             return opc
 
         def opCreate_NSTAT(pline):
@@ -259,7 +283,7 @@ class mapCompiler:
             if (pline.tTrueOpcLabel):
                 opc[1] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[2] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[3] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_YESNO_B(pline):
@@ -273,7 +297,7 @@ class mapCompiler:
             if (pline.tTrueOpcLabel):
                 opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[4] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_IFREG_B(pline):
@@ -282,11 +306,11 @@ class mapCompiler:
             return opc
 
         def opCreate_IFPOS(pline):
-            opc = [6, int(pline.tItemID), 0, 0, int(pline.tRegIndex), 0, 0, 0]
+            opc = [6, int(pline.tItemID), int(pline.tRegIndex), 0, 0, 0, 0, 0]
             if (pline.tTrueOpcLabel):
-                opc[2] = "__DRLABEL__"+pline.tTrueOpcLabel
+                opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[3] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_IADD(pline):
@@ -294,12 +318,12 @@ class mapCompiler:
             if (pline.tTrueOpcLabel):
                 opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
             if (pline.tFalseOpcLabel):
-                opc[4] = "__DRLABEL__"+pline.tFalseOpcLabel
+                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
             return opc
 
         def opCreate_IADD_V(pline):
             opc = opCreate_IADD(pline)
-            opc[0] = 0x87
+            opc[7] = 0x1
             return opc
 
         def opCreate_ALTER(pline):
@@ -311,7 +335,7 @@ class mapCompiler:
                 exit(-1)
             opc[1] = coords[0]
             opc[2] = coords[1]
-            opc[3] = "__DRLABEL__"+pline.tOpcLabel
+            opc[3] = "__DRLABEL__"+pline.tOpcLabel  # TODO! NEED 10-BIT-VALUE HERE
             opc[4] = int(pline.tDungeonItemID)
             return opc
 
@@ -326,7 +350,7 @@ class mapCompiler:
 
         def opCreate_ADDC_V(pline):
             opc = opCreate_ADDC(pline)
-            opc[0] = 0x8a
+            opc[7] = 0x1
             return opc
 
         def opCreate_ADDE(pline):
@@ -337,7 +361,7 @@ class mapCompiler:
 
         def opCreate_ADDE_V(pline):
             opc = opCreate_ADDE(pline)
-            opc[0] = 0x8b
+            opc[7] = 0x1
             return opc
 
         def opCreate_SETREG(pline):
@@ -367,7 +391,7 @@ class mapCompiler:
             if (pline.tWinOpcLabel):
                 opc[1] = "__DRLABEL__"+pline.tWinOpcLabel
             if (pline.tLoseOpcLabel):
-                opc[2] = "__DRLABEL__"+pline.tLoseOpcLabel
+                opc[3] = "__DRLABEL__"+pline.tLoseOpcLabel
             return opc
 
         def opCreate_ENTER_W(pline):
@@ -391,6 +415,7 @@ class mapCompiler:
             lineNum = i[0]
             src = i[1]
             if src.metaCmd == "---":
+                lastOpcode[0] = lastOpcode[0] | 128 # set stop flag
                 lastOpcode = []
             if not src.opcode:
                 continue
@@ -404,19 +429,18 @@ class mapCompiler:
             # add position to mapping
             self.gLinePosMapping[lineNum] = newOpcodeIndex
 
-            if (lastOpcode):
-                if (lastOpcode[7] == 0):
-                    # link last opcode to current...
-                    lastOpcode[7] = newOpcodeIndex
-
             # ...and remember this opcode for next link
             lastOpcode = newOpcode
 
         print("Calculating branch positions")
+
+        # replace __DRLabel__<labelName> tokens with actual opcode addresses:
         for i in opcodes:
+            labelJumpTable = []
             line = i[0]
             opcode = i[1]
             paramIdx = 0
+
             for k in opcode:
                 if type(k) is str:
                     label = k[len("__DRLABEL__"):]+":"
@@ -426,12 +450,25 @@ class mapCompiler:
                     except:
                         print("cannot resolve ", label)
                         exit(0)
-                    # print(label, labelLineNumber, opcodeNumber)
-                    opcode[paramIdx] = opcodeNumber
+                    # print(opcode, label, labelLineNumber, opcodeNumber)
+                    if opcode[0]==8:
+                        # special handling for ALTER opcode: 10 bit jump destination
+                        # like used in mapdata
+                        extraBits = (opcodeNumber & 768) >> 2
+                        #mapbytes format: byte 1 == map element + upper 2 bits of opcode index
+                        #                 byte 2 == lower 8 bits of opcode index
+                        opcode[paramIdx]   = opcodeNumber & 255              # 8 bits of opcode
+                        opcode[paramIdx+1] = opcode[paramIdx+1] | extraBits  # ditem + 2 bits opcode
+                        pass
+                    else:
+                        # all other jump destinations are to be 16 bit
+                        opcode[paramIdx] = opcodeNumber%256
+                        opcode[paramIdx+1] = opcodeNumber//256
+                    # print(opcode)
                 paramIdx += 1
-        # print(linePosMapping)
         retList = []
         for i in opcodes:
+            gListing[i[0]] = i[1]
             retList.append(i[1])
         return retList
 
@@ -587,6 +624,7 @@ class mapCompiler:
                 print(e)
                 exit(-1)
             p_table.append((lineNum, a))
+
         # print("========== p_table ==========")
         # pp.pprint.pprint(p_table)
         # print("======== p_table end ========")
@@ -604,8 +642,6 @@ class mapCompiler:
         codeLines = self.scanAndTrimLabels(srcLines)
         self.gOpcodes = self.parseScript(codeLines)
 
-        # for i in range(0, len(self.gOpcodes)):
-        #    print(i, self.gOpcodes[i])
         print("Connecting map positions...")
         for i in self.gCoordsMapping:
             label = i+":"
@@ -614,15 +650,11 @@ class mapCompiler:
             if not (labelLineNumber is None):
                 opcodeNumber = self.gLinePosMapping[labelLineNumber]
                 coords = self.gCoordsMapping.get(i)
-                # print(coords)
-                # print(coords[0], coords[2])
                 for x in range(coords[0], coords[2]+1):
-                    # print(x)
                     for y in range(coords[1], coords[3]+1):
-                        # x = coords[0]
-                        # y = coords[1]
-                        # print(i, opcodeNumber, x, y)
                         self.map[x][y].startOpcodeIndex = opcodeNumber
+                        # self.map[x][y].startOpcodeIndex = jumpTableMapping[label]
+                        # print (x,y,jumpTableMapping[label])
 
         # pp.pprint.pprint (self.opcodeBytes())
         # pp.pprint.pprint (self.feelsBytes())
@@ -647,4 +679,12 @@ destFilename = sys.argv[2]
 mc.compile(srcFilename)
 print("exporting...")
 mc.export(destFilename)
+num = 0
+
+for i in gListing:
+    try:
+        print(hex(num), gListing[i], "-->", gSourceLines[i])
+    except:
+        print((num), gListing[i])
+    num += 1
 print("done.")

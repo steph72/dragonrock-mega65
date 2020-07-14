@@ -8,7 +8,6 @@ includemap "mapsrc/library.drm"
 ;    history room
 ; ====================
 
-defc exit: 15,0                     ; dungeon exit
 
 defc historyRoom:  17,1 - 24,5
 defc wallWriting1: 19,5
@@ -129,7 +128,6 @@ defc librarianRoom: 3,1 - 8,4
 defc librarianRoomDoor: 6,5             ; we include the door here for dramatic effect
 defc librarianStart: 6,4                ; librarian stuff starts when entering the room
 defc librarianAlcove: 2,1
-
 
 $ msgLibrarianFloor,"A surprisingly clean corridor."
 $ msgLibrarianRoom,"The librarian's room"
@@ -379,6 +377,7 @@ exitDungeon:
 
 defc secretDoor1:   21,18                ; secret door in start corridor
 defc secretRoom1:   20,19 - 22,21        ; secret room 
+defc sRoomTableEmpty: 21,20
 defc sRoomTable:    21,20                ; table in secret room
 defc sWind:         20,17
 
