@@ -111,12 +111,8 @@ void initEngine(void) {
     puts(prompt);
     sleep(1);
     srand(42);
+    initMonsterRows();
     loadCharset();
-    /*
-    // TODO
-
-    installIRQ();
-    */
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     gPartyExperience= 1000;

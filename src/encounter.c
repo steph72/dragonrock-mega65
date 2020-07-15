@@ -28,7 +28,6 @@ encResult doEncounter() {
     bgcolor(COLOR_BLACK);
     textcolor(COLOR_RED);
     cputs("Encounter...");
-    clearMonsters();
     cgetc();
     return encWon;
 }

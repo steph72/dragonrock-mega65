@@ -10,6 +10,7 @@ void _initMonsterRows(byte dealloc) {
             if (dealloc && gMonsterRows[i][j]) {
 #ifdef DEBUG
                 printf("dealloc monster row %d slot %d:  %x\n",i,j,gMonsterRows[i][j]);
+                cgetc();
 #endif
                 free(gMonsterRows[i][j]);
             }

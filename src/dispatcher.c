@@ -91,6 +91,7 @@ void enterCurrentGameMode() {
 
     case gm_encounter:
         gEncounterResult= doEncounter();
+        clearMonsters();
         if (gEncounterResult != encDead) {
             popLastGameMode();
         } else {
