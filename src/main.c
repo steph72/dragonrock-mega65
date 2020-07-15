@@ -131,35 +131,6 @@ void debugDungeon(void) {
     mainDispatchLoop();
 }
 
-void debugEncounter(void) {
-
-    byte i;
-
-    for (i= 0; i < 5; i++) {
-        setHasSpell(party[0], i);
-        setHasSpell(party[1], i + 5);
-        party[i]->gold= 100;
-    }
-
-    clearMonsters();
-    gCurrentDungeonIndex= 0;
-    addNewMonster(0, 1, 6, 0);
-    addNewMonster(1, 1, 3, 1);
-    addNewMonster(2, 1, 1, 2);
-    prepareForGameMode(gm_dungeon);
-    gEncounterResult= doPreEncounter(); // try pre-encounter first
-    if (gEncounterResult == encFight) {
-        gCurrentGameMode= gm_dungeon; // simulate coming from dungeon
-        prepareForGameMode(gm_encounter);
-        /*
-             a real fight? -->
-             quit dungeon and let dispatcher handle loading the
-             rest of the encounter module
-        */
-    }
-    mainDispatchLoop();
-}
-
 int main() {
     static char choice;
     byte i;
@@ -189,10 +160,6 @@ int main() {
 
     if (choice == 'd') {
         debugDungeon();
-    }
-
-    if (choice == 'e') {
-        debugEncounter();
     }
 
     if (choice == '1' && hasLoadedGame) {

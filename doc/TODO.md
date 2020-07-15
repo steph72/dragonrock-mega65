@@ -1,9 +1,10 @@
 # TODO
 
-## IMPORTANT - DUNGEONSCRIPT
-- get rid of "nextOpcIndex" mechanism
-- make GOTO a regular dungeon opcode    (param 1/2 == dest)
-- make opc&128 a the stop indicator
+## dungeonscript
+- DONE get rid of "nextOpcIndex" mechanism
+- DONE make GOTO a regular dungeon opcode    (param 1/2 == dest)
+- DONE make opc&128 a the stop indicator
+- DONE get rid of opc&128 as verbose indicator (use param7 instead)
 
 ## encounter:
 - DONE implement pre-encounter to shorten loading times

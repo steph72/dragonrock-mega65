@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /* ------------------------- opcodes ------------------------- */
 #define OPC_NOP 0x00    /* no operation                       */
@@ -377,19 +378,13 @@ byte performDoencOpcode(opcode *anOpcode) {
     // when re-entering dungeon module
     encounterWonOpcIdx= anOpcode->param1 + (256 * (anOpcode->param2));
     encounterLostOpcIdx= anOpcode->param3 + (256 * (anOpcode->param4));
-
-    gEncounterResult= doPreEncounter(); // try pre-encounter first
-    if (gEncounterResult == encFight) {
-        prepareForGameMode(gm_encounter);
-        quitDungeon= true;
-        /*
-             a real fight? -->
-             quit dungeon and let dispatcher handle loading the
-             rest of the encounter module
-        */
-    } else {
-        redrawAll();
-    }
+    prepareForGameMode(gm_encounter);
+    quitDungeon= true;
+    /* cg_clearLower(5);
+    gotoxy(0, 19); */
+    clrscr();
+    cputs("An encounter!");
+    sleep(1);
     return 0;
 }
 
@@ -794,7 +789,6 @@ void dungeonLoop() {
                     fetchDungeonItemAtPos(mposX, mposY, &dItem);
                     // dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 && ydiff == 0) {
-                        currentItem= dItem;
                         plotPlayer(currentX, currentY);
                     } else {
                         seenMap[mposX + (dungeonMapWidth * mposY)]=
@@ -833,8 +827,11 @@ void dungeonLoop() {
             }
         }
 
-        // *** perform opcode for this position! **
+        // alredy performed an opcode?
         if (!performedImpassableOpcode) {
+            // no? get what's under the player...
+            fetchDungeonItemAtPos(currentX+offsetX, currentY+offsetY, &currentItem);
+            // ...and perform it
             idx= opcodeIndexForDungeonItem(&currentItem);
             performOpcodeAtIndex(idx);
         }

@@ -1,47 +1,39 @@
 #include "monster.h"
 #include "utils.h"
 
-monster *gMonsterRoster[MROSTER_SIZE];
-byte gNumMonstersForRow[MONSTER_SLOTS];
+monster *gMonsterRows[MONSTER_ROWS][MONSTER_SLOTS];
 
-byte gMonsterCount;
-
-// add monster to row
-void addMonster(monster *aMonster, byte row) {
-    if (gMonsterCount>=MROSTER_SIZE) {
-        printf("no more space for monsters");
-        exit(0);
-    }
-    aMonster->row= row;
-    aMonster->column= 0;
-    gMonsterRoster[gMonsterCount++]= aMonster;
-}
-
-// clear monster roster
-void clearMonsters(void) {
-    byte x;
-    gMonsterCount= 0;
-    for (x= 0; x < MROSTER_SIZE; x++) {
-        if (gMonsterRoster[x]) {
-            // free(gMonsterRoster[x]);
-            gMonsterRoster[x]= NULL;
+void _initMonsterRows(byte dealloc) {
+    byte i, j;
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        for (j= 0; j < MONSTER_SLOTS; ++j) {
+            if (dealloc) {
+                free(gMonsterRows[i][j]);
+            }
+            gMonsterRows[i][j]= NULL;
         }
     }
 }
 
-/*
-char* pluralname(monsterDef *aMonsterDef) {
+void initMonsterRows() { _initMonsterRows(false); }
+
+// add monster to row
+void addMonster(monster *aMonster, byte row) {
     byte i;
-    if (aMonsterDef->pluralname) {
-        return aMonsterDef->pluralname;
+    for (i= 0; i < MONSTER_SLOTS; ++i) {
+        if (gMonsterRows[row][i] == NULL) {
+            printf("adding monster %x to row %d index %d\n", aMonster, row, i);
+            gMonsterRows[row][i]= aMonster;
+            cgetc();
+            return;
+        }
     }
-    strcpy(drbuf,aMonsterDef->name);
-    i=strlen(drbuf);
-    drbuf[i]='s';
-    drbuf[i+1]=0;
-    return drbuf;
+    printf("?no more space for monsters");
+    exit(0);
 }
-*/
+
+// clear monster roster
+void clearMonsters(void) { _initMonsterRows(true); }
 
 // create a monster with given ID and level
 // (creates standard level if level==0)
@@ -80,8 +72,8 @@ monster *createMonster(byte monsterID, byte level) {
 
     newMonster->def= aDef;
     for (i= 0; i < level; i++) {
-        newMonster->hp+= drand(aDef->hpPerLevel)+1;
-        newMonster->mp+= drand(aDef->mpPerLevel)+1;
+        newMonster->hp+= drand(aDef->hpPerLevel) + 1;
+        newMonster->mp+= drand(aDef->mpPerLevel) + 1;
     }
     newMonster->level= level;
 
@@ -94,7 +86,7 @@ void addNewMonster(byte monsterID, byte level, byte num, byte row) {
     monster *theMonster;
     for (i= 0; i < num; ++i) {
         theMonster= createMonster(monsterID, level);
-        theMonster->status = awake; /* TODO */
+        theMonster->status= awake; /* TODO */
         addMonster(theMonster, row);
     }
 }
