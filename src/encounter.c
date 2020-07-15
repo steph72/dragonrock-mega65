@@ -5,13 +5,11 @@
 #include <c64.h>
 #include <unistd.h>
 
-
 char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
                               "Parry", "Cast",   "Shoot"};
 
 char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                               "parries", "casts",   "shoots"};
-
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
@@ -30,11 +28,10 @@ encResult doEncounter() {
     bgcolor(COLOR_BLACK);
     textcolor(COLOR_RED);
     cputs("Encounter...");
+    clearMonsters();
     cgetc();
-    
     return encWon;
 }
-
 
 // clang-format off
 #pragma code-name(pop);

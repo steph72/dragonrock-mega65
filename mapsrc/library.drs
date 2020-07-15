@@ -4,10 +4,51 @@
 
 includemap "mapsrc/library.drm"
 
-; ====================
-;    history room
-; ====================
 
+; =========================
+; entrance & first corridor
+; =========================
+
+defc entrance:      15,0                 ; connects entrance
+defc corridor:      15,1 - 15,17         ; corridor message
+defc corridor_h:    3,17 - 25,17         ; horizontal corridor message
+defc historySign:   15,3
+
+$ msgCorridor,"A long, eerie corridor."
+
+$ msgEntrance,"""
+Two wooden doors guard the entrance
+to the library. Do you want to leave?
+(yes/no):"""
+
+$ historySignMsg,"""
+A sign above the east door says:
+'HISTORY AND SCIENCE'
+""" 
+
+corridor_h:
+corridor:
+    NSTAT msgCorridor
+    ---
+
+entrance:
+    DISP msgEntrance,True
+    YESNO_B exitDungeon
+    REDRAW
+    ---
+
+historySign:
+    NSTAT historySignMsg
+    ---
+
+exitDungeon:
+    ENTER_W 0,8,17   ; load outdoor map 0
+    ---
+
+
+; ============================
+;    history & science rooms
+; ============================
 
 defc historyRoom:  17,1 - 24,5
 defc wallWriting1: 19,5
@@ -80,6 +121,91 @@ scienceDoorSpace:
 
 wallWriting1:
     NSTAT wallWritingMsg1
+    ---
+
+; ====================
+;     great hall
+; ====================
+
+defc greatHall: 17,11 - 30,15
+defc crazyMan: 20,13
+
+$ greatHallMsg,"""
+This is the great hall of the library.
+Two rows of massive shelves once full 
+of books divide the room.
+"""
+
+$ crazyManMsg,"""
+Suddenly a mangy, decimated figure
+jumps at you. 'They have no mercy,
+have no mercy!', he screams. Then
+he attacks.
+"""
+
+greatHall:
+    NSTAT greatHallMsg
+    ---
+
+crazyMan:
+    NSTAT crazyManMsg
+    WKEY msgWaitkey
+    CLRENC
+    ADDENC 1,1,1,0
+    GOENC winCrazy,loseCrazy
+
+winCrazy:
+    ALTER crazyMan,greatHall,0
+    REDRAW
+    ---
+
+loseCrazy:
+    REDRAW
+    ---
+
+
+; ====================
+;    reading rooms
+; ====================
+
+defc readingRooms: 16,7 - 30,9
+
+; subsequent defcs override previous defcs,
+; so we can define the whole area as reading
+; room and then carve out the corridor... 
+
+defc rrHallway1: 20,7 - 21,7
+defc rrHallway2: 24,7 - 25,7
+defc rrHallway3: 28,7 - 30,7 
+defc kickedDoor: 15,8
+
+$ kickedDoorMsg,"""
+The door to the east has been 
+kicked in.
+"""
+
+$ readingRoomMsg,"""
+A small reading room with 
+nothing much of interest.
+"""
+
+$ corridorMsg,"""
+A small corridor connecting 
+the reading rooms.
+"""
+
+kickedDoor:
+    NSTAT kickedDoorMsg
+    ---
+
+rrHallway1:
+rrHallway2:
+rrHallway3:
+    NSTAT corridorMsg
+    ---
+
+readingRooms:
+    NSTAT readingRoomMsg
     ---
 
 ; ====================
@@ -327,47 +453,6 @@ $ msgOpenSDoor, "Your rusty key opens the door."
 openStorageRoomDoor:
     NSTAT msgOpenSDoor
     ---
-
-; -------------------------
-; entrance & first corridor
-; -------------------------
-
-defc entrance:      15,0                 ; connects entrance
-defc corridor:      15,1 - 15,17         ; corridor message
-defc corridor_h:    3,17 - 25,17         ; horizontal corridor message
-defc historySign:   15,3
-
-$ msgCorridor,"A long, eerie corridor."
-
-$ msgEntrance,"""
-Two wooden doors guard the entrance
-to the library. Do you want to leave?
-(yes/no):"""
-
-$ historySignMsg,"""
-A sign above the east door says:
-'HISTORY AND SCIENCE'
-""" 
-
-corridor_h:
-corridor:
-    NSTAT msgCorridor
-    ---
-
-entrance:
-    DISP msgEntrance,True
-    YESNO_B exitDungeon
-    REDRAW
-    ---
-
-historySign:
-    NSTAT historySignMsg
-    ---
-
-exitDungeon:
-    ENTER_W 0,8,17   ; load outdoor map 0
-    ---
-
 
 ;
 ; ----------------------------------
