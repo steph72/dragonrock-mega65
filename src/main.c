@@ -44,6 +44,7 @@
 #include "spell.h"
 
 #include "dispatcher.h"
+#include "sprites.h"
 
 #include "c65.h"
 
@@ -136,9 +137,7 @@ int main() {
     enableDRCharset();
     cg_borders();
     gotoxy(0, 2);
-    cputs("  Dragon Rock 1 - The Escape\r\n"
-          "  Written by Stephan Kleinert\r\n"
-          "  Copyright (c) 2020 7Turtles Software\r\n");
+    cputs("  Dragon Rock 1 - The Escape\r\n");
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");
     cputs(gCities[0]);
