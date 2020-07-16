@@ -4,7 +4,6 @@
 
 includemap "mapsrc/library.drm"
 
-
 ; =========================
 ; entrance & first corridor
 ; =========================
@@ -56,13 +55,34 @@ defc shelves1: 18,2 - 23,2
 defc shelves2: 18,4 - 23,4
 defc shelfCoins: 20,4
 defc scienceDoorSpace: 24,3
-defc historyRoomKobolds: 17,3
+
+; consecutive defcs to the same spot overwrite earlier defcs,
+; but they have the virtue of creating a label which we can 
+; later use to alter the dungeon via the ALTER opcode. 
+
+defc historyRoomKobolds: 16,3
+defc historyRoomKoboldsPrompt: 16,3
 
 $ historyRoomMsg,"""
 It seems like someone (or something)
 destroyed all of the books in a blind 
 rage. Thousands of torn, shredded and 
 burned pages cover the floor.""" 
+
+$ msgKobolds,"""
+
+The history and science sctions of
+the once great central library of
+Tianad. 
+
+Thousands of torn, shredded and burned
+pages cover the floor, the shelves are 
+mostly burnt down, and, oh yes, 
+there's also a group of bloodthirsty 
+kobolds, grinning at you, swords and 
+clubs at the ready!
+
+"""
 
 $ historyRoomShelvesMsg,"""
 These big and mighty shelves once were 
@@ -81,7 +101,10 @@ A sign above it says 'SCIENCE', but
 below, someone scrawled on the door:
 'OBEZNA WAS HAER'"""
 
-
+historyRoomKoboldsPrompt:
+    DISP msgKobolds,True
+    WKEY msgWaitkey
+    ALTER historyRoomKoboldsPrompt,historyRoomKobolds,0
 historyRoomKobolds:
     CLRENC
     ADDENC 1,1,3,0
@@ -132,15 +155,20 @@ defc crazyMan: 20,13
 
 $ greatHallMsg,"""
 This is the great hall of the library.
-Two rows of massive shelves once full 
-of books divide the room.
+The four marble pillars in the center 
+are all that has survived the burning
+and the looting.
 """
 
 $ crazyManMsg,"""
-Suddenly a mangy, decimated figure
-jumps at you. 'They have no mercy,
-have no mercy!', he screams. Then
-he attacks.
+
+All of a sudden, a mangy, deranged 
+figure jumps at you from behind the
+pillar, raving and drooling.
+
+'They have no mercy, have no mercy!', 
+he screams. Then he attacks.
+
 """
 
 greatHall:
@@ -148,7 +176,7 @@ greatHall:
     ---
 
 crazyMan:
-    NSTAT crazyManMsg
+    DISP crazyManMsg,True
     WKEY msgWaitkey
     CLRENC
     ADDENC 1,1,1,0

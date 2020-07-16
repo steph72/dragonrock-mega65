@@ -660,7 +660,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
     int error;
 
     dungeonItem anItem;
-    byte plotSign;
+    byte blocksView;
 
     dx= abs(x1 - x0);
     dy= abs(y1 - y0);
@@ -677,7 +677,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
     for (; n > 0; --n) {
 
         fetchDungeonItemAtPos(x, y, &anItem);
-        plotSign= anItem.mapItem & 15;
+        blocksView= (anItem.mapItem & 15)>=2 || (anItem.mapItem & 32);
 
         if (x < 0 || y < 0 || x > desc->dungeonMapWidth ||
             y > desc->dungeonMapHeight) {
@@ -686,7 +686,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
 
         seenMap[x + (dungeonMapWidth * y)]= anItem.mapItem;
 
-        if (plotSign >= 2) {
+        if (blocksView) {
             if (x != x0 || y != y0)
                 return;
         }
