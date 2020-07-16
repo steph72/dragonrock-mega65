@@ -43,7 +43,3 @@ for filename in mapdata/out*; do
   c1541 disc/drock.d81 -write $filename
 done
   
-for filename in bin/spr*; do
-  c1541 disc/drock.d81 -write $filename
-done
-
