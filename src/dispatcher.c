@@ -65,7 +65,7 @@ void commitNewGameMode(void) {
         break;
 
     case gm_init:
-        puts("??gamemode init");
+        puts("??new gamemode is init");
         exit(0);
         break;
 

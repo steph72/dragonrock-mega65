@@ -121,6 +121,12 @@ void initEngine(void) {
     gCurrentGameMode= gm_init;
 }
 
+void debugEncounter(void) {
+    gCurrentGameMode= gm_init;
+    prepareForGameMode(gm_encounter);
+    mainDispatchLoop();
+}
+
 void debugDungeon(void) {
     gCurrentDungeonIndex= 0;
     gCurrentGameMode= gm_init;
@@ -155,6 +161,10 @@ int main() {
 
     if (choice == 'd') {
         debugDungeon();
+    }
+
+    if (choice == 'e') {
+        debugEncounter();
     }
 
     if (choice == '1' && hasLoadedGame) {
