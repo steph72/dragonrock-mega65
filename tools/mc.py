@@ -172,7 +172,7 @@ class mapCompiler:
                     print("error: duplicate label definition at line", lineNum)
                     print("       (original definition was at line " +
                           str(self.gLabels.get(line))+")")
-                    exit(-1)
+                    exit(2)
                 # add to current labels
                 currentLabels.append(line)
             else:
@@ -246,7 +246,7 @@ class mapCompiler:
             if self.gStringMapping.get(aLabel) is None:
                 print("error: can't find string \""+aLabel +
                       "\" at line "+str(pline.lineNum))
-                exit(-1)
+                exit(3)
 
         # -------------- opcode factory --------------
 
@@ -332,10 +332,10 @@ class mapCompiler:
             if not coords:
                 print("error: cannot find coordinate mapping for",
                       pline.tCoordsLabel)
-                exit(-1)
+                return ""
             opc[1] = coords[0]
             opc[2] = coords[1]
-            opc[3] = "__DRLABEL__"+pline.tOpcLabel  # TODO! NEED 10-BIT-VALUE HERE
+            opc[3] = "__DRLABEL__"+pline.tOpcLabel  
             opc[4] = int(pline.tDungeonItemID)
             return opc
 
@@ -423,6 +423,9 @@ class mapCompiler:
             src.lineNum = lineNum
             opCreateFunc = "opCreate_"+src.opcode     # construct building function name
             newOpcode = locals()[opCreateFunc](src)   # ...and call it.
+            if (newOpcode==""):
+                print("aborted in line",lineNum)
+                exit(4)
             opcodes.append((lineNum, newOpcode))
 
             newOpcodeIndex = len(opcodes)-1
@@ -449,7 +452,7 @@ class mapCompiler:
                         opcodeNumber = self.gLinePosMapping[labelLineNumber]
                     except:
                         print("cannot resolve ", label)
-                        exit(0)
+                        exit(6)
                     # print(opcode, label, labelLineNumber, opcodeNumber)
                     if opcode[0]==8:
                         # special handling for ALTER opcode: 10 bit jump destination
@@ -622,7 +625,7 @@ class mapCompiler:
             except pp.ParseException as e:
                 print("parse error at line "+str(lineNum)+":")
                 print(e)
-                exit(-1)
+                exit(5)
             p_table.append((lineNum, a))
 
         # print("========== p_table ==========")
@@ -667,12 +670,14 @@ class mapCompiler:
 
 mc = mapCompiler()
 
-print("\nDragonRock map compiler v0.1 alpha")
-print("Written by Stephan Kleinert\n")
+print("\n********************************")
+print(" DragonRock map compiler v0.2a")
+print(" Written by Stephan Kleinert")
+print("********************************\n")
 
 if len(sys.argv) < 3:
     print("usage: "+sys.argv[0]+" infile outfile")
-    exit(-1)
+    exit(1)
 
 srcFilename = sys.argv[1]
 destFilename = sys.argv[2]

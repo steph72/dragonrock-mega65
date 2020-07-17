@@ -32,6 +32,7 @@ CONFIG  :=
 # Additional C compiler flags and options.
 # Default: none
 CFLAGS += -DDEBUG
+CFLAGS += --cpu 65C02
 CFLAGS += -DDRE_DATE="\"$(BUILDDATE)\""
 CFLAGS += -DDRE_VERSION="\"$(VERSION)\""
 CFLAGS += -DDRE_BUILDNUM="\"$(BUILDNUM)\""

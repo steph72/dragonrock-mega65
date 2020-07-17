@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # with leading dummy start address suitable to load via cbm kernel
 # from the raw charset file
 

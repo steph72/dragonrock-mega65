@@ -776,7 +776,7 @@ void dungeonLoop() {
         // would have slowed down the plus/4 to a crawl, but is a breeze
         // on the mega65...
 
-        look(currentX + offsetX, currentY + offsetY);
+        // look(currentX + offsetX, currentY + offsetY);
 
         // draw player surrounding
 

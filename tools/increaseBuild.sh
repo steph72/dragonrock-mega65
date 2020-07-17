@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 cfile=BUILDIDX
 
 if [ -f "$cfile" ]; then

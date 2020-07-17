@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 # printf "00" | cat - graphics/dr_charset.bin > bin/charset
 
 if [ ! -f "disc/drock.d81" ]; then
