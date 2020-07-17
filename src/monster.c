@@ -2,18 +2,34 @@
 #include "utils.h"
 
 monster *gMonsterRows[MONSTER_ROWS][MONSTER_SLOTS];
+monster *gMonsterRoster[MONSTER_SLOTS * MONSTER_ROWS];
+
+void _initMonsterRoster(byte dealloc) {
+    byte i;
+    for (i= 0; i < MONSTER_ROWS * MONSTER_SLOTS; i++) {
+        if (dealloc && gMonsterRoster[i]) {
+            free(gMonsterRoster[i]);
+        }
+        gMonsterRoster[i]= NULL;
+    }
+}
+
+void _addMonsterToRoster(monster *aMonster) {
+    byte i;
+    for (i= 0; i < MONSTER_ROWS * MONSTER_SLOTS; i++) {
+        if (!gMonsterRoster[i]) {
+            gMonsterRoster[i]= aMonster;
+            return;
+        }
+    }
+    printf("?no more space in monster roster");
+}
 
 void _initMonsterRows(byte dealloc) {
     byte i, j;
+    _initMonsterRoster(dealloc);
     for (i= 0; i < MONSTER_ROWS; ++i) {
         for (j= 0; j < MONSTER_SLOTS; ++j) {
-            if (dealloc && gMonsterRows[i][j]) {
-#ifdef DEBUG
-                printf("dealloc monster row %d slot %d:  %x\n",i,j,gMonsterRows[i][j]);
-                cgetc();
-#endif
-                free(gMonsterRows[i][j]);
-            }
             gMonsterRows[i][j]= NULL;
         }
     }
@@ -26,10 +42,10 @@ void addMonster(monster *aMonster, byte row) {
     byte i;
     for (i= 0; i < MONSTER_SLOTS; ++i) {
         if (gMonsterRows[row][i] == NULL) {
-#ifdef DEBUG
-            printf("adding monster %x to row %d index %d\n", aMonster, row, i);
-#endif
             gMonsterRows[row][i]= aMonster;
+            aMonster->row = row;
+            aMonster->column = i;
+            _addMonsterToRoster(aMonster);
             return;
         }
     }

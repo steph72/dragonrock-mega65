@@ -83,7 +83,8 @@ typedef enum _cstateType {
     asleep= 2,
     dead= 3,
     awake= 4,
-    surrendered= 5
+    charmed = 5,
+    surrendered= 6
 } characterStateT;
 
 typedef enum _itemType {

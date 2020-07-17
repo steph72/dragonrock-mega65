@@ -123,6 +123,9 @@ void initEngine(void) {
 
 void debugEncounter(void) {
     gCurrentGameMode= gm_init;
+    addNewMonster(1,1,3,0);
+    addNewMonster(1,1,4,1);
+    addNewMonster(1,1,5,2);
     prepareForGameMode(gm_encounter);
     mainDispatchLoop();
 }

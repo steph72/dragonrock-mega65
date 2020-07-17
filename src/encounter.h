@@ -11,9 +11,7 @@
 #include "monster.h"
 #include "irq.h"
 
-extern byte gNumMonstersForRow[MONSTER_ROWS];
-extern monster *gMonsterRoster[MROSTER_SIZE];
-extern byte gMonsterCount;
+extern monster *gMonsterRows[MONSTER_ROWS][MONSTER_SLOTS];
 
 byte performAddCoinsOpcode(opcode *anOpcode);
 
