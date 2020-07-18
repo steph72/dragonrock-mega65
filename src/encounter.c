@@ -1,9 +1,9 @@
 #include "encounter.h"
+#include "congui.h"
 #include "globals.h"
 #include "spell.h"
 #include "types.h"
 #include "utils.h"
-#include "congui.h"
 
 #include <c64.h>
 #include <unistd.h>
@@ -17,6 +17,8 @@ char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
+
+void showPartyOptions(void);
 
 // get monster name for given row
 char *getMonsterNameForRow(byte row) {
@@ -73,7 +75,7 @@ void preCombatScreen() {
     byte i;
     cg_titlec(COLOR_RED, COLOR_GRAY3, 20, "An encounter!");
     for (i= 0; i < MONSTER_ROWS; i++) {
-        gotoxy(0, 21+i);
+        gotoxy(0, 21 + i);
         cputs(statusLineForRow(i));
     }
 }
@@ -87,13 +89,80 @@ encResult doEncounter() {
     bordercolor(COLOR_BLACK);
     bgcolor(COLOR_BLACK);
     textcolor(COLOR_RED);
-    cputs("Encounter...");
+    showPartyOptions();
+    cgetc();
     test();
     cgetc();
     clearMonsters();
     test();
     cgetc();
     return encWon;
+}
+
+// ------------------ screen config ---------------------
+
+void showPartyOptions(void) {
+    byte i, j;
+    character *aChar;
+
+    // setup screen
+    clrscr();
+    bgcolor(COLOR_BLACK);
+    for (i= 29; i < 40; ++i) {
+        for (j= 7; j < 24; ++j) {
+            *(SCREEN + (j * 40) + i)= 160;
+            *(COLOR_RAM + (j * 40) + i)= COLOR_GRAY2;
+        }
+    }
+    for (i= 0; i < 40; ++i) {
+        *(SCREEN + i)= 160;
+        *(COLOR_RAM + i)= COLOR_RED;
+        for (j= 0; j < 3; ++j) {
+            if (getMonsterCountForRow(j)) {
+                *(SCREEN + ((24 - j) * 40) + i)= 160;
+                *((COLOR_RAM) + ((24 - j) * 40) + i)= COLOR_GREEN;
+            }
+        }
+        for (j= 1; j < 7; ++j) {
+            *(SCREEN + (j * 40) + i)= 160;
+            *((COLOR_RAM) + (j * 40) + i)= COLOR_YELLOW;
+        }
+    }
+    gotoxy(0, 0);
+    textcolor(COLOR_RED);
+    revers(1);
+    cputs("# ---Name--- Attacks  Hit pts  -Magics-");
+    textcolor(COLOR_GRAY3);
+    gotoxy(4, 7);
+    cputs(" dead ");
+    textcolor(COLOR_YELLOW);
+    gotoxy(11, 7);
+    cputs(" okay ");
+    textcolor(COLOR_BLUE);
+    gotoxy(18, 7);
+    cputs(" sleep ");
+
+    // show party
+    for (i= 0; i < partyMemberCount(); ++i) {
+        aChar= party[i];
+        textcolor(COLOR_YELLOW);
+        gotoxy(0, 1 + i);
+        printf("%d %s", i + 1, aChar->name);
+        gotoxy(16, 1 + i);
+        printf("%d", getNumberOfAttacks(aChar));
+        gotoxy(23, 1 + i);
+        sprintf(drbuf, "%d/%d", aChar->aHP, aChar->aMaxHP);
+        if (strlen(drbuf) < 5) {
+            cputc(' ');
+        }
+        cputs(drbuf);
+        gotoxy(32, 1 + i);
+        sprintf(drbuf, "%d/%d", aChar->aMP, aChar->aMaxMP);
+        if (strlen(drbuf) < 5) {
+            cputc(' ');
+        }
+        cputs(drbuf);
+    }
 }
 
 // clang-format off

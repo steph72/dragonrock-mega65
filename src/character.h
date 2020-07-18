@@ -15,6 +15,7 @@ byte partyMemberCount(void);
 
 signed char bonusValueForAttribute(attrT a);
 char* bonusStrForAttribute(attrT a);
+byte getNumberOfAttacks(character *aCharacter);
 
 item* getWeapon(character *aCharacter);
 

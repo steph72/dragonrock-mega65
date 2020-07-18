@@ -77,6 +77,11 @@ byte addInventoryItem(byte anItemID, character *aCharacter) {
 
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 
+byte getNumberOfAttacks(character *aCharacter) {
+    // TODO
+    return 1;
+}
+
 item *getWeapon(character *aCharacter) {
     return inventoryItemForID(aCharacter->weapon);
 }
