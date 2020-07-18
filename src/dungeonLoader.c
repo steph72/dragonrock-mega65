@@ -1,6 +1,7 @@
 #include "dungeon.h"
 #include "globals.h"
 #include "memory.h"
+#include "congui.h"
 #include <c64.h>
 #include <conio.h>
 #include <stdio.h>
@@ -66,7 +67,7 @@ dungeonDescriptor *loadMap(char *filename) {
     FILE *infile;
 
 #ifdef DLDEBUG
-    clrscr();
+    cg_clear();
     printf("load map %s\n\nloading map header\n", filename);
 #endif
 
@@ -193,7 +194,8 @@ void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc) {
     while (currentFeelIdx < numFeels) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DLDEBUG
-        printf("%lx ", currentFeelIdx, currentPtr);
+        cputc('.');
+//        printf("%d-%lx ", currentFeelIdx, currentPtr);
 #endif
         while (lpeek(currentPtr) != 0) {
             currentPtr++;

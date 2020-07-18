@@ -121,7 +121,7 @@ void addToParty(void) {
         flagError("no room in party");
         return;
     }
-    clrscr();
+    cg_clear();
     cg_titlec(COLOR_BROWN, COLOR_YELLOW, 0, "Add guild member");
 
     _listGuildMembers();

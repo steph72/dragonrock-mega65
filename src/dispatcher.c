@@ -42,7 +42,7 @@ void commitNewGameMode(void) {
     lastGameMode= gCurrentGameMode;
     gCurrentGameMode= gNextGameMode;
 
-    clrscr();
+    cg_clear();
 
     switch (gNextGameMode) {
 

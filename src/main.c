@@ -79,7 +79,7 @@ void testMachine(void) {
         bordercolor(0);
         bgcolor(0);
         textcolor(COLOR_LIGHTRED);
-        clrscr();
+        cg_clear();
         cputs("We're awfully sorry, but DragonRock\r\n"
               "needs a MEGA65 computer to run.\r\n");
         exit(0);
@@ -142,7 +142,7 @@ int main() {
     byte i;
 
     initEngine();
-    clrscr();
+    cg_clear();
     enableDRCharset();
     cg_borders();
     gotoxy(0, 2);

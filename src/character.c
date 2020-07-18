@@ -197,7 +197,7 @@ void useSpecial(item *anItem) {
 void more(char *filename) {
     FILE *infile;
     int line= 0;
-    clrscr();
+    cg_clear();
     infile= fopen(filename, "r");
     while (!feof(infile)) {
         fgets(drbuf, BUFSIZE, infile);
@@ -210,7 +210,7 @@ void more(char *filename) {
             cgetc();
             cursor(0);
             line= 0;
-            clrscr();
+            cg_clear();
         }
     }
     fclose(infile);
@@ -435,7 +435,7 @@ void inspectCharacter(byte idx) {
 
         spellLine= 0;
         ic= party[idx];
-        clrscr();
+        cg_clear();
         revers(1);
         cputs(ic->name);
         revers(0);

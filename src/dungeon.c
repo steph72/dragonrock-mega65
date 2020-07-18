@@ -118,7 +118,7 @@ byte performDisplayTextOpcode(opcode *anOpcode) {
 
     feelIndex= anOpcode->param1;
     if (anOpcode->param2 != 0) {
-        clrscr();
+        cg_clear();
     }
     // cprintf("%s",feelForIndex(anOpcode->param1));
     fetchFeelForIndex(anOpcode->param1, textbuf);
@@ -382,7 +382,7 @@ byte performDoencOpcode(opcode *anOpcode) {
     quitDungeon= true;
     /* cg_clearLower(5);
     gotoxy(0, 19); */
-    clrscr();
+    cg_clear();
     cputs("An encounter!");
     sleep(1);
     return 0;
@@ -957,7 +957,7 @@ void setupDungeonScreen(void) {
     dMapBorderCol= isDungeonMode ? COLOR_GREEN : COLOR_BLUE;
 
     textcolor(dTextCol);
-    clrscr();
+    cg_clear();
     bordercolor(dBorderCol);
     bgcolor(dBackgroundCol);
     textcolor(dMapBorderCol);

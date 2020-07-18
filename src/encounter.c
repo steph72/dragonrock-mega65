@@ -14,11 +14,13 @@ char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
 char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                               "parries", "casts",   "shoots"};
 
+char *preEncounterMenu[] = {"greet","threaten","beg mercy", "fight", "run", "#"};
+
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
 
-void showPartyOptions(void);
+void preCombatScreen(void);
 
 // get monster name for given row
 char *getMonsterNameForRow(byte row) {
@@ -71,63 +73,44 @@ char *statusLineForRow(byte row) {
     return drbuf;
 }
 
-void preCombatScreen() {
-    byte i;
-    cg_titlec(COLOR_RED, COLOR_GRAY3, 20, "An encounter!");
-    for (i= 0; i < MONSTER_ROWS; i++) {
-        gotoxy(0, 21 + i);
-        cputs(statusLineForRow(i));
-    }
-}
-
-void test() {
-    byte i;
-    preCombatScreen();
-}
-
 encResult doEncounter() {
     bordercolor(COLOR_BLACK);
     bgcolor(COLOR_BLACK);
     textcolor(COLOR_RED);
-    showPartyOptions();
-    cgetc();
-    test();
+    preCombatScreen();
     cgetc();
     clearMonsters();
-    test();
+    preCombatScreen();
     cgetc();
     return encWon;
 }
 
 // ------------------ screen config ---------------------
 
-void showPartyOptions(void) {
+void preCombatScreen(void) {
     byte i, j;
     character *aChar;
 
     // setup screen
-    clrscr();
+    cg_clear();
     bgcolor(COLOR_BLACK);
-    for (i= 29; i < 40; ++i) {
-        for (j= 7; j < 24; ++j) {
-            *(SCREEN + (j * 40) + i)= 160;
-            *(COLOR_RAM + (j * 40) + i)= COLOR_GRAY2;
+
+    // menu area
+    cg_block(29, 7, 39, 23, 160, COLOR_GRAY2);
+    cg_verticalMenu(29,8,COLOR_GRAY2,preEncounterMenu);
+
+    // title bar
+    cg_line(0,0,39,160,COLOR_RED);
+
+    // party area
+    cg_block(0, 1, 39, 6, 160, COLOR_YELLOW);
+
+    for (j= 0; j < 3; ++j) {
+        if (getMonsterCountForRow(j)) {
+            cg_line(24-j,0,39,160,COLOR_GREEN);
         }
     }
-    for (i= 0; i < 40; ++i) {
-        *(SCREEN + i)= 160;
-        *(COLOR_RAM + i)= COLOR_RED;
-        for (j= 0; j < 3; ++j) {
-            if (getMonsterCountForRow(j)) {
-                *(SCREEN + ((24 - j) * 40) + i)= 160;
-                *((COLOR_RAM) + ((24 - j) * 40) + i)= COLOR_GREEN;
-            }
-        }
-        for (j= 1; j < 7; ++j) {
-            *(SCREEN + (j * 40) + i)= 160;
-            *((COLOR_RAM) + (j * 40) + i)= COLOR_YELLOW;
-        }
-    }
+
     gotoxy(0, 0);
     textcolor(COLOR_RED);
     revers(1);
@@ -162,6 +145,15 @@ void showPartyOptions(void) {
             cputc(' ');
         }
         cputs(drbuf);
+    }
+
+    // show enemies
+    for (i= 0; i < MONSTER_ROWS; i++) {
+        gotoxy(0, 24 - i);
+        textcolor(COLOR_GREEN);
+        if (getMonsterCountForRow(i)) {
+            cputs(statusLineForRow(i));
+        }
     }
 }
 

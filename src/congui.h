@@ -13,4 +13,10 @@ void cg_clearGraphics(void);
 void cg_clearText(void);
 void cg_clear(void);
 
+void cg_block(byte x0, byte x1, byte y0, byte y1, byte character, byte col);
+void cg_line(byte y, byte x0, byte x1, byte character, byte col);
+void cg_verticalMenu(byte x0, byte y0, byte col, char *items[]);
+
+
+
 
