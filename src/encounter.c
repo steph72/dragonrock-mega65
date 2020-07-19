@@ -89,7 +89,7 @@ void preCombatScreen(void) {
     byte i, j;
     character *aChar;
     static char *preEncounterMenu[]= {"greet", "threaten", "beg mercy",
-                                            "fight", "run",      "\0"};
+                                      "fight", "run",      "\0"};
 
     // setup screen
     cg_clear();
@@ -97,7 +97,12 @@ void preCombatScreen(void) {
 
     // menu area
     cg_block(29, 7, 39, 24, 160, COLOR_GRAY2);
-    cg_verticalMenu(29, 8, 11, COLOR_GRAY2, preEncounterMenu);
+    cg_verticalList(29, 8, 1, 11, COLOR_GRAY2, preEncounterMenu);
+    textcolor(COLOR_CYAN);
+    gotoxy(30, 14);
+    cputs("  party  ");
+    gotoxy(30, 15);
+    cputs(" options ");
 
     // title bar
     cg_line(0, 0, 39, 160, COLOR_RED);
@@ -155,6 +160,7 @@ void preCombatScreen(void) {
             cputs(statusLineForRow(i));
         }
     }
+    cg_verticalMenu(29, 8, 1, 11, 5);
 }
 
 // clang-format off

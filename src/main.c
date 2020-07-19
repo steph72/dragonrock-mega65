@@ -140,6 +140,7 @@ void debugDungeon(void) {
 int main() {
     static char choice;
     byte i;
+    char *mainMenuItems[3];
 
     initEngine();
     cg_clear();
@@ -154,13 +155,9 @@ int main() {
     gCurrentCityIndex= 0;
     prepareForGameMode(gm_city);
 
-    cputsxy(2, 20, "Select option: ");
-
-    cursor(1);
     do {
         choice= cgetc();
     } while (strchr("12de", choice) == NULL);
-    cursor(0);
 
     if (choice == 'd') {
         debugDungeon();

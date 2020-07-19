@@ -24,9 +24,12 @@
 #include <conio.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
-char *waitChars= "/-\\|";
-byte waitIdx;
+byte gPal;
+signed char gPalDir;
+
+clock_t lastPaletteTick;
 
 void cg_emptyBuffer(void) {
     while (kbhit()) {
@@ -75,27 +78,93 @@ void cg_center(byte x, byte y, byte width, char *text) {
     cputs(text);
 }
 
-void cg_verticalMenu(byte x0, byte y0, byte width, byte col, char *items[]) {
+void cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
+                     char *items[]) {
     byte currentNum;
     char *currentItem;
 
     currentNum= 0;
     currentItem= items[0];
-    revers(1);
     textcolor(col);
+    revers(1);
     while (currentItem[0] != '\0') {
-        cg_center(x0, y0 + currentNum, width, currentItem);
+        if (width != 0) {
+            cg_center(x0, y0 + (currentNum * lineSpacing), width, currentItem);
+        } else {
+            gotoxy(x0, y0 + (currentNum * lineSpacing));
+            cputs(currentItem);
+        }
         currentItem= items[++currentNum];
     }
+}
+
+void _stepColor(void) {
+    if ((clock() - lastPaletteTick) < 3) {
+        return;
+    }
+    lastPaletteTick= clock();
+    gPal+= gPalDir;
+    POKE(0xd100U + 1, gPal/2);
+    POKE(0xd200U + 1, gPal);
+    POKE(0xd300U + 1, 15);
+    if (gPal == 15) {
+        gPalDir= -1;
+    } else if (gPal == 0) {
+        gPalDir= 1;
+    }
+}
+
+void _stopColor(void) {
+    POKE(0xd100U + 1, 15);
+    POKE(0xd200U + 1, 15);
+    POKE(0xd300U + 1, 15);
+}
+
+void cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
+                     byte menuItemCount) {
+    byte originalColor;
+    byte currentRow;
+    byte *currentBase;
+    byte lineInc;
+    char input;
+
+    currentRow= 0;
+
+    do {
+        currentBase= COLOR_RAM + ((y0 + (lineSpacing * currentRow)) * 40) + x0;
+        originalColor= *currentBase;
+        lfill((long)currentBase, 1, width);
+        while (!kbhit()) {
+            _stepColor();
+        }
+        input= cgetc();
+        lfill((long)currentBase, originalColor, width);
+        switch (input) {
+        case 17: // down
+            if (currentRow < menuItemCount - 1)
+                currentRow++;
+            break;
+        case 145: // up
+            if (currentRow > 0)
+                currentRow--;
+        default:
+            break;
+        }
+    } while (input != 13);
+    _stopColor();
 }
 
 void cg_init() {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     textcolor(COLOR_GREEN);
+    gPal= 0;
+    gPalDir= 1;
     cbm_k_bsout(11); // disable shift+cmd on c128 & 364
     cbm_k_bsout(14); // lowercase charset
     cg_clear();
+    mega65_io_enable();
+    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
 }
 
 void cg_borders(void) {
