@@ -14,8 +14,6 @@ char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
 char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                               "parries", "casts",   "shoots"};
 
-char *preEncounterMenu[] = {"greet","threaten","beg mercy", "fight", "run", "#"};
-
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
@@ -90,24 +88,26 @@ encResult doEncounter() {
 void preCombatScreen(void) {
     byte i, j;
     character *aChar;
+    static char *preEncounterMenu[]= {"greet", "threaten", "beg mercy",
+                                            "fight", "run",      "\0"};
 
     // setup screen
     cg_clear();
     bgcolor(COLOR_BLACK);
 
     // menu area
-    cg_block(29, 7, 39, 23, 160, COLOR_GRAY2);
-    cg_verticalMenu(29,8,COLOR_GRAY2,preEncounterMenu);
+    cg_block(29, 7, 39, 24, 160, COLOR_GRAY2);
+    cg_verticalMenu(29, 8, 11, COLOR_GRAY2, preEncounterMenu);
 
     // title bar
-    cg_line(0,0,39,160,COLOR_RED);
+    cg_line(0, 0, 39, 160, COLOR_RED);
 
     // party area
     cg_block(0, 1, 39, 6, 160, COLOR_YELLOW);
 
     for (j= 0; j < 3; ++j) {
         if (getMonsterCountForRow(j)) {
-            cg_line(24-j,0,39,160,COLOR_GREEN);
+            cg_line(24 - j, 0, 39, 160, COLOR_GREEN);
         }
     }
 

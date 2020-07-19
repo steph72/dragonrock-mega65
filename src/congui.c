@@ -56,30 +56,36 @@ void cg_clear(void) {
 
 void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     unsigned int bas;
-    bas = y*40;
-    lfill ((long)SCREEN+bas+x0,character,x1-x0+1);
-    lfill ((long)COLOR_RAM+bas+x0,col,x1-x0+1);
+    bas= y * 40;
+    lfill((long)SCREEN + bas + x0, character, x1 - x0 + 1);
+    lfill((long)COLOR_RAM + bas + x0, col, x1 - x0 + 1);
 }
 
 void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col) {
-    byte i,num;
+    byte i;
     for (i= y0; i <= y1; ++i) {
-        cg_line(i,x0,x1,character,col);
+        cg_line(i, x0, x1, character, col);
     }
 }
 
-void cg_verticalMenu(byte x0, byte y0, byte col, char *items[]) {
-    byte x,y;
+void cg_center(byte x, byte y, byte width, char *text) {
+    byte mid;
+    mid= width / 2;
+    gotoxy(x + (width / 2) - (strlen(text) / 2), y);
+    cputs(text);
+}
+
+void cg_verticalMenu(byte x0, byte y0, byte width, byte col, char *items[]) {
     byte currentNum;
     char *currentItem;
-    currentNum=0;
-    currentItem = items[0];
+
+    currentNum= 0;
+    currentItem= items[0];
     revers(1);
     textcolor(col);
-    while (currentItem[0]!='#') {
-        gotoxy(x0,y0+currentNum);
-        cputs(currentItem);
-        currentItem = items[++currentNum];
+    while (currentItem[0] != '\0') {
+        cg_center(x0, y0 + currentNum, width, currentItem);
+        currentItem= items[++currentNum];
     }
 }
 
