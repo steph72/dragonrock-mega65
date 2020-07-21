@@ -8,17 +8,17 @@
 #include <c64.h>
 #include <unistd.h>
 
-char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
+static char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
                               "Parry", "Cast",   "Shoot"};
 
-char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
+static char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                               "parries", "casts",   "shoots"};
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
 
-void preCombatScreen(void);
+byte runPreCombat(void);
 
 // get monster name for given row
 char *getMonsterNameForRow(byte row) {
@@ -71,22 +71,35 @@ char *statusLineForRow(byte row) {
     return drbuf;
 }
 
+void signalPreCombatResult(byte res) {
+    char *results[]= {
+        "They greet you.",
+        "They surrender.",
+        "They take your money and let you go.",
+        "You don't get away.",
+        "They attack."
+    };
+    cg_block(0,0,39,6,160,COLOR_YELLOW);
+    cg_block(1,2,38,4,160,COLOR_CYAN);
+    textcolor(COLOR_CYAN);
+    cg_center(0,3,40,results[res]);
+    sleep(1);
+}
+
 encResult doEncounter() {
-    bordercolor(COLOR_BLACK);
-    bgcolor(COLOR_BLACK);
-    textcolor(COLOR_RED);
-    preCombatScreen();
-    cgetc();
+    byte choice;
+    choice= runPreCombat();
+    signalPreCombatResult(2);
     clearMonsters();
-    preCombatScreen();
     cgetc();
     return encWon;
 }
 
 // ------------------ screen config ---------------------
 
-void preCombatScreen(void) {
+byte runPreCombat(void) {
     byte i, j;
+    byte choice;
     character *aChar;
     static char *preEncounterMenu[]= {"greet", "threaten", "beg mercy",
                                       "fight", "run",      "\0"};
@@ -160,7 +173,7 @@ void preCombatScreen(void) {
             cputs(statusLineForRow(i));
         }
     }
-    cg_verticalMenu(29, 8, 1, 11, 5);
+    return (cg_verticalMenu(29, 8, 1, 11, 5));
 }
 
 // clang-format off

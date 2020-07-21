@@ -13,10 +13,11 @@ void cg_clearGraphics(void);
 void cg_clearText(void);
 void cg_clear(void);
 
-void cg_block(byte x0, byte x1, byte y0, byte y1, byte character, byte col);
+void cg_center(byte x, byte y, byte width, char *text);
+void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
 void cg_line(byte y, byte x0, byte x1, byte character, byte col);
 void cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col, char *items[]);
-void cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width, byte menuItemCount);
+byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width, byte menuItemCount);
 
 
 

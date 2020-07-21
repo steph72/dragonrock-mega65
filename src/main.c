@@ -72,7 +72,7 @@ void loadSaved(void);
 void installCharset(void);
 
 const char *prompt=
-    "DREngine/C65 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+    "DREngine/M65 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void testMachine(void) {
     if (!testVIC4()) {
@@ -90,7 +90,7 @@ void enableDRCharset(void) {
     // switch vic-iv to new charset
     mega65_io_enable();
     POKE(0xd068U, 0x00);
-    POKE(0xd069U, 0x80);
+    POKE(0xd069U, 0x20);
     POKE(0xd06aU, 0x01);
 }
 
@@ -102,7 +102,7 @@ void loadCharset(void) {
         puts("Failed loading charset.");
         exit(0);
     }
-    lcopy((long)charTemp, 0x018000U, 4096); // use bank 2 for charset
+    lcopy((long)charTemp, 0x012000U, 4096); // use upper memory for charset
     free(charTemp);
 }
 
@@ -139,8 +139,6 @@ void debugDungeon(void) {
 
 int main() {
     static char choice;
-    byte i;
-    char *mainMenuItems[3];
 
     initEngine();
     cg_clear();

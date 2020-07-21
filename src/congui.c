@@ -26,10 +26,10 @@
 #include <string.h>
 #include <time.h>
 
-byte gPal;
-signed char gPalDir;
+static byte gPal;
+static signed char gPalDir;
 
-clock_t lastPaletteTick;
+static clock_t lastPaletteTick;
 
 void cg_emptyBuffer(void) {
     while (kbhit()) {
@@ -43,7 +43,7 @@ char cg_getkey(void) {
 }
 
 void cg_clearFromTo(byte start, byte end) {
-    byte i;
+    static byte i;
     for (i= start; i < end; ++i) {
         cclearxy(0, i, 40);
     }
@@ -58,7 +58,7 @@ void cg_clear(void) {
 }
 
 void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
-    unsigned int bas;
+    static unsigned int bas;
     bas= y * 40;
     lfill((long)SCREEN + bas + x0, character, x1 - x0 + 1);
     lfill((long)COLOR_RAM + bas + x0, col, x1 - x0 + 1);
@@ -99,7 +99,7 @@ void cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
 }
 
 void _stepColor(void) {
-    if ((clock() - lastPaletteTick) < 3) {
+    if ((clock() - lastPaletteTick) < 4) {
         return;
     }
     lastPaletteTick= clock();
@@ -120,13 +120,13 @@ void _stopColor(void) {
     POKE(0xd300U + 1, 15);
 }
 
-void cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
+byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
                      byte menuItemCount) {
-    byte originalColor;
-    byte currentRow;
-    byte *currentBase;
-    byte lineInc;
-    char input;
+    static byte originalColor;
+    static byte currentRow;
+    static byte *currentBase;
+    static byte lineInc;
+    static char input;
 
     currentRow= 0;
 
@@ -152,6 +152,7 @@ void cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
         }
     } while (input != 13);
     _stopColor();
+    return currentRow;
 }
 
 void cg_init() {
