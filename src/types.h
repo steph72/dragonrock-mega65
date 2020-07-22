@@ -66,6 +66,14 @@ typedef enum _encCommand {
     ec_fireBow
 } encCommand;
 
+typedef enum _pcr {
+    preCombatResultGreet,
+    preCombatResultSurrender,
+    preCombatResultMercy,
+    preCombatResultFleeFailure,
+    preCombatResultNoResponse
+} preCombatResult;
+
 typedef enum _encResult {
     encUndef= 0,  // no encounter
     encWon,       // the party wins

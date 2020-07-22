@@ -78,7 +78,7 @@ void cg_center(byte x, byte y, byte width, char *text) {
     cputs(text);
 }
 
-void cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
+byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
                      char *items[]) {
     byte currentNum;
     char *currentItem;
@@ -96,9 +96,10 @@ void cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
         }
         currentItem= items[++currentNum];
     }
+    return currentNum;
 }
 
-void _stepColor(void) {
+void cg_stepColor(void) {
     if ((clock() - lastPaletteTick) < 4) {
         return;
     }
@@ -114,7 +115,7 @@ void _stepColor(void) {
     }
 }
 
-void _stopColor(void) {
+void cg_stopColor(void) {
     POKE(0xd100U + 1, 15);
     POKE(0xd200U + 1, 15);
     POKE(0xd300U + 1, 15);
@@ -135,7 +136,7 @@ byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
         originalColor= *currentBase;
         lfill((long)currentBase, 1, width);
         while (!kbhit()) {
-            _stepColor();
+            cg_stepColor();
         }
         input= cgetc();
         lfill((long)currentBase, originalColor, width);
@@ -151,8 +152,17 @@ byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
             break;
         }
     } while (input != 13);
-    _stopColor();
+    cg_stopColor();
     return currentRow;
+}
+
+byte cg_menu(byte width, char *items[] ) {
+    byte x,y;
+    byte numItems;
+    x = wherex();
+    y = wherey();
+    numItems = cg_verticalList(x,y,1,width,COLOR_GRAY2,items);
+    return cg_verticalMenu(x,y,1,width,numItems);
 }
 
 void cg_init() {

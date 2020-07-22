@@ -9,10 +9,10 @@
 #include <unistd.h>
 
 static char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
-                              "Parry", "Cast",   "Shoot"};
+                                     "Parry", "Cast",   "Shoot"};
 
 static char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
-                              "parries", "casts",   "shoots"};
+                                     "parries", "casts",   "shoots"};
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
@@ -71,27 +71,22 @@ char *statusLineForRow(byte row) {
     return drbuf;
 }
 
-void signalPreCombatResult(byte res) {
-    char *results[]= {
-        "They greet you.",
-        "They surrender.",
-        "They take your money and let you go.",
-        "You don't get away.",
-        "They attack."
-    };
-    cg_block(0,0,39,6,160,COLOR_YELLOW);
-    cg_block(1,2,38,4,160,COLOR_CYAN);
+void signalPreCombatResult(preCombatResult res) {
+    char *results[]= {"The monsters greet you.", "The monsters surrender.",
+                      "The monsters take your money.", "You don't get away.",
+                      "The monsters don't respond."};
+
+    cg_block(0, 0, 39, 6, 160, COLOR_CYAN);
     textcolor(COLOR_CYAN);
-    cg_center(0,3,40,results[res]);
+    cg_center(0, 3, 40, results[res]);
     sleep(1);
 }
 
 encResult doEncounter() {
     byte choice;
     choice= runPreCombat();
-    signalPreCombatResult(2);
+    signalPreCombatResult(preCombatResultNoResponse);
     clearMonsters();
-    cgetc();
     return encWon;
 }
 
@@ -102,7 +97,7 @@ byte runPreCombat(void) {
     byte choice;
     character *aChar;
     static char *preEncounterMenu[]= {"greet", "threaten", "beg mercy",
-                                      "fight", "run",      "\0"};
+                                      "fight", "run",      ""};
 
     // setup screen
     cg_clear();
@@ -110,8 +105,8 @@ byte runPreCombat(void) {
 
     // menu area
     cg_block(29, 7, 39, 24, 160, COLOR_GRAY2);
-    cg_verticalList(29, 8, 1, 11, COLOR_GRAY2, preEncounterMenu);
     textcolor(COLOR_CYAN);
+    revers(1);
     gotoxy(30, 14);
     cputs("  party  ");
     gotoxy(30, 15);
@@ -173,7 +168,8 @@ byte runPreCombat(void) {
             cputs(statusLineForRow(i));
         }
     }
-    return (cg_verticalMenu(29, 8, 1, 11, 5));
+    gotoxy(29,8);
+    return (cg_menu(11,preEncounterMenu));
 }
 
 // clang-format off
