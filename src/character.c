@@ -1,13 +1,13 @@
-#include <conio.h>
 #include <c64.h>
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "character.h"
 #include "congui.h"
-#include "spell.h"
 #include "globals.h"
+#include "spell.h"
 
 character *party[PARTYSIZE];
 
@@ -148,39 +148,34 @@ void showCurrentParty(byte small) {
     static byte i, x, y;
     static character *c;
 
-    y= 2;
+    y= 0;
 
     if (small) {
         x= 19;
+        y=1;
     } else {
         x= 0;
-        cputsxy(17,2,"MP");
-        cputsxy(25,2,"HP");
-        cputsxy(2,2,"Name");
-        cputsxy(0,2,"#");
-        cputsxy(33,2,"Status");
     }
-
 
     for (i= 0; i < PARTYSIZE; i++) {
         if (party[i]) {
             c= party[i];
-            ++y;
             gotoxy(x, y);
+            *drbuf= 0;
+            strncat(drbuf, c->name, 12);
             if (small) {
-                *drbuf= 0;
-                strncat(drbuf, c->name, 12);
                 printf("%d %s", i + 1, drbuf);
             } else {
-                printf("%d %s", i + 1, c->name);
+                printf("%s", drbuf);
             }
             if (!small) {
-                gotoxy(17,y);
-                cprintf("%d/%d",c->aMP,c->aMaxMP);
-                gotoxy(25,y);
-                cprintf("%d/%d",c->aHP,c->aMaxHP);
+                gotoxy(14, y);
+                cprintf("%s", gRaces[c->aRace]);
+                gotoxy(25, y);
+                cprintf("%s", gClasses[c->aClass]);
             }
             cputsxy(33, y, gStateDesc[c->status]);
+            ++y;
         }
     }
 }
@@ -488,7 +483,7 @@ void inspectCharacter(byte idx) {
         printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
         gotoxy(0, 14);
         puts("Inventory:");
-        displayInventoryAtRow(ic,16,'D');
+        displayInventoryAtRow(ic, 16, 'D');
         gotoxy(0, 23);
         cputs("u)se/ready r)emove g)ive ex)it\r\n>");
         cursor(1);

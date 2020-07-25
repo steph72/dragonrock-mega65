@@ -1,5 +1,4 @@
 #include "sprites.h"
-#include "types.h"
 
 void initSprites(void) {
     mega65_io_enable();

@@ -18,6 +18,7 @@ static char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
 
+void setupCombatScreen(void);
 byte runPreCombat(void);
 
 // get monster name for given row
@@ -76,9 +77,10 @@ void signalPreCombatResult(preCombatResult res) {
                       "The monsters take your money.", "You don't get away.",
                       "The monsters don't respond."};
 
-    cg_block(0, 0, 39, 6, 160, COLOR_CYAN);
+    setupCombatScreen();
+    cg_block(0, 0, 39, 2, 160, COLOR_CYAN);
     textcolor(COLOR_CYAN);
-    cg_center(0, 3, 40, results[res]);
+    cg_center(0, 1, 40, results[res]);
     sleep(1);
 }
 
@@ -92,6 +94,16 @@ encResult doEncounter() {
 
 // ------------------ screen config ---------------------
 
+void setupCombatScreen(void) {
+
+    // setup screen
+    cg_clear();
+    bgcolor(COLOR_BLACK);
+
+    // menu area
+    cg_block(29, 0, 39, 24, 160, COLOR_GRAY2);
+}
+
 byte runPreCombat(void) {
     byte i, j;
     byte choice;
@@ -99,12 +111,7 @@ byte runPreCombat(void) {
     static char *preEncounterMenu[]= {"greet", "threaten", "beg mercy",
                                       "fight", "run",      ""};
 
-    // setup screen
-    cg_clear();
-    bgcolor(COLOR_BLACK);
-
-    // menu area
-    cg_block(29, 7, 39, 24, 160, COLOR_GRAY2);
+    setupCombatScreen();
     textcolor(COLOR_CYAN);
     revers(1);
     gotoxy(30, 14);
@@ -168,8 +175,8 @@ byte runPreCombat(void) {
             cputs(statusLineForRow(i));
         }
     }
-    gotoxy(29,8);
-    return (cg_menu(11,preEncounterMenu));
+    gotoxy(29, 8);
+    return (cg_menu(11, COLOR_GRAY2, preEncounterMenu));
 }
 
 // clang-format off

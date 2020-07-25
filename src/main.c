@@ -110,7 +110,9 @@ void initEngine(void) {
     testMachine();
     cg_init();
     puts(prompt);
+#ifndef DEBUG
     sleep(1);
+#endif
     srand(42);
     initMonsterRows();
     loadCharset();
@@ -123,9 +125,9 @@ void initEngine(void) {
 
 void debugEncounter(void) {
     gCurrentGameMode= gm_init;
-    addNewMonster(1,1,3,0);
-    addNewMonster(1,1,4,1);
-    addNewMonster(1,1,5,2);
+    addNewMonster(1, 1, 3, 0);
+    addNewMonster(1, 1, 4, 1);
+    addNewMonster(1, 1, 5, 2);
     prepareForGameMode(gm_encounter);
     mainDispatchLoop();
 }
@@ -143,9 +145,7 @@ int main() {
     initEngine();
     cg_clear();
     enableDRCharset();
-    cg_borders();
     gotoxy(0, 2);
-    cputs("  Dragon Rock 1 - The Escape\r\n");
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");
     cputs(gCities[0]);
