@@ -114,7 +114,7 @@ void distributeSpoils(void) {
     gPartyGold= 0;
     clearStatusArea();
     clearMenuArea();
-    cg_getkeyP(gSecondaryAreaRightX + 2, gStatusAreaTopY + 2, "-- key --");
+    cg_getkeyP(gSecondaryAreaRightX + 1, gStatusAreaTopY + 2, "-- key --");
 }
 
 void displayCityTitle(void) {
@@ -481,7 +481,7 @@ void newGuildMember(byte city) {
     textcolor(COLOR_LIGHTGREEN);
     cputsxy(25 - strlen(gClasses[class]), gMainAreaTopY + 3, gClasses[class]);
     top= gMainAreaTopY + 5;
-    cg_block(3, top, 25, top + 8, 160, COLOR_LIGHTGREEN);
+    cg_block(3, top, 24, top + 8, 160, COLOR_LIGHTGREEN);
 
     do {
         textcolor(COLOR_LIGHTGREEN);
