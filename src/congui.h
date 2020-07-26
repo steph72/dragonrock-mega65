@@ -28,8 +28,10 @@ byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
 byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
                         byte menuItemCount);
 
-    byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
-                         byte menuItemCount);
+byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
+                     byte menuItemCount);
+
+void cg_setPalette(byte num, byte red, byte green, byte blue);
 
 byte cg_menu(byte width, byte color, char *items[]);
 byte cg_horizontalMenu(byte color, byte defaultItem, char *items[]);

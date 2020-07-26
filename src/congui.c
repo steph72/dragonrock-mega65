@@ -31,7 +31,6 @@ static signed char gPalDir;
 
 static clock_t lastPaletteTick;
 
-
 void cg_init() {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
@@ -43,7 +42,6 @@ void cg_init() {
     mega65_io_enable();
     POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
 }
-
 
 void cg_emptyBuffer(void) {
     while (kbhit()) {
@@ -121,6 +119,12 @@ byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
     return currentNum;
 }
 
+void cg_setPalette(byte num, byte red, byte green, byte blue) {
+    POKE(0xd100U + num, red);
+    POKE(0xd200U + num, green);
+    POKE(0xd300U + num, blue);
+}
+
 void cg_stepColor(void) {
     if ((clock() - lastPaletteTick) < 3) {
         return;
@@ -156,7 +160,7 @@ char cg_getkeyP(byte x, byte y, const char *prompt) {
 }
 
 byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
-                     byte menuItemCount) {
+                        byte menuItemCount) {
     static byte originalColor;
     static byte currentRow;
     static byte *currentBase;
@@ -247,7 +251,7 @@ byte cg_horizontalMenu(byte color, byte defaultItem, char *items[]) {
                 currentIdx--;
             break;
         case 29: // right
-            if (currentIdx < numItems-1)
+            if (currentIdx < numItems - 1)
                 currentIdx++;
             break;
         default:
@@ -266,11 +270,9 @@ byte cg_menu(byte width, byte color, char *items[]) {
     return cg_verticalChooser(x, y, 1, width, numItems);
 }
 
-char *cg_input(byte maxlen) { 
+char *cg_input(byte maxlen) {
     // TODO
 }
-
-
 
 void cg_borders(void) {
     chlinexy(0, 0, 40);

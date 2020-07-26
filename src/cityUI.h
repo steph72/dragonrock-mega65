@@ -11,4 +11,5 @@ extern const byte gMainAreaTopY;
 
 void clearMenuArea(void);
 void clearStatusArea(void);
+void clearPartyArea(void);
 void setupCityScreen(void);

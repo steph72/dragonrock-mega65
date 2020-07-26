@@ -37,6 +37,10 @@ const char *invError= "INVERR (%d)";
 
 void runCityMenu(void);
 
+void clearPartyArea(void) {
+    cg_block(0,0,39,gMainAreaTopY-1,160,COLOR_GRAY2);
+}
+
 void clearMenuArea(void) {
     cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
              COLOR_GRAY1);
@@ -48,7 +52,10 @@ void clearStatusArea(void) {
 
 void setupCityScreen(void) {
     cg_clear();
-    cg_block(0, 0, 39, gMenuAreaTopY - 1, 160, COLOR_GRAY2);
+    cg_setPalette(COLOR_GRAY1,4,4,6);
+    cg_setPalette(COLOR_GRAY2,6,6,8);
+    cg_setPalette(COLOR_GRAY3,8,8,10);
+    clearPartyArea();
     clearStatusArea();
     clearMenuArea();
 }
