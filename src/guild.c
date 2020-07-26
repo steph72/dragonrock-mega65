@@ -10,12 +10,14 @@
 #include "character.h"
 #include "congui.h"
 #include "guild.h"
+#include "utils.h"
+
+#include "cityUI.h"
 
 character *guild;
 
 static FILE *outfile;
 
-void newGuildMember(byte city);
 void _listGuildMembers(void);
 void listGuildMembers(void);
 
@@ -24,6 +26,135 @@ void flagError(char *e);
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
+
+
+void newGuildMember(byte city) {
+    static byte i, c; // loop and input temp vars
+    static byte race;
+    static byte class;
+    static attrT tempAttr[6];
+    static attrT current;
+    static signed char slot;
+    static int tempHP;
+    static int tempMP;
+    static char cname[17];  // one more, because cc65 somehow adds
+    static character *newC; // the "cr" sign to the finished string...
+
+    static char top; // screen top margin
+
+    const char margin= 3;
+    const char delSpaces= 40 - margin;
+
+    char *rollMenu[]= {"keep", "reroll", "quit", ""};
+
+    char *racesMenu[NUM_RACES + 1];
+    char *classesMenu[NUM_CLASSES + 1];
+
+    textcolor(COLOR_RED);
+    revers(1);
+    cputsxy(3, gMainAreaTopY + 1, " * New Guild Member * ");
+
+    slot= nextFreeGuildSlot();
+    if (slot == -1) {
+        textcolor(2);
+        puts("\nSorry, the guild is full."
+             "\nPlease purge some inactive members"
+             "before creating new ones.\n\n--key--");
+        cgetc();
+        return;
+    }
+
+    newC= &guild[slot];
+
+    for (i= 0; i < NUM_RACES; i++) {
+        racesMenu[i]= gRaces[i];
+    }
+    racesMenu[i]= ""; // end marker for menu
+
+    clearMenuArea();
+    gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY + 1);
+    race= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, racesMenu);
+    textcolor(COLOR_LIGHTGREEN);
+    cputsxy(3, gMainAreaTopY + 3, gRaces[race]);
+
+    for (i= 0; i < NUM_CLASSES; i++) {
+        classesMenu[i]= gClasses[i];
+    }
+    classesMenu[i]= "";
+
+    clearMenuArea();
+    gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY + 1);
+    class= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, classesMenu);
+    textcolor(COLOR_LIGHTGREEN);
+    cputsxy(25 - strlen(gClasses[class]), gMainAreaTopY + 3, gClasses[class]);
+    top= gMainAreaTopY + 5;
+    cg_block(3, top, 24, top + 8, 160, COLOR_LIGHTGREEN);
+
+    do {
+        textcolor(COLOR_LIGHTGREEN);
+
+        for (i= 0; i < 6; i++) {
+            current= 7 + (drand(12) + gRaceModifiers[race][i]);
+            tempAttr[i]= current;
+            cputsxy(margin, top + i, gAttributes[i]);
+            gotoxy(margin + 13, top + i);
+            cprintf("%2d %s", current, bonusStrForAttribute(current));
+        }
+        tempHP= 3 + drand(8) + bonusValueForAttribute(tempAttr[0]);
+        tempMP= 3 + drand(8) + bonusValueForAttribute(tempAttr[1]);
+
+        gotoxy(margin, top + i + 1);
+        cprintf("Hit points   %2d", tempHP);
+
+        gotoxy(margin, top + i + 2);
+        cprintf("Magic points %2d", tempMP);
+
+        gotoxy(margin, top + i + 4);
+        clearMenuArea();
+        c= cg_horizontalMenu(COLOR_YELLOW, 1, rollMenu);
+
+    } while (c == 1);
+
+    if (c == 2)
+        return;
+
+    textcolor(COLOR_LIGHTBLUE);
+    cg_line(top+i+4,margin,gSecondaryAreaLeftX-1,32,0);
+    cputsxy(margin, top+i+4, "Name: ");
+    fgets(cname, 17, stdin); // see above
+    cname[strlen(cname) - 1]= 0;
+
+    // copy temp char to guild
+    newC->city= city;
+    newC->guildSlot= slot;
+    newC->status= awake;
+    newC->aRace= race;
+    newC->aClass= class;
+
+    for (i= 0; i < NUM_ATTRS; i++) {
+        newC->attributes[i]= tempAttr[i];
+    }
+
+    // empty inventory & known spells
+    for (i= 0; i < INV_SIZE; i++) {
+        newC->inventory[i]= 0;
+    }
+    for (i= 0; i < 8; i++) {
+        newC->spellMap[i]= 0;
+    }
+
+    addInventoryItem(0xff, newC); // add white orb for testing
+    newC->weapon= 0x01;           // add club
+    newC->armor= 0x80;            // add robes
+    newC->aMaxHP= tempHP;
+    newC->aHP= tempHP;
+    newC->aMaxMP= tempMP;
+    newC->aMP= tempMP;
+    newC->level= 1;
+    newC->spriteID= 0x80 + newC->aRace;
+    strcpy(newC->name, cname);
+}
+
 
 void _listGuildMembers(void) {
     static byte i, x, y;
@@ -81,18 +212,18 @@ void cleanupParty(void) {
 void dropFromParty(void) {
     static byte pm;
 
-    cclearxy(0, 22, 40);
-    cputsxy(2, 22, "Remove whom (0=cancel)");
-    cursor(1);
-    fgets(drbuf, 3, stdin);
-    pm= atoi(drbuf);
-    if (pm == 0)
-        return;
-    --pm;
-    if (pm >= PARTYSIZE) {
-        flagError("You wish!");
+    clearMenuArea();
+    revers(1);
+    textcolor(COLOR_GRAY2);
+    cputsxy(0,partyMemberCount(),"(none)");
+    textcolor(COLOR_CYAN);
+    cg_center(gSecondaryAreaLeftX,gMenuAreaTopY+1,gSecondaryAreaWidth,"drop whom? ");
+
+    pm = cg_verticalChooser(0,0,1,14,partyMemberCount()+1);
+    if (pm==partyMemberCount()) {
         return;
     }
+
     free(party[pm]);
     party[pm]= NULL;
     cleanupParty();
