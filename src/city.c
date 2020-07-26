@@ -38,7 +38,7 @@ const char *invError= "INVERR (%d)";
 void runCityMenu(void);
 
 void clearPartyArea(void) {
-    cg_block(0,0,39,gMainAreaTopY-1,160,COLOR_GRAY2);
+    cg_block(0, 0, 39, gMainAreaTopY - 1, 160, COLOR_GRAY2);
 }
 
 void clearMenuArea(void) {
@@ -52,9 +52,9 @@ void clearStatusArea(void) {
 
 void setupCityScreen(void) {
     cg_clear();
-    cg_setPalette(COLOR_GRAY1,4,4,6);
-    cg_setPalette(COLOR_GRAY2,6,6,8);
-    cg_setPalette(COLOR_GRAY3,8,8,10);
+    cg_setPalette(COLOR_GRAY1, 4, 4, 6);
+    cg_setPalette(COLOR_GRAY2, 6, 6, 8);
+    cg_setPalette(COLOR_GRAY3, 8, 8, 10);
     clearPartyArea();
     clearStatusArea();
     clearMenuArea();
@@ -67,7 +67,6 @@ void leaveCityMode(void) {
 
 void distributeSpoils(void) {
     byte i;
-    byte y;
     byte sharePerMember[PARTYSIZE];
     byte totalShares= 0;
 
@@ -158,6 +157,7 @@ void enterCityMode(void) {
     leaveCityMode();
 }
 
+
 void doGuild(void) {
 
     char *guildMenu[]= {"Spells", "Training", "Add",   "New",  "Drop",
@@ -169,13 +169,7 @@ void doGuild(void) {
     quitGuild= 0;
 
     while (!quitGuild) {
-        setupCityScreen();
-        revers(1);
-        textcolor(COLOR_BROWN);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2, gSecondaryAreaWidth,
-                  gCities[gCurrentCityIndex]);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
-                  "guild");
+        setupGuildScreen();
         textcolor(COLOR_GRAY2);
         showCurrentParty(false);
         gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY);
@@ -193,6 +187,10 @@ void doGuild(void) {
 
         case 4:
             dropFromParty();
+            break;
+
+        case 7:
+            purgeGuildMember();
             break;
 
         case 8:

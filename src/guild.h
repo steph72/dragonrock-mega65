@@ -9,6 +9,8 @@ void purgeGuildMember(void);
 void addToParty(void);
 void dropFromParty(void);
 
+void setupGuildScreen();
+
 byte isInParty(byte guildIdx);
 
 signed char nextFreeGuildSlot(void);

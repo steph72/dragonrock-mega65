@@ -27,6 +27,16 @@ void flagError(char *e);
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
 
+void setupGuildScreen() {
+    setupCityScreen();
+    revers(1);
+    textcolor(COLOR_BROWN);
+    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2, gSecondaryAreaWidth,
+              gCities[gCurrentCityIndex]);
+    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
+              "guild");
+}
+
 void newGuildMember(byte city) {
     static byte i, c; // loop and input temp vars
     static byte race;
@@ -218,6 +228,10 @@ byte chooseGuildMember(byte initialChoice) {
     offset= -5;
     choice= initialChoice;
 
+    textcolor(COLOR_ORANGE);
+    cputsxy(0, gMainAreaTopY, "Name        Stat  Class  Twn#");
+    textcolor(COLOR_GRAY1);
+
     do {
         for (row= 0; row < 17; ++row) {
             y= gMainAreaTopY + 1 + row;
@@ -278,16 +292,12 @@ void addToParty(void) {
 
     gmIndex= 0;
 
-    setupCityScreen();
+    setupGuildScreen();
     textcolor(COLOR_CYAN);
     cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
              COLOR_GRAY2);
     cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
               "add whom?");
-
-    textcolor(COLOR_ORANGE);
-    cputsxy(0, gMainAreaTopY, "Name        Stat  Class  Twn#");
-    textcolor(COLOR_GRAY1);
 
     do {
 
@@ -324,27 +334,37 @@ void addToParty(void) {
 }
 
 void purgeGuildMember(void) {
-    static char cnum[5];
-    static byte idx;
-    cg_titlec(COLOR_ORANGE, 2, 0, "Purge guild member");
-    textcolor(COLOR_RED);
-    // _listGuildMembers();
-    cputsxy(0, 22, "Purge which member (0=cancel)? ");
-    fgets(cnum, 16, stdin);
-    idx= atoi(cnum);
-    if (idx == 0) {
-        return;
-    }
-    idx--;
-    if (idx >= GUILDSIZE) {
-        flagError("Are you working in QA?");
-        return;
-    }
-    if (isInParty(idx)) {
-        flagError("Member is currently in the party!");
-        return;
-    }
-    guild[idx].status= deleted;
+
+    signed char slot;
+    unsigned char gmIndex;
+
+    character *newPartyCharacter;
+
+    gmIndex= 0;
+    slot= 0;
+
+    setupGuildScreen();
+    textcolor(COLOR_CYAN);
+    cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
+             COLOR_GRAY2);
+    cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
+              "purge whom?");
+
+    do {
+
+        slot= chooseGuildMember(slot + 1);
+
+        if (slot == 0)
+            return;
+        
+        slot--;
+
+        if (isInParty(slot)) {
+            flagError("Member is currently in the party!");
+            return;
+        }
+        guild[slot].status= deleted;
+    } while (1);
 }
 
 signed char nextFreePartySlot(void) {
