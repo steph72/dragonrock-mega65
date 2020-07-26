@@ -1,14 +1,14 @@
 
+#include <c64.h>
 #include <cbm.h>
 #include <conio.h>
-#include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
 #include "character.h"
 #include "congui.h"
+#include "globals.h"
 #include "guild.h"
 #include "utils.h"
 
@@ -26,7 +26,6 @@ void flagError(char *e);
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
-
 
 void newGuildMember(byte city) {
     static byte i, c; // loop and input temp vars
@@ -119,8 +118,8 @@ void newGuildMember(byte city) {
         return;
 
     textcolor(COLOR_LIGHTBLUE);
-    cg_line(top+i+4,margin,gSecondaryAreaLeftX-1,32,0);
-    cputsxy(margin, top+i+4, "Name: ");
+    cg_line(top + i + 4, margin, gSecondaryAreaLeftX - 1, 32, 0);
+    cputsxy(margin, top + i + 4, "Name: ");
     fgets(cname, 17, stdin); // see above
     cname[strlen(cname) - 1]= 0;
 
@@ -155,7 +154,6 @@ void newGuildMember(byte city) {
     strcpy(newC->name, cname);
 }
 
-
 void _listGuildMembers(void) {
     static byte i, x, y;
     static byte charsPerRow= GUILDSIZE / 2;
@@ -180,8 +178,7 @@ void _listGuildMembers(void) {
 }
 
 void listGuildMembers(void) {
-    cg_titlec(COLOR_LIGHTBLUE, COLOR_GREEN, 0,
-              "Guild Members");
+    cg_titlec(COLOR_LIGHTBLUE, COLOR_GREEN, 0, "Guild Members");
     _listGuildMembers();
     cputsxy(0, 23, "-- key --");
     cgetc();
@@ -193,8 +190,7 @@ void flagError(char *e) {
     cclearxy(0, 22, 40);
     cputsxy(2, 22, e);
     textcolor(8);
-    cputsxy(2, 23, "-- key --");
-    cgetc();
+    cg_getkeyP(2, 23, "-- key --");
 }
 
 void cleanupParty(void) {
@@ -215,12 +211,13 @@ void dropFromParty(void) {
     clearMenuArea();
     revers(1);
     textcolor(COLOR_GRAY2);
-    cputsxy(0,partyMemberCount(),"(none)");
+    cputsxy(0, partyMemberCount(), "(none)");
     textcolor(COLOR_CYAN);
-    cg_center(gSecondaryAreaLeftX,gMenuAreaTopY+1,gSecondaryAreaWidth,"drop whom? ");
+    cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
+              "drop whom? ");
 
-    pm = cg_verticalChooser(0,0,1,14,partyMemberCount()+1);
-    if (pm==partyMemberCount()) {
+    pm= cg_verticalChooser(0, 0, 1, 14, partyMemberCount() + 1);
+    if (pm == partyMemberCount()) {
         return;
     }
 
@@ -239,41 +236,102 @@ byte isInParty(byte guildIdx) {
     return false;
 }
 
+byte chooseGuildMember() {
+
+    signed char offset, guildIndex;
+    byte y, row, choice;
+    byte cmd;
+
+    offset= -5;
+    choice= 0;
+
+    do {
+        for (row= 0; row < 17; ++row) {
+            y= gMainAreaTopY + 1 + row;
+            guildIndex= row + offset + choice - 1;
+            cg_line(gMainAreaTopY + 1 + row, 0, gMainAreaRightX, 160,
+                    COLOR_GRAY1);
+            if (guildIndex == -1) {
+                cputsxy(0, y, "(none)");
+            }
+            if (guildIndex >= 0 && guildIndex < GUILDSIZE) {
+                if (guild[guildIndex].status != deleted) {
+                    cputsxy(0, y, guild[guildIndex].name);
+                    if (isInParty(guildIndex)) {
+                        cputsxy(12, y, "in party");
+                    } else {
+                        cputsxy(12, y, gStateDesc[guild[guildIndex].status]);
+                        cputsxy(18, y, gClasses[guild[guildIndex].aClass]);
+                        cputcxy(26, y, '0' + guild[guildIndex].city);
+                    }
+                } else {
+                    cputsxy(0, y, "-empty-");
+                }
+            }
+        }
+        cg_line(gMainAreaTopY + 1 + 5, 0, gMainAreaRightX, 0, 1);
+
+        while (!kbhit()) {
+            cg_stepColor();
+        }
+        cmd= cgetc();
+
+        switch (cmd) {
+        case 17: // down
+            if (choice < GUILDSIZE)
+                choice++;
+
+            break;
+        case 145: // up
+            if (choice > 0)
+                choice--;
+
+        default:
+            break;
+        }
+    } while (cmd != 13);
+
+    return choice;
+}
+
 void addToParty(void) {
-    static char inbuf[3];
+
     signed char slot;
     unsigned char gmIndex;
 
     character *newPartyCharacter;
 
-    cclearxy(0, 22, 40);
     slot= nextFreePartySlot();
     if (slot == -1) {
         flagError("no room in party");
         return;
     }
-    cg_clear();
-    cg_titlec(COLOR_BROWN, COLOR_YELLOW, 0, "Add guild member");
 
-    _listGuildMembers();
-    cputsxy(2, 22, "Add which guild member (0=cancel)?");
-    cursor(1);
-    fgets(inbuf, 3, stdin);
-    gmIndex= atoi(inbuf);
+    setupCityScreen();
+    textcolor(COLOR_GRAY2);
+    revers(1);
+    showCurrentParty(false);
+    textcolor(COLOR_CYAN);
+    cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
+             COLOR_GRAY2);
+    cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
+              "add whom?");
+
+    textcolor(COLOR_ORANGE);
+    cputsxy(0, gMainAreaTopY, "Name        Stat  Class  Twn#");
+    textcolor(COLOR_GRAY1);
+
+    gmIndex= chooseGuildMember();
+
     if (gmIndex == 0) {
         return;
     }
     --gmIndex;
-    if (gmIndex >= GUILDSIZE) {
-        flagError("What is it with you?!");
-        return;
-    }
+
     if (guild[gmIndex].status == deleted) {
-        flagError("nobody there");
         return;
     }
     if (isInParty(gmIndex)) {
-        flagError("already in party");
         return;
     }
 

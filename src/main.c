@@ -118,8 +118,10 @@ void initEngine(void) {
     loadCharset();
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
+    /*
     gPartyExperience= 1000;
     gPartyGold= 1000;
+    */
     gCurrentGameMode= gm_init;
 }
 

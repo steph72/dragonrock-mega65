@@ -9,21 +9,22 @@
 
 #include "armory.h"
 #include "character.h"
+#include "cityUI.h"
 #include "congui.h"
 #include "globals.h"
 #include "guild.h"
 #include "sprites.h"
 #include "utils.h"
-#include "cityUI.h"
 
 #include "dungeon.h"
 
+const byte gMainAreaRightX= 28;
+const byte gMainAreaTopY= 7;
 
 const byte gSecondaryAreaLeftX= 29;
 const byte gSecondaryAreaWidth= 11;
 const byte gMainAreaWidth= 29;
 const byte gMenuAreaTopY= 7;
-const byte gMainAreaTopY= 7;
 const byte gStatusAreaTopY= 16;
 
 const char *keyMsg= " -- key -- ";
@@ -137,7 +138,9 @@ void enterCityMode(void) {
     displayCityTitle();
     initGuild();
     initArmory();
+#ifndef DEBUG
     sleep(2);
+#endif
 
     setupCityScreen();
 
@@ -162,16 +165,20 @@ void doGuild(void) {
         setupCityScreen();
         revers(1);
         textcolor(COLOR_BROWN);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2,
-                  gSecondaryAreaWidth, gCities[gCurrentCityIndex]);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3,
-                  gSecondaryAreaWidth, "guild");
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2, gSecondaryAreaWidth,
+                  gCities[gCurrentCityIndex]);
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
+                  "guild");
         textcolor(COLOR_GRAY2);
         showCurrentParty(false);
         gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY);
         cmd= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, guildMenu);
 
         switch (cmd) {
+
+        case 2:
+            addToParty();
+            break;
 
         case 3:
             newGuildMember(gCurrentCityIndex);
@@ -242,7 +249,6 @@ void doGuild(void) {
         */
 }
 
-
 void showCitySprites(byte enabled) {
     byte i;
     if (enabled)
@@ -277,11 +283,11 @@ void runCityMenu(void) {
         showCitySprites(1);
         revers(1);
         textcolor(COLOR_BROWN);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2,
-                  gSecondaryAreaWidth, gCities[gCurrentCityIndex]);
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2, gSecondaryAreaWidth,
+                  gCities[gCurrentCityIndex]);
         sprintf(drbuf, "(%d)", gCurrentCityIndex + 1);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3,
-                  gSecondaryAreaWidth, drbuf);
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
+                  drbuf);
         textcolor(COLOR_GRAY2);
         showCurrentParty(false);
         cg_verticalList(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 1, 1, 0,
