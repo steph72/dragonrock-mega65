@@ -21,7 +21,6 @@ static FILE *outfile;
 void _listGuildMembers(void);
 void listGuildMembers(void);
 
-void flagError(char *e);
 
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
@@ -164,14 +163,6 @@ void newGuildMember(byte city) {
     strcpy(newC->name, cname);
 }
 
-void flagError(char *e) {
-    cg_block(0, 0, 39, 2, 160, COLOR_RED);
-    textcolor(COLOR_RED);
-    revers(1);
-    cg_center(0, 1, 40, e);
-    cg_getkeyP(33, 2, "--key--");
-}
-
 void cleanupParty(void) {
     byte i;
     for (i= 0; i < PARTYSIZE - 1; ++i) {
@@ -292,14 +283,14 @@ void addToParty(void) {
 
     gmIndex= 0;
 
-    setupGuildScreen();
-    textcolor(COLOR_CYAN);
-    cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
-             COLOR_GRAY2);
-    cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
-              "add whom?");
-
     do {
+
+        setupGuildScreen();
+        textcolor(COLOR_CYAN);
+        cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1,
+                 160, COLOR_GRAY2);
+        cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
+                  "add whom?");
 
         textcolor(COLOR_GRAY2);
         revers(1);
@@ -317,6 +308,7 @@ void addToParty(void) {
             continue;
         }
         if (isInParty(gmIndex)) {
+            flagError("already in party");
             continue;
         }
 
@@ -356,7 +348,7 @@ void purgeGuildMember(void) {
 
         if (slot == 0)
             return;
-        
+
         slot--;
 
         if (isInParty(slot)) {

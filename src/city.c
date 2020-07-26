@@ -37,6 +37,14 @@ const char *invError= "INVERR (%d)";
 
 void runCityMenu(void);
 
+void flagError(char *e) {
+    cg_block(0, 0, 39, 2, 160, COLOR_RED);
+    textcolor(COLOR_RED);
+    revers(1);
+    cg_center(0, 1, 40, e);
+    cg_getkeyP(33, 24, "--key--");
+}
+
 void clearPartyArea(void) {
     cg_block(0, 0, 39, gMainAreaTopY - 1, 160, COLOR_GRAY2);
 }
@@ -53,7 +61,7 @@ void clearStatusArea(void) {
 void setupCityScreen(void) {
     cg_clear();
     cg_setPalette(COLOR_GRAY1, 4, 4, 6);
-    cg_setPalette(COLOR_GRAY2, 6, 6, 8);
+    cg_setPalette(COLOR_GRAY2, 6, 8, 6);
     cg_setPalette(COLOR_GRAY3, 8, 8, 10);
     clearPartyArea();
     clearStatusArea();
@@ -156,7 +164,6 @@ void enterCityMode(void) {
     runCityMenu();
     leaveCityMode();
 }
-
 
 void doGuild(void) {
 
@@ -351,22 +358,28 @@ void runCityMenu(void) {
 
         showCitySprites(0);
 
-        switch (cityItem) {
+        if (cityItem != 0 && partyMemberCount() == 0) {
+            clearMenuArea();
+            flagError("You must assemble a party first.");
+        } else {
 
-        case 0:
-            doGuild();
-            break;
+            switch (cityItem) {
 
-        case 1:
-            doArmory();
-            break;
+            case 0:
+                doGuild();
+                break;
 
-        case 5:
-            quitCity= true;
-            break;
+            case 1:
+                doArmory();
+                break;
 
-        default:
-            break;
+            case 5:
+                quitCity= true;
+                break;
+
+            default:
+                break;
+            }
         }
     }
 
