@@ -178,7 +178,7 @@ void doGuild(void) {
     while (!quitGuild) {
         setupGuildScreen();
         textcolor(COLOR_GRAY2);
-        showCurrentParty(false);
+        showCurrentParty(false, false);
         gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY);
         cmd= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, guildMenu);
 
@@ -276,6 +276,13 @@ void showCitySprites(byte enabled) {
     }
 }
 
+void inspect(byte idx) {
+    // bgcolor(COLOR_GRAY2);
+    textcolor(COLOR_GRAY2);
+    inspectCharacter(idx);
+    // bgcolor(COLOR_BLACK);
+}
+
 void runCityMenu(void) {
 
     char marker[]= {169, 127};
@@ -301,7 +308,7 @@ void runCityMenu(void) {
         cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
                   drbuf);
         textcolor(COLOR_GRAY2);
-        showCurrentParty(false);
+        showCurrentParty(false, true);
         cg_verticalList(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 1, 1, 0,
                         COLOR_GRAY1, cityKeys);
         cg_block(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 1,
@@ -352,6 +359,14 @@ void runCityMenu(void) {
 
             default:
                 break;
+            }
+
+            if (cmd >= '1' && cmd <= '6') {
+                showCitySprites(0);
+                inspect(cmd - '1');
+                showCitySprites(1);
+                cityItem=255;
+                cmd=13; // choose empty city item so that loop falls though
             }
 
         } while (cmd != 13);

@@ -182,15 +182,16 @@ void dropFromParty(void) {
         clearPartyArea();
         textcolor(COLOR_GRAY2);
         revers(1);
-        showCurrentParty(false);
+        showCurrentParty(false,false);
         clearMenuArea();
-        cputsxy(0, partyMemberCount(), "(none)");
+        cputsxy(0, partyMemberCount(), "  (exit)");
         textcolor(COLOR_CYAN);
         cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
                   "drop whom? ");
 
         pm= cg_verticalChooser(0, 0, 1, 14, partyMemberCount() + 1);
-        if (pm == partyMemberCount()) {
+
+        if (pm == partyMemberCount()) { // "exit" item?
             return;
         }
 
@@ -294,7 +295,7 @@ void addToParty(void) {
 
         textcolor(COLOR_GRAY2);
         revers(1);
-        showCurrentParty(false);
+        showCurrentParty(false,false);
 
         textcolor(COLOR_GRAY1);
         gmIndex= chooseGuildMember(gmIndex + 1);
@@ -355,6 +356,7 @@ void purgeGuildMember(void) {
             flagError("Member is currently in the party!");
             return;
         }
+
         guild[slot].status= deleted;
     } while (1);
 }

@@ -144,7 +144,7 @@ byte partyMemberCount(void) {
     return n;
 }
 
-void showCurrentParty(byte small) {
+void showCurrentParty(byte small, byte showIndices) {
     static byte i, x, y;
     static character *c;
 
@@ -152,7 +152,7 @@ void showCurrentParty(byte small) {
 
     if (small) {
         x= 19;
-        y=1;
+        y= 1;
     } else {
         x= 0;
     }
@@ -163,11 +163,12 @@ void showCurrentParty(byte small) {
             gotoxy(x, y);
             *drbuf= 0;
             strncat(drbuf, c->name, 12);
-            if (small) {
+            if (showIndices) {
                 printf("%d %s", i + 1, drbuf);
             } else {
-                printf("%s", drbuf);
+                printf("  %s", drbuf);
             }
+  
             if (!small) {
                 gotoxy(14, y);
                 cprintf("%s", gRaces[c->aRace]);
@@ -426,7 +427,7 @@ void inspectCharacter(byte idx) {
 
     quitInspect= false;
 
-    while (!quitInspect) {
+    do {
 
         spellLine= 0;
         ic= party[idx];
@@ -521,7 +522,7 @@ void inspectCharacter(byte idx) {
             break;
         }
 
-    } // while !quitInspect
+    } while (!quitInspect);
 }
 
 byte loadParty(void) {
