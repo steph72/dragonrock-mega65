@@ -31,6 +31,20 @@ static signed char gPalDir;
 
 static clock_t lastPaletteTick;
 
+
+void cg_init() {
+    bgcolor(COLOR_BLACK);
+    bordercolor(COLOR_BLACK);
+    textcolor(COLOR_GREEN);
+    gPal= 0;
+    gPalDir= 1;
+    cbm_k_bsout(11); // disable shift+cmd on c128 & 364
+    cbm_k_bsout(14); // lowercase charset
+    mega65_io_enable();
+    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
+}
+
+
 void cg_emptyBuffer(void) {
     while (kbhit()) {
         cgetc();
@@ -141,7 +155,7 @@ char cg_getkeyP(byte x, byte y, const char *prompt) {
     return cgetc();
 }
 
-byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
+byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
                      byte menuItemCount) {
     static byte originalColor;
     static byte currentRow;
@@ -249,21 +263,14 @@ byte cg_menu(byte width, byte color, char *items[]) {
     x= wherex();
     y= wherey();
     numItems= cg_verticalList(x + 1, y, 1, 0, color, items);
-    return cg_verticalMenu(x, y, 1, width, numItems);
+    return cg_verticalChooser(x, y, 1, width, numItems);
 }
 
-void cg_init() {
-    bgcolor(COLOR_BLACK);
-    bordercolor(COLOR_BLACK);
-    textcolor(COLOR_GREEN);
-    gPal= 0;
-    gPalDir= 1;
-    cbm_k_bsout(11); // disable shift+cmd on c128 & 364
-    cbm_k_bsout(14); // lowercase charset
-    cg_clear();
-    mega65_io_enable();
-    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
+char *cg_input(byte maxlen) { 
+    // TODO
 }
+
+
 
 void cg_borders(void) {
     chlinexy(0, 0, 40);

@@ -24,8 +24,8 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col);
 
 byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
                      char *items[]);
-
-byte cg_horizontalMenu(byte color, byte defaultItem, char *items[]);
-
+                          
 byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width, byte menuItemCount);
+
 byte cg_menu(byte width, byte color, char *items[]);
+byte cg_horizontalMenu(byte color, byte defaultItem, char *items[]);

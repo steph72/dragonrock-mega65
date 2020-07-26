@@ -17,7 +17,7 @@
 
 #include "dungeon.h"
 
-const byte gSecondaryAreaRightX= 29;
+const byte gSecondaryAreaLeftX= 29;
 const byte gSecondaryAreaWidth= 11;
 const byte gMainAreaWidth= 29;
 const byte gMenuAreaTopY= 7;
@@ -35,12 +35,12 @@ const char *invError= "INVERR (%d)";
 void runCityMenu(void);
 
 void clearMenuArea(void) {
-    cg_block(gSecondaryAreaRightX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
+    cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
              COLOR_GRAY1);
 }
 
 void clearStatusArea(void) {
-    cg_block(gSecondaryAreaRightX, gStatusAreaTopY, 39, 24, 160, COLOR_BROWN);
+    cg_block(gSecondaryAreaLeftX, gStatusAreaTopY, 39, 24, 160, COLOR_BROWN);
 }
 
 void setupCityScreen(void) {
@@ -71,17 +71,17 @@ void distributeSpoils(void) {
 
     revers(1);
     textcolor(COLOR_BROWN);
-    cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 1, gSecondaryAreaWidth,
+    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 1, gSecondaryAreaWidth,
               "dividing");
-    cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
+    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
               "gold and");
-    cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 4, gSecondaryAreaWidth,
+    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 4, gSecondaryAreaWidth,
               "experience");
-    cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 5, gSecondaryAreaWidth,
+    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 5, gSecondaryAreaWidth,
               "points");
     textcolor(COLOR_YELLOW);
     revers(1);
-    cg_center(gSecondaryAreaRightX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
+    cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
               "Shares?");
     for (i= 0; i < partyMemberCount(); ++i) {
         cg_colorLine(i, 0, 39, COLOR_YELLOW);
@@ -90,7 +90,7 @@ void distributeSpoils(void) {
         gotoxy(0, i);
         cputs(party[i]->name);
         do {
-            gotoxy(gSecondaryAreaRightX + 2, gMenuAreaTopY + 3);
+            gotoxy(gSecondaryAreaLeftX + 2, gMenuAreaTopY + 3);
             textcolor(COLOR_GRAY2);
             sharePerMember[i]= cg_horizontalMenu(COLOR_YELLOW, 1, sharesItems);
         } while (sharePerMember[i] < 1 || sharePerMember[i] > 3);
@@ -114,7 +114,7 @@ void distributeSpoils(void) {
     gPartyGold= 0;
     clearStatusArea();
     clearMenuArea();
-    cg_getkeyP(gSecondaryAreaRightX + 1, gStatusAreaTopY + 2, "-- key --");
+    cg_getkeyP(gSecondaryAreaLeftX + 1, gStatusAreaTopY + 2, "-- key --");
 }
 
 void displayCityTitle(void) {
@@ -166,13 +166,13 @@ void doGuild(void) {
         setupCityScreen();
         revers(1);
         textcolor(COLOR_BROWN);
-        cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 2,
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2,
                   gSecondaryAreaWidth, gCities[gCurrentCityIndex]);
-        cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 3,
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3,
                   gSecondaryAreaWidth, "guild");
         textcolor(COLOR_GRAY2);
         showCurrentParty(false);
-        gotoxy(gSecondaryAreaRightX, gMenuAreaTopY);
+        gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY);
         cmd= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, guildMenu);
 
         switch (cmd) {
@@ -278,17 +278,17 @@ void runCityMenu(void) {
         showCitySprites(1);
         revers(1);
         textcolor(COLOR_BROWN);
-        cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 2,
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2,
                   gSecondaryAreaWidth, gCities[gCurrentCityIndex]);
         sprintf(drbuf, "(%d)", gCurrentCityIndex + 1);
-        cg_center(gSecondaryAreaRightX, gStatusAreaTopY + 3,
+        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3,
                   gSecondaryAreaWidth, drbuf);
         textcolor(COLOR_GRAY2);
         showCurrentParty(false);
-        cg_verticalList(gSecondaryAreaRightX + 1, gMenuAreaTopY + 1, 1, 0,
+        cg_verticalList(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 1, 1, 0,
                         COLOR_GRAY1, cityKeys);
-        cg_block(gSecondaryAreaRightX + 1, gMenuAreaTopY + 1,
-                 gSecondaryAreaRightX + 1, gMenuAreaTopY + 3, 0, COLOR_GRAY2);
+        cg_block(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 1,
+                 gSecondaryAreaLeftX + 1, gMenuAreaTopY + 3, 0, COLOR_GRAY2);
 
         menuX= 0;
         menuY= 0;
@@ -297,9 +297,9 @@ void runCityMenu(void) {
             cityItem= menuX + (3 * menuY);
             textcolor(COLOR_GREEN);
             revers(1);
-            cg_line(gMenuAreaTopY + 5, gSecondaryAreaRightX, 39, 160,
+            cg_line(gMenuAreaTopY + 5, gSecondaryAreaLeftX, 39, 160,
                     COLOR_GREEN);
-            cputsxy(gSecondaryAreaRightX + 1, gMenuAreaTopY + 5,
+            cputsxy(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 5,
                     cityServices[cityItem]);
 
             textcolor(COLOR_WHITE);
@@ -465,7 +465,7 @@ void newGuildMember(byte city) {
     racesMenu[i]= ""; // end marker for menu
 
     clearMenuArea();
-    gotoxy(gSecondaryAreaRightX, gMenuAreaTopY + 1);
+    gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY + 1);
     race= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, racesMenu);
     textcolor(COLOR_LIGHTGREEN);
     cputsxy(3, gMainAreaTopY + 3, gRaces[race]);
@@ -476,7 +476,7 @@ void newGuildMember(byte city) {
     classesMenu[i]= "";
 
     clearMenuArea();
-    gotoxy(gSecondaryAreaRightX, gMenuAreaTopY + 1);
+    gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY + 1);
     class= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, classesMenu);
     textcolor(COLOR_LIGHTGREEN);
     cputsxy(25 - strlen(gClasses[class]), gMainAreaTopY + 3, gClasses[class]);
@@ -503,6 +503,7 @@ void newGuildMember(byte city) {
         cprintf("Magic points %2d", tempMP);
 
         gotoxy(margin, top + i + 4);
+        clearMenuArea();
         c= cg_horizontalMenu(COLOR_YELLOW, 1, rollMenu);
 
     } while (c == 1);
@@ -510,10 +511,9 @@ void newGuildMember(byte city) {
     if (c == 2)
         return;
 
-    top= top + i + 4;
-    cclearxy(0, top, 40);
-    cputsxy(18, top + 1, "---------------");
-    cputsxy(2, top, "Character name: ");
+    textcolor(COLOR_LIGHTBLUE);
+    cg_line(top+i+4,margin,gSecondaryAreaLeftX-1,32,0);
+    cputsxy(margin, top+i+4, "Name: ");
     fgets(cname, 17, stdin); // see above
     cname[strlen(cname) - 1]= 0;
 
