@@ -5,6 +5,8 @@
 
 byte loadParty(void);
 
+byte inventoryCount(character *aCharacter);
+
 char *nameOfInventoryItem(item *anItem);
 char *nameOfInventoryItemWithID(itemT anItemID);
 item *inventoryItemForID(itemT anItemID);

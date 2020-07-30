@@ -92,7 +92,7 @@ item gItems[]= {
     {0xa9, "Scroll", it_scroll, 10, 0, 0, 1},
 
     // --- special ---
-    {0xf0, "Rusty Key", it_special, 0, 0, 0, 65535u},
-    {0xff, "White Orb", it_special, 0, 0, 0, 65535u}
+    {0xf0, "Rusty Key", it_special, 0, 0, 0, 1000},
+    {0xff, "White Orb", it_special, 0, 0, 0, 1000}
 
 };

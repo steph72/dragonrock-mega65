@@ -166,35 +166,20 @@ void sellItem(character *shopper) {
     } while (!sellQuit);
 }
 
-byte numOfInventoryItemsForCharacter(character *c) {
-    byte count, i;
-    count= 0;
-    for (i= 0; i < INV_SIZE; ++i) {
-        if (c->inventory[i] != 0) {
-            ++count;
-        }
-    }
-    return count;
-}
+unsigned int salePrice(character *shopper, item *anItem) {
+    unsigned long p;
+    int charBonus;
 
-itemT inventoryItemForCharacterAtPosition(character *c, byte position) {
-    byte count, i;
-    count= 0;
-    for (i= 0; i < INV_SIZE; ++i) {
-        if (c->inventory[i] != 0) {
-            ++count;
-        }
-        if ((count - 1) == position) {
-            return c->inventory[i];
-        }
-    }
-    return 0;
+    charBonus = bonusValueForAttribute(shopper->attributes[aCHR]);
+    p= (anItem->price * (100UL+(10*charBonus)))/100UL;
+    return p;
 }
 
 int chooseShopOrInventoryItem(character *shopper, byte buySellMode) {
 
     signed char offset, shopIndex;
     itemT invItemID;
+    item *anItem;
     byte y, row, choice;
     byte stopsize;
     byte cmd;
@@ -212,7 +197,7 @@ int chooseShopOrInventoryItem(character *shopper, byte buySellMode) {
         if (buySellMode == 0) {
             stopsize= currentShopSize();
         } else {
-            stopsize= numOfInventoryItemsForCharacter(shopper);
+            stopsize= inventoryCount(shopper);
         }
 
         for (row= 0; row < 14; ++row) {
@@ -228,14 +213,15 @@ int chooseShopOrInventoryItem(character *shopper, byte buySellMode) {
                     if (shopInventory[shopIndex]) {
                         cputsxy(0, y, itemAtRow(shopIndex)->name);
                         gotoxy(18, y);
-                        cprintf("%d", itemAtRow(shopIndex)->price);
+                        cprintf("%u", itemAtRow(shopIndex)->price);
                     }
                 } else {
-                    invItemID=
-                        inventoryItemForCharacterAtPosition(shopper, shopIndex);
+                    invItemID= shopper->inventory[shopIndex];
                     if (invItemID) {
-                    cputsxy(0, y,
-                            nameOfInventoryItemWithID(invItemID));
+                        anItem= inventoryItemForID(invItemID);
+                        cputsxy(0, y, anItem->name);
+                        gotoxy(18,y);
+                        cprintf("%u",salePrice(shopper, anItem));
                     }
                 }
             }

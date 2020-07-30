@@ -45,6 +45,16 @@ char *nameOfInventoryItem(item *anItem) {
     return anItem->name;
 }
 
+byte inventoryCount(character *aCharacter) {
+    byte i;
+    for (i= 0; i < INV_SIZE; ++i) {
+        if (aCharacter->inventory[i] == 0) {
+            return i;
+        }
+    }
+    return i;
+}
+
 byte hasInventoryItem(character *aCharacter, itemT anItemID) {
     register byte i;
     for (i= 0; i < INV_SIZE; ++i) {
@@ -168,7 +178,7 @@ void showCurrentParty(byte small, byte showIndices) {
             } else {
                 printf("  %s", drbuf);
             }
-  
+
             if (!small) {
                 gotoxy(14, y);
                 cprintf("%s", gRaces[c->aRace]);
@@ -276,6 +286,14 @@ void dispCharacterActionError(char *msg) {
     cg_getkey();
 }
 
+void removeItemAtInventorySlot(character *ic, byte slot) {
+    byte i;
+    ic->inventory[INV_SIZE - 1]= 0;
+    for (i= slot; i < INV_SIZE - 1; ++i) {
+        ic->inventory[i]= ic->inventory[i + 1];
+    }
+}
+
 void giveItem(character *ic) {
     character *destCharacter;
     item *anItem;
@@ -302,7 +320,7 @@ void giveItem(character *ic) {
         dispCharacterActionError("no space in inventory!");
         return;
     }
-    ic->inventory[inventorySlot]= 0;
+    removeItemAtInventorySlot(ic, inventorySlot);
     return;
 }
 
