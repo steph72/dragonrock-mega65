@@ -160,14 +160,14 @@ char cg_getkeyP(byte x, byte y, const char *prompt) {
 }
 
 byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
-                        byte menuItemCount) {
+                        byte menuItemCount, byte defaultItem) {
     static byte originalColor;
     static byte currentRow;
     static byte *currentBase;
     static byte lineInc;
     static char input;
 
-    currentRow= 0;
+    currentRow= defaultItem;
 
     do {
         currentBase= COLOR_RAM + ((y0 + (lineSpacing * currentRow)) * 40) + x0;
@@ -267,7 +267,7 @@ byte cg_menu(byte width, byte color, char *items[]) {
     x= wherex();
     y= wherey();
     numItems= cg_verticalList(x + 1, y, 1, 0, color, items);
-    return cg_verticalChooser(x, y, 1, width, numItems);
+    return cg_verticalChooser(x, y, 1, width, numItems,0);
 }
 
 char *cg_input(byte maxlen) {

@@ -26,7 +26,7 @@ byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
                      char *items[]);
 
 byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
-                        byte menuItemCount);
+                        byte menuItemCount, byte defaultItem);
 
 byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
                      byte menuItemCount);

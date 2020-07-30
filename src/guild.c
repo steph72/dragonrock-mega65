@@ -189,7 +189,7 @@ void dropFromParty(void) {
         cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
                   "drop whom? ");
 
-        pm= cg_verticalChooser(0, 0, 1, 14, partyMemberCount() + 1);
+        pm= cg_verticalChooser(0, 0, 1, 14, partyMemberCount() + 1,0);
 
         if (pm == partyMemberCount()) { // "exit" item?
             return;

@@ -152,6 +152,7 @@ void enterCityMode(void) {
     displayCityTitle();
     initGuild();
     initArmory();
+    bordercolor(COLOR_BLACK); // outsmart stupid c65 firmware
 #ifndef DEBUG
     sleep(2);
 #endif
@@ -271,7 +272,7 @@ void showCitySprites(byte enabled) {
             setSpriteXExpand(i, 0);
             setSpriteYExpand(i, 0);
             setSpriteColor(i, 2 + i);
-            putSprite(i, 52 + (64 * (i / 2)), 130 + (64 * (i % 2)));
+            putSprite(i, 32 + (72 * (i / 2)), 114 + (72 * (i % 2)));
         }
     }
 }
@@ -327,14 +328,14 @@ void runCityMenu(void) {
                     cityServices[cityItem]);
 
             textcolor(COLOR_WHITE);
-            cputsxy((4 + (8 * menuX)), 13 + (8 * menuY), marker);
+            cputsxy((4 + (9 * menuX)), 15 + (9 * menuY), marker);
 
             while (!kbhit()) {
                 cg_stepColor();
             }
             cmd= cgetc();
             revers(0);
-            cputsxy((4 + (8 * menuX)), 13 + (8 * menuY), "  ");
+            cputsxy((4 + (9 * menuX)), 15 + (9 * menuY), "  ");
 
             switch (cmd) {
             case 29: // cursor right
@@ -365,8 +366,8 @@ void runCityMenu(void) {
                 showCitySprites(0);
                 inspect(cmd - '1');
                 showCitySprites(1);
-                cityItem=255;
-                cmd=13; // choose empty city item so that loop falls though
+                cityItem= 255;
+                cmd= 13; // choose empty city item so that loop falls though
             }
 
         } while (cmd != 13);
