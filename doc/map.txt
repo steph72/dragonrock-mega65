@@ -1,3 +1,13 @@
+** memory map **
+
+0x00801 - 0x0afff       main program    32k
+0x0b000 - 0x0d000       overlays         8k
+0x12000 - 0x12fff       character set    4k 
+0x13000 - 0x13fff       sprite pointers  4k
+0x14000 - 0x1ffff       sprite area     48k
+0x50000 - 0x5ffff       dungeon/map     64k
+
+
 ** dragon rock map format **
 
 +-------------------------------------+
@@ -39,50 +49,6 @@
 +-------------------------------------+
 | [...]                               |
 +-------------------------------------+
-
-
-"DR0" - map data segment
-
-offset  bits        meaning         possible values
-----------------------------------------------------------
-0-2     0-7         "DR0" map file & version identification
-3+4     0-15        size of following map data
-5       0-7         map width       8 - 32
-6       0-7         map height      8 - 32
-7       ------ map element 1 ------
-7       0-3         map element 1   0 = empty space
-                                    1 = item of interest
-                                    2 = horizontal door
-                                    3 = vertical door
-                                    4 = solid wall
-                                    5 = reserved
-                                    6 = reserved
-                                    7 = reserved
-
-         4          reserved
-         5          space impassable
-         6          reserved
-         7          space initially known
-8       0-7         start opcode ID for element 1
-9       ------ map element 2 ------
-
-
-"FEELS" - dungeon feeling / strings description segment
-
-offset  bits        meaning         possible values
-----------------------------------------------------------
-0-4     "FEELS" 
-5       0-7         number of feeling strings
-6-x                 list of zero-terminated feelings strings
-
-
-"OPCS" - dungeon element copcodes
-
-offset  bits        meaning         possible values
-----------------------------------------------------------
-0-3     "OPCS"
-4       0-7         number of opcodes
-5-x     0-7         opcode table (8 bytes per opcode)      
 
 
 outdoor map tiles arrangement:

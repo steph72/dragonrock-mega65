@@ -28,6 +28,7 @@ write bin/drmain.c64.1 dungeon
 write bin/drmain.c64.2 city
 write bin/drmain.c64.3 encounter
 write bin/drcharset charset
+write graphics/armory.sprite2 armory.spr
 write cbm/loader loader
 EOF
 
