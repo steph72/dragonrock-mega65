@@ -682,7 +682,7 @@ void plotPlayer(byte x, byte y) {
     colorPtr+= x + (y * screenWidth);
 
     *screenPtr= 0x5f;
-    *colorPtr= isDungeonMode ? COLOR_BLUE : COLOR_YELLOW;
+    *colorPtr= isDungeonMode ? COLOR_BLUE : COLOR_WHITE;
 }
 
 void clearStatus(void) { cg_clearLower(5); }
@@ -942,6 +942,10 @@ void dungeonLoop() {
         cmd= 0;
 
         if (!quitDungeon) {
+
+            while (!kbhit()) {
+                cg_stepColor();
+            }
 
             cmd= cgetc();
 
