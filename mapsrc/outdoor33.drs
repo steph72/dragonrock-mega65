@@ -1,8 +1,42 @@
 
 includemap "mapsrc/outdoor33.drm"
 
+; ----------- main road --------------------------
+
+defc mainRoad1: 9,5 - 9,14
+defc mainRoad2: 13,2 - 24,2
+defc mainRoad3: 24,3 - 26,3
+defc mainRoad4: 26,4 - 31,4
+
+$ msgMainRoad,"""
+A wide and comfortable road.
+"""
+
+mainRoad1:
+mainRoad2:
+mainRoad3:
+mainRoad4:
+    NSTAT_O msgMainRoad
+    ---
+
+; -------------------------------------
+
+defc fhPath1: 10,14 - 14,14
+defc fhPath2: 14,15 - 20,15
+
+$ msgFhPath,"A narrow driveway"
+
+fhPath1:
+fhPath2:
+    NSTAT_O msgFhPath
+    ---
+
+; --------------------------------------
+
 defc city_foxhome: 22,15 - 23,15
 defc city_road: 21,15
+defc foxhome_signpost: 9,14
+
 
 $ msgCity,"""
 The village of Foxhome. Do you want
@@ -12,6 +46,15 @@ $ msgCityRoad,"""
 To the east lies the quiet little
 village of Foxhome.
 """
+
+$ msgFoxhomeSignpost,"""
+A signpost here says:
+'Foxhome - 60 miles east'
+"""
+
+foxhome_signpost:
+    NSTAT_O msgFoxhomeSignpost
+    ---
 
 city_road:
     NSTAT_O msgCityRoad
@@ -24,5 +67,5 @@ city_foxhome:
     ---
 
 enterCity:
-    REDRAW
+    ENTER_C 0
     ---

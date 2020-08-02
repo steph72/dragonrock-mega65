@@ -123,6 +123,12 @@ typedef enum _attackType {
     at_fire= 0x80
 } attackType;
 
+typedef struct _cityCoords {
+    byte mapNr;
+    byte x;
+    byte y;
+} cityCoordsT;
+
 // --------------- spells ------------------
 
 typedef struct _spell {

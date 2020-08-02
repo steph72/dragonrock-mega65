@@ -4,7 +4,7 @@
 #include "types.h"
 
 void testMap(void);
-void enterDungeonMode(void);
+void enterDungeonMode(byte reInitMap);
 void blitmap(byte mapX, byte mapY, byte posX, byte posY);
 
 #endif

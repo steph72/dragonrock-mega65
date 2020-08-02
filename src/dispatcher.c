@@ -86,7 +86,9 @@ void enterCurrentGameMode() {
 
     case gm_dungeon:
     case gm_outdoor:
-        enterDungeonMode();
+        // make sure that dungeon/map gets re-initialized
+        // if not coming from an encounter...
+        enterDungeonMode(lastGameMode!=gm_encounter);
         break;
 
     case gm_encounter:

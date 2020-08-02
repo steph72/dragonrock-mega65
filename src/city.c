@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "armory.h"
 #include "character.h"
 #include "cityUI.h"
@@ -69,8 +70,16 @@ void setupCityScreen(void) {
 }
 
 void leaveCityMode(void) {
+    cityCoordsT coords;
+
+    coords = gCityCoords[gCurrentCityIndex];
     free(guild);
     releaseArmory();
+    gCurrentDungeonIndex = coords.mapNr;
+    gOutdoorXPos = coords.x;
+    gOutdoorYPos = coords.y;
+
+    prepareForGameMode(gm_outdoor);
 }
 
 void distributeSpoils(void) {
@@ -140,9 +149,8 @@ void displayCityTitle(void) {
     textcolor(COLOR_CYAN);
     sprintf(drbuf, " Welcome to %s ", gCities[gCurrentCityIndex]);
     xstart= 20 - ((strlen(drbuf) / 2));
-    // bars above and below title
-    cg_line(11, xstart, xstart + strlen(drbuf) - 1, 111, COLOR_CYAN);
-    cg_line(13, xstart, xstart + strlen(drbuf) - 1, 119, COLOR_CYAN);
+    // bar above title
+    cg_line(11, xstart, xstart + strlen(drbuf) - 1, 28, COLOR_CYAN);
     revers(1);
     // title
     cg_center(0, 12, 40, drbuf);
@@ -153,10 +161,7 @@ void enterCityMode(void) {
     initGuild();
     initArmory();
     bordercolor(COLOR_BLACK); // outsmart stupid c65 firmware
-#ifndef DEBUG
     sleep(2);
-#endif
-
     setupCityScreen();
 
     if (gPartyExperience || gPartyGold) {

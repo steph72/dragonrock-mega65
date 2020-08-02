@@ -33,6 +33,7 @@
 #define OPC_ADDENC 0x0e /* add monsters to encounter row      */
 #define OPC_DOENC 0x0f  /* do encounter                       */
 #define OPC_ENTER 0x10  /* enter dungeon or wilderness        */
+#define OPC_ENTERC 0x11 /* enter city                         */
 /* ---------------------------------------------------------- */
 
 // clang-format off
@@ -461,6 +462,13 @@ byte performEnterOpcode(opcode *anOpcode) {
     return 0;
 }
 
+byte performEnterCityOpcode(opcode *anOpcode) {
+    gCurrentCityIndex= anOpcode->param1;
+    prepareForGameMode(gm_city);
+    quitDungeon= true;
+    return 0;
+}
+
 // ---------------------------------
 // general opcode handling functions
 // ---------------------------------
@@ -577,6 +585,9 @@ int performOpcode(opcode *anOpcode, int currentPC) {
     case OPC_ENTER:
         rOpcIdx= performEnterOpcode(anOpcode);
         break;
+
+    case OPC_ENTERC:
+        rOpcIdx= performEnterCityOpcode(anOpcode);
 
     default:
         rOpcIdx= 0;
@@ -821,6 +832,7 @@ void dungeonLoop() {
 
     byte xs, ys;     // save x,y for debugging
     byte oldX, oldY; // save x,y for impassable
+    signed char fov;
 
     byte cmd;
     byte performedImpassableOpcode;
@@ -831,6 +843,8 @@ void dungeonLoop() {
     dungeonItem currentItem;
 
     byte idx;
+
+    fov= isDungeonMode ? 1 : 2;
 
     redrawAll();
     performedImpassableOpcode= false;
@@ -862,14 +876,13 @@ void dungeonLoop() {
 
         // draw player surrounding
 
-        for (xdiff= -1; xdiff <= 1; xdiff++) {
-            for (ydiff= -1; ydiff <= 1; ydiff++) {
+        for (xdiff= -fov; xdiff <= fov; xdiff++) {
+            for (ydiff= -fov; ydiff <= fov; ydiff++) {
                 mposX= currentX + offsetX + xdiff;
                 mposY= currentY + offsetY + ydiff;
                 if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
                     mposY < desc->dungeonMapHeight) {
                     fetchDungeonItemAtPos(mposX, mposY, &dItem);
-                    // dItem= dungeonItemAtPos(mposX, mposY);
                     if (xdiff == 0 && ydiff == 0) {
                         plotPlayer(currentX, currentY);
                     } else {
@@ -881,6 +894,8 @@ void dungeonLoop() {
                 }
             }
         }
+
+        fov= 1;
 
         if (gEncounterResult !=
             encUndef) { // coming from an encounter? --> handle result first
@@ -939,7 +954,11 @@ void dungeonLoop() {
         switch (cmd) {
 
         case 'l':
-            look(currentX + offsetX, currentY + offsetY);
+            if (isDungeonMode) {
+                look(currentX + offsetX, currentY + offsetY);
+            } else {
+                fov= 2;
+            }
             break;
 
         case 29: // cursor right
@@ -1066,6 +1085,42 @@ void unloadDungeon(void) {
     gLoadedDungeonIndex= 255;
 }
 
+void initLoadedDungeon(void) {
+
+    encounterLostOpcIdx= 0;
+    encounterWonOpcIdx= 0;
+
+    gEncounterResult= encUndef;
+
+    dungeonMapWidth= desc->dungeonMapWidth;
+    gLoadedDungeonIndex= gCurrentDungeonIndex;
+
+    lastFeelIndex= 255;
+
+    if (!isDungeonMode) {
+        currentX= gOutdoorXPos;
+        currentY= gOutdoorYPos;
+    } else {
+        currentX= desc->startX;
+        currentY= desc->startY;
+    }
+
+
+    offsetX= 0;
+    offsetY= 0;
+    mposX= 0;
+    mposY= 0;
+
+    offsetX= currentX - (mapWindowSizeX / 2);
+    currentX= mapWindowSizeX / 2;
+
+    if (currentY > 2) {
+        offsetY= currentY - (mapWindowSizeY / 2);
+        currentY= mapWindowSizeY / 2;
+    }
+    
+}
+
 void loadNewDungeon(void) {
 
     char *mfile;
@@ -1085,39 +1140,10 @@ void loadNewDungeon(void) {
         exit(0);
     }
 
-    encounterLostOpcIdx= 0;
-    encounterWonOpcIdx= 0;
-
-    gEncounterResult= encUndef;
-
-    dungeonMapWidth= desc->dungeonMapWidth;
-    gLoadedDungeonIndex= gCurrentDungeonIndex;
-
-    lastFeelIndex= 255;
-
-    if (!isDungeonMode) {
-        currentX = gOutdoorXPos;
-        currentY = gOutdoorYPos;
-    } else {
-        currentX= desc->startX;
-        currentY= desc->startY;
-    }
-
-    offsetX= 0;
-    offsetY= 0;
-    mposX= 0;
-    mposY= 0;
-
-    offsetX= currentX - (mapWindowSizeX / 2);
-    currentX= mapWindowSizeX / 2;
-
-    if (currentY > mapWindowSizeY) {
-        offsetY= currentY - (mapWindowSizeY / 2) - 1;
-        currentY= mapWindowSizeY / 2;
-    }
+    initLoadedDungeon();
 }
 
-void enterDungeonMode(void) {
+void enterDungeonMode(byte reInitMap) {
 #ifdef DEBUG
     if (gCurrentGameMode == gm_dungeon) {
         puts("entering dungeon mode");
@@ -1133,7 +1159,12 @@ void enterDungeonMode(void) {
 
     if (gLoadedDungeonIndex != gCurrentDungeonIndex) {
         loadNewDungeon();
+    } else {
+        if (reInitMap) {
+            initLoadedDungeon();
+        }
     }
+
     quitDungeon= false;
     nstatOnceCounter= 0;
     dungeonLoop();

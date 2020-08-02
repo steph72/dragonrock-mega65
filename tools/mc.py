@@ -88,7 +88,7 @@ class mapCompiler:
                 # currentMapElem.startOpcodeIndex = 257
                 # currentMapElem.mapElementID = 0
                 extraBits = (currentMapElem.startOpcodeIndex & 768) >> 2
-                #mapbytes format: byte 1 == map element + upper 2 bits of opcode index
+                # mapbytes format: byte 1 == map element + upper 2 bits of opcode index
                 #                 byte 2 == lower 8 bits of opcode index
                 outbyte1 = self.mapElementByte(currentMapElem) | extraBits
                 outbyte2 = currentMapElem.startOpcodeIndex & 255
@@ -340,7 +340,7 @@ class mapCompiler:
                 return ""
             opc[1] = coords[0]
             opc[2] = coords[1]
-            opc[3] = "__DRLABEL__"+pline.tOpcLabel  
+            opc[3] = "__DRLABEL__"+pline.tOpcLabel
             opc[4] = int(pline.tDungeonItemID)
             return opc
 
@@ -413,6 +413,11 @@ class mapCompiler:
             opc[3] = int(pline.tYValue)
             return opc
 
+        def opCreate_ENTER_C(pline):
+            opc = [0x11, 0, 0, 0, 0, 0, 0, 0]
+            opc[1] = int(pline.tCityID)
+            return opc
+
         lastOpcodeIndex = 0
         lastOpcode = []
 
@@ -420,7 +425,7 @@ class mapCompiler:
             lineNum = i[0]
             src = i[1]
             if src.metaCmd == "---":
-                lastOpcode[0] = lastOpcode[0] | 128 # set stop flag
+                lastOpcode[0] = lastOpcode[0] | 128  # set stop flag
                 lastOpcode = []
             if not src.opcode:
                 continue
@@ -428,8 +433,8 @@ class mapCompiler:
             src.lineNum = lineNum
             opCreateFunc = "opCreate_"+src.opcode     # construct building function name
             newOpcode = locals()[opCreateFunc](src)   # ...and call it.
-            if (newOpcode==""):
-                print("aborted in line",lineNum)
+            if (newOpcode == ""):
+                print("aborted in line", lineNum)
                 exit(4)
             opcodes.append((lineNum, newOpcode))
 
@@ -459,18 +464,20 @@ class mapCompiler:
                         print("cannot resolve ", label)
                         exit(6)
                     # print(opcode, label, labelLineNumber, opcodeNumber)
-                    if opcode[0]==8:
+                    if opcode[0] == 8:
                         # special handling for ALTER opcode: 10 bit jump destination
                         # like used in mapdata
                         extraBits = (opcodeNumber & 768) >> 2
-                        #mapbytes format: byte 1 == map element + upper 2 bits of opcode index
+                        # mapbytes format: byte 1 == map element + upper 2 bits of opcode index
                         #                 byte 2 == lower 8 bits of opcode index
-                        opcode[paramIdx]   = opcodeNumber & 255              # 8 bits of opcode
-                        opcode[paramIdx+1] = opcode[paramIdx+1] | extraBits  # ditem + 2 bits opcode
+                        # 8 bits of opcode
+                        opcode[paramIdx] = opcodeNumber & 255
+                        opcode[paramIdx+1] = opcode[paramIdx +
+                                                    1] | extraBits  # ditem + 2 bits opcode
                         pass
                     else:
                         # all other jump destinations are to be 16 bit
-                        opcode[paramIdx] = opcodeNumber%256
+                        opcode[paramIdx] = opcodeNumber % 256
                         opcode[paramIdx+1] = opcodeNumber//256
                     # print(opcode)
                 paramIdx += 1
@@ -512,6 +519,7 @@ class mapCompiler:
         p_dungeonItemID = pp.Word(pp.nums)('tDungeonItemID')
         p_charID = pp.Word(pp.nums)('tCharID')
         p_mapID = pp.Word(pp.nums)('tMapID')
+        p_cityID = pp.Word(pp.nums)('tCityID')
         p_xValue = pp.Word(pp.nums)('tXValue')
         p_yValue = pp.Word(pp.nums)('tYValue')
         p_x2Value = pp.Word(pp.nums)('tX2Value')
@@ -601,6 +609,9 @@ class mapCompiler:
                + p_mapID + ","
                + p_xValue + ","
                + p_yValue)
+
+            ^ (pp.Keyword("ENTER_C")('opcode')
+               + p_cityID) 
 
             # ---------- meta commands -----------
 
