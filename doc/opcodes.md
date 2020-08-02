@@ -6,6 +6,9 @@ No operation or GOTO
 ## 0x01 NSTAT <01:msgID>
 Change current status message to *msgID*
 
+## 0x21 NSTAT_O <01:msgID>
+Like NSTAT, but clear status immediately after player moves on
+
 ## 0x02 DISP <01:msgID> <02:clrFlag>
 Display *msgID*
 
@@ -38,7 +41,6 @@ If *verboseFlag* != 0, print '[characterName] took [itemName]' after successful 
 On success, performs <successOpcIdx>; otherwise <failureOpcIdx>
 Register 0 -> true on success, otherwise false
 Register 1 -> party member who took the item
-
 
 ## 0x08 ALTER <01:xpos> <02:ypos> <03:posOpcodeLabel> <04:dungeonItemID>
 Alter map at coordinates *xpos*,*ypos* to opcode index pointed to by *posOpcodeLabel* and *dungeonItemID*. WARNING! DungeonItemID has to carry bits 9+10 of the final dungeon item ID

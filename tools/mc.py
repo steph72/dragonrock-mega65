@@ -262,6 +262,11 @@ class mapCompiler:
             checkString(pline.tMsgLabel, pline)
             return [1, self.gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
 
+        def opCreate_NSTAT_O(pline):
+            opc = opCreate_NSTAT(pline)
+            opc[0] = 0x21
+            return opc
+
         def opCreate_DISP(pline):
             checkString(pline.tMsgLabel, pline)
             opc = [2, self.gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
@@ -523,6 +528,8 @@ class mapCompiler:
             ^ pp.Keyword("GOTO")('opcode')+p_opcLabel
 
             ^ pp.Keyword("NSTAT")('opcode')+p_msgLabel
+
+            ^ pp.Keyword("NSTAT_O")('opcode')+p_msgLabel
 
             ^ pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('tClrFlag'))
 

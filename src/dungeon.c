@@ -60,7 +60,10 @@ char signs[]= {
     110, // 11  water2
     100, // 12  hills
     102, // 13  mountains
-    112 // 14  village
+    112, // 14  village
+    112, // 15  castle
+    112, // 16  inn
+    114  // 17  dungeon
 
 };
 
@@ -79,7 +82,10 @@ char tileColors[]= {
     COLOR_BLUE,   // water 2
     COLOR_BROWN,  // hills
     COLOR_GRAY3,  // mountains
-    COLOR_ORANGE  // village
+    COLOR_YELLOW, // village
+    COLOR_YELLOW, // castle
+    COLOR_YELLOW, // inn
+    COLOR_GRAY3   // dungeon
 };
 
 byte isDungeonMode;
@@ -98,6 +104,7 @@ int mposY;
 byte offsetX;
 byte offsetY;
 
+byte nstatOnceCounter;
 byte quitDungeon;
 
 const byte mapWindowSizeX= 15;
@@ -122,9 +129,11 @@ void displayFeel(byte idx);
 void redrawAll(void);
 void plotPlayer(byte x, byte y);
 void setupScreen(void);
-void performOpcodeAtIndex(int idx);
 
+void performOpcodeAtIndex(int idx);
 int performOpcode(opcode *anOpcode, int addr);
+
+void clearStatus(void);
 
 #ifdef DEBUG
 byte singleStepMode;
@@ -132,11 +141,15 @@ byte singleStepMode;
 
 // --------------------------------- opcodes ---------------------------------
 
-// 0x01: NSTAT
+// 0x01: NSTAT / NSTAT_O
 byte performDisplayFeelOpcode(opcode *anOpcode) {
     byte feelIndex;
 
     feelIndex= anOpcode->param1;
+
+    if (anOpcode->id & 32) {
+        nstatOnceCounter= 1;
+    }
 
     // make sure we display it only once
     if (feelIndex == lastFeelIndex) {
@@ -630,7 +643,7 @@ void plotDungeonItem(dungeonItem *item, byte x, byte y, byte alternate) {
     byte mapSign;
     byte modifier;
 
-    mapSign= item->mapItem & 15;
+    mapSign= item->mapItem & 31;
 
     modifier= 0;
     colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
@@ -661,8 +674,10 @@ void plotPlayer(byte x, byte y) {
     *colorPtr= isDungeonMode ? COLOR_BLUE : COLOR_YELLOW;
 }
 
+void clearStatus(void) { cg_clearLower(5); }
+
 void displayFeel(byte feelID) {
-    cg_clearLower(5);
+    clearStatus();
     gotoxy(0, 19);
     fetchFeelForIndex(feelID, textbuf);
     puts(textbuf);
@@ -735,7 +750,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
     for (; n > 0; --n) {
 
         fetchDungeonItemAtPos(x, y, &anItem);
-        blocksView= (anItem.mapItem & 15) >= 2 || (anItem.mapItem & 32);
+        blocksView= (anItem.mapItem & 31) >= 2 || (anItem.mapItem & 32);
 
         if (x < 0 || y < 0 || x > desc->dungeonMapWidth ||
             y > desc->dungeonMapHeight) {
@@ -829,6 +844,15 @@ void dungeonLoop() {
     while (!quitDungeon) {
 
         ensureSaneOffset();
+
+        // clear status area if nstat_o
+        if (nstatOnceCounter) {
+            nstatOnceCounter--;
+            if (nstatOnceCounter == 0) {
+                clearStatus();
+                lastFeelIndex= 255;
+            }
+        }
 
         // fov
         // would have slowed down the plus/4 to a crawl, but is a breeze
@@ -1071,8 +1095,14 @@ void loadNewDungeon(void) {
 
     lastFeelIndex= 255;
 
-    currentX= desc->startX;
-    currentY= desc->startY;
+    if (!isDungeonMode) {
+        currentX = gOutdoorXPos;
+        currentY = gOutdoorYPos;
+    } else {
+        currentX= desc->startX;
+        currentY= desc->startY;
+    }
+
     offsetX= 0;
     offsetY= 0;
     mposX= 0;
@@ -1105,6 +1135,7 @@ void enterDungeonMode(void) {
         loadNewDungeon();
     }
     quitDungeon= false;
+    nstatOnceCounter= 0;
     dungeonLoop();
 }
 
@@ -1117,6 +1148,8 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     unsigned int offset;
     byte mapItem;
     byte xs, ys;
+
+    byte xpos;
 
     byte screenStride;
     byte mapStride;
@@ -1134,12 +1167,13 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     for (ys= 0; ys < mapWindowSizeY; ++ys) {
         bufPtr= seenMapPtr + offset;
         for (xs= 0; xs < mapWindowSizeX; ++xs, ++screenPtr, ++colorPtr) {
+            xpos= mapX + xs;
             mapItem= *(++bufPtr);
             modifier= 0;
             if (mapItem != 255) {
-                mapItem&= 15;
+                mapItem&= 31;
                 if (mapItem >= 5) {
-                    modifier= ((unsigned int)(bufPtr)) % 2 ? 1 : 0;
+                    modifier= xpos % 2 ? 1 : 0;
                 }
                 *colorPtr= tileColors[mapItem];
                 *screenPtr= signs[mapItem] + modifier;

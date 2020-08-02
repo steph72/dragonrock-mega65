@@ -14,7 +14,7 @@ village of Foxhome.
 """
 
 city_road:
-    NSTAT msgCityRoad
+    NSTAT_O msgCityRoad
     ---
 
 city_foxhome:
