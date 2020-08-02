@@ -1,11 +1,11 @@
 
 includemap "mapsrc/outdoor33.drm"
 
-defc city_foxhome: 20,15 - 21,15
-defc city_road: 19,15
+defc city_foxhome: 22,15 - 23,15
+defc city_road: 21,15
 
 $ msgCity,"""
-The city of Foxhome. Do you want
+The village of Foxhome. Do you want
 to enter? (yes/no):"""
 
 $ msgCityRoad,"""

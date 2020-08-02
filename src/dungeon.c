@@ -75,7 +75,7 @@ char tileColors[]= {
     0,            // dungeon tiles
     COLOR_GREEN,  // grass
     COLOR_ORANGE, // sand
-    COLOR_GRAY3,  // stone path
+    COLOR_GRAY2,  // stone path
     COLOR_GREEN,  // trees 1
     COLOR_GREEN,  // trees 2
     COLOR_BLUE,   // water 1
