@@ -27,19 +27,19 @@ class mapEditor():
                           [u"\u2015", 'D horizontal door'],     #  3 : horizontal line (door)
                           [u"\u2588", 'D wall'],                #  4 : wall = solid block
                         # ------------ outdoor tiles -------------
-                          [',','O grass'],                      #  6 : grass
-                          ['%','O sand'],                       #  7 : sand
+                          [',','O grass'],                      #  5 : grass
+                          ['%','O sand'],                       #  6 : sand
                           ['#','O stone path'],                 #  7 : stone path
-                          ['t','O small trees'],                #  7 : small trees
-                          ['T','O large trees'],                #  8 : large trees
-                          ['w','O small water'],                #  9 : small water
-                          ['W','O large water'],                # 10 : lg water
-                          ['^','O small mountain'],             # 11 : sm mountain
-                          ['M','O large mountain'],             # 12 : lg mountain
-                          ['c','O village'],                    # 13 : village
-                          ['C','O castle'],                     # 14 : castle
-                          ['i','O inn'],                        # 15 : inn
-                          ['d','O dungeon']                     # 16 : dungeon
+                          ['t','O small trees'],                #  8 : small trees
+                          ['T','O large trees'],                #  9 : large trees
+                          ['w','O small water'],                # 10 : small water
+                          ['W','O large water'],                # 11 : lg water
+                          ['^','O hills'],                       # 12 : sm mountain
+                          ['M','O mountains'],                  # 13 : lg mountain
+                          ['c','O village'],                    # 14 : village
+                          ['C','O castle'],                     # 15 : castle
+                          ['i','O inn'],                        # 16 : inn
+                          ['d','O dungeon']                     # 17 : dungeon
                           ]
 
     def setupEmptyMap(self):

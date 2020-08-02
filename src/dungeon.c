@@ -40,13 +40,47 @@
 // clang-format on
 
 char signs[]= {
-    0x20, // empty space
-    0x5b, // diamond
-    0x5c, // vertical door
-    0x5d, // horizontal door
-    0x5e, // filled space
-    0x5f  // coat of arms
+
+    /* -- dungeon signs -- */
+
+    0x20, //  0  empty space
+    0x5b, //  1  diamond
+    0x5c, //  2  vertical door
+    0x5d, //  3  horizontal door
+    0x5e, //  4  filled space
+
+    /* -- outdoor signs -- */
+
+    96,  //  5  grass
+    104, //  6  sand
+    108, //  7  stone path
+    98,  //  8  trees1
+    98,  //  9  trees2
+    110, // 10  water1
+    110, // 11  water2
+    100, // 12  hills
+    102, // 13  mountains
+
 };
+
+char tileColors[]= {
+    0,
+    0,
+    0,
+    0,
+    0,            // dungeon tiles
+    COLOR_GREEN,  // grass
+    COLOR_ORANGE, // sand
+    COLOR_GRAY3,  // stone path
+    COLOR_GREEN,  // trees 1
+    COLOR_GREEN,  // trees 2
+    COLOR_BLUE,   // water 1
+    COLOR_BLUE,   // water 2
+    COLOR_BROWN,  // hills
+    COLOR_GRAY3   // mountains
+};
+
+byte isDungeonMode;
 
 static dungeonDescriptor *desc= NULL;
 unsigned int dungeonMapWidth;
@@ -64,7 +98,9 @@ byte offsetY;
 
 byte quitDungeon;
 
-const byte mapWindowSize= 15;
+const byte mapWindowSizeX= 15;
+const byte mapWindowSizeY= 15;
+
 const byte scrollMargin= 2;
 const byte screenWidth= 40;
 const byte screenX= 2;
@@ -83,7 +119,7 @@ void setDungeonItemAtPos(byte x, byte y, dungeonItem *anItem);
 void displayFeel(byte idx);
 void redrawAll(void);
 void plotPlayer(byte x, byte y);
-void setupDungeonScreen(void);
+void setupScreen(void);
 void performOpcodeAtIndex(int idx);
 
 int performOpcode(opcode *anOpcode, int addr);
@@ -576,9 +612,9 @@ void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void redrawAll() {
-    setupDungeonScreen();
+    setupScreen();
     redrawMap();
-    showCurrentParty(true,true);
+    showCurrentParty(true, true);
     plotPlayer(currentX, currentY);
     if (lastFeelIndex != 255) {
         displayFeel(lastFeelIndex);
@@ -588,19 +624,30 @@ void redrawAll() {
 void plotDungeonItem(dungeonItem *item, byte x, byte y) {
 
     register byte *screenPtr; // working pointer to screen
+    register byte *colorPtr;
+
+    colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
 
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
     screenPtr+= x + (y * screenWidth);
+    colorPtr+= x + (y * screenWidth);
+
     *screenPtr= signs[item->mapItem & 15];
+    *colorPtr= tileColors[item->mapItem & 15];
 }
 
 void plotPlayer(byte x, byte y) {
     register byte *screenPtr; // working pointer to screen
+    register byte *colorPtr;
+
+    colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
 
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
     screenPtr+= x + (y * screenWidth);
+    colorPtr+= x + (y * screenWidth);
 
-    *screenPtr= signs[5];
+    *screenPtr= 0x5f;
+    *colorPtr= isDungeonMode ? COLOR_BLUE : COLOR_YELLOW;
 }
 
 void displayFeel(byte feelID) {
@@ -613,8 +660,8 @@ void displayFeel(byte feelID) {
 // moves origin and redraws map if player is in scroll area
 void ensureSaneOffset() {
 
-    if (currentX > (mapWindowSize - scrollMargin - 1)) {
-        if (offsetX + mapWindowSize < dungeonMapWidth) {
+    if (currentX > (mapWindowSizeX - scrollMargin - 1)) {
+        if (offsetX + mapWindowSizeX < dungeonMapWidth) {
             ++offsetX;
             --currentX;
             redrawMap();
@@ -629,8 +676,8 @@ void ensureSaneOffset() {
         }
     }
 
-    if (currentY > mapWindowSize - scrollMargin - 1) {
-        if (offsetY + mapWindowSize < desc->dungeonMapHeight) {
+    if (currentY > mapWindowSizeY - scrollMargin - 1) {
+        if (offsetY + mapWindowSizeY < desc->dungeonMapHeight) {
             ++offsetY;
             --currentY;
             redrawMap();
@@ -677,7 +724,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
     for (; n > 0; --n) {
 
         fetchDungeonItemAtPos(x, y, &anItem);
-        blocksView= (anItem.mapItem & 15)>=2 || (anItem.mapItem & 32);
+        blocksView= (anItem.mapItem & 15) >= 2 || (anItem.mapItem & 32);
 
         if (x < 0 || y < 0 || x > desc->dungeonMapWidth ||
             y > desc->dungeonMapHeight) {
@@ -830,7 +877,8 @@ void dungeonLoop() {
         // alredy performed an opcode?
         if (!performedImpassableOpcode) {
             // no? get what's under the player...
-            fetchDungeonItemAtPos(currentX+offsetX, currentY+offsetY, &currentItem);
+            fetchDungeonItemAtPos(currentX + offsetX, currentY + offsetY,
+                                  &currentItem);
             // ...and perform it
             idx= opcodeIndexForDungeonItem(&currentItem);
             performOpcodeAtIndex(idx);
@@ -941,37 +989,35 @@ void fetchFeelForIndex(byte idx, char *aFeel) {
 
 // char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
 
+void setupOutdoorScreen(void) {
+    bgcolor(COLOR_BLACK);
+    bordercolor(COLOR_BLACK);
+    textcolor(COLOR_GRAY2);
+    cg_clear();
+    cg_block(0, 0, 39, 24, 32, COLOR_GREEN);
+    revers(0);
+}
+
 void setupDungeonScreen(void) {
     byte x;
-    byte dTextCol;
-    byte dBackgroundCol;
-    byte dBorderCol;
-    byte dMapBorderCol;
-    byte isDungeonMode;
 
-    isDungeonMode= gCurrentGameMode == gm_dungeon;
-
-    dTextCol= isDungeonMode ? COLOR_BLACK : COLOR_GREEN;
-    dBorderCol= isDungeonMode ? COLOR_GRAY1 : COLOR_BLACK;
-    dBackgroundCol= isDungeonMode ? COLOR_GRAY3 : COLOR_BLACK;
-    dMapBorderCol= isDungeonMode ? COLOR_GREEN : COLOR_BLUE;
-
-    textcolor(dTextCol);
+    textcolor(COLOR_BLACK);
     cg_clear();
-    bordercolor(dBorderCol);
-    bgcolor(dBackgroundCol);
-    textcolor(dMapBorderCol);
-    revers(1);
+    bordercolor(COLOR_GRAY1);
+    bgcolor(COLOR_GRAY3);
+    cg_block(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
+             screenY + mapWindowSizeY, 160, COLOR_GREEN);
+    cg_block(screenX, screenY, screenX + mapWindowSizeX - 1,
+             screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
+}
 
-    for (x= 0; x < mapWindowSize + 1; ++x) {
-        cputcxy(screenX + x, screenY - 1, ' ');
-        cputcxy(screenX - 1 + x, screenY + mapWindowSize, ' ');
-        cputcxy(screenX - 1, screenY - 1 + x, ' ');
-        cputcxy(screenX + mapWindowSize, screenY + x, ' ');
+void setupScreen() {
+
+    if (isDungeonMode) {
+        setupDungeonScreen();
+    } else {
+        setupOutdoorScreen();
     }
-    revers(0);
-
-    textcolor(dTextCol);
 }
 
 void unloadDungeon(void) {
@@ -1021,12 +1067,12 @@ void loadNewDungeon(void) {
     mposX= 0;
     mposY= 0;
 
-    offsetX= currentX - (mapWindowSize / 2);
-    currentX= mapWindowSize / 2;
+    offsetX= currentX - (mapWindowSizeX / 2);
+    currentX= mapWindowSizeX / 2;
 
-    if (currentY > mapWindowSize) {
-        offsetY= currentY - (mapWindowSize / 2) - 1;
-        currentY= mapWindowSize / 2;
+    if (currentY > mapWindowSizeY) {
+        offsetY= currentY - (mapWindowSizeY / 2) - 1;
+        currentY= mapWindowSizeY / 2;
     }
 }
 
@@ -1042,6 +1088,8 @@ void enterDungeonMode(void) {
     }
     singleStepMode= false;
 #endif
+    isDungeonMode= gCurrentGameMode == gm_dungeon;
+
     if (gLoadedDungeonIndex != gCurrentDungeonIndex) {
         loadNewDungeon();
     }
@@ -1052,7 +1100,8 @@ void enterDungeonMode(void) {
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     register byte *screenPtr; // working pointer to screen
-    register byte *bufPtr;    // working pointer to line buffer
+    register byte *colorPtr;
+    register byte *bufPtr; // working pointer to line buffer
     byte *seenMapPtr;
     unsigned int offset;
     byte mapItem;
@@ -1061,25 +1110,31 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     byte screenStride;
     byte mapStride;
 
-    screenStride= screenWidth - mapWindowSize;
+    screenStride= screenWidth - mapWindowSizeX;
     mapStride= dungeonMapWidth;
 
+    colorPtr= COLOR_RAM + (screenWidth * posY) + posX;
     screenPtr= SCREEN + (screenWidth * posY) + posX;
     seenMapPtr= seenMap + (mapY * dungeonMapWidth) + mapX - 1;
 
     offset= 0;
 
-    for (ys= 0; ys < mapWindowSize; ++ys) {
+    for (ys= 0; ys < mapWindowSizeY; ++ys) {
         bufPtr= seenMapPtr + offset;
-        for (xs= 0; xs < mapWindowSize; ++xs, ++screenPtr) {
+        for (xs= 0; xs < mapWindowSizeX; ++xs, ++screenPtr, ++colorPtr) {
             mapItem= *(++bufPtr);
             if (mapItem != 255) {
-                *screenPtr= signs[mapItem & 15];
+                mapItem&= 15;
+                *colorPtr= tileColors[mapItem];
+                *screenPtr= signs[mapItem];
             } else {
-                *screenPtr= 160;
+                *screenPtr= isDungeonMode ? 160 : 32;
+                // isDungeonMode ? *screenPtr=160 : screenPtr = 32;
+                // *screenPtr= 160;
             }
         }
         screenPtr+= screenStride;
+        colorPtr+= screenStride;
         offset+= desc->dungeonMapWidth;
     }
 }
