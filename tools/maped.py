@@ -34,7 +34,7 @@ class mapEditor():
                           ['T','O large trees'],                #  9 : large trees
                           ['w','O small water'],                # 10 : small water
                           ['W','O large water'],                # 11 : lg water
-                          ['^','O hills'],                       # 12 : sm mountain
+                          ['^','O hills'],                      # 12 : sm mountain
                           ['M','O mountains'],                  # 13 : lg mountain
                           ['c','O village'],                    # 14 : village
                           ['C','O castle'],                     # 15 : castle

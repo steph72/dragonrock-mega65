@@ -1,11 +1,21 @@
 
 includemap "mapsrc/outdoor33.drm"
 
-defc city_foxhome: 20,15
+defc city_foxhome: 20,15 - 21,15
+defc city_road: 19,15
 
 $ msgCity,"""
 The city of Foxhome. Do you want
 to enter? (yes/no):"""
+
+$ msgCityRoad,"""
+To the east lies the quiet little
+village of Foxhome.
+"""
+
+city_road:
+    NSTAT msgCityRoad
+    ---
 
 city_foxhome:
     DISP msgCity,True

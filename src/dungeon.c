@@ -60,6 +60,7 @@ char signs[]= {
     110, // 11  water2
     100, // 12  hills
     102, // 13  mountains
+    112 // 14  village
 
 };
 
@@ -77,7 +78,8 @@ char tileColors[]= {
     COLOR_BLUE,   // water 1
     COLOR_BLUE,   // water 2
     COLOR_BROWN,  // hills
-    COLOR_GRAY3   // mountains
+    COLOR_GRAY3,  // mountains
+    COLOR_ORANGE  // village
 };
 
 byte isDungeonMode;
@@ -621,19 +623,28 @@ void redrawAll() {
     }
 }
 
-void plotDungeonItem(dungeonItem *item, byte x, byte y) {
+void plotDungeonItem(dungeonItem *item, byte x, byte y, byte alternate) {
 
     register byte *screenPtr; // working pointer to screen
     register byte *colorPtr;
+    byte mapSign;
+    byte modifier;
 
+    mapSign= item->mapItem & 15;
+
+    modifier= 0;
     colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
 
     screenPtr= SCREEN + (screenWidth * screenY) + screenX;
     screenPtr+= x + (y * screenWidth);
     colorPtr+= x + (y * screenWidth);
 
-    *screenPtr= signs[item->mapItem & 15];
-    *colorPtr= tileColors[item->mapItem & 15];
+    if (mapSign >= 5) {
+        modifier= alternate ? 1 : 0;
+    }
+
+    *screenPtr= signs[mapSign] + modifier;
+    *colorPtr= tileColors[mapSign];
 }
 
 void plotPlayer(byte x, byte y) {
@@ -841,7 +852,7 @@ void dungeonLoop() {
                         seenMap[mposX + (dungeonMapWidth * mposY)]=
                             dItem.mapItem;
                         plotDungeonItem(&dItem, currentX + xdiff,
-                                        currentY + ydiff);
+                                        currentY + ydiff, mposX % 2);
                     }
                 }
             }
@@ -1109,6 +1120,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     byte screenStride;
     byte mapStride;
+    byte modifier;
 
     screenStride= screenWidth - mapWindowSizeX;
     mapStride= dungeonMapWidth;
@@ -1123,10 +1135,14 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
         bufPtr= seenMapPtr + offset;
         for (xs= 0; xs < mapWindowSizeX; ++xs, ++screenPtr, ++colorPtr) {
             mapItem= *(++bufPtr);
+            modifier= 0;
             if (mapItem != 255) {
                 mapItem&= 15;
+                if (mapItem >= 5) {
+                    modifier= ((unsigned int)(bufPtr)) % 2 ? 1 : 0;
+                }
                 *colorPtr= tileColors[mapItem];
-                *screenPtr= signs[mapItem];
+                *screenPtr= signs[mapItem] + modifier;
             } else {
                 *screenPtr= isDungeonMode ? 160 : 32;
                 // isDungeonMode ? *screenPtr=160 : screenPtr = 32;

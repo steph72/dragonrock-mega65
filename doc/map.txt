@@ -1,7 +1,7 @@
 ** memory map **
 
-0x00801 - 0x0afff       main program    32k
-0x0b000 - 0x0d000       overlays         8k
+0x00801 - 0x09fff       main program    36k
+0x0a000 - 0x0cfff       overlays        12k
 0x12000 - 0x12fff       character set    4k 
 0x13000 - 0x13fff       sprite pointers  4k
 0x14000 - 0x1ffff       sprite area     48k
