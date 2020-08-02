@@ -168,7 +168,7 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
            (int)debugPtr - (int)desc);
     free(debugPtr);
-    cgetc();
+    // cgetc();
 #endif
 
     return desc;
