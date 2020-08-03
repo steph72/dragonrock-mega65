@@ -164,7 +164,6 @@ byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
     static byte originalColor;
     static byte currentRow;
     static byte *currentBase;
-    static byte lineInc;
     static char input;
 
     currentRow= defaultItem;
@@ -276,7 +275,7 @@ char *cg_input(byte maxlen) {
 
 void cg_borders(void) {
     chlinexy(0, 0, 40);
-    chlinexy(0, 24, 40);
+    chlinexy(0, 24, 40); 
     gotoxy(0, 1);
 }
 

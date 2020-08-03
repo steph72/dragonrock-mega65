@@ -40,53 +40,38 @@
 #pragma code-name(push, "OVERLAY1");
 // clang-format on
 
-char signs[]= {
+typedef struct _sign {
+    byte characterCode;
+    byte colour;
+    byte blocksViewFlag;
+} sign;
+
+sign signs[]= {
 
     /* -- dungeon signs -- */
 
-    0x20, //  0  empty space
-    0x5b, //  1  diamond
-    0x5c, //  2  vertical door
-    0x5d, //  3  horizontal door
-    0x5e, //  4  filled space
+    {0x20, 0, 0}, //  0  empty space
+    {0x5b, 0, 0}, //  1  diamond
+    {0x5c, 0, 1}, //  2  vertical door
+    {0x5d, 0, 1}, //  3  horizontal door
+    {0x5e, 0, 1}, //  4  filled space
 
     /* -- outdoor signs -- */
 
-    96,  //  5  grass
-    104, //  6  sand
-    108, //  7  stone path
-    98,  //  8  trees1
-    98,  //  9  trees2
-    110, // 10  water1
-    110, // 11  water2
-    100, // 12  hills
-    102, // 13  mountains
-    112, // 14  village
-    112, // 15  castle
-    112, // 16  inn
-    114  // 17  dungeon
-
-};
-
-char tileColors[]= {
-    0,
-    0,
-    0,
-    0,
-    0,            // dungeon tiles
-    COLOR_GREEN,  // grass
-    COLOR_ORANGE, // sand
-    COLOR_GRAY2,  // stone path
-    COLOR_GREEN,  // trees 1
-    COLOR_GREEN,  // trees 2
-    COLOR_BLUE,   // water 1
-    COLOR_BLUE,   // water 2
-    COLOR_BROWN,  // hills
-    COLOR_GRAY3,  // mountains
-    COLOR_YELLOW, // village
-    COLOR_YELLOW, // castle
-    COLOR_YELLOW, // inn
-    COLOR_GRAY3   // dungeon
+    {96, COLOR_GREEN, 0},   //  5  grass
+    {104, COLOR_YELLOW, 0}, //  6  sand
+    {108, COLOR_GRAY1, 0},  //  7  stone path
+    {98, COLOR_GREEN, 1},   //  8  trees1
+    {98, COLOR_GREEN, 1},   //  9  trees2
+    {110, COLOR_BLUE, 0},   // 10  water1
+    {110, COLOR_BLUE, 0},   // 11  water2
+    {100, COLOR_BROWN, 1},  // 12  hills
+    {102, COLOR_GRAY3, 1},  // 13  mountains
+    {112, COLOR_YELLOW, 0}, // 14  village
+    {112, COLOR_PURPLE, 0}, // 15  castle
+    {112, COLOR_ORANGE, 0}, // 16  inn
+    {114, COLOR_GRAY3, 0},  // 17  dungeon
+    {116, COLOR_BROWN, 0}   // 18 bridge
 };
 
 byte isDungeonMode;
@@ -111,7 +96,7 @@ byte quitDungeon;
 const byte mapWindowSizeX= 15;
 const byte mapWindowSizeY= 15;
 
-const byte scrollMargin= 2;
+const byte scrollMargin= 4;
 const byte screenWidth= 40;
 const byte screenX= 2;
 const byte screenY= 2;
@@ -667,8 +652,8 @@ void plotDungeonItem(dungeonItem *item, byte x, byte y, byte alternate) {
         modifier= alternate ? 1 : 0;
     }
 
-    *screenPtr= signs[mapSign] + modifier;
-    *colorPtr= tileColors[mapSign];
+    *screenPtr= signs[mapSign].characterCode + modifier;
+    *colorPtr= signs[mapSign].colour;
 }
 
 void plotPlayer(byte x, byte y) {
@@ -695,7 +680,7 @@ void displayFeel(byte feelID) {
 }
 
 // moves origin and redraws map if player is in scroll area
-void ensureSaneOffset() {
+void ensureSaneOffsetAndRedrawMap() {
 
     if (currentX > (mapWindowSizeX - scrollMargin - 1)) {
         if (offsetX + mapWindowSizeX < dungeonMapWidth) {
@@ -744,6 +729,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
     int error;
 
     dungeonItem anItem;
+    byte rawMapItem;
     byte blocksView;
 
     dx= abs(x1 - x0);
@@ -761,10 +747,11 @@ void look_bh(int x0, int y0, int x1, int y1) {
     for (; n > 0; --n) {
 
         fetchDungeonItemAtPos(x, y, &anItem);
-        blocksView= (anItem.mapItem & 31) >= 2 || (anItem.mapItem & 32);
+        rawMapItem= anItem.mapItem & 31;
+        blocksView= signs[rawMapItem].blocksViewFlag;
 
-        if (x < 0 || y < 0 || x > desc->dungeonMapWidth ||
-            y > desc->dungeonMapHeight) {
+        if (x < 0 || y < 0 || x > desc->dungeonMapWidth - 1 ||
+            y > desc->dungeonMapHeight - 1) {
             continue;
         }
 
@@ -790,14 +777,30 @@ void look_bh(int x0, int y0, int x1, int y1) {
 // perform bresenham for 4 edges of f-o-v
 void look(int x, int y) {
     signed char xi1, xi2, yi1, yi2;
+    signed char xdiff, ydiff;
+    dungeonItem anItem;
+
+    for (xdiff= -1; xdiff <= 1; xdiff++) {
+        for (ydiff= -1; ydiff <= 1; ydiff++) {
+            mposX= x + xdiff;
+            mposY= y + ydiff;
+            if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
+                mposY < desc->dungeonMapHeight) {
+                fetchDungeonItemAtPos(mposX, mposY, &anItem);
+                if (xdiff | ydiff) {
+                    seenMap[mposX + (dungeonMapWidth * mposY)]= anItem.mapItem;
+                }
+            }
+        }
+    }
 
     yi1= y - L_DISTANCE;
     if (yi1 < 0)
         yi1= 0;
 
     yi2= y + L_DISTANCE;
-    if (yi2 > desc->dungeonMapHeight)
-        yi2= desc->dungeonMapHeight;
+    if (yi2 > desc->dungeonMapHeight - 1)
+        yi2= desc->dungeonMapHeight - 1;
 
     for (xi1= x - L_DISTANCE; xi1 <= x + L_DISTANCE; ++xi1) {
         look_bh(x, y, xi1, yi1);
@@ -809,8 +812,8 @@ void look(int x, int y) {
         xi1= 0;
 
     xi2= x + L_DISTANCE;
-    if (xi2 > dungeonMapWidth)
-        xi2= dungeonMapWidth;
+    if (xi2 > dungeonMapWidth - 1)
+        xi2= dungeonMapWidth - 1;
 
     for (yi1= y - L_DISTANCE; yi1 <= y + L_DISTANCE; ++yi1) {
         look_bh(x, y, xi1, yi1);
@@ -837,17 +840,14 @@ void dungeonLoop() {
     byte cmd;
     byte performedImpassableOpcode;
 
-    signed char xdiff, ydiff;
-
     dungeonItem dItem;
     dungeonItem currentItem;
 
     byte idx;
 
     fov= isDungeonMode ? 1 : 2;
-
-    redrawAll();
     performedImpassableOpcode= false;
+    redrawAll();
 
     /**************************************************************
      *
@@ -857,7 +857,14 @@ void dungeonLoop() {
 
     while (!quitDungeon) {
 
-        ensureSaneOffset();
+        ensureSaneOffsetAndRedrawMap();
+
+        // establish fov and fill seenSpaces
+        // (would have slowed down the plus/4 to a crawl, but is a breeze
+        // on the mega65...)
+
+        look(currentX + offsetX, currentY + offsetY);
+        plotPlayer(currentX, currentY);
 
         // clear status area if nstat_o
         if (nstatOnceCounter) {
@@ -867,35 +874,6 @@ void dungeonLoop() {
                 lastFeelIndex= 255;
             }
         }
-
-        // fov
-        // would have slowed down the plus/4 to a crawl, but is a breeze
-        // on the mega65...
-
-        // look(currentX + offsetX, currentY + offsetY);
-
-        // draw player surrounding
-
-        for (xdiff= -fov; xdiff <= fov; xdiff++) {
-            for (ydiff= -fov; ydiff <= fov; ydiff++) {
-                mposX= currentX + offsetX + xdiff;
-                mposY= currentY + offsetY + ydiff;
-                if (mposX >= 0 && mposY >= 0 && mposX < dungeonMapWidth &&
-                    mposY < desc->dungeonMapHeight) {
-                    fetchDungeonItemAtPos(mposX, mposY, &dItem);
-                    if (xdiff == 0 && ydiff == 0) {
-                        plotPlayer(currentX, currentY);
-                    } else {
-                        seenMap[mposX + (dungeonMapWidth * mposY)]=
-                            dItem.mapItem;
-                        plotDungeonItem(&dItem, currentX + xdiff,
-                                        currentY + ydiff, mposX % 2);
-                    }
-                }
-            }
-        }
-
-        fov= 1;
 
         if (gEncounterResult !=
             encUndef) { // coming from an encounter? --> handle result first
@@ -958,11 +936,7 @@ void dungeonLoop() {
         switch (cmd) {
 
         case 'l':
-            if (isDungeonMode) {
-                look(currentX + offsetX, currentY + offsetY);
-            } else {
-                fov= 2;
-            }
+            look(currentX + offsetX, currentY + offsetY);
             break;
 
         case 29: // cursor right
@@ -1057,7 +1031,6 @@ void setupOutdoorScreen(void) {
 }
 
 void setupDungeonScreen(void) {
-    byte x;
 
     textcolor(COLOR_BLACK);
     cg_clear();
@@ -1109,7 +1082,6 @@ void initLoadedDungeon(void) {
         currentY= desc->startY;
     }
 
-
     offsetX= 0;
     offsetY= 0;
     mposX= 0;
@@ -1122,7 +1094,6 @@ void initLoadedDungeon(void) {
         offsetY= currentY - (mapWindowSizeY / 2);
         currentY= mapWindowSizeY / 2;
     }
-    
 }
 
 void loadNewDungeon(void) {
@@ -1210,8 +1181,8 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
                 if (mapItem >= 5) {
                     modifier= xpos % 2 ? 1 : 0;
                 }
-                *colorPtr= tileColors[mapItem];
-                *screenPtr= signs[mapItem] + modifier;
+                *colorPtr= signs[mapItem].colour;
+                *screenPtr= signs[mapItem].characterCode + modifier;
             } else {
                 *screenPtr= isDungeonMode ? 160 : 32;
                 // isDungeonMode ? *screenPtr=160 : screenPtr = 32;

@@ -39,7 +39,8 @@ class mapEditor():
                           ['c','O village'],                    # 14 : village
                           ['C','O castle'],                     # 15 : castle
                           ['i','O inn'],                        # 16 : inn
-                          ['d','O dungeon']                     # 17 : dungeon
+                          ['d','O dungeon'],                    # 17 : dungeon
+                          ['b','O bridge']                      # 18 : bridge
                           ]
 
     def setupEmptyMap(self):

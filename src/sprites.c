@@ -22,6 +22,7 @@ void initSprites(void) {
     int spritePointer;
 
     mega65_io_enable();
+
     POKE(0xD057U, 255); // enable extra wide sprites
     POKE(0xD055U, 255); // enable custom height for all sprites
     POKE(0xD056U, 64);  // sprites are 64 pixels high
@@ -32,7 +33,7 @@ void initSprites(void) {
     // (and set SPRPTR16 for arbitrary sprite locations)
     POKE(0xd06CU, 0x00);
     POKE(0xd06DU, 0x30);
-    POKE(0xd06EU, 0x01 | 0x80); // SPRPTR16
+    // POKE(0xd06EU, 0x01 | 0x80); // SPRPTR16
 
     // set first sprite pointer
     spritePointer = 0x14000U/64;
@@ -41,7 +42,6 @@ void initSprites(void) {
 
     // fill 64x64 area at 0x48000 solid
     lfill(0x14000U,255,0x1000);
-
 
 }
 

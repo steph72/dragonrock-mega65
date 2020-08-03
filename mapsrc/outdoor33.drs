@@ -31,7 +31,61 @@ fhPath2:
     NSTAT_O msgFhPath
     ---
 
-; --------------------------------------
+; -------------------------------------
+; -------- troll bridge ---------------
+; -------------------------------------
+
+defc lTrollBridge: 16,15
+
+$ msgBridge,"""
+As you arrive at the bridge, you meet 
+some shady trolls. Some are hanging 
+around and kicking the dirt, laughing
+stupidly. Others are still mounted
+on their riding pigs, occasionally 
+giving their mounts' ears a violent 
+twist, causing them to squeal in
+pain.
+
+One of the trolls stands apart from
+the other ones. He's wearing a black
+leather armor and he's sitting atop
+a particularly ugly pig. He rides
+up to you and proclaims:
+
+'ME'S LUKASZ, DIZ MY BRIDGE, DIZ MY 
+BOYZ! WE'S RIDING DA NOISY PIGS! 
+WE'S THE GREATEST! YOU WANNA PASS, 
+YOU GONNA PAY. 50 GOLD!'
+
+"""
+
+$ msgBridge2,"""
+Do you pay the toll (yes/no)?"""
+
+$ msgPay,"""
+They laugh stupidly, then they 
+let you go. As you pass them, they
+make their pigs squeal loudly.
+
+"""
+
+$ msgWaitkey,"--key--"
+
+lTrollBridge:
+    DISP msgBridge,True
+    WKEY msgWaitkey
+    DISP msgBridge2,True
+    YESNO payday
+    REDRAW
+    ---
+
+payday:
+    DISP msgPay,True
+    WKEY msgWaitkey
+    REDRAW
+
+; ---------- foxhome ------------
 
 defc city_foxhome: 22,15 - 23,15
 defc city_road: 21,15

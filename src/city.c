@@ -7,10 +7,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "armory.h"
 #include "character.h"
 #include "cityUI.h"
+#include "config.h"
 #include "congui.h"
 #include "globals.h"
 #include "guild.h"
@@ -72,12 +72,12 @@ void setupCityScreen(void) {
 void leaveCityMode(void) {
     cityCoordsT coords;
 
-    coords = gCityCoords[gCurrentCityIndex];
+    coords= gCityCoords[gCurrentCityIndex];
     free(guild);
     releaseArmory();
-    gCurrentDungeonIndex = coords.mapNr;
-    gOutdoorXPos = coords.x;
-    gOutdoorYPos = coords.y;
+    gCurrentDungeonIndex= coords.mapNr;
+    gOutdoorXPos= coords.x;
+    gOutdoorYPos= coords.y;
 
     prepareForGameMode(gm_outdoor);
 }
@@ -161,7 +161,7 @@ void enterCityMode(void) {
     initGuild();
     initArmory();
     bordercolor(COLOR_BLACK); // outsmart stupid c65 firmware
-    sleep(2);
+    sleep(1);
     setupCityScreen();
 
     if (gPartyExperience || gPartyGold) {
