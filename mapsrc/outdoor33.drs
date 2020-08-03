@@ -37,7 +37,7 @@ fhPath2:
 
 defc lTrollBridge: 16,15
 
-$ msgBridge,"""
+$ msgBridgeInitial,"""
 As you arrive at the bridge, you meet 
 some shady trolls. Some are hanging 
 around and kicking the dirt, laughing
@@ -61,29 +61,43 @@ YOU GONNA PAY. 50 GOLD!'
 """
 
 $ msgBridge2,"""
-Do you pay the toll (yes/no)?"""
+Do you pay Lukasz' toll?"""
 
 $ msgPay,"""
+
 They laugh stupidly, then they 
 let you go. As you pass them, they
 make their pigs squeal loudly.
 
 """
 
+$ msgLukasCoward,"""
+
+As the other trolls charge towards 
+you, Lukasz spurs his ugly riding 
+pig, drops back and vanishes 
+from view.
+
+"""
+
+
 $ msgWaitkey,"--key--"
 
 lTrollBridge:
-    DISP msgBridge,True
+    DISP msgBridgeInitial,True
     WKEY msgWaitkey
     DISP msgBridge2,True
-    YESNO payday
+    YESNO_B payday
+    DISP msgLukasCoward
+    WKEY msgWaitkey
     REDRAW
     ---
 
 payday:
-    DISP msgPay,True
+    DISP msgPay
     WKEY msgWaitkey
     REDRAW
+    ---
 
 ; ---------- foxhome ------------
 
