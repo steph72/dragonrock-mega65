@@ -1,6 +1,9 @@
 
 includemap "mapsrc/outdoor33.drm"
 
+$ msgWaitkey," -- key -- "
+
+
 ; ----------- main road --------------------------
 
 defc mainRoad1: 9,5 - 9,14
@@ -37,7 +40,7 @@ fhPath2:
 
 defc lTrollBridge: 16,15
 
-$ msgBridgeInitial,"""
+$ msgBridgeInitial1,"""
 As you arrive at the bridge, you meet 
 some shady trolls. Some are hanging 
 around and kicking the dirt, laughing
@@ -46,6 +49,10 @@ on their riding pigs, occasionally
 giving their mounts' ears a violent 
 twist, causing them to squeal in
 pain.
+
+"""
+
+$ msgBridgeInitial2,"""
 
 One of the trolls stands apart from
 the other ones. He's wearing a black
@@ -60,7 +67,18 @@ YOU GONNA PAY. 50 GOLD!'
 
 """
 
-$ msgBridge2,"""
+$ msgBridge,"""
+
+It's Lukasz' boys again. Lukasz can
+be seen somewhere in the background,
+zoooming around on his riding pig,
+making it squeal from time to time.
+
+His cronies step up to face you.
+
+"""
+
+$ msgPayQuestion,"""
 Do you pay Lukasz' toll?"""
 
 $ msgPay,"""
@@ -80,18 +98,35 @@ from view.
 
 """
 
+$ msgLukasCoward2,"""
 
-$ msgWaitkey,"--key--"
+They charge and attack you. Again,
+Lukasz himself vanishes from view.
+
+"""
 
 lTrollBridge:
-    DISP msgBridgeInitial,True
+    DISP msgBridgeInitial1,True
     WKEY msgWaitkey
-    DISP msgBridge2,True
+    DISP msgBridgeInitial2,True
+    WKEY msgWaitkey
+    ALTER lTrollBridge, lTrollBridgeLater, 18
+    DISP msgPayQuestion,True
     YESNO_B payday
     DISP msgLukasCoward
     WKEY msgWaitkey
     REDRAW
     ---
+
+lTrollBridgeLater:
+    DISP msgBridge,True
+    DISP msgPayQuestion
+    YESNO_B payday
+    DISP msgLukasCoward2
+    WKEY msgWaitkey
+    REDRAW
+    ---
+
 
 payday:
     DISP msgPay

@@ -14,15 +14,13 @@
 
 // #undef DLDEBUG
 
-const himemPtr dungeonBank= 0x050000;
-const himemPtr dungeonAddr= 0x000000;
+const himemPtr externalDungeonAddr = 0x050000;
 
 unsigned int dungeonSize;
 unsigned int numFeels;
 unsigned int numOpcs;
 byte *seenMap;
 
-himemPtr externalDungeonAddr;
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -72,7 +70,6 @@ dungeonDescriptor *loadMap(char *filename) {
 #endif
 
     mega65_io_enable();
-    externalDungeonAddr= dungeonBank | dungeonAddr;
     currentExternalDungeonPtr= externalDungeonAddr;
 
     infile= fopen(filename, "rb");
@@ -168,7 +165,7 @@ dungeonDescriptor *loadMap(char *filename) {
     printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
            (int)debugPtr - (int)desc);
     free(debugPtr);
-    // cgetc();
+    cgetc();
 #endif
 
     return desc;
