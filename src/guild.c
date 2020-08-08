@@ -10,6 +10,8 @@
 #include "congui.h"
 #include "globals.h"
 #include "guild.h"
+#include "memory.h"
+#include "sprites.h"
 #include "utils.h"
 
 #include "cityUI.h"
@@ -21,7 +23,6 @@ static FILE *outfile;
 void _listGuildMembers(void);
 void listGuildMembers(void);
 
-
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
 // clang-format on
@@ -29,11 +30,18 @@ void listGuildMembers(void);
 void setupGuildScreen() {
     setupCityScreen();
     revers(1);
-    textcolor(COLOR_BROWN);
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2, gSecondaryAreaWidth,
-              gCities[gCurrentCityIndex]);
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
-              "guild");
+
+    setSpriteEnabled(0, 1);
+    setSpriteColor(0,COLOR_ORANGE);
+    putSprite(0, 268, 182);
+    POKE(0xd01b, 0x0); // sprite prio high
+    cg_setPalette(COLOR_PURPLE, 1, 4, 3);
+    cg_block(gSecondaryAreaLeftX, gStatusAreaTopY, 39, 24, 160, COLOR_PURPLE);
+    cg_block(0, 24, gMainAreaRightX, 24, 160, COLOR_PURPLE);
+    sprintf(drbuf, "- %s guild -", gCities[gCurrentCityIndex]);
+    textcolor(COLOR_PURPLE);
+
+    cg_center(0, 24, gMainAreaWidth, drbuf);
 }
 
 void newGuildMember(byte city) {
@@ -182,14 +190,14 @@ void dropFromParty(void) {
         clearPartyArea();
         textcolor(COLOR_GRAY2);
         revers(1);
-        showCurrentParty(false,false);
+        showCurrentParty(false, false);
         clearMenuArea();
         cputsxy(0, partyMemberCount(), "  (exit)");
         textcolor(COLOR_CYAN);
         cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
                   "drop whom? ");
 
-        pm= cg_verticalChooser(0, 0, 1, 14, partyMemberCount() + 1,0);
+        pm= cg_verticalChooser(0, 0, 1, 14, partyMemberCount() + 1, 0);
 
         if (pm == partyMemberCount()) { // "exit" item?
             return;
@@ -295,7 +303,7 @@ void addToParty(void) {
 
         textcolor(COLOR_GRAY2);
         revers(1);
-        showCurrentParty(false,false);
+        showCurrentParty(false, false);
 
         textcolor(COLOR_GRAY1);
         gmIndex= chooseGuildMember(gmIndex + 1);

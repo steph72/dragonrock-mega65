@@ -8,6 +8,8 @@
 #include "cityUI.h"
 #include "congui.h"
 #include "globals.h"
+#include "memory.h"
+#include "sprites.h"
 
 #define SHOP_INV_SIZE 32
 #define ITEMS_PER_PAGE 12
@@ -22,12 +24,18 @@ byte numCityVisits;
 
 void setupArmoryScreen() {
     setupCityScreen();
+    setupCityScreen();
     revers(1);
-    textcolor(COLOR_BROWN);
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2, gSecondaryAreaWidth,
-              gCities[gCurrentCityIndex]);
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
-              "armory");
+
+    setSpriteEnabled(1, 1);
+    putSprite(1, 268, 182);
+    POKE(0xd01b, 0x0); // sprite prio high
+    cg_setPalette(COLOR_PURPLE, 4, 1, 2);
+    cg_block(gSecondaryAreaLeftX, gStatusAreaTopY, 39, 24, 160, COLOR_PURPLE);
+    cg_block(0, 24, gMainAreaRightX, 24, 160, COLOR_PURPLE);
+    sprintf(drbuf, "- %s armory -", gCities[gCurrentCityIndex]);
+    textcolor(COLOR_PURPLE);
+    cg_center(0, 24, gMainAreaWidth, drbuf);
 }
 
 byte currentShopSize(void) {
@@ -170,8 +178,8 @@ unsigned int salePrice(character *shopper, item *anItem) {
     unsigned long p;
     int charBonus;
 
-    charBonus = bonusValueForAttribute(shopper->attributes[aCHR]);
-    p= (anItem->price * (100UL+(10*charBonus)))/100UL;
+    charBonus= bonusValueForAttribute(shopper->attributes[aCHR]);
+    p= (anItem->price * (100UL + (10 * charBonus))) / 100UL;
     return p;
 }
 
@@ -220,8 +228,8 @@ int chooseShopOrInventoryItem(character *shopper, byte buySellMode) {
                     if (invItemID) {
                         anItem= inventoryItemForID(invItemID);
                         cputsxy(0, y, anItem->name);
-                        gotoxy(18,y);
-                        cprintf("%u",salePrice(shopper, anItem));
+                        gotoxy(18, y);
+                        cprintf("%u", salePrice(shopper, anItem));
                     }
                 }
             }

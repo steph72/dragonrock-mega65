@@ -162,6 +162,7 @@ void enterCityMode(void) {
     initArmory();
     loadSprite("guild.pbm", 0, 64, 64);
     loadSprite("armory.pbm", 1, 64, 64);
+    loadSprite("mystic.pbm", 4, 64, 64);
     bordercolor(COLOR_BLACK); // outsmart stupid c65 firmware
     sleep(1);
     setupCityScreen();
@@ -271,7 +272,8 @@ void doGuild(void) {
 
 void showCitySprites(byte enabled) {
     byte i;
-    const char spriteColors[] = {COLOR_BROWN,COLOR_LIGHTBLUE};
+    const char spriteColors[]= {COLOR_BROWN, COLOR_LIGHTBLUE, COLOR_GRAY3,
+                                COLOR_RED,   COLOR_BLUE,    COLOR_ORANGE};
     POKE(0xd01b, 0xff); // sprite prio low
     for (i= 0; i < 6; ++i) {
         setSpriteEnabled(i, enabled);
@@ -300,8 +302,8 @@ void drawCityMarkerRect(byte x, byte y, byte draw) {
     if (draw) {
         *(SCREEN + x0 + 1 + (40 * y1))= 123;
         *(SCREEN + x0 + 2 + (40 * y1))= 124;
-        *(COLOR_RAM + x0 + 1 + (40 * y1))= COLOR_YELLOW;
-        *(COLOR_RAM + x0 + 2 + (40 * y1))= COLOR_YELLOW;
+        *(COLOR_RAM + x0 + 1 + (40 * y1))= COLOR_WHITE;
+        *(COLOR_RAM + x0 + 2 + (40 * y1))= COLOR_WHITE;
     } else {
         cg_block(x0, y1, x1, y1, 32, 0);
     }
@@ -382,6 +384,24 @@ void runCityMenu(void) {
                 break;
 
             default:
+                break;
+            }
+
+            if (cmd == 'g') {
+                showCitySprites(0);
+                cg_clear();
+                cg_borders();
+                puts("\nPlease wait\nSaving economy...");
+                saveArmory();
+                puts("Saving guild...");
+                saveGuild();
+                puts("Saving party...");
+                saveParty();
+                puts("\n\n...done.\n\n --key--");
+                cgetc();
+                cityItem= 255;
+                showCitySprites(1);
+                cmd= 13;
                 break;
             }
 

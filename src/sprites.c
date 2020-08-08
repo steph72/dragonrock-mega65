@@ -16,7 +16,8 @@ void loadSprite(char *name, byte spriteNo, byte width, byte height) {
 
     spritefile= fopen(name, "r");
     if (!spritefile) {
-        cputs("?sprite file not found");
+        cputs("?sprite file not found: ");
+        cputs(name);
         exit(0);
     }
 
@@ -35,6 +36,7 @@ void loadSprite(char *name, byte spriteNo, byte width, byte height) {
     space= malloc(size);
     fread(space, size, 1, spritefile);
     lcopy((long)space, 0x014000U + (size * spriteNo), size);
+    fclose(spritefile);
     free(space);
 }
 
@@ -67,7 +69,7 @@ void initSprites(void) {
     POKE(0xd06CU, 0x00);
     POKE(0xd06DU, 0x30);
     POKE(0xd06EU, 0x01 | 0x80); // SPRPTR16
-    
+
     lfill(0x14000U, 0, 0x1000);
 
 }
