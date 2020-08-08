@@ -116,6 +116,7 @@ void initEngine(void) {
     srand(42);
     initMonsterRows();
     loadCharset();
+    initSprites();
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     /*

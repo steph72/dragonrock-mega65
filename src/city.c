@@ -160,6 +160,8 @@ void enterCityMode(void) {
     displayCityTitle();
     initGuild();
     initArmory();
+    loadSprite("guild.pbm", 0, 64, 64);
+    loadSprite("armory.pbm", 1, 64, 64);
     bordercolor(COLOR_BLACK); // outsmart stupid c65 firmware
     sleep(1);
     setupCityScreen();
@@ -269,16 +271,15 @@ void doGuild(void) {
 
 void showCitySprites(byte enabled) {
     byte i;
-    if (enabled)
-        initSprites();
-    POKE(0xd01b, 0xff);
+    const char spriteColors[] = {COLOR_BROWN,COLOR_LIGHTBLUE};
+    POKE(0xd01b, 0xff); // sprite prio low
     for (i= 0; i < 6; ++i) {
         setSpriteEnabled(i, enabled);
         if (enabled) {
             setSpriteXExpand(i, 0);
             setSpriteYExpand(i, 0);
-            setSpriteColor(i, COLOR_BROWN);
-            putSprite(i, 32 + (72 * (i / 2)), 114 + (72 * (i % 2)));
+            setSpriteColor(i, spriteColors[i]);
+            putSprite(i, 32 + (72 * (i % 3)), 114 + (72 * (i / 3)));
         }
     }
 }
