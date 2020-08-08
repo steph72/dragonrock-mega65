@@ -42,13 +42,13 @@ defc lTrollBridge: 16,15
 
 $ msgBridgeInitial1,"""
 As you arrive at the bridge, you meet 
-some shady trolls. Some are hanging 
-around and kicking the dirt, laughing
-stupidly. Others are still mounted
-on their riding pigs, occasionally 
-giving their mounts' ears a violent 
-twist, causing them to squeal in
-pain.
+a group of adolescent trolls. Some of 
+them are hanging around and kicking 
+the dirt, laughing stupidly. Others 
+are still mounted on their riding 
+pigs, occasionally giving their 
+mounts' ears a violent twist, causing 
+them to squeal in pain.
 
 """
 

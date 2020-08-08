@@ -1,25 +1,27 @@
 #include "sprites.h"
 #include "types.h"
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <conio.h>
 
 void loadSprite(char *name) {
     FILE *spritefile;
     byte *space;
 
-    spritefile = fopen(name,"rw");
-    space = malloc(64*64);
-    fread(space,58*64,1,spritefile);
-    lcopy(space,0x014000U,64*64);
+    spritefile= fopen(name, "r");
+    space= malloc(64 * 8);
+    fread(space, 58 * 8, 1, spritefile);
+    lcopy(space, 0x013ffeU, 58 * 8);
     free(space);
-
 }
 
 void initSprites(void) {
 
-    int spritePointer;
+    unsigned long spritePointer;
+    byte spritePtrLSB;
+    byte spritePtrMSB;
+    byte i;
 
     mega65_io_enable();
 
@@ -29,19 +31,38 @@ void initSprites(void) {
 
     // -------------- testing 64x64 sprites ------------------
 
+    /*
+        // set sprite pointers
+        for (i= 0; i < 16; i+=2) {
+            spritePointer= (0x10000U+i) / 64;
+            lpoke(0x13000U, 0);
+            lpoke(0x13001U, 0);
+        }
+        */
+
+    spritePointer= 0x14000U / 64U;
+    spritePtrLSB= spritePointer % 256;
+    spritePtrMSB= spritePointer / 256;
+    /*
+    printf("%lx ", spritePointer);
+    printf("%x ", spritePtrLSB);
+    printf("%x ", spritePtrMSB);
+    cgetc();
+    */
+
+    for (i= 0; i < 16; i+= 2) {
+        lpoke(0x13000U + i, spritePtrLSB);
+        lpoke(0x13000U + i + 1, spritePtrMSB);
+    }
+
     // set location of sprite pointers to 0x013000
     // (and set SPRPTR16 for arbitrary sprite locations)
     POKE(0xd06CU, 0x00);
     POKE(0xd06DU, 0x30);
-    // POKE(0xd06EU, 0x01 | 0x80); // SPRPTR16
+    POKE(0xd06EU, 0x01 | 0x80); // SPRPTR16
 
-    // set first sprite pointer
-    spritePointer = 0x14000U/64;
-    lpoke(0x13000U,spritePointer/256);
-    lpoke(0x13001U,spritePointer%256);
-
-    // fill 64x64 area at 0x48000 solid
-    lfill(0x14000U,255,0x1000);
+    lfill(0x14000U, 0, 0x1000);
+    loadSprite("armory.spr");
 
 }
 

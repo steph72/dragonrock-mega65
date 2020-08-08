@@ -1099,19 +1099,19 @@ void initLoadedDungeon(void) {
 void loadNewDungeon(void) {
 
     char *mfile;
-    char *dungeonFile= "mapa";
-    char *outdoorFile= "outa";
+    char *dungeonFile= "map%03d";
+    char *outdoorFile= "out%03d";
 
     mfile= gCurrentGameMode == gm_dungeon ? dungeonFile : outdoorFile;
 
     unloadDungeon();
+    sprintf(drbuf,mfile,gCurrentDungeonIndex&127);
 
-    mfile[3]= 'a' + (gCurrentDungeonIndex & 127);
-
-    desc= loadMap(mfile);
+    desc= loadMap(drbuf);
 
     if (!desc) {
-        puts("could not load dungeon");
+        puts("could not load dungeon ");
+        puts(mfile);
         exit(0);
     }
 

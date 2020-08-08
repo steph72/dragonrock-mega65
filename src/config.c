@@ -26,8 +26,8 @@ char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH"};
 char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
                             "Tia's Grove", "Modder",        "Foodim"};
 
-cityCoordsT gCityCoords[NUM_CITIES]= {{0, 21, 15}, {0, 0, 0}, {0, 0, 0},
-                                      {0, 0, 0},   {0, 0, 0}, {0, 0, 0}};
+cityCoordsT gCityCoords[NUM_CITIES]= {{33, 21, 15}, {0, 0, 0}, {0, 0, 0},
+                                      {0, 0, 0},    {0, 0, 0}, {0, 0, 0}};
 
 // spells
 // name, spellLevel, minLevel, mpNeeded, minVal, maxVal
