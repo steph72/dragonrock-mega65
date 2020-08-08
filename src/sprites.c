@@ -8,11 +8,31 @@
 void loadSprite(char *name) {
     FILE *spritefile;
     byte *space;
+    byte skipped;
+
+    skipped=0;
 
     spritefile= fopen(name, "r");
+    if (!spritefile) {
+        cputs("?sprite file not found");
+        exit(0);
+    }
+    
+    // skip 3 header lines
+    do {
+        if (fgetc(spritefile)==0x0a) {
+            skipped++;
+        }
+    } while (skipped!=3 && !feof(spritefile));
+
+    if (feof(spritefile)) {
+        cputs("?sprite file wrong");
+        exit(0);
+    }
+
     space= malloc(64 * 8);
-    fread(space, 58 * 8, 1, spritefile);
-    lcopy(space, 0x013ffeU, 58 * 8);
+    fread(space, 64 * 8, 1, spritefile);
+    lcopy(space, 0x014000U, 64 * 8);
     free(space);
 }
 
@@ -29,26 +49,9 @@ void initSprites(void) {
     POKE(0xD055U, 255); // enable custom height for all sprites
     POKE(0xD056U, 64);  // sprites are 64 pixels high
 
-    // -------------- testing 64x64 sprites ------------------
-
-    /*
-        // set sprite pointers
-        for (i= 0; i < 16; i+=2) {
-            spritePointer= (0x10000U+i) / 64;
-            lpoke(0x13000U, 0);
-            lpoke(0x13001U, 0);
-        }
-        */
-
     spritePointer= 0x14000U / 64U;
     spritePtrLSB= spritePointer % 256;
     spritePtrMSB= spritePointer / 256;
-    /*
-    printf("%lx ", spritePointer);
-    printf("%x ", spritePtrLSB);
-    printf("%x ", spritePtrMSB);
-    cgetc();
-    */
 
     for (i= 0; i < 16; i+= 2) {
         lpoke(0x13000U + i, spritePtrLSB);
@@ -62,7 +65,7 @@ void initSprites(void) {
     POKE(0xd06EU, 0x01 | 0x80); // SPRPTR16
 
     lfill(0x14000U, 0, 0x1000);
-    loadSprite("armory.spr");
+    loadSprite("guild.pbm");
 
 }
 
@@ -111,17 +114,3 @@ void putSprite(byte sprite, int x, byte y) {
 
 void setSpriteColor(byte sprite, byte col) { POKE(0xd027 + sprite, col); }
 
-// TODO: since xemu doesn't do enhanced sprites (as of now),
-// postpone encounter graphics until the dev kit arrives... :)
-
-void testSprites() {
-    byte i;
-    initSprites();
-    for (i= 0; i < 6; ++i) {
-        setSpriteEnabled(i, 1);
-        setSpriteXExpand(i, 0);
-        setSpriteYExpand(i, 0);
-        setSpriteColor(i, 7);
-        putSprite(i, 50 + (64 * (i / 2)), 120 + (64 * (i % 2)));
-    }
-}

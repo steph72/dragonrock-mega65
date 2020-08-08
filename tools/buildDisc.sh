@@ -28,11 +28,15 @@ write bin/drmain.c64.1 dungeon
 write bin/drmain.c64.2 city
 write bin/drmain.c64.3 encounter
 write bin/drcharset charset
-write graphics/armory.sprite2 armory.spr
 write cbm/loader loader
 EOF
 
-c1541 disc/drock.d81 -delete fmsg*
+c1541 disc/drock.d81 -delete fmsg
+
+for filename in graphics/*.pbm; do
+  c1541 disc/drock.d81 -delete $(basename $filename)
+  c1541 disc/drock.d81 -write $filename
+done
 
 for filename in mapdata/fmsg*; do 
   c1541 disc/drock.d81 -write $filename

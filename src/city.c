@@ -271,12 +271,13 @@ void showCitySprites(byte enabled) {
     byte i;
     if (enabled)
         initSprites();
+    POKE(0xd01b, 0xff);
     for (i= 0; i < 6; ++i) {
         setSpriteEnabled(i, enabled);
         if (enabled) {
             setSpriteXExpand(i, 0);
             setSpriteYExpand(i, 0);
-            setSpriteColor(i, 2 + i);
+            setSpriteColor(i, COLOR_BROWN);
             putSprite(i, 32 + (72 * (i / 2)), 114 + (72 * (i % 2)));
         }
     }
@@ -287,6 +288,22 @@ void inspect(byte idx) {
     textcolor(COLOR_GRAY2);
     inspectCharacter(idx);
     // bgcolor(COLOR_BLACK);
+}
+
+void drawCityMarkerRect(byte x, byte y, byte draw) {
+    byte i, x0, y0, x1, y1;
+    x0= 1 + (9 * x);
+    y0= 8 + (9 * y);
+    x1= x0 + 7;
+    y1= y0 + 7;
+    if (draw) {
+        *(SCREEN + x0 + 1 + (40 * y1))= 123;
+        *(SCREEN + x0 + 2 + (40 * y1))= 124;
+        *(COLOR_RAM + x0 + 1 + (40 * y1))= COLOR_YELLOW;
+        *(COLOR_RAM + x0 + 2 + (40 * y1))= COLOR_YELLOW;
+    } else {
+        cg_block(x0, y1, x1, y1, 32, 0);
+    }
 }
 
 void runCityMenu(void) {
@@ -325,22 +342,22 @@ void runCityMenu(void) {
 
         do {
             cityItem= menuX + (3 * menuY);
-            textcolor(COLOR_GREEN);
+            textcolor(COLOR_WHITE);
             revers(1);
             cg_line(gMenuAreaTopY + 5, gSecondaryAreaLeftX, 39, 160,
-                    COLOR_GREEN);
+                    COLOR_WHITE);
             cputsxy(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 5,
                     cityServices[cityItem]);
 
             textcolor(COLOR_WHITE);
-            cputsxy((4 + (9 * menuX)), 15 + (9 * menuY), marker);
+            drawCityMarkerRect(menuX, menuY, 1);
 
             while (!kbhit()) {
                 cg_stepColor();
             }
             cmd= cgetc();
             revers(0);
-            cputsxy((4 + (9 * menuX)), 15 + (9 * menuY), "  ");
+            drawCityMarkerRect(menuX, menuY, 0);
 
             switch (cmd) {
             case 29: // cursor right
