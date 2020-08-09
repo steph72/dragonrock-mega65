@@ -254,7 +254,7 @@ class mapCompiler:
             return [0, 0, 0, 0, 0, 0, 0, 0]
 
         def opCreate_GOTO(pline):
-            opc = [0, 0, 0, 0, 0, 0, 0, 0]
+            opc = [0xc0, 0, 0, 0, 0, 0, 0, 0]
             opc[1] = "__DRLABEL__"+pline.tOpcLabel
             return opc
 
@@ -418,6 +418,13 @@ class mapCompiler:
             opc[1] = int(pline.tCityID)
             return opc
 
+        def opCreate_RANDOM_B(pline):
+            opc = [0x52, 0, 0, 0, 0, 0, 0, 0]
+            opc[1] = int(pline.tRandomChance) % 256
+            opc[2] = int(pline.tRandomChance)//256
+            opc[3] = "__DRLABEL__"+pline.tRandomBranchLabel
+            return opc
+
         lastOpcodeIndex = 0
         lastOpcode = []
 
@@ -526,6 +533,8 @@ class mapCompiler:
         p_y2Value = pp.Word(pp.nums)('tY2Value')
         p_coinsValue = pp.Word(pp.nums)('tCoinsValue')
         p_expValue = pp.Word(pp.nums)('tExpValue')
+        p_randomChance = pp.Word(pp.nums)('tRandomChance')
+        p_randomBranchLabel = pp.Word(pp.alphanums)('tRandomBranchLabel')
 
         p_keywords = (
 
@@ -611,7 +620,11 @@ class mapCompiler:
                + p_yValue)
 
             ^ (pp.Keyword("ENTER_C")('opcode')
-               + p_cityID) 
+               + p_cityID)
+
+            ^ (pp.Keyword("RANDOM_B")('opcode')
+               + p_randomChance+","
+               + p_randomBranchLabel)
 
             # ---------- meta commands -----------
 

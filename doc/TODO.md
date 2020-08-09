@@ -1,11 +1,11 @@
 # TODO
 
 ## dungeon
-- sanitize filenames of maps and dungeons 
+- DONE sanitize filenames of maps and dungeons 
 - implement saving the map state
 
 ## dungeonscript
-- implement 'random' call and branch
+- DONE implement 'random' call and branch
 - implement globals & global checks
 - implement global checks 
 - DONE get rid of "nextOpcIndex" mechanism

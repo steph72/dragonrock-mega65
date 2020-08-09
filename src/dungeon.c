@@ -34,7 +34,9 @@
 #define OPC_DOENC 0x0f  /* do encounter                       */
 #define OPC_ENTER 0x10  /* enter dungeon or wilderness        */
 #define OPC_ENTERC 0x11 /* enter city                         */
-/* ---------------------------------------------------------- */
+#define OPC_RANDOMB                                                                        \
+    0x12 /* random branch */ /* ---------------------------------------------------------- \
+                              */
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -127,8 +129,16 @@ byte singleStepMode;
 
 // --------------------------------- opcodes ---------------------------------
 
+// 0x00 0x40 NOP / GOTO
+int performNopOrGotoOpcode(opcode *anOpcpode) {
+    if (!(anOpcpode->id & 0x40)) {
+        return 0;
+    }
+    return anOpcpode->param1 + (256 * anOpcpode->param2);
+}
+
 // 0x01: NSTAT / NSTAT_O
-byte performDisplayFeelOpcode(opcode *anOpcode) {
+int performDisplayFeelOpcode(opcode *anOpcode) {
     byte feelIndex;
 
     feelIndex= anOpcode->param1;
@@ -149,7 +159,7 @@ byte performDisplayFeelOpcode(opcode *anOpcode) {
 }
 
 // 0x02: DISP
-byte performDisplayTextOpcode(opcode *anOpcode) {
+int performDisplayTextOpcode(opcode *anOpcode) {
 
     byte feelIndex;
 
@@ -165,7 +175,7 @@ byte performDisplayTextOpcode(opcode *anOpcode) {
 }
 
 // 0x03: WAITKEY
-byte performWaitkeyOpcode(opcode *anOpcode) {
+int performWaitkeyOpcode(opcode *anOpcode) {
     performDisplayTextOpcode(anOpcode);
     while (kbhit()) {
         cgetc();
@@ -175,7 +185,7 @@ byte performWaitkeyOpcode(opcode *anOpcode) {
 }
 
 // 0x04: YESNO / YESNO_B
-byte performYesNoOpcode(opcode *anOpcode) {
+int performYesNoOpcode(opcode *anOpcode) {
     byte inkey;
     int yesAddr;
     int noAddr;
@@ -211,7 +221,7 @@ byte performYesNoOpcode(opcode *anOpcode) {
 }
 
 // 0x05: IFREG
-byte performIfregOpcode(opcode *anOpcode) {
+int performIfregOpcode(opcode *anOpcode) {
 
     byte regNr;
     byte value;
@@ -241,7 +251,7 @@ byte performIfregOpcode(opcode *anOpcode) {
 }
 
 // 0x06: IFPOS
-byte performIfposOpcode(opcode *anOpcode) {
+int performIfposOpcode(opcode *anOpcode) {
     itemT anItemID;
     byte i;
     byte found;
@@ -274,7 +284,7 @@ byte performIfposOpcode(opcode *anOpcode) {
 }
 
 // 0x07: IADD
-byte performIAddOpcode(opcode *anOpcode) {
+int performIAddOpcode(opcode *anOpcode) {
     byte charIdx;
     byte anItemID;
     byte found;
@@ -322,7 +332,7 @@ byte performIAddOpcode(opcode *anOpcode) {
 }
 
 // 0x08: ALTER
-byte performAlterOpcode(opcode *anOpcode) {
+int performAlterOpcode(opcode *anOpcode) {
 
     byte x, y;
     dungeonItem newDungeonItem;
@@ -346,7 +356,7 @@ byte performAlterOpcode(opcode *anOpcode) {
 // clang-format on
 
 // 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
-byte performAddCoinsOpcode(opcode *anOpcode) {
+int performAddCoinsOpcode(opcode *anOpcode) {
     byte opcodeID;
     int *coins;
 
@@ -375,7 +385,7 @@ byte performAddCoinsOpcode(opcode *anOpcode) {
 // clang-format on
 
 // 0x0c: SETREG
-byte performSetregOpcode(opcode *anOpcode) {
+int performSetregOpcode(opcode *anOpcode) {
 
     byte regNr;
     byte value;
@@ -392,13 +402,13 @@ byte performSetregOpcode(opcode *anOpcode) {
 }
 
 // 0x0d: CLEARENC
-byte performClearencOpcode(void) {
+int performClearencOpcode(void) {
     clearMonsters();
     return 0;
 }
 
 // 0x0e: ADDENC
-byte performAddencOpcode(opcode *anOpcode) {
+int performAddencOpcode(opcode *anOpcode) {
 
     if (anOpcode->param1) {
         addNewMonster(anOpcode->param1, anOpcode->param2, anOpcode->param3,
@@ -409,7 +419,7 @@ byte performAddencOpcode(opcode *anOpcode) {
 }
 
 // 0x0f DOENC
-byte performDoencOpcode(opcode *anOpcode) {
+int performDoencOpcode(opcode *anOpcode) {
 
     // save result opcode indices for later on
     // when re-entering dungeon module
@@ -426,7 +436,7 @@ byte performDoencOpcode(opcode *anOpcode) {
 }
 
 // 0x10: ENTER_D / ENTER_W
-byte performEnterOpcode(opcode *anOpcode) {
+int performEnterOpcode(opcode *anOpcode) {
     byte opcodeID;
     gameModeT newGameMode;
 
@@ -447,10 +457,27 @@ byte performEnterOpcode(opcode *anOpcode) {
     return 0;
 }
 
-byte performEnterCityOpcode(opcode *anOpcode) {
+// 0x11: ENTER_C
+int performEnterCityOpcode(opcode *anOpcode) {
     gCurrentCityIndex= anOpcode->param1;
     prepareForGameMode(gm_city);
     quitDungeon= true;
+    return 0;
+}
+
+
+
+byte performRandomBranchOpcode(opcode *anOpcode) {
+    int neededVal;
+    int yesAddr;
+
+    neededVal= anOpcode->param1 + (256 * (anOpcode->param2));
+    yesAddr= anOpcode->param3 + (256 * (anOpcode->param4));
+
+    if (neededVal > rand() % 1000) {
+        return yesAddr;
+    }
+
     return 0;
 }
 
@@ -503,7 +530,7 @@ int performOpcode(opcode *anOpcode, int currentPC) {
     switch (opcodeID) {
 
     case OPC_NOP:
-        rOpcIdx= 0;
+        rOpcIdx= performNopOrGotoOpcode(anOpcode);
         break;
 
     case OPC_NSTAT:
@@ -573,6 +600,11 @@ int performOpcode(opcode *anOpcode, int currentPC) {
 
     case OPC_ENTERC:
         rOpcIdx= performEnterCityOpcode(anOpcode);
+        break;
+
+    case OPC_RANDOMB:
+        rOpcIdx= performRandomBranchOpcode(anOpcode);
+        break;
 
     default:
         rOpcIdx= 0;
@@ -588,7 +620,7 @@ int performOpcode(opcode *anOpcode, int currentPC) {
 
     if (anOpcode->id & 0x40) { // do we have a branch opcode?
         if (rOpcIdx != 0) {    // return index set?
-            newPC= rOpcIdx;    // use returned index as next index
+            newPC= rOpcIdx; // use returned index as next index
         }
     }
 
@@ -1105,7 +1137,7 @@ void loadNewDungeon(void) {
     mfile= gCurrentGameMode == gm_dungeon ? dungeonFile : outdoorFile;
 
     unloadDungeon();
-    sprintf(drbuf,mfile,gCurrentDungeonIndex&127);
+    sprintf(drbuf, mfile, gCurrentDungeonIndex & 127);
 
     desc= loadMap(drbuf);
 

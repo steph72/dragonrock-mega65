@@ -6,7 +6,6 @@ $ msgWaitkey," -- key -- "
 
 ; ----------- main road --------------------------
 
-defc mainRoad1: 9,5 - 9,14
 defc mainRoad2: 13,2 - 24,2
 defc mainRoad3: 24,3 - 26,3
 defc mainRoad4: 26,4 - 31,4
@@ -39,6 +38,7 @@ fhPath2:
 ; -------------------------------------
 
 defc lTrollBridge: 16,15
+defc lTrollTerritory1: 9,5 - 9,14
 
 $ msgBridgeInitial1,"""
 As you arrive at the bridge, you meet 
@@ -53,7 +53,6 @@ them to squeal in pain.
 """
 
 $ msgBridgeInitial2,"""
-
 One of the trolls stands apart from
 the other ones. He's wearing a black
 leather armor and he's sitting atop
@@ -68,7 +67,6 @@ YOU GONNA PAY. 50 GOLD!'
 """
 
 $ msgBridge,"""
-
 It's Lukasz' boys again. Lukasz can
 be seen somewhere in the background,
 zoooming around on his riding pig,
@@ -89,6 +87,11 @@ make their pigs squeal loudly.
 
 """
 
+$ msgLukasUrlaub,"""
+The bridge feels strangely quiet and
+peaceful.
+"""
+
 $ msgLukasCoward,"""
 
 As the other trolls charge towards 
@@ -105,6 +108,11 @@ Lukasz himself vanishes from view.
 
 """
 
+lTrollTerritory1:
+lTrollTerritory2:
+    GOTO mainRoad1
+    ---
+
 lTrollBridge:
     DISP msgBridgeInitial1,True
     WKEY msgWaitkey
@@ -119,11 +127,17 @@ lTrollBridge:
     ---
 
 lTrollBridgeLater:
+    RANDOM_B 500,lLukasUrlaub ; 50% chance that the boys are not there
     DISP msgBridge,True
     DISP msgPayQuestion
     YESNO_B payday
     DISP msgLukasCoward2
     WKEY msgWaitkey
+    REDRAW
+    ---
+
+lLukasUrlaub:
+    NSTAT_O msgLukasUrlaub
     REDRAW
     ---
 

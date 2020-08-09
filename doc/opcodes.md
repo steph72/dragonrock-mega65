@@ -1,7 +1,10 @@
 # DragonRock Opcodes
 
 ## 0x00 NOP / GOTO <01/02:destOpcodeIndex>
-No operation or GOTO
+No operation
+
+## 0x40 GOTO <01/02:destOpcodeIndex>
+Continue execution at *destOpcodeIndex*
 
 ## 0x01 NSTAT <01:msgID>
 Change current status message to *msgID*
@@ -75,6 +78,12 @@ Enter wilderness map *mapID* at coords *xpos*, *ypos* and switch to outdoor mode
 
 ## 0x30 ENTER_D <01:dungeonId>
 Enter dungeon *dungeonId* and switch to dungeon mode
+
+## 0x11 ENTER_C <01:cityId>
+Enter city *cityId* and switch to city mode
+
+## 0x51 RANDOM_B <01/02:randomChance> <03/04:opcIdx>
+Jump to *opcIdx* if *randomChance* is greater than a random value between 0 and 999
 
 
 # Outdoor and dungeon maps
