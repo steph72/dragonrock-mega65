@@ -8,10 +8,10 @@ includemap "mapsrc/library.drm"
 ; entrance & first corridor
 ; =========================
 
-defc entrance:      15,0                 ; connects entrance
-defc corridor:      15,1 - 15,17         ; corridor message
-defc corridor_h:    3,17 - 25,17         ; horizontal corridor message
-defc historySign:   15,3
+connectLabel entrance:      15,0                 ; connects entrance
+connectLabel corridor:      15,1 - 15,17         ; corridor message
+connectLabel corridor_h:    3,17 - 25,17         ; horizontal corridor message
+connectLabel historySign:   15,3
 
 $ msgCorridor,"A long, eerie corridor."
 
@@ -49,19 +49,19 @@ exitDungeon:
 ;    history & science rooms
 ; ============================
 
-defc historyRoom:  17,1 - 24,5
-defc wallWriting1: 19,5
-defc shelves1: 18,2 - 23,2
-defc shelves2: 18,4 - 23,4
-defc shelfCoins: 20,4
-defc scienceDoorSpace: 24,3
+connectLabel historyRoom:  17,1 - 24,5
+connectLabel wallWriting1: 19,5
+connectLabel shelves1: 18,2 - 23,2
+connectLabel shelves2: 18,4 - 23,4
+connectLabel shelfCoins: 20,4
+connectLabel scienceDoorSpace: 24,3
 
 ; consecutive defcs to the same spot overwrite earlier defcs,
 ; but they have the virtue of creating a label which we can 
 ; later use to alter the dungeon via the ALTER opcode. 
 
-defc historyRoomKobolds: 16,3
-defc historyRoomKoboldsPrompt: 16,3
+connectLabel historyRoomKobolds: 16,3
+connectLabel historyRoomKoboldsPrompt: 16,3
 
 $ historyRoomMsg,"""
 It seems like someone (or something)
@@ -158,8 +158,8 @@ wallWriting1:
 ;     great hall
 ; ====================
 
-defc greatHall: 17,11 - 30,15
-defc crazyMan: 20,13
+connectLabel greatHall: 17,11 - 30,15
+connectLabel crazyMan: 20,13
 
 $ greatHallMsg,"""
 This is the great hall of the library.
@@ -204,16 +204,16 @@ loseCrazy:
 ;    reading rooms
 ; ====================
 
-defc readingRooms: 16,7 - 30,9
+connectLabel readingRooms: 16,7 - 30,9
 
 ; subsequent defcs override previous defcs,
 ; so we can define the whole area as reading
 ; room and then carve out the corridor... 
 
-defc rrHallway1: 20,7 - 21,7
-defc rrHallway2: 24,7 - 25,7
-defc rrHallway3: 28,7 - 30,7 
-defc kickedDoor: 15,8
+connectLabel rrHallway1: 20,7 - 21,7
+connectLabel rrHallway2: 24,7 - 25,7
+connectLabel rrHallway3: 28,7 - 30,7 
+connectLabel kickedDoor: 15,8
 
 $ kickedDoorMsg,"""
 The door to the east has been 
@@ -248,8 +248,8 @@ readingRooms:
 ;    science room
 ; ====================
 
-defc scienceRoom: 26,1 - 30,4
-defc alcove: 28,5
+connectLabel scienceRoom: 26,1 - 30,4
+connectLabel alcove: 28,5
 
 $ scienceRoomMsg,"""
 Everything that once was in this
@@ -285,11 +285,11 @@ alcove:
 ; librarian's floor and room
 ; ===========================
 
-defc librarianFloor: 1,6 - 13,6
-defc librarianRoom: 3,1 - 8,4
-defc librarianRoomDoor: 6,5             ; we include the door here for dramatic effect
-defc librarianStart: 6,4                ; librarian stuff starts when entering the room
-defc librarianAlcove: 2,1
+connectLabel librarianFloor: 1,6 - 13,6
+connectLabel librarianRoom: 3,1 - 8,4
+connectLabel librarianRoomDoor: 6,5             ; we include the door here for dramatic effect
+connectLabel librarianStart: 6,4                ; librarian stuff starts when entering the room
+connectLabel librarianAlcove: 2,1
 
 $ msgLibrarianFloor,"A surprisingly clean corridor."
 $ msgLibrarianRoom,"The librarian's room"
@@ -401,11 +401,11 @@ librarianAlcove:
 ; locked storage room 
 ; ====================
 
-defc storageRoomDoor:   14,2
-defc storageRoom: 10,1 - 13,4
-defc emptyBoxes: 10,1 - 11,4 
-defc lever: 10,4
-defc leverDoor: 14,6
+connectLabel storageRoomDoor:   14,2
+connectLabel storageRoom: 10,1 - 13,4
+connectLabel emptyBoxes: 10,1 - 11,4 
+connectLabel lever: 10,4
+connectLabel leverDoor: 14,6
 
 $ msgStorageRoom,"""
 A surprisingly clean and kempt storage
@@ -496,10 +496,10 @@ openStorageRoomDoor:
 ; ----------------------------------
 ;
 
-defc secretDoor1:   21,18                ; secret door in start corridor
-defc secretRoom1:   20,19 - 22,21        ; secret room 
-defc sRoomTable:    21,20                ; table in secret room
-defc sWind:         20,17
+connectLabel secretDoor1:   21,18                ; secret door in start corridor
+connectLabel secretRoom1:   20,19 - 22,21        ; secret room 
+connectLabel sRoomTable:    21,20                ; table in secret room
+connectLabel sWind:         20,17
 
 $ msgSecret1, "Wait, there's a secret door here!"
 

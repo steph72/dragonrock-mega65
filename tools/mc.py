@@ -26,6 +26,7 @@ class mapCompiler:
         self.gLinePosMapping = []
         self.gStringMapping = {}
         self.gCoordsMapping = {}
+        self.gDaemonMapping = {}
         self.gStrings = []
         self.gOpcodes = []
 
@@ -225,7 +226,7 @@ class mapCompiler:
                 self.gStrings.append(src.tMessage)
             if (src.metaCmd == "&"):
                 self.writeFileMessage(src.tMsgFile, src.tFileMessage)
-            if (src.metaCmd == "defc"):
+            if (src.metaCmd == "connectLabel" or src.metaCmd == "defDaemon"):
                 x1 = int(src.tXValue)
                 y1 = int(src.tYValue)
                 x2 = x1
@@ -233,7 +234,13 @@ class mapCompiler:
                 if (src.tY2Value):
                     x2 = int(src.tX2Value)
                     y2 = int(src.tY2Value)
-                self.gCoordsMapping[src.tCoordsLabel] = (x1, y1, x2, y2)
+
+                if (src.metaCmd=="defDaemon"):
+                    idx = int(src.tDaemonIndex)
+                    self.gDaemonMapping[src.tCoordsLabel] = (x1,y1,x2,y2,idx)
+                else:
+                    self.gCoordsMapping[src.tCoordsLabel] = (x1, y1, x2, y2)
+
             if (src.metaCmd == "includemap"):
                 self.loadMap(src.tMapName)
 
@@ -519,6 +526,7 @@ class mapCompiler:
         p_winOpcLabel = pp.Word(pp.alphanums)('tWinOpcLabel')
         p_loseOpcLabel = pp.Word(pp.alphanums)('tLoseOpcLabel')
         p_regIdx = pp.Word(pp.nums)('tRegIndex')
+        p_daemonIndex = pp.Word(pp.nums)('tDaemonIndex')
         p_regValue = pp.Word(pp.nums)('tRegValue')
         p_itemID = pp.Word(pp.nums)('tItemID')
         p_monsterID = pp.Word(pp.nums)('tMonsterID')
@@ -628,7 +636,14 @@ class mapCompiler:
 
             # ---------- meta commands -----------
 
-            ^ (pp.Keyword("defc")('metaCmd')
+            ^ (pp.Keyword("connectLabel")('metaCmd')
+               + p_coordsLabel+":"
+               + p_xValue
+               + ","+p_yValue + pp.Optional("-"+p_x2Value + ","+p_y2Value)
+               )
+
+            ^ (pp.Keyword("defDaemon")('metaCmd')
+               + p_daemonIndex+","
                + p_coordsLabel+":"
                + p_xValue
                + ","+p_yValue + pp.Optional("-"+p_x2Value + ","+p_y2Value)

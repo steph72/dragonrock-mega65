@@ -7,7 +7,7 @@
 ## dungeonscript
 - DONE implement 'random' call and branch
 - implement globals & global checks
-- implement global checks 
+- implement daemons
 - DONE get rid of "nextOpcIndex" mechanism
 - DONE make GOTO a regular dungeon opcode    (param 1/2 == dest)
 - DONE make opc&128 a the stop indicator

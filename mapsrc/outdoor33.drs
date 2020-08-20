@@ -6,9 +6,9 @@ $ msgWaitkey," -- key -- "
 
 ; ----------- main road --------------------------
 
-defc mainRoad2: 13,2 - 24,2
-defc mainRoad3: 24,3 - 26,3
-defc mainRoad4: 26,4 - 31,4
+connectLabel mainRoad2: 13,2 - 24,2
+connectLabel mainRoad3: 24,3 - 26,3
+connectLabel mainRoad4: 26,4 - 31,4
 
 $ msgMainRoad,"""
 A wide and comfortable road.
@@ -23,22 +23,36 @@ mainRoad4:
 
 ; -------------------------------------
 
-defc fhPath1: 10,14 - 14,14
-defc fhPath2: 14,15 - 20,15
+connectLabel fhPath1: 10,14 - 14,14
+connectLabel fhPath2: 14,15 - 20,15
+connectLabel terrorShack: 10,2 - 11,2
 
 $ msgFhPath,"A narrow driveway"
+
+$ msgTerrorShack,"""
+A set of wooden doors has been built
+into the mountain, apparently not long 
+ago. A crude sign on the door says:
+'THE NOYSY PIG RIDERZ. KEEP OUT!'
+"""
 
 fhPath1:
 fhPath2:
     NSTAT_O msgFhPath
     ---
 
+terrorShack:
+    NSTAT_O msgTerrorShack
+    ---
+
 ; -------------------------------------
 ; -------- troll bridge ---------------
 ; -------------------------------------
 
-defc lTrollBridge: 16,15
-defc lTrollTerritory1: 9,5 - 9,14
+connectLabel lTrollBridge: 16,15
+connectLabel lTrollTerritory1: 9,5 - 9,14
+
+defDaemon 1,bikerGangDaemon: 9,2 - 15,16
 
 $ msgBridgeInitial1,"""
 As you arrive at the bridge, you meet 
@@ -54,7 +68,7 @@ them to squeal in pain.
 
 $ msgBridgeInitial2,"""
 One of the trolls stands apart from
-the other ones. He's wearing a black
+the others. He's wearing a black
 leather armor and he's sitting atop
 a particularly ugly pig. He rides
 up to you and proclaims:
@@ -127,7 +141,7 @@ lTrollBridge:
     ---
 
 lTrollBridgeLater:
-    RANDOM_B 500,lLukasUrlaub ; 50% chance that the boys are not there
+    RANDOM_B 300,lLukasUrlaub ; 30% chance that the boys are not there
     DISP msgBridge,True
     DISP msgPayQuestion
     YESNO_B payday
@@ -138,7 +152,6 @@ lTrollBridgeLater:
 
 lLukasUrlaub:
     NSTAT_O msgLukasUrlaub
-    REDRAW
     ---
 
 
@@ -150,9 +163,9 @@ payday:
 
 ; ---------- foxhome ------------
 
-defc city_foxhome: 22,15 - 23,15
-defc city_road: 21,15
-defc foxhome_signpost: 9,14
+connectLabel city_foxhome: 22,15 - 23,15
+connectLabel city_road: 21,15
+connectLabel foxhome_signpost: 9,14
 
 
 $ msgCity,"""
