@@ -16,8 +16,8 @@ extern gameModeT gCurrentGameMode;  // current game mode
 
 extern byte gCurrentDungeonIndex;   // current dungeon (==dungeon to enter on mode change)   
 extern byte gLoadedDungeonIndex;    // currently loaded dungeon
-extern byte gOutdoorXPos;           // landing position for entering the wilderness
-extern byte gOutdoorYPos;    
+extern byte gStartXPos;           // landing position for entering new maps
+extern byte gStartYPos;    
 extern byte gCurrentCityIndex;      // current city index
 extern encResult gEncounterResult;  // result of last encounter
 

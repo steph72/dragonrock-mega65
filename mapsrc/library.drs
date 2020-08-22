@@ -41,7 +41,7 @@ historySign:
     ---
 
 exitDungeon:
-    ENTER_W 33,10,1   ; load outdoor map 33
+    ENTER_W 33,10,2   ; load outdoor map 33
     ---
 
 

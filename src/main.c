@@ -137,6 +137,8 @@ void debugEncounter(void) {
 
 void debugDungeon(void) {
     gCurrentDungeonIndex= 0;
+    gStartXPos=15;
+    gStartYPos=1;
     gCurrentGameMode= gm_init;
     prepareForGameMode(gm_dungeon);
     mainDispatchLoop();

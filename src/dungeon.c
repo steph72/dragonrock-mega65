@@ -442,8 +442,8 @@ int performEnterOpcode(opcode *anOpcode) {
 
     opcodeID= anOpcode->id & 31;
     gCurrentDungeonIndex= anOpcode->param1;
-    gOutdoorXPos= anOpcode->param2;
-    gOutdoorYPos= anOpcode->param3;
+    gStartXPos= anOpcode->param2;
+    gStartYPos= anOpcode->param3;
 
     newGameMode= (anOpcode->id & 32) ? gm_dungeon : gm_outdoor;
 
@@ -464,8 +464,6 @@ int performEnterCityOpcode(opcode *anOpcode) {
     quitDungeon= true;
     return 0;
 }
-
-
 
 byte performRandomBranchOpcode(opcode *anOpcode) {
     int neededVal;
@@ -620,7 +618,7 @@ int performOpcode(opcode *anOpcode, int currentPC) {
 
     if (anOpcode->id & 0x40) { // do we have a branch opcode?
         if (rOpcIdx != 0) {    // return index set?
-            newPC= rOpcIdx; // use returned index as next index
+            newPC= rOpcIdx;    // use returned index as next index
         }
     }
 
@@ -664,6 +662,7 @@ void redrawAll() {
     }
 }
 
+/*
 void plotDungeonItem(dungeonItem *item, byte x, byte y, byte alternate) {
 
     register byte *screenPtr; // working pointer to screen
@@ -687,6 +686,7 @@ void plotDungeonItem(dungeonItem *item, byte x, byte y, byte alternate) {
     *screenPtr= signs[mapSign].characterCode + modifier;
     *colorPtr= signs[mapSign].colour;
 }
+*/
 
 void plotPlayer(byte x, byte y) {
     register byte *screenPtr; // working pointer to screen
@@ -1106,13 +1106,9 @@ void initLoadedDungeon(void) {
 
     lastFeelIndex= 255;
 
-    if (!isDungeonMode) {
-        currentX= gOutdoorXPos;
-        currentY= gOutdoorYPos;
-    } else {
-        currentX= desc->startX;
-        currentY= desc->startY;
-    }
+    // set start coordinates from global vars
+    currentX= gStartXPos;
+    currentY= gStartYPos;
 
     offsetX= 0;
     offsetY= 0;
@@ -1211,7 +1207,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
             if (mapItem != 255) {
                 mapItem&= 31;
                 if (mapItem >= 5) {
-                    modifier= xpos % 2 ? 1 : 0;
+                    modifier= xpos % 2;
                 }
                 *colorPtr= signs[mapItem].colour;
                 *screenPtr= signs[mapItem].characterCode + modifier;

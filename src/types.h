@@ -238,8 +238,6 @@ typedef struct _dungeonDescriptorS {
     int numCoords;       // number of entries in coords lookup table
     byte dungeonMapWidth;
     byte dungeonMapHeight;
-    byte startX;
-    byte startY;
 } dungeonDescriptor;
 
 typedef struct _hresult { // hit result

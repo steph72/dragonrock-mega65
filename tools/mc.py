@@ -32,8 +32,6 @@ class mapCompiler:
 
         self.mapWidth = 0
         self.mapHeight = 0
-        self.startX = 0
-        self.startY = 0
         self.map = []
 
     # low level map exporting
@@ -80,8 +78,6 @@ class mapCompiler:
         mapbytes = bytearray()
         mapbytes.append(self.mapWidth)
         mapbytes.append(self.mapHeight)
-        mapbytes.append(self.startX)
-        mapbytes.append(self.startY)
         for y in range(self.mapHeight):
             for x in range(self.mapWidth):
                 currentMapElem = self.map[x][y]
@@ -193,8 +189,6 @@ class mapCompiler:
         mdata = pickle.load(infile)
         self.mapWidth = mdata["width"]
         self.mapHeight = mdata["height"]
-        self.startX = mdata["startX"]
-        self.startY = mdata["startY"]
         self.map = mdata["map"]
         infile.close()
 

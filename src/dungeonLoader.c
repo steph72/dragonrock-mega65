@@ -122,9 +122,7 @@ dungeonDescriptor *loadMap(char *filename) {
     // ...and fill in descriptions
     desc->dungeonMapWidth= *drbuf;
     desc->dungeonMapHeight= *(drbuf + 1);
-    desc->startX= *(drbuf + 2);
-    desc->startY= *(drbuf + 3);
-    desc->dungeon= externalDungeonAddr + 4;
+    desc->dungeon= externalDungeonAddr + 2;
     desc->mapdata= externalDungeonAddr;
 
 #ifdef DLDEBUG
@@ -138,13 +136,12 @@ dungeonDescriptor *loadMap(char *filename) {
 #ifdef DLDEBUG
     printf("dungeon size %x, width %d, height %d.\n", dungeonSize,
            desc->dungeonMapWidth, desc->dungeonMapHeight);
-    printf("startx: %d, starty: %d\n", desc->startX, desc->startY);
     printf("seen map is at $%x, size $%x\n", seenMap, smSize);
 #endif
 
     // feels start behind end of dungeon
     currentExternalDungeonPtr=
-        externalDungeonAddr + 4 +
+        externalDungeonAddr + 2 +
         (desc->dungeonMapWidth * desc->dungeonMapHeight * 2);
 
     numFeels= verifySegment(&currentExternalDungeonPtr, "feels");

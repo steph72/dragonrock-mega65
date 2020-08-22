@@ -76,8 +76,8 @@ Start encounter
 ## 0x10 ENTER_W <01:mapId> <02:xpos> <03:ypos>
 Enter wilderness map *mapID* at coords *xpos*, *ypos* and switch to outdoor mode
 
-## 0x30 ENTER_D <01:dungeonId>
-Enter dungeon *dungeonId* and switch to dungeon mode
+## 0x30 ENTER_D <01:dungeonId> <02:xpos> <03:ypos>
+Enter dungeon *dungeonId* at coords *xpos*, *ypos* and switch to dungeon mode
 
 ## 0x11 ENTER_C <01:cityId>
 Enter city *cityId* and switch to city mode

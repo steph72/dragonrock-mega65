@@ -76,8 +76,8 @@ void leaveCityMode(void) {
     free(guild);
     releaseArmory();
     gCurrentDungeonIndex= coords.mapNr;
-    gOutdoorXPos= coords.x;
-    gOutdoorYPos= coords.y;
+    gStartXPos= coords.x;
+    gStartYPos= coords.y;
 
     prepareForGameMode(gm_outdoor);
 }
