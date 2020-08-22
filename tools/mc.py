@@ -29,6 +29,7 @@ class mapCompiler:
         self.gDaemonMapping = {}
         self.gStrings = []
         self.gOpcodes = []
+        self.gDaemons = []
 
         self.mapWidth = 0
         self.mapHeight = 0
@@ -237,6 +238,26 @@ class mapCompiler:
 
             if (src.metaCmd == "includemap"):
                 self.loadMap(src.tMapName)
+
+    def buildDaemons(self):
+        self.gDaemons = []
+        print("Building daemons...")
+        for i in self.gDaemonMapping:
+            label = i+":"
+            coords = self.gDaemonMapping[i]
+            labelLineNumber = self.gLabels.get(label)
+            opcodeNumber = 0
+            if not (labelLineNumber is None):
+                currentDaemon = {}
+                opcodeNumber = self.gLinePosMapping[labelLineNumber]
+                print (label+" -> "+str(opcodeNumber))
+                currentDaemon["x1"] = coords[0]
+                currentDaemon["y1"] = coords[1]
+                currentDaemon["x2"] = coords[2]
+                currentDaemon["y2"] = coords[3]
+                currentDaemon["opcIdx"] = opcodeNumber
+                print (currentDaemon)
+            
 
     def buildOpcodes(self, p_table):
 
@@ -698,6 +719,8 @@ class mapCompiler:
                         self.map[x][y].startOpcodeIndex = opcodeNumber
                         # self.map[x][y].startOpcodeIndex = jumpTableMapping[label]
                         # print (x,y,jumpTableMapping[label])
+        
+        self.buildDaemons()
 
         # pp.pprint.pprint (self.opcodeBytes())
         # pp.pprint.pprint (self.feelsBytes())

@@ -6,7 +6,7 @@
 
 ## dungeonscript
 - DONE implement 'random' call and branch
-- get rid of start cooords
+- DONE get rid of start cooords
 - implement daemons
 - implement globals & global checks
 - DONE get rid of "nextOpcIndex" mechanism

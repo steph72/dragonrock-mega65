@@ -26,6 +26,8 @@ mainRoad4:
 connectLabel fhPath1: 10,14 - 14,14
 connectLabel fhPath2: 14,15 - 20,15
 connectLabel terrorShack: 10,2 - 11,2
+connectLabel dirtRoad: 10,4
+connectLabel mountainPath: 10,3
 
 $ msgFhPath,"A narrow driveway"
 
@@ -36,9 +38,28 @@ ago. A crude sign on the door says:
 'THE NOYSY PIG RIDERZ. KEEP OUT!'
 """
 
+$ msgDirtRoad,"""
+You notice an unusual amount of rubble 
+and junk piling up at the north side  
+of the road.
+"""
+
+$ msgMountainPath,"""
+A small path leads to the mountains
+in the north.
+"""
+
 fhPath1:
 fhPath2:
     NSTAT_O msgFhPath
+    ---
+
+dirtRoad:
+    NSTAT_O msgDirtRoad
+    ---
+
+mountainPath:
+    NSTAT_O msgMountainPath
     ---
 
 terrorShack:
@@ -121,6 +142,11 @@ They charge and attack you. Again,
 Lukasz himself vanishes from view.
 
 """
+
+bikerGangDaemon:
+    WKEY msgBridge
+    ---
+
 
 lTrollTerritory1:
 lTrollTerritory2:
