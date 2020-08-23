@@ -144,10 +144,8 @@ Lukasz himself vanishes from view.
 
 """
 
-bikerGangDaemon:
-    WKEY msgBridge
-    ---
 
+bikerGangDaemon:
 testDaemon:
 lTrollTerritory1:
 lTrollTerritory2:

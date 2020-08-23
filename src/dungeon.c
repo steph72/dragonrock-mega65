@@ -863,6 +863,20 @@ unsigned int opcodeIndexForDungeonItem(dungeonItem *anItem) {
     return idx;
 }
 
+void runDaemons(byte x, byte y) {
+    byte i;
+    daemonEntry currentDaemon;
+
+    for (i= 0; i < desc->numDaemons; ++i) {
+        currentDaemon= desc->daemonTbl[i];
+        if (x >= currentDaemon.x1 && y >= currentDaemon.y1 &&
+            x <= currentDaemon.x2 && y <= currentDaemon.y2) {
+                printf("should run daemon %d\n",i);
+                performOpcodeAtIndex(currentDaemon.opcodeIndex);
+        }
+    }
+}
+
 void dungeonLoop() {
 
     byte xs, ys;     // save x,y for debugging
@@ -936,7 +950,12 @@ void dungeonLoop() {
 
         // alredy performed an opcode?
         if (!performedImpassableOpcode) {
-            // no? get what's under the player...
+            // no? run daemons if needed...
+            if (desc->numDaemons) {
+                runDaemons(currentX + offsetX, currentY + offsetY);
+            }
+
+            // get what's under the player...
             fetchDungeonItemAtPos(currentX + offsetX, currentY + offsetY,
                                   &currentItem);
             // ...and perform it
