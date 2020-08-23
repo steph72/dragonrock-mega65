@@ -3,6 +3,7 @@
 ## dungeon
 - DONE sanitize filenames of maps and dungeons 
 - implement saving the map state
+- fix reload of current outdoor map
 
 ## dungeonscript
 - DONE implement 'random' call and branch

@@ -1,7 +1,7 @@
+#include "congui.h"
 #include "dungeon.h"
 #include "globals.h"
 #include "memory.h"
-#include "congui.h"
 #include <c64.h>
 #include <conio.h>
 #include <stdio.h>
@@ -14,22 +14,20 @@
 
 // #undef DLDEBUG
 
-const himemPtr externalDungeonAddr = 0x050000;
-
-unsigned int dungeonSize;
-unsigned int numFeels;
-unsigned int numOpcs;
+const himemPtr externalDungeonAddr= 0x050000;
 byte *seenMap;
-
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
 // clang-format on
 
-void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc);
+void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc,
+                     unsigned int numFeels);
 
-// check for correct segment header, get number of elemnts and increase himem
-// pointer
+void buildDaemonsTable(himemPtr *startAddr, dungeonDescriptor *desc);
+
+// check for correct segment header, get number of elemnts and increase
+// himem pointer
 unsigned int verifySegment(himemPtr *adr, char *segmentID) {
     long count;
     long countAdr;
@@ -49,6 +47,11 @@ unsigned int verifySegment(himemPtr *adr, char *segmentID) {
 }
 
 dungeonDescriptor *loadMap(char *filename) {
+
+    unsigned int dungeonSize;
+    unsigned int numFeels;
+    unsigned int numOpcs;
+    unsigned int numDaemons;
 
     byte i= 0;
 
@@ -144,13 +147,16 @@ dungeonDescriptor *loadMap(char *filename) {
         externalDungeonAddr + 2 +
         (desc->dungeonMapWidth * desc->dungeonMapHeight * 2);
 
+    // -- FEELS --
     numFeels= verifySegment(&currentExternalDungeonPtr, "feels");
+    buildFeelsTable(&currentExternalDungeonPtr, desc, numFeels);
 
-    // build feels table
-    buildFeelsTable(&currentExternalDungeonPtr, desc);
+    // -- DAEMS --
+    numDaemons= verifySegment(&currentExternalDungeonPtr, "daems");
+    desc->numDaemons= numDaemons;
+    buildDaemonsTable(&currentExternalDungeonPtr, desc);
 
     // -- OPCS --
-
     numOpcs= verifySegment(&currentExternalDungeonPtr, "opcs");
     desc->opcodesAdr= currentExternalDungeonPtr;
 
@@ -168,7 +174,32 @@ dungeonDescriptor *loadMap(char *filename) {
     return desc;
 }
 
-void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc) {
+void buildDaemonsTable(himemPtr *startAddr, dungeonDescriptor *desc) {
+
+    unsigned int size;
+    byte i;
+    daemonEntry *table;
+
+    if (desc->numDaemons==0) {
+        return;
+    }
+
+    size= (sizeof(daemonEntry) * (desc->numDaemons));
+    table= (daemonEntry *)malloc(size);
+    lcopy(*startAddr, (long)table, size);
+    *startAddr+= size;
+
+    for (i=0;i<desc->numDaemons;++i) {
+        printf("daemon %d: %d %d %d %d opc %d",i,table[i].x1,table[i].y1,
+        table[i].x2,table[i].y2,table[i].opcodeIndex);
+    }
+
+
+    desc->daemonTbl= table;
+}
+
+void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc,
+                     unsigned int numFeels) {
 
     himemPtr currentPtr;
     unsigned int currentFeelIdx;

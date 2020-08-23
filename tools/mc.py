@@ -47,6 +47,21 @@ class mapCompiler:
             bytes = bytearray(i)
             arr.extend(bytes)
         return arr
+    
+    def daemonBytes(self):
+        length = len(self.gDaemons)
+        arr = bytearray();
+        arr.extend(map(ord,"DAEMS"))
+        arr.append(length%256)
+        arr.append(length//256)
+        for i in self.gDaemons:
+            arr.append(i["x1"])
+            arr.append(i["y1"])
+            arr.append(i["x2"])
+            arr.append(i["y2"])
+            arr.append(i["opcIdx"]%256)
+            arr.append(i["opcIdx"]//256)
+        return arr
 
     def feelsBytes(self):
         length = len(self.gStrings)
@@ -101,14 +116,16 @@ class mapCompiler:
         idbytes.extend(map(ord, "DR0"))
         segment1 = self.mapBytes()
         segment2 = self.feelsBytes()
-        segment3 = self.opcodeBytes()
-        dlength = len(segment1) + len(segment2) + len(segment3)
+        segment3 = self.daemonBytes()
+        segment4 = self.opcodeBytes()
+        dlength = len(segment1) + len(segment2) + len(segment3) + len(segment4)
         idbytes.append(dlength % 256)
         idbytes.append(dlength//256)
         outfile.write(idbytes)
         outfile.write(segment1)
         outfile.write(segment2)
         outfile.write(segment3)
+        outfile.write(segment4)
         outfile.close()
 
 #######################################################################################
@@ -231,8 +248,7 @@ class mapCompiler:
                     y2 = int(src.tY2Value)
 
                 if (src.metaCmd=="defDaemon"):
-                    idx = int(src.tDaemonIndex)
-                    self.gDaemonMapping[src.tCoordsLabel] = (x1,y1,x2,y2,idx)
+                    self.gDaemonMapping[src.tCoordsLabel] = (x1,y1,x2,y2)
                 else:
                     self.gCoordsMapping[src.tCoordsLabel] = (x1, y1, x2, y2)
 
@@ -240,7 +256,6 @@ class mapCompiler:
                 self.loadMap(src.tMapName)
 
     def buildDaemons(self):
-        self.gDaemons = []
         print("Building daemons...")
         for i in self.gDaemonMapping:
             label = i+":"
@@ -250,14 +265,14 @@ class mapCompiler:
             if not (labelLineNumber is None):
                 currentDaemon = {}
                 opcodeNumber = self.gLinePosMapping[labelLineNumber]
-                print (label+" -> "+str(opcodeNumber))
                 currentDaemon["x1"] = coords[0]
                 currentDaemon["y1"] = coords[1]
                 currentDaemon["x2"] = coords[2]
                 currentDaemon["y2"] = coords[3]
-                currentDaemon["opcIdx"] = opcodeNumber
-                print (currentDaemon)
-            
+                currentDaemon["opcIdx"] = opcodeNumber               
+                print (("#"+str(len(self.gDaemons))+": ")+label+" "+str(currentDaemon))          
+                self.gDaemons.append(currentDaemon)
+  
 
     def buildOpcodes(self, p_table):
 
@@ -541,7 +556,6 @@ class mapCompiler:
         p_winOpcLabel = pp.Word(pp.alphanums)('tWinOpcLabel')
         p_loseOpcLabel = pp.Word(pp.alphanums)('tLoseOpcLabel')
         p_regIdx = pp.Word(pp.nums)('tRegIndex')
-        p_daemonIndex = pp.Word(pp.nums)('tDaemonIndex')
         p_regValue = pp.Word(pp.nums)('tRegValue')
         p_itemID = pp.Word(pp.nums)('tItemID')
         p_monsterID = pp.Word(pp.nums)('tMonsterID')
@@ -658,7 +672,6 @@ class mapCompiler:
                )
 
             ^ (pp.Keyword("defDaemon")('metaCmd')
-               + p_daemonIndex+","
                + p_coordsLabel+":"
                + p_xValue
                + ","+p_yValue + pp.Optional("-"+p_x2Value + ","+p_y2Value)

@@ -73,7 +73,8 @@ terrorShack:
 connectLabel lTrollBridge: 16,15
 connectLabel lTrollTerritory1: 9,5 - 9,14
 
-defDaemon 1,bikerGangDaemon: 9,2 - 15,16
+defDaemon bikerGangDaemon: 9,2 - 15,16
+defDaemon testDaemon: 10,3 - 16,17
 
 $ msgBridgeInitial1,"""
 As you arrive at the bridge, you meet 
@@ -147,7 +148,7 @@ bikerGangDaemon:
     WKEY msgBridge
     ---
 
-
+testDaemon:
 lTrollTerritory1:
 lTrollTerritory2:
     GOTO mainRoad1
@@ -167,7 +168,7 @@ lTrollBridge:
     ---
 
 lTrollBridgeLater:
-    RANDOM_B 300,lLukasUrlaub ; 30% chance that the boys are not there
+    RANDOM_B 400,lLukasUrlaub ; 40% chance that the boys are not there
     DISP msgBridge,True
     DISP msgPayQuestion
     YESNO_B payday
@@ -192,7 +193,6 @@ payday:
 connectLabel city_foxhome: 22,15 - 23,15
 connectLabel city_road: 21,15
 connectLabel foxhome_signpost: 9,14
-
 
 $ msgCity,"""
 The village of Foxhome. Do you want

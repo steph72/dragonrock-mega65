@@ -91,7 +91,7 @@ typedef enum _cstateType {
     asleep= 2,
     dead= 3,
     awake= 4,
-    charmed = 5,
+    charmed= 5,
     surrendered= 6
 } characterStateT;
 
@@ -229,13 +229,20 @@ typedef struct _character {
 
 typedef unsigned long himemPtr;
 
+typedef struct {
+    byte x1, y1, x2, y2;
+    unsigned int opcodeIndex;
+} daemonEntry;
+
 typedef struct _dungeonDescriptorS {
-	himemPtr test;
+    himemPtr test;
     himemPtr mapdata;    // external pointer to mapdata
     himemPtr dungeon;    // external pointer to dungeon map
     himemPtr opcodesAdr; // external pointer to opcode list
     himemPtr *feelTbl;   // pointer to message list (list of external pointers)
-    int numCoords;       // number of entries in coords lookup table
+    daemonEntry *daemonTbl; // pointer to daemons table
+    int numDaemons;         // number of entries in daemons lookup table
+    int numCoords;          // number of entries in coords lookup table
     byte dungeonMapWidth;
     byte dungeonMapHeight;
 } dungeonDescriptor;
