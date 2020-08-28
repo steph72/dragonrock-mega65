@@ -85,6 +85,5 @@ Enter city *cityId* and switch to city mode
 ## 0x51 RANDOM_B <01/02:randomChance> <03/04:opcIdx>
 Jump to *opcIdx* if *randomChance* is greater than a random value between 0 and 999
 
-
 # Outdoor and dungeon maps
 Outdoor maps are registered by setting bit 7 in their id (i.e. "128+mapnum")

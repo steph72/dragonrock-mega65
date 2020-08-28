@@ -75,7 +75,7 @@ void leaveCityMode(void) {
     coords= gCityCoords[gCurrentCityIndex];
     free(guild);
     releaseArmory();
-    gCurrentDungeonIndex= coords.mapNr;
+    gCurrentDungeonIndex= coords.mapNr | 128;
     gStartXPos= coords.x;
     gStartYPos= coords.y;
 

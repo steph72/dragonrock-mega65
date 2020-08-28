@@ -867,12 +867,14 @@ void runDaemons(byte x, byte y) {
     byte i;
     daemonEntry currentDaemon;
 
+    if (!desc->numDaemons)
+        return;
+
     for (i= 0; i < desc->numDaemons; ++i) {
         currentDaemon= desc->daemonTbl[i];
         if (x >= currentDaemon.x1 && y >= currentDaemon.y1 &&
             x <= currentDaemon.x2 && y <= currentDaemon.y2) {
-                printf("should run daemon %d\n",i);
-                performOpcodeAtIndex(currentDaemon.opcodeIndex);
+            performOpcodeAtIndex(currentDaemon.opcodeIndex);
         }
     }
 }
@@ -951,9 +953,7 @@ void dungeonLoop() {
         // alredy performed an opcode?
         if (!performedImpassableOpcode) {
             // no? run daemons if needed...
-            if (desc->numDaemons) {
-                runDaemons(currentX + offsetX, currentY + offsetY);
-            }
+            runDaemons(currentX + offsetX, currentY + offsetY);
 
             // get what's under the player...
             fetchDungeonItemAtPos(currentX + offsetX, currentY + offsetY,
@@ -1121,6 +1121,7 @@ void initLoadedDungeon(void) {
     gEncounterResult= encUndef;
 
     dungeonMapWidth= desc->dungeonMapWidth;
+
     gLoadedDungeonIndex= gCurrentDungeonIndex;
 
     lastFeelIndex= 255;

@@ -71,10 +71,8 @@ terrorShack:
 ; -------------------------------------
 
 connectLabel lTrollBridge: 16,15
-connectLabel lTrollTerritory1: 9,5 - 9,14
 
 defDaemon bikerGangDaemon: 9,2 - 15,16
-defDaemon testDaemon: 10,3 - 16,17
 
 $ msgBridgeInitial1,"""
 As you arrive at the bridge, you meet 
@@ -146,10 +144,15 @@ Lukasz himself vanishes from view.
 
 
 bikerGangDaemon:
-testDaemon:
-lTrollTerritory1:
-lTrollTerritory2:
-    GOTO mainRoad1
+    RANDOM_B 100, lBikerGangAttack
+    ---
+
+
+$ msgBikersAttack, "Pig riding trolls attack!"
+lBikerGangAttack:
+    NSTAT_O msgBikersAttack
+    WKEY msgWaitkey
+    REDRAW
     ---
 
 lTrollBridge:
