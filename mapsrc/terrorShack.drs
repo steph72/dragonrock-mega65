@@ -1,0 +1,13 @@
+;
+; Lukas' terror shack
+;
+
+includemap "mapsrc/terrorShack.drm"
+
+connectLabel lEntrance: 11,18
+
+$ msgEntrance,"Oh boy..."
+
+lEntrance:
+    NSTAT_O msgEntrance
+    ---
