@@ -650,6 +650,11 @@ class mapCompiler:
                + p_monsterID('tMonsterCount') + ","
                + p_monsterLevel('tMonsterRow')
                )
+            
+            ^ (pp.Keyword("ENTER_D")('opcode')
+               + p_mapID + ","
+               + p_xValue + ","
+               + p_yValue)
 
             ^ (pp.Keyword("ENTER_W")('opcode')
                + p_mapID + ","

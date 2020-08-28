@@ -26,6 +26,7 @@ mainRoad4:
 connectLabel fhPath1: 10,14 - 14,14
 connectLabel fhPath2: 14,15 - 20,15
 connectLabel terrorShack: 10,2 - 11,2
+connectLabel terrorShackEntry: 10,1 - 11,1
 connectLabel dirtRoad: 10,4
 connectLabel mountainPath: 10,3
 
@@ -64,6 +65,20 @@ mountainPath:
 
 terrorShack:
     NSTAT_O msgTerrorShack
+    ---
+
+$ msgTerrorShackEntry,"""
+Enter new location(y/n)?
+"""
+
+terrorShackEntry:
+    DISP msgTerrorShackEntry,True
+    YESNO_B enterShack
+    REDRAW
+    ---
+
+enterShack:
+    ENTER_D 1,5,5   ;load dungeonMap 1
     ---
 
 ; -------------------------------------
@@ -144,7 +159,7 @@ Lukasz himself vanishes from view.
 
 
 bikerGangDaemon:
-    RANDOM_B 100, lBikerGangAttack
+    RANDOM_B 50, lBikerGangAttack   ; 5% chance
     ---
 
 
@@ -181,7 +196,6 @@ lTrollBridgeLater:
 lLukasUrlaub:
     NSTAT_O msgLukasUrlaub
     ---
-
 
 payday:
     DISP msgPay
