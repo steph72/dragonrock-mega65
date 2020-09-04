@@ -311,6 +311,11 @@ class mapCompiler:
                 opc[2] = 1
             return opc
 
+        def opCreate_DISP_S(pline):
+            opc = opCreate_DISP(pline)
+            opc[0] = 0x22
+            return opc
+
         def opCreate_WKEY(pline):
             checkString(pline.tMsgLabel, pline)
             opc = [3, self.gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
@@ -586,6 +591,8 @@ class mapCompiler:
             ^ pp.Keyword("NSTAT_O")('opcode')+p_msgLabel
 
             ^ pp.Keyword("DISP")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('tClrFlag'))
+
+            ^ pp.Keyword("DISP_S")('opcode')+p_msgLabel+pp.Optional(","+p_boolean_literal('tClrFlag'))
 
             ^ (pp.Keyword("WKEY")('opcode')+p_msgLabel +
                pp.Optional(","+p_boolean_literal('tClrFlag')) +

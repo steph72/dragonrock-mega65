@@ -67,12 +67,10 @@ terrorShack:
     NSTAT_O msgTerrorShack
     ---
 
-$ msgTerrorShackEntry,"""
-Enter new location(y/n)?
-"""
+$ msgTerrorShackEntry,"Enter new location (y/n)?"
 
 terrorShackEntry:
-    DISP msgTerrorShackEntry,True
+    DISP_S msgTerrorShackEntry,True
     YESNO_B enterShack
     REDRAW
     ---
@@ -157,15 +155,13 @@ Lukasz himself vanishes from view.
 
 """
 
-
 bikerGangDaemon:
-    RANDOM_B 50, lBikerGangAttack   ; 5% chance
+    RANDOM_B 100, lBikerGangAttack   ; 10% chance
     ---
-
 
 $ msgBikersAttack, "Pig riding trolls attack!"
 lBikerGangAttack:
-    NSTAT_O msgBikersAttack
+    DISP_S msgBikersAttack
     WKEY msgWaitkey
     REDRAW
     ---

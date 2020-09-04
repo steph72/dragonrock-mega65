@@ -161,9 +161,13 @@ int performDisplayFeelOpcode(opcode *anOpcode) {
 // 0x02: DISP
 int performDisplayTextOpcode(opcode *anOpcode) {
 
-    byte feelIndex;
+    byte feelIndex = anOpcode->param1;
 
-    feelIndex= anOpcode->param1;
+    if (anOpcode->id & 0x20) {
+        displayFeel(feelIndex);
+        return 0;
+    }
+
     if (anOpcode->param2 != 0) {
         cg_clear();
     }
@@ -1115,6 +1119,8 @@ void unloadDungeon(void) {
 
 void initLoadedDungeon(void) {
 
+    byte correctY = 0;
+
     encounterLostOpcIdx= 0;
     encounterWonOpcIdx= 0;
 
@@ -1142,6 +1148,17 @@ void initLoadedDungeon(void) {
         offsetY= currentY - (mapWindowSizeY / 2);
         currentY= mapWindowSizeY / 2;
     }
+
+    // move view up if we're at the bottom
+    while ((offsetY+currentY+mapWindowSizeY/2)>=desc->dungeonMapHeight) {
+        offsetY--;
+        correctY++;
+    }
+
+    currentY += correctY;
+
+
+
 }
 
 void loadNewDungeon(void) {
