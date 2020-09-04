@@ -30,8 +30,6 @@
 #include <time.h>
 
 #include "charset.h"
-#include "irq.h"
-
 #include "globals.h"
 
 #include "congui.h"
@@ -141,8 +139,8 @@ void debugDungeon(void) {
     gStartXPos=15;
     gStartYPos=1;
     */
-     gCurrentDungeonIndex= 1;
-    gStartXPos=11;
+    gCurrentDungeonIndex= 1;
+    gStartXPos=10;
     gStartYPos=18;
     gCurrentGameMode= gm_init;
     prepareForGameMode(gm_dungeon);

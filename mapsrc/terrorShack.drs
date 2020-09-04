@@ -4,10 +4,26 @@
 
 includemap "mapsrc/terrorShack.drm"
 
-connectLabel lEntrance: 11,18
+connectLabel lEntrance1: 9,17 - 11,18
+connectLabel lEntrance: 10,18
 
-$ msgEntrance,"Oh boy..."
+$ msgWaitkey,"-- key --"
+
+$ msgEntrance,"""
+A damp and smelly cavern.
+"""
+
+$ msgEntrance1,"""
+Judging from the crude tools still
+laying around on the floor, it seems 
+that this place has only recently been 
+converted to someone's living room.
+"""
 
 lEntrance:
-    NSTAT_O msgEntrance
+    NSTAT msgEntrance
+    ---
+
+lEntrance1:
+    NSTAT msgEntrance1
     ---

@@ -9,7 +9,6 @@
 #include "character.h"
 #include "congui.h"
 #include "monster.h"
-#include "irq.h"
 
 extern monster *gMonsterRows[MONSTER_ROWS][MONSTER_SLOTS];
 

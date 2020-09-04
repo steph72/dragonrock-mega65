@@ -76,7 +76,7 @@ terrorShackEntry:
     ---
 
 enterShack:
-    ENTER_D 1,11,18   ;load dungeonMap 1
+    ENTER_D 1,10,18   ;load dungeonMap 1
     ---
 
 ; -------------------------------------
