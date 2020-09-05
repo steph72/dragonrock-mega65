@@ -4,10 +4,15 @@
 
 includemap "mapsrc/terrorShack.drm"
 
+; -------- entrance --------
+
 connectLabel lEntrance1: 9,17 - 11,18
 connectLabel lEntrance: 10,18
+connectLabel lExit: 10,19
 
 $ msgWaitkey,"-- key --"
+
+$ msgExit,"Exit pig rider's hq? (y/n)"
 
 $ msgEntrance,"""
 A damp and smelly cavern.
@@ -20,10 +25,47 @@ that this place has only recently been
 converted to someone's living room.
 """
 
+lExit:
+    DISP_S msgExit
+    YESNO doExit
+    REDRAW
+    ---
+
+doExit:
+    ENTER_W 33,10,2
+    ---
+
 lEntrance:
     NSTAT msgEntrance
     ---
 
 lEntrance1:
     NSTAT msgEntrance1
+    ---
+
+; --- pigs ---
+
+connectLabel lPigs: 14,16 - 15,18
+
+$ msgPigs1,"""
+A dozen or so pigs are perched 
+together behind a wooden fence.
+a) free them  b) ignore them
+"""
+
+lPigs:
+    WKEY msgPigs1, True, 1
+    SETREG 2,0
+    IFREG 1,65,doFreePigs
+    IFREG 1,66,doIgnorePigs
+    IFREG_B 2,0,lPigs
+    REDRAW
+    ---
+
+doIgnorePigs:
+    SETREG 2,1
+    ---
+
+doFreePigs:
+    SETREG 2,2
     ---

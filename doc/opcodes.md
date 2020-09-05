@@ -15,20 +15,23 @@ Like NSTAT, but clear status immediately after player moves on
 ## 0x02 DISP <01:msgID> <02:clrFlag>
 Display *msgID*
 
+## 0x22 DISP_S <01:msgID>
+Display *msgID* in status area (always clears status area first)
+
 ## 0x03 WKEY <01:msgID> <02:clrFlag> <03:regNr>
 Wait for keypress and display msgID. Stores pressed key in *regNr*
 
 ## 0x04 YESNO <01/02:trueOpcIdx> <03/04:falseOpcodeIdx>
 Wait for 'y' or 'n' keypress
 Register 0 -> true on 'yes', otherwise false.
-if *y* and *trueOpcIdx*!=0 -> jump to *trueOpcIdx*
-if *n* and *falseOpcIdx*!=0 -> jump to *falseOpcodeIdx*
+if *y* and *trueOpcIdx*!=0 -> call subroutine at *trueOpcIdx*
+if *n* and *falseOpcIdx*!=0 -> call subroutine at *falseOpcodeIdx*
 
 ## 0x44 YESNO_B <01/02:trueOpcIdx> <03/04:falseOpcodeIdx>
 Like YESNO, but **branch** to trueOpcIdx instead of calling it
 
 ## 0x05 IFREG <01:regNr> <02:regValue> <03/04:trueOpcIdx> <05/06:falseOpcIdx>
-If register *regNr* contains *regValue*, perform *trueOpcIdx*, else *falseOpcIdx*
+If register *regNr* contains *regValue*, call subroutine at *trueOpcIdx*, else *falseOpcIdx*
 
 ## 0x45 IFREG_B <01:regNr> <02:regValue> <03/04:trueOpcIdx> 
 Like IFREG, but **branch** to trueOpcIdx instead of calling it

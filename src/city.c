@@ -162,7 +162,8 @@ void enterCityMode(void) {
     initArmory();
     loadSprite("guild.pbm", 0, 64, 64);
     loadSprite("armory.pbm", 1, 64, 64);
-    loadSprite("mystic.pbm", 4, 64, 64);
+    loadSprite("bank.pbm", 2, 64, 64);
+    loadSprite("mystic.pbm", 5, 64, 64);
     bordercolor(COLOR_BLACK); // outsmart stupid c65 firmware
     sleep(1);
     setupCityScreen();
@@ -272,8 +273,8 @@ void doGuild(void) {
 
 void showCitySprites(byte enabled) {
     byte i;
-    const char spriteColors[]= {COLOR_BROWN, COLOR_LIGHTBLUE, COLOR_GRAY3,
-                                COLOR_RED,   COLOR_BLUE,    COLOR_ORANGE};
+    const char spriteColors[]= {COLOR_BROWN, COLOR_LIGHTBLUE, COLOR_YELLOW,
+                                COLOR_RED,   COLOR_ORANGE,      COLOR_BLUE};
     POKE(0xd01b, 0xff); // sprite prio low
     for (i= 0; i < 6; ++i) {
         setSpriteEnabled(i, enabled);
@@ -314,7 +315,7 @@ void runCityMenu(void) {
     char marker[]= {169, 127};
     char *cityKeys[]= {"Cast", "Use item", "Save game", ""};
     char *cityServices[]= {"Guild", "Armory", "Bank",
-                           "Inn",   "Mystic", "Leave city"};
+                           "Inn",   "Leave city", "Mystic"};
 
     static byte menuX, menuY;
     static byte cityItem;
@@ -432,7 +433,7 @@ void runCityMenu(void) {
                 doArmory();
                 break;
 
-            case 5:
+            case 4:
                 quitCity= true;
                 break;
 
