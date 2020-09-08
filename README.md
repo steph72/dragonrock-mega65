@@ -21,15 +21,15 @@ in progress and contributions are of course welcome (oh well, who am I kidding ;
 
 Here's some screenshots of what's in there by now:
 
-![Screen1](screenshots/createNew.png =384x)
+<img src="screenshots/createNew.png" width="384"/><br/>
 
 Character creation in a guild
 
-![Screen2](screenshots/cityNew.png)
+<img src="screenshots/cityNew.png" width="384"/><br/>
 
 City main menu
 
-![Screen3](screenshots/outdoor.png)
+<img src="screenshots/outdoor.png" width="384"/><br/>
 
 Outdoor view
 
