@@ -1,5 +1,5 @@
 # dragonrock-mega65
-A role playing game for MEGA65 & Commodore C65 computers
+A role playing game for the MEGA65.
 
 I got the idea for "Dragon Rock" upon realizing that there are hardly any native role playing
 games for the Commodore TED series of computers (c16, c116, plus/4). Since I always had soft 
@@ -21,31 +21,35 @@ in progress and contributions are of course welcome (oh well, who am I kidding ;
 
 Here's some screenshots of what's in there by now:
 
-![Screen1](screenshots/characterCreation.jpg)
+![Screen1](screenshots/createNew.png =384x)
 
 Character creation in a guild
 
-![Screen2](screenshots/cityMain.jpg)
+![Screen2](screenshots/cityNew.png)
 
 City main menu
 
-![Screen3](screenshots/dungeon1.jpg)
+![Screen3](screenshots/outdoor.png)
+
+Outdoor view
+
+![Screen4](screenshots/dungeon1.jpg)
 
 Dungeon view
 
-![Screen4](screenshots/characterDisplay.jpg)
+![Screen5](screenshots/characterDisplay.jpg)
 
 Character detail in the dungeon. Hubuk has collected the 'rusty key', which...
 
-![Screen5](screenshots/dungeon2.jpg)
+![Screen6](screenshots/dungeon2.jpg)
 
 ...opened this door ;-)
 
-![Screen6](screenshots/mapEditor.png)
+![Screen7](screenshots/mapEditor.png)
 
 Of course, "Dragon Rock" comes with its own map editor...
 
-![Screen7](screenshots/mapCompiler.png)
+![Screen8](screenshots/mapCompiler.png)
 
 ...and map compiler, which translates a 'mapscript' file into bytecode, which then
 gets interpreted by the main binary on the MEGA65.
