@@ -2,8 +2,6 @@
 
 set -e
 
-# printf "00" | cat - graphics/dr_charset.bin > bin/charset
-
 if [ ! -f "disc/drock.d81" ]; then
   mkdir -p disc
   c1541 -format drock,sk d81 disc/drock.d81
@@ -11,9 +9,12 @@ fi
 
 /bin/sh tools/buildResources.sh
 
+cat cbm/wrapper.prg bin/drmain.c64 > bin/autoboot
+
 c1541 <<EOF
 attach disc/drock.d81
 delete loader
+delete autoboot.c65
 delete main
 delete city
 delete dungeon
@@ -23,12 +24,11 @@ delete map*
 delete out*
 delete spr*
 delete fmsg*
-write bin/drmain.c64   main
+write bin/autoboot   autoboot.c65
 write bin/drmain.c64.1 dungeon
 write bin/drmain.c64.2 city
 write bin/drmain.c64.3 encounter
 write bin/drcharset charset
-write cbm/loader loader
 EOF
 
 c1541 disc/drock.d81 -delete fmsg

@@ -104,8 +104,16 @@ void loadCharset(void) {
     free(charTemp);
 }
 
+
+void set40colmode() {
+    byte *vic3_control= (byte *)0xd031;
+    *vic3_control&= (255 ^ 128); // disable 80chars
+    *vic3_control&= (255 ^ 8);   // disable interlace
+}
+
 void initEngine(void) {
     testMachine();
+    set40colmode();
     cg_init();
     puts(prompt);
 #ifndef DEBUG
@@ -140,8 +148,8 @@ void debugDungeon(void) {
     gStartYPos=1;
     */
     gCurrentDungeonIndex= 1;
-    gStartXPos=10;
-    gStartYPos=18;
+    gStartXPos= 10;
+    gStartYPos= 18;
     gCurrentGameMode= gm_init;
     prepareForGameMode(gm_dungeon);
     mainDispatchLoop();
