@@ -70,7 +70,7 @@ void initSprites(void) {
     POKE(0xd06DU, 0x30);
     POKE(0xd06EU, 0x01 | 0x80); // SPRPTR16
 
-    lfill(0x14000U, 0, 0x1000);
+    // lfill(0x14000U, 0, 0x1000);
 
 }
 

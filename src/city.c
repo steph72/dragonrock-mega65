@@ -5,30 +5,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "armory.h"
 #include "character.h"
-#include "cityUI.h"
-#include "config.h"
 #include "congui.h"
 #include "globals.h"
 #include "guild.h"
-#include "sprites.h"
 #include "utils.h"
 
 #include "dungeon.h"
-
-const byte gMainAreaRightX= 28;
-const byte gMainAreaTopY= 7;
-
-const byte gSecondaryAreaLeftX= 29;
-const byte gSecondaryAreaWidth= 11;
-const byte gMainAreaWidth= 29;
-const byte gMenuAreaTopY= 7;
-const byte gStatusAreaTopY= 16;
-
-const char *keyMsg= " -- key -- ";
 
 const char *invError= "INVERR (%d)";
 
@@ -37,37 +22,6 @@ const char *invError= "INVERR (%d)";
 // clang-format on
 
 void runCityMenu(void);
-
-void flagError(char *e) {
-    cg_block(0, 0, 39, 2, 160, COLOR_RED);
-    textcolor(COLOR_RED);
-    revers(1);
-    cg_center(0, 1, 40, e);
-    cg_getkeyP(33, 24, "--key--");
-}
-
-void clearPartyArea(void) {
-    cg_block(0, 0, 39, gMainAreaTopY - 1, 160, COLOR_GRAY2);
-}
-
-void clearMenuArea(void) {
-    cg_block(gSecondaryAreaLeftX, gMenuAreaTopY, 39, gStatusAreaTopY - 1, 160,
-             COLOR_GRAY1);
-}
-
-void clearStatusArea(void) {
-    cg_block(gSecondaryAreaLeftX, gStatusAreaTopY, 39, 24, 160, COLOR_BROWN);
-}
-
-void setupCityScreen(void) {
-    cg_clear();
-    cg_setPalette(COLOR_GRAY1, 4, 4, 6);
-    cg_setPalette(COLOR_GRAY2, 6, 8, 6);
-    cg_setPalette(COLOR_GRAY3, 8, 8, 10);
-    clearPartyArea();
-    clearStatusArea();
-    clearMenuArea();
-}
 
 void leaveCityMode(void) {
     cityCoordsT coords;
@@ -86,88 +40,44 @@ void distributeSpoils(void) {
     byte i;
     byte sharePerMember[PARTYSIZE];
     byte totalShares= 0;
-
-    char *sharesItems[]= {"0", "1", "2", "3", ""};
-
     unsigned int moneyShare;
     unsigned int xpShare;
     if (partyMemberCount() == 0) {
         return;
     }
-
+    cg_clear();
+    cg_borders();
     revers(1);
-    textcolor(COLOR_BROWN);
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 1, gSecondaryAreaWidth,
-              "dividing");
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
-              "gold and");
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 4, gSecondaryAreaWidth,
-              "experience");
-    cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 5, gSecondaryAreaWidth,
-              "points");
-    textcolor(COLOR_YELLOW);
-    revers(1);
-    cg_center(gSecondaryAreaLeftX, gMenuAreaTopY + 1, gSecondaryAreaWidth,
-              "Shares?");
+    cputsxy(2, 3, "Distribute gold and experience\n\n");
+    revers(0);
+    cursor(1);
     for (i= 0; i < partyMemberCount(); ++i) {
-        cg_colorLine(i, 0, 39, COLOR_YELLOW);
-        textcolor(COLOR_YELLOW);
-        revers(1);
-        gotoxy(0, i);
-        cputs(party[i]->name);
+        gotoxy(5, 6 + i);
+        cprintf("Shares for %-10s: ", party[i]->name);
         do {
-            gotoxy(gSecondaryAreaLeftX + 2, gMenuAreaTopY + 3);
-            textcolor(COLOR_GRAY2);
-            sharePerMember[i]= cg_horizontalMenu(COLOR_YELLOW, 1, sharesItems);
+            sharePerMember[i]= cg_getkey() - '0';
         } while (sharePerMember[i] < 1 || sharePerMember[i] > 3);
-        gotoxy(16, i);
         cputc('0' + sharePerMember[i]);
-        cg_colorLine(i, 0, 39, COLOR_GRAY2);
         totalShares+= sharePerMember[i];
     }
     moneyShare= gPartyGold / totalShares;
     xpShare= gPartyExperience / totalShares;
-    textcolor(COLOR_GREEN);
-    cg_colorLine(gMenuAreaTopY - 1, 0, 39, COLOR_GREEN);
-    gotoxy(0, 6);
-    sprintf(drbuf, "Each share is %u xp and %u coins.", moneyShare, xpShare);
-    cg_center(0, gMenuAreaTopY - 1, 40, drbuf);
+    gotoxy(0, 14);
+    cprintf("Each share is %u xp and %u coins.", moneyShare, xpShare);
     for (i= 0; i < partyMemberCount(); ++i) {
         party[i]->gold+= sharePerMember[i] * moneyShare;
         party[i]->xp+= sharePerMember[i] * xpShare;
     }
-    gPartyExperience= 0;
-    gPartyGold= 0;
-    clearStatusArea();
-    clearMenuArea();
-    cg_getkeyP(gSecondaryAreaLeftX + 1, gStatusAreaTopY + 2, "-- key --");
-}
-
-void displayCityTitle(void) {
-    byte xstart;
-    cg_clear();
-    textcolor(COLOR_CYAN);
-    sprintf(drbuf, " Welcome to %s ", gCities[gCurrentCityIndex]);
-    xstart= 20 - ((strlen(drbuf) / 2));
-    // bar above title
-    cg_line(11, xstart, xstart + strlen(drbuf) - 1, 28, COLOR_CYAN);
-    revers(1);
-    // title
-    cg_center(0, 12, 40, drbuf);
+    cputsxy(1, 18, "--key--");
+    cg_getkey();
 }
 
 void enterCityMode(void) {
-    displayCityTitle();
+    cg_clear();
+    gotoxy(4, 12);
+    printf("Welcome to %s", gCities[gCurrentCityIndex]);
     initGuild();
     initArmory();
-    loadSprite("guild.pbm", 0, 64, 64);
-    loadSprite("armory.pbm", 1, 64, 64);
-    loadSprite("bank.pbm", 2, 64, 64);
-    loadSprite("mystic.pbm", 5, 64, 64);
-    bordercolor(COLOR_BLACK); // outsmart stupid c65 firmware
-    sleep(1);
-    setupCityScreen();
-
     if (gPartyExperience || gPartyGold) {
         distributeSpoils();
     }
@@ -176,9 +86,12 @@ void enterCityMode(void) {
 }
 
 void doGuild(void) {
-
-    char *guildMenu[]= {"Spells", "Training", "Add",   "New",  "Drop",
-                        "Rename", "Inspect",  "Purge", "Exit", ""};
+    const char menu[]= "  L)ist guild members  T)raining\n"
+                       "  N)ew guild member    S)pells\n"
+                       "  P)urge guild member\n"
+                       "  A)dd to party\n"
+                       "  D)rop from party\n"
+                       "  eX)it guild\n";
 
     static unsigned char cmd;
     static unsigned char quitGuild;
@@ -186,42 +99,6 @@ void doGuild(void) {
     quitGuild= 0;
 
     while (!quitGuild) {
-        setupGuildScreen();
-        textcolor(COLOR_GRAY2);
-        showCurrentParty(false, false);
-        gotoxy(gSecondaryAreaLeftX, gMenuAreaTopY);
-        cmd= cg_menu(gSecondaryAreaWidth, COLOR_GRAY1, guildMenu);
-
-        switch (cmd) {
-
-        case 2:
-            addToParty();
-            break;
-
-        case 3:
-            newGuildMember(gCurrentCityIndex);
-            break;
-
-        case 4:
-            dropFromParty();
-            break;
-
-        case 7:
-            purgeGuildMember();
-            break;
-
-        case 8:
-            quitGuild= 1;
-            break;
-
-        default:
-            break;
-        }
-    }
-
-    /*
-        cgetc();
-
         sprintf(drbuf, "%s Guild", gCities[gCurrentCityIndex]);
         cg_titlec(COLOR_BROWN, COLOR_GREEN, 1, drbuf);
         showCurrentParty(false);
@@ -268,240 +145,212 @@ void doGuild(void) {
         default:
             break;
         }
-        */
-}
-
-void showCitySprites(byte enabled) {
-    byte i;
-    const char spriteColors[]= {COLOR_BROWN, COLOR_LIGHTBLUE, COLOR_YELLOW,
-                                COLOR_RED,   COLOR_ORANGE,      COLOR_BLUE};
-    POKE(0xd01b, 0xff); // sprite prio low
-    for (i= 0; i < 6; ++i) {
-        setSpriteEnabled(i, enabled);
-        if (enabled) {
-            setSpriteXExpand(i, 0);
-            setSpriteYExpand(i, 0);
-            setSpriteColor(i, spriteColors[i]);
-            putSprite(i, 32 + (72 * (i % 3)), 114 + (72 * (i / 3)));
-        }
-    }
-}
-
-void inspect(byte idx) {
-    // bgcolor(COLOR_GRAY2);
-    textcolor(COLOR_GRAY2);
-    inspectCharacter(idx);
-    // bgcolor(COLOR_BLACK);
-}
-
-void drawCityMarkerRect(byte x, byte y, byte draw) {
-    byte i, x0, y0, x1, y1;
-    x0= 1 + (9 * x);
-    y0= 8 + (9 * y);
-    x1= x0 + 7;
-    y1= y0 + 7;
-    if (draw) {
-        *(SCREEN + x0 + 1 + (40 * y1))= 123;
-        *(SCREEN + x0 + 2 + (40 * y1))= 124;
-        *(COLOR_RAM + x0 + 1 + (40 * y1))= COLOR_WHITE;
-        *(COLOR_RAM + x0 + 2 + (40 * y1))= COLOR_WHITE;
-    } else {
-        cg_block(x0, y1, x1, y1, 32, 0);
     }
 }
 
 void runCityMenu(void) {
 
-    char marker[]= {169, 127};
-    char *cityKeys[]= {"Cast", "Use item", "Save game", ""};
-    char *cityServices[]= {"Guild", "Armory", "Bank",
-                           "Inn",   "Leave city", "Mystic"};
+    const char menu[]= " Go to  A)rmory G)uild M)ystic\n"
+                       "        I)nn    B)ank  L)eave town\n\n"
+                       "  C)ast spell\n"
+                       "  U)se item\n"
+                       "  S)ave game\n";
 
-    static byte menuX, menuY;
-    static byte cityItem;
     static unsigned char cmd;
     static unsigned char quitCity;
 
     quitCity= 0;
 
     while (!quitCity) {
-        setupCityScreen();
-        showCitySprites(1);
-        revers(1);
-        textcolor(COLOR_BROWN);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 2, gSecondaryAreaWidth,
-                  gCities[gCurrentCityIndex]);
-        sprintf(drbuf, "(%d)", gCurrentCityIndex + 1);
-        cg_center(gSecondaryAreaLeftX, gStatusAreaTopY + 3, gSecondaryAreaWidth,
-                  drbuf);
-        textcolor(COLOR_GRAY2);
-        showCurrentParty(false, true);
-        cg_verticalList(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 1, 1, 0,
-                        COLOR_GRAY1, cityKeys);
-        cg_block(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 1,
-                 gSecondaryAreaLeftX + 1, gMenuAreaTopY + 3, 0, COLOR_GRAY2);
-
-        menuX= 0;
-        menuY= 0;
+        sprintf(drbuf, "%s (%d)", gCities[gCurrentCityIndex],
+                gCurrentCityIndex + 1);
+        cg_titlec(COLOR_BLUE, COLOR_GREEN, 1, drbuf);
+        showCurrentParty(false);
+        gotoxy(0, 14);
+        puts(menu);
+        cputsxy(8, 21, "Command:");
+        cursor(1);
 
         do {
-            cityItem= menuX + (3 * menuY);
-            textcolor(COLOR_WHITE);
-            revers(1);
-            cg_line(gMenuAreaTopY + 5, gSecondaryAreaLeftX, 39, 160,
-                    COLOR_WHITE);
-            cputsxy(gSecondaryAreaLeftX + 1, gMenuAreaTopY + 5,
-                    cityServices[cityItem]);
-
-            textcolor(COLOR_WHITE);
-            drawCityMarkerRect(menuX, menuY, 1);
-
-            while (!kbhit()) {
-                cg_stepColor();
-            }
             cmd= cgetc();
-            revers(0);
-            drawCityMarkerRect(menuX, menuY, 0);
+        } while (strchr("agmiblcus123456", cmd) == NULL);
 
-            switch (cmd) {
-            case 29: // cursor right
-                if (menuX < 2)
-                    menuX++;
-                break;
+        cursor(0);
 
-            case 157: // cursor left
-                if (menuX > 0)
-                    menuX--;
-                break;
+        if (cmd >= '1' && cmd <= '6') {
+            inspectCharacter(cmd - '1');
+        }
 
-            case 145: // cursor up
-                if (menuY > 0)
-                    menuY--;
-                break;
+        switch (cmd) {
 
-            case 17: // cursor down
-                if (menuY < 1)
-                    menuY++;
-                break;
-
-            default:
-                break;
+        case 'l':
+            cg_clear();
+            gotoxy(0, 23);
+            printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
+            do {
+                cursor(1);
+                cmd= cgetc();
+                cursor(0);
+            } while (strchr("yn", cmd) == NULL);
+            if (cmd == 'y') {
+                quitCity= 1;
             }
+            cmd= 0;
+            break;
 
-            if (cmd == 'g') {
-                showCitySprites(0);
-                cg_clear();
-                cg_borders();
-                puts("\nPlease wait\nSaving economy...");
-                saveArmory();
-                puts("Saving guild...");
-                saveGuild();
-                puts("Saving party...");
-                saveParty();
-                puts("\n\n...done.\n\n --key--");
-                cgetc();
-                cityItem= 255;
-                showCitySprites(1);
-                cmd= 13;
-                break;
-            }
+        case 'a':
+            doArmory();
+            break;
 
-            if (cmd >= '1' && cmd <= '6') {
-                showCitySprites(0);
-                inspect(cmd - '1');
-                showCitySprites(1);
-                cityItem= 255;
-                cmd= 13; // choose empty city item so that loop falls though
-            }
+        case 'g':
+            doGuild();
+            break;
 
-        } while (cmd != 13);
+        case 's':
+            cg_clear();
+            cg_borders();
+            puts("\nPlease wait\nSaving economy...");
+            saveArmory();
+            puts("Saving guild...");
+            saveGuild();
+            puts("Saving party...");
+            saveParty();
+            puts("\n\n...done.\n\n --key--");
+            cgetc();
+            break;
 
-        showCitySprites(0);
-
-        if (cityItem != 0 && partyMemberCount() == 0) {
-            clearMenuArea();
-            flagError("You must assemble a party first.");
-        } else {
-
-            switch (cityItem) {
-
-            case 0:
-                doGuild();
-                break;
-
-            case 1:
-                doArmory();
-                break;
-
-            case 4:
-                quitCity= true;
-                break;
-
-            default:
-                break;
-            }
+        default:
+            break;
         }
     }
+}
 
-    /*
-            gotoxy(0, 14);
-            puts(menu);
-            cputsxy(8, 21, "Command:");
-            cursor(1);
+void newGuildMember(byte city) {
+    static byte i, c; // loop and input temp vars
+    static byte race;
+    static byte class;
+    static attrT tempAttr[6];
+    static attrT current;
+    static signed char slot;
+    static int tempHP;
+    static int tempMP;
+    static char cname[17];  // one more, because cc65 somehow adds
+    static character *newC; // the "cr" sign to the finished string...
 
-            do {
-                cmd= cgetc();
-            } while (strchr("agmiblcus123456", cmd) == NULL);
+    static char top; // screen top margin
 
-            cursor(0);
+    const char margin= 14;
+    const char delSpaces= 40 - margin;
 
-            if (cmd >= '1' && cmd <= '6') {
-                inspectCharacter(cmd - '1');
-            }
+    cg_titlec(COLOR_GREEN, COLOR_CYAN, 0, "New Guild Member");
 
-            switch (cmd) {
+    slot= nextFreeGuildSlot();
+    if (slot == -1) {
+        textcolor(2);
+        puts("\nSorry, the guild is full."
+             "\nPlease purge some inactive members"
+             "before creating new ones.\n\n--key--");
+        cgetc();
+        return;
+    }
 
-            case 'l':
-                cg_clear();
-                gotoxy(0, 23);
-                printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
-                do {
-                    cursor(1);
-                    cmd= cgetc();
-                    cursor(0);
-                } while (strchr("yn", cmd) == NULL);
-                if (cmd == 'y') {
-                    quitCity= 1;
-                }
-                cmd= 0;
-                break;
+    top= 5;
+    newC= &guild[slot];
 
-            case 'a':
-                doArmory();
-                break;
+    cputsxy(2, top, "      Race:");
+    for (i= 0; i < NUM_RACES; i++) {
+        gotoxy(margin, top + i);
+        cprintf("%d - %s", i + 1, gRaces[i]);
+    }
+    cputsxy(margin, top + 1 + i, "Your choice: ");
+    do {
+        race= cgetc() - '1';
+    } while (race >= NUM_RACES);
+    for (i= top - 1; i < NUM_RACES + top + 3; cclearxy(margin, ++i, delSpaces))
+        ;
+    cputsxy(margin, top, gRaces[race]);
 
-            case 'g':
-                doGuild();
-                break;
+    ++top;
 
-            case 's':
-                cg_clear();
-                cg_borders();
-                puts("\nPlease wait\nSaving economy...");
-                saveArmory();
-                puts("Saving guild...");
-                saveGuild();
-                puts("Saving party...");
-                saveParty();
-                puts("\n\n...done.\n\n --key--");
-                cgetc();
-                break;
+    cputsxy(2, top, "     Class:");
+    for (i= 0; i < NUM_CLASSES; i++) {
+        gotoxy(margin, top + i);
+        cprintf("%d - %s", i + 1, gClasses[i]);
+    }
+    cputsxy(margin, top + 1 + i, "Your choice:");
+    do {
+        class= cgetc() - '1';
+    } while (class >= NUM_CLASSES);
+    for (i= top - 1; i < NUM_CLASSES + top + 3;
+         cclearxy(margin, ++i, delSpaces))
+        ;
+    cputsxy(margin, top, gClasses[class]);
 
-            default:
-                break;
-            }
+    top+= 2;
+
+    cputsxy(2, top, "Attributes:");
+    do {
+        for (i= 0; i < 6; i++) {
+            current= 7 + (drand(12) + gRaceModifiers[race][i]);
+            tempAttr[i]= current;
+            cputsxy(margin, top + i, gAttributes[i]);
+            gotoxy(margin + 13, top + i);
+            cprintf("%2d %s", current, bonusStrForAttribute(current));
         }
-        */
+        tempHP= 3 + drand(8) + bonusValueForAttribute(tempAttr[0]);
+        tempMP= 3 + drand(8) + bonusValueForAttribute(tempAttr[1]);
+
+        gotoxy(margin, top + i + 1);
+        cprintf("Hit points   %2d", tempHP);
+
+        gotoxy(margin, top + i + 2);
+        cprintf("Magic points %2d", tempMP);
+
+        cputsxy(margin, top + i + 4, "k)eep, r)eroll or q)uit? ");
+        do {
+            c= cgetc();
+        } while (!strchr("rkq", c));
+    } while (c == 'r');
+
+    if (c == 'q')
+        return;
+
+    top= top + i + 4;
+    cclearxy(0, top, 40);
+    cputsxy(18, top + 1, "---------------");
+    cputsxy(2, top, "Character name: ");
+    fgets(cname, 17, stdin); // see above
+    cname[strlen(cname) - 1]= 0;
+
+    // copy temp char to guild
+    newC->city= city;
+    newC->guildSlot= slot;
+    newC->status= awake;
+    newC->aRace= race;
+    newC->aClass= class;
+
+    for (i= 0; i < NUM_ATTRS; i++) {
+        newC->attributes[i]= tempAttr[i];
+    }
+
+    // empty inventory & known spells
+    for (i= 0; i < INV_SIZE; i++) {
+        newC->inventory[i]= 0;
+    }
+    for (i= 0; i < 8; i++) {
+        newC->spellMap[i]= 0;
+    }
+
+    addInventoryItem(0xff, newC); // add white orb for testing
+    newC->weapon= 0x01;           // add club
+    newC->armor= 0x80;            // add robes
+    newC->aMaxHP= tempHP;
+    newC->aHP= tempHP;
+    newC->aMaxMP= tempMP;
+    newC->aMP= tempMP;
+    newC->level= 1;
+    newC->spriteID= 0x80 + newC->aRace;
+    strcpy(newC->name, cname);
 }
 
 // clang-format off

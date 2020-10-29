@@ -1,13 +1,13 @@
-#include <c64.h>
 #include <conio.h>
+#include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "character.h"
 #include "congui.h"
-#include "globals.h"
 #include "spell.h"
+#include "globals.h"
 
 character *party[PARTYSIZE];
 
@@ -43,16 +43,6 @@ char *nameOfInventoryItem(item *anItem) {
         return drbuf;
     }
     return anItem->name;
-}
-
-byte inventoryCount(character *aCharacter) {
-    byte i;
-    for (i= 0; i < INV_SIZE; ++i) {
-        if (aCharacter->inventory[i] == 0) {
-            return i;
-        }
-    }
-    return i;
 }
 
 byte hasInventoryItem(character *aCharacter, itemT anItemID) {
@@ -154,39 +144,43 @@ byte partyMemberCount(void) {
     return n;
 }
 
-void showCurrentParty(byte small, byte showIndices) {
+void showCurrentParty(byte small) {
     static byte i, x, y;
     static character *c;
 
-    y= 0;
+    y= 2;
 
     if (small) {
         x= 19;
-        y= 1;
     } else {
         x= 0;
+        cputsxy(17,2,"MP");
+        cputsxy(25,2,"HP");
+        cputsxy(2,2,"Name");
+        cputsxy(0,2,"#");
+        cputsxy(33,2,"Status");
     }
+
 
     for (i= 0; i < PARTYSIZE; i++) {
         if (party[i]) {
             c= party[i];
+            ++y;
             gotoxy(x, y);
-            *drbuf= 0;
-            strncat(drbuf, c->name, 12);
-            if (showIndices) {
+            if (small) {
+                *drbuf= 0;
+                strncat(drbuf, c->name, 12);
                 printf("%d %s", i + 1, drbuf);
             } else {
-                printf("  %s", drbuf);
+                printf("%d %s", i + 1, c->name);
             }
-
             if (!small) {
-                gotoxy(14, y);
-                cprintf("%s", gRaces[c->aRace]);
-                gotoxy(25, y);
-                cprintf("%s", gClasses[c->aClass]);
+                gotoxy(17,y);
+                cprintf("%d/%d",c->aMP,c->aMaxMP);
+                gotoxy(25,y);
+                cprintf("%d/%d",c->aHP,c->aMaxHP);
             }
             cputsxy(33, y, gStateDesc[c->status]);
-            ++y;
         }
     }
 }
@@ -286,14 +280,6 @@ void dispCharacterActionError(char *msg) {
     cg_getkey();
 }
 
-void removeItemAtInventorySlot(character *ic, byte slot) {
-    byte i;
-    ic->inventory[INV_SIZE - 1]= 0;
-    for (i= slot; i < INV_SIZE - 1; ++i) {
-        ic->inventory[i]= ic->inventory[i + 1];
-    }
-}
-
 void giveItem(character *ic) {
     character *destCharacter;
     item *anItem;
@@ -320,7 +306,7 @@ void giveItem(character *ic) {
         dispCharacterActionError("no space in inventory!");
         return;
     }
-    removeItemAtInventorySlot(ic, inventorySlot);
+    ic->inventory[inventorySlot]= 0;
     return;
 }
 
@@ -445,7 +431,7 @@ void inspectCharacter(byte idx) {
 
     quitInspect= false;
 
-    do {
+    while (!quitInspect) {
 
         spellLine= 0;
         ic= party[idx];
@@ -502,7 +488,7 @@ void inspectCharacter(byte idx) {
         printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
         gotoxy(0, 14);
         puts("Inventory:");
-        displayInventoryAtRow(ic, 16, 'D');
+        displayInventoryAtRow(ic,16,'D');
         gotoxy(0, 23);
         cputs("u)se/ready r)emove g)ive ex)it\r\n>");
         cursor(1);
@@ -540,7 +526,7 @@ void inspectCharacter(byte idx) {
             break;
         }
 
-    } while (!quitInspect);
+    } // while !quitInspect
 }
 
 byte loadParty(void) {

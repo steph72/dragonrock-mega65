@@ -659,7 +659,7 @@ void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 void redrawAll() {
     setupScreen();
     redrawMap();
-    showCurrentParty(true, true);
+    showCurrentParty(true);
     plotPlayer(currentX, currentY);
     if (lastFeelIndex != 255) {
         displayFeel(lastFeelIndex);

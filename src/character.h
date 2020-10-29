@@ -5,8 +5,6 @@
 
 byte loadParty(void);
 
-byte inventoryCount(character *aCharacter);
-
 char *nameOfInventoryItem(item *anItem);
 char *nameOfInventoryItemWithID(itemT anItemID);
 item *inventoryItemForID(itemT anItemID);
@@ -24,7 +22,7 @@ item* getWeapon(character *aCharacter);
 int getArmorClassForCharacter(character *aCharacter);
 int getHitDiceForCharacter(character *aCharacter);
 
-void showCurrentParty(byte small, byte showIndices);
+void showCurrentParty(byte small);
 void displayInventoryAtRow(character *ic, byte row, char firstChar);
 void inspectCharacter(byte idx);
 

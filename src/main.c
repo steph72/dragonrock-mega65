@@ -105,15 +105,17 @@ void loadCharset(void) {
 }
 
 
-void set40colmode() {
+void initVIC() {
     byte *vic3_control= (byte *)0xd031;
+    byte *hotreg = (byte*)0xd05d;
     *vic3_control&= (255 ^ 128); // disable 80chars
     *vic3_control&= (255 ^ 8);   // disable interlace
+    *hotreg &= 127; // disable hotreg
 }
 
 void initEngine(void) {
     testMachine();
-    set40colmode();
+    initVIC();
     cg_init();
     puts(prompt);
 #ifndef DEBUG
