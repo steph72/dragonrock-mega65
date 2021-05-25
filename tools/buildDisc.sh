@@ -9,7 +9,7 @@ fi
 
 /bin/sh tools/buildResources.sh
 
-cat cbm/wrapper.prg bin/drmain.c64 > bin/autoboot
+cat cbm/wrapper.prg bin/drmain.c64 > bin/main
 
 c1541 <<EOF
 attach disc/drock.d81
@@ -24,7 +24,8 @@ delete map*
 delete out*
 delete spr*
 delete fmsg*
-write bin/autoboot   autoboot.c65
+write cbm/autoboot.c65
+write bin/main main
 write bin/drmain.c64.1 dungeon
 write bin/drmain.c64.2 city
 write bin/drmain.c64.3 encounter

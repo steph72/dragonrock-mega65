@@ -194,10 +194,16 @@ void buildDaemonsTable(himemPtr *startAddr, dungeonDescriptor *desc) {
         table[i].x2,table[i].y2,table[i].opcodeIndex);
     }
 
-
     desc->daemonTbl= table;
 }
 
+/**
+ * @brief iterate over strings in himem and build pointer table to it
+ * 
+ * @param startAddr start address in himem 
+ * @param desc      dungeon descriptor
+ * @param numFeels  number of feels to index (part of map file)
+ */
 void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc,
                      unsigned int numFeels) {
 
@@ -220,7 +226,7 @@ void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc,
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DLDEBUG
         cputc('.');
-//        printf("%d-%lx ", currentFeelIdx, currentPtr);
+        // printf("%d-%lx ", currentFeelIdx, currentPtr);
 #endif
         while (lpeek(currentPtr) != 0) {
             currentPtr++;

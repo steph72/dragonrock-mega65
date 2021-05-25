@@ -1071,7 +1071,7 @@ void dungeonLoop() {
 void fetchFeelForIndex(byte idx, char *aFeel) {
     himemPtr adr;
     adr= desc->feelTbl[idx];
-    lco1py(adr, (long)aFeel, TEXTBUF_SIZE);
+    lcopy(adr, (long)aFeel, TEXTBUF_SIZE);
 }
 
 // char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }

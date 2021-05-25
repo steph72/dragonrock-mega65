@@ -1,10 +1,15 @@
 ** memory map **
 
+BANK 0
 0x00801 - 0x09fff       main program    36k
 0x0a000 - 0x0cfff       overlays        12k
+
+BANK 1
 0x12000 - 0x12fff       character set    4k 
 0x13000 - 0x13fff       sprite pointers  4k
 0x14000 - 0x1ffff       sprite area     48k
+
+BANK 5
 0x50000 - 0x5ffff       dungeon/map     64k
 
 
@@ -37,6 +42,19 @@
 |           (0-terminated)            |
 +-------------------------------------|
 |  0-x  C   string table entry        |
+| [...]                               |
++-------------------------------------|
+|= DAEMS =============================|  daemons table segment header
+| 0-4   C   "DAEMS"                   |
+|  5    W   number of daemon defs     |
++-------------------------------------|
+|  0    B   x0                        |
+|  1    B   y0                        |
+|  2    B   x1                        |
+|  3    B   y1                        |
+|  4    B   opcode to trigger         | 
++-------------------------------------|
+|  0-4                                |
 | [...]                               |
 +-------------------------------------|
 |= OPCS ==============================| opcode table segment header
