@@ -1,5 +1,7 @@
 # TODO
 
+cc65 V2.18 - Git de630a12
+
 ## dungeon
 - DONE sanitize filenames of maps and dungeons 
 - implement saving the map state
@@ -8,7 +10,7 @@
 ## dungeonscript
 - DONE implement 'random' call and branch
 - DONE get rid of start cooords
-- implement daemons
+- DONE implement daemons
 - implement globals & global checks
 - DONE get rid of "nextOpcIndex" mechanism
 - DONE make GOTO a regular dungeon opcode    (param 1/2 == dest)

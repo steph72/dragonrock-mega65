@@ -181,6 +181,7 @@ void buildDaemonsTable(himemPtr *startAddr, dungeonDescriptor *desc) {
     daemonEntry *table;
 
     if (desc->numDaemons==0) {
+        desc->daemonTbl=NULL;
         return;
     }
 

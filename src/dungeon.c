@@ -1109,8 +1109,10 @@ void setupScreen() {
 void unloadDungeon(void) {
 
     if (desc != NULL) {
-        free(desc->feelTbl);
+        if (desc->feelTbl) free(desc->feelTbl);
+        if (desc->daemonTbl) free(desc->daemonTbl);
         free(seenMap);
+        free(desc);
         desc= NULL;
     }
 

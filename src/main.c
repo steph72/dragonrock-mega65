@@ -70,7 +70,7 @@ void loadSaved(void);
 void installCharset(void);
 
 const char *prompt=
-    "DREngine/M65 V" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+    "drengine/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void testMachine(void) {
     if (!testVIC4()) {
@@ -95,7 +95,6 @@ void enableDRCharset(void) {
 void loadCharset(void) {
     byte *charTemp;
     charTemp= (byte *)malloc(4096);
-    printf("char temp at %x", charTemp);
     if (cbm_load("charset", getcurrentdevice(), (void *)charTemp) == 0) {
         puts("Failed loading charset.");
         exit(0);
@@ -118,9 +117,6 @@ void initEngine(void) {
     initVIC();
     cg_init();
     puts(prompt);
-#ifndef DEBUG
-    sleep(1);
-#endif
     srand(42);
     initMonsterRows();
     loadCharset();

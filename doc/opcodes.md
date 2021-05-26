@@ -49,8 +49,7 @@ Register 0 -> true on success, otherwise false
 Register 1 -> party member who took the item
 
 ## 0x08 ALTER <01:xpos> <02:ypos> <03:posOpcodeLabel> <04:dungeonItemID>
-Alter map at coordinates *xpos*,*ypos* to opcode index pointed to by *posOpcodeLabel* and *dungeonItemID*. WARNING! DungeonItemID has to carry bits 9+10 of the final dungeon item ID
-address just like a "regular" map entry.
+Alter map at coordinates *xpos*,*ypos* to opcode index pointed to by *posOpcodeLabel* and *dungeonItemID*. WARNING! DungeonItemID has to carry bits 9+10 of the final dungeon item ID address just like a "regular" map entry.
 The map compiler automatically builds xpos,ypos from any defined (defc) label. 
 
 ## 0x09 REDRAW

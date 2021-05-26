@@ -32,6 +32,8 @@ static signed char gPalDir;
 static clock_t lastPaletteTick;
 
 void cg_init() {
+    mega65_io_enable();
+    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     textcolor(COLOR_GREEN);
@@ -39,8 +41,6 @@ void cg_init() {
     gPalDir= 1;
     cbm_k_bsout(11); // disable shift+cmd on c128 & 364
     cbm_k_bsout(14); // lowercase charset
-    mega65_io_enable();
-    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
 }
 
 void cg_emptyBuffer(void) {
@@ -266,7 +266,7 @@ byte cg_menu(byte width, byte color, char *items[]) {
     x= wherex();
     y= wherey();
     numItems= cg_verticalList(x + 1, y, 1, 0, color, items);
-    return cg_verticalChooser(x, y, 1, width, numItems,0);
+    return cg_verticalChooser(x, y, 1, width, numItems, 0);
 }
 
 char *cg_input(byte maxlen) {
@@ -275,7 +275,7 @@ char *cg_input(byte maxlen) {
 
 void cg_borders(void) {
     chlinexy(0, 0, 40);
-    chlinexy(0, 24, 40); 
+    chlinexy(0, 24, 40);
     gotoxy(0, 1);
 }
 
