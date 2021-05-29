@@ -29,7 +29,6 @@
 #include <device.h>
 #include <time.h>
 
-#include "charset.h"
 #include "globals.h"
 
 #include "congui.h"
@@ -67,30 +66,9 @@ void initEngine(void);
 void runCityMenu(void);
 void doGuild(void);
 void loadSaved(void);
-void installCharset(void);
 
 const char *prompt=
-    "drengine/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
-
-void testMachine(void) {
-    if (!testVIC4()) {
-        bordercolor(0);
-        bgcolor(0);
-        textcolor(COLOR_LIGHTRED);
-        cg_clear();
-        cputs("We're awfully sorry, but DragonRock\r\n"
-              "needs a MEGA65 computer to run.\r\n");
-        exit(0);
-    }
-}
-
-void enableDRCharset(void) {
-    // switch vic-iv to new charset
-    mega65_io_enable();
-    POKE(0xd068U, 0x00);
-    POKE(0xd069U, 0x20);
-    POKE(0xd06aU, 0x01);
-}
+    "DREnigne/M65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void loadCharset(void) {
     byte *charTemp;
@@ -99,7 +77,7 @@ void loadCharset(void) {
         puts("Failed loading charset.");
         exit(0);
     }
-    lcopy((long)charTemp, 0x012000U, 4096); // use upper memory for charset
+    lcopy((long)charTemp, 0xff7e800U, 4096); // directly overwrite charset
     free(charTemp);
 }
 
@@ -113,7 +91,6 @@ void initVIC() {
 }
 
 void initEngine(void) {
-    testMachine();
     initVIC();
     cg_init();
     puts(prompt);
@@ -123,10 +100,12 @@ void initEngine(void) {
     initSprites();
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
+    
     /*
     gPartyExperience= 1000;
     gPartyGold= 1000;
     */
+    
     gCurrentGameMode= gm_init;
 }
 
@@ -155,10 +134,8 @@ void debugDungeon(void) {
 
 int main() {
     static char choice;
-
     initEngine();
     cg_clear();
-    enableDRCharset();
     gotoxy(0, 2);
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");

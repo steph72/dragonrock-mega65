@@ -37,6 +37,8 @@ void cg_init() {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     textcolor(COLOR_GREEN);
+    cbm_k_bsout(13);
+    clrscr();
     gPal= 0;
     gPalDir= 1;
     cbm_k_bsout(11); // disable shift+cmd on c128 & 364
