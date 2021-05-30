@@ -69,7 +69,7 @@
             "program": "${file}",
             "console": "externalTerminal",
             "args": [
-                "mapsrc/testmap.drs"
+                "mapsrc/testmap.drm"
             ]
         }
     ]
