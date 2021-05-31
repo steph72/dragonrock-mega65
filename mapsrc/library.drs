@@ -559,7 +559,7 @@ $ msgLockedDoor, "The door is locked."
 ; file messages
 ; -------------------------------------
 
-& "mapdata/fmsg01","""
+& "gamedata/fmsg01","""
 
         --------------------------
         OBEZNA, DRAGON OF MISTRUST
