@@ -14,6 +14,8 @@ cat cbm/wrapper.prg bin/drmain.c64 > bin/main
 c1541 <<EOF
 attach disc/drock.d81
 delete loader
+delete tbnk*
+delete tbnk*
 delete autoboot.c65
 delete main
 delete city
@@ -25,6 +27,9 @@ delete out*
 delete spr*
 delete fmsg*
 write cbm/autoboot.c65
+write cbm/loader
+write cbm/tbnk4
+write cbm/tbnk5
 write bin/main main
 write bin/drmain.c64.1 dungeon
 write bin/drmain.c64.2 city
@@ -32,22 +37,20 @@ write bin/drmain.c64.3 encounter
 write bin/drcharset charset
 EOF
 
-c1541 disc/drock.d81 -delete fmsg
+#for filename in graphics/*.pbm; do
+#  c1541 disc/drock.d81 -delete $(basename $filename)
+#  c1541 disc/drock.d81 -write $filename
+#done
 
-for filename in graphics/*.pbm; do
-  c1541 disc/drock.d81 -delete $(basename $filename)
+for filename in gamedata/*; do 
   c1541 disc/drock.d81 -write $filename
 done
 
-for filename in mapdata/fmsg*; do 
-  c1541 disc/drock.d81 -write $filename
-done
+#for filename in gamedata/map*; do
+#  c1541 disc/drock.d81 -write $filename
+#done
 
-for filename in mapdata/map*; do
-  c1541 disc/drock.d81 -write $filename
-done
-
-for filename in mapdata/out*; do
-  c1541 disc/drock.d81 -write $filename
-done
+#for filename in gamedata/out*; do
+#  c1541 disc/drock.d81 -write $filename
+#done
   

@@ -58,7 +58,7 @@ monsterDef gMonsters[]= {
     {
         0xff, 102, 0xff, mt_magical | mt_unique,                           // ID, default level, spriteID
         "Gerulda, the Great Ego Dragon", NULL,     // name, pluralname
-        0, 12, 12, 20, 4,                              // armorClass, hit dice, hit points, numAttacks
+        0, 12, 12, 20, 4,                          // armorClass, hit dice, hit points, numAttacks
         10, 5,                                     // courageMod, hitMod
         at_claws | at_breath | at_ice | at_spell,  // attack types
         10000                                      // xp value
