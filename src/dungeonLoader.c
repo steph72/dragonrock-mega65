@@ -14,7 +14,7 @@
 
 // #undef DLDEBUG
 
-const himemPtr externalDungeonAddr= 0x050000;
+const himemPtr externalDungeonAddr= 0x8000000;
 byte *seenMap;
 
 // clang-format off

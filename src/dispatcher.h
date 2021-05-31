@@ -13,6 +13,8 @@
 #include "globals.h"
 
 
+void loadModules(void);
+
 
 /**
  * mainDispatchLoop:

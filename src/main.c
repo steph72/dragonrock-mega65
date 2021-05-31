@@ -81,32 +81,40 @@ void loadCharset(void) {
     free(charTemp);
 }
 
-
 void initVIC() {
     byte *vic3_control= (byte *)0xd031;
-    byte *hotreg = (byte*)0xd05d;
+    byte *hotreg= (byte *)0xd05d;
     *vic3_control&= (255 ^ 128); // disable 80chars
     *vic3_control&= (255 ^ 8);   // disable interlace
-    *hotreg &= 127; // disable hotreg
+    *hotreg&= 127;               // disable hotreg
 }
 
 void initEngine(void) {
+
     initVIC();
     cg_init();
-    puts(prompt);
     srand(42);
+
+    puts(prompt);
+    puts("initializing engine.\n");
+    loadModules();
+    puts("init monster rows\n");
     initMonsterRows();
+    puts("loading charset\n");
     loadCharset();
+    puts("init sprites\n");
     initSprites();
+    puts("init party\n");
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
-    
+
     /*
     gPartyExperience= 1000;
     gPartyGold= 1000;
     */
-    
+
     gCurrentGameMode= gm_init;
+    sleep(1);
 }
 
 void debugEncounter(void) {

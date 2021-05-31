@@ -9,11 +9,16 @@
 #include "dungeon.h"
 #include "encounter.h"
 #include "guild.h"
+#include "memory.h"
 #include <c64.h>
 
 extern unsigned int _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern unsigned int _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 extern unsigned int _OVERLAY3_LOAD__[], _OVERLAY3_SIZE__[];
+
+#define ATTIC_DUNGEON   0x8010000
+#define ATTIC_CITY      0x8014000
+#define ATTIC_ENCOUNTER 0x8018000
 
 gameModeT gCurrentGameMode;
 gameModeT gNextGameMode;
@@ -33,6 +38,20 @@ void prepareForGameMode(gameModeT newGameMode) { gNextGameMode= newGameMode; }
 
 void popLastGameMode(void) { gNextGameMode= lastGameMode; }
 
+void loadModule(char *name){
+    printf("lmod %s\n",name);
+    loadfile(name,(void*)0x9000,(void*)0x4000);
+}
+
+void loadModules(void) {
+    loadModule("dungeon");
+    lcopy(0x9000,ATTIC_DUNGEON,0x4000);
+    loadModule("city");
+    lcopy(0x9000,ATTIC_CITY,0x4000);
+    loadModule("encounter");
+    lcopy(0x9000,ATTIC_ENCOUNTER,0x4000);
+}
+
 void commitNewGameMode(void) {
 
     if (gNextGameMode == gCurrentGameMode) {
@@ -50,18 +69,18 @@ void commitNewGameMode(void) {
     case gm_outdoor:
         if (lastGameMode != gm_dungeon && lastGameMode != gm_outdoor) {
             bordercolor(COLOR_BLUE);
-            loadfile("dungeon", _OVERLAY1_LOAD__, _OVERLAY1_SIZE__);
+            lcopy(ATTIC_DUNGEON,(long)_OVERLAY1_LOAD__,(unsigned int)_OVERLAY1_SIZE__);
         }
         break;
 
     case gm_city:
         bordercolor(COLOR_GREEN);
-        loadfile("city", _OVERLAY2_LOAD__, _OVERLAY2_SIZE__);
+        lcopy(ATTIC_CITY,(long)_OVERLAY2_LOAD__,(unsigned int)_OVERLAY2_SIZE__);
         break;
 
     case gm_encounter:
         bordercolor(COLOR_RED);
-        loadfile("encounter", _OVERLAY3_LOAD__, _OVERLAY3_SIZE__);
+        lcopy(ATTIC_ENCOUNTER,(long)_OVERLAY3_LOAD__,(unsigned int)_OVERLAY3_SIZE__);
         break;
 
     case gm_init:
@@ -122,6 +141,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     /* Avoid compiler warnings about unused parameters. */
     (void)addr;
     (void)size;
+    /*
 #ifdef DEBUG
     x= wherex();
     y= wherey();
@@ -130,6 +150,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     printf("$%x rem", 0x2000 - (int)size);
     gotoxy(x, y);
 #endif
+*/
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");
         exit(0);

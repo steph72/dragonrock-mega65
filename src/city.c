@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "armory.h"
 #include "character.h"
@@ -76,6 +77,7 @@ void enterCityMode(void) {
     cg_clear();
     gotoxy(4, 12);
     printf("Welcome to %s", gCities[gCurrentCityIndex]);
+    sleep(1);
     initGuild();
     initArmory();
     if (gPartyExperience || gPartyGold) {
