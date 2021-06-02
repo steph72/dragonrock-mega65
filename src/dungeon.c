@@ -173,7 +173,7 @@ int performDisplayTextOpcode(opcode *anOpcode) {
     }
     // cprintf("%s",feelForIndex(anOpcode->param1));
     fetchFeelForIndex(anOpcode->param1, textbuf);
-    cputs(textbuf);
+    puts(textbuf);
 
     return 0;
 }
@@ -512,7 +512,7 @@ int performOpcode(opcode *anOpcode, int currentPC) {
     xs= wherex();
     ys= wherey();
     gotoxy(0, 24);
-    printf("%02x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
+    printf("%04x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
            anOpcode->param1, anOpcode->param2, anOpcode->param3,
            anOpcode->param4, anOpcode->param5, anOpcode->param6,
            anOpcode->param7); // DEBUG

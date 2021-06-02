@@ -76,7 +76,6 @@ class mapCompiler:
             unixbytes.extend(map(ord, i.swapcase()))
             for p in unixbytes:  # lf -> cr
                 if (p == 10):
-                    commobytes.append(10)
                     commobytes.append(13)
                 else:
                     commobytes.append(p)

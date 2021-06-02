@@ -40,10 +40,10 @@
 #include "monster.h"
 #include "spell.h"
 
-#include "dispatcher.h"
-#include "sprites.h"
-
 #include "c65.h"
+#include "dispatcher.h"
+#include "memory.h"
+#include "sprites.h"
 
 #ifndef DRE_VERSION
 #define DRE_VERSION "0.1a"
@@ -68,7 +68,7 @@ void doGuild(void);
 void loadSaved(void);
 
 const char *prompt=
-    "DREnigne/M65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+    "drenigne/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void loadCharset(void) {
     byte *charTemp;
@@ -84,17 +84,19 @@ void loadCharset(void) {
 void initVIC() {
     byte *vic3_control= (byte *)0xd031;
     byte *hotreg= (byte *)0xd05d;
+
+    POKE(0xd02fL, 0x47);
+    POKE(0xd02fL, 0x53);
     *vic3_control&= (255 ^ 128); // disable 80chars
     *vic3_control&= (255 ^ 8);   // disable interlace
     *hotreg&= 127;               // disable hotreg
+    POKE(53297L, 96);
 }
 
 void initEngine(void) {
 
-    initVIC();
-    cg_init();
+    unsigned char i;
     srand(42);
-
     puts(prompt);
     puts("initializing engine.\n");
     loadModules();
@@ -107,14 +109,14 @@ void initEngine(void) {
     puts("init party\n");
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
+    gCurrentGameMode= gm_init;
+    initVIC();
+    cg_init();
 
     /*
     gPartyExperience= 1000;
     gPartyGold= 1000;
     */
-
-    gCurrentGameMode= gm_init;
-    sleep(1);
 }
 
 void debugEncounter(void) {
@@ -127,14 +129,13 @@ void debugEncounter(void) {
 }
 
 void debugDungeon(void) {
-    /*
+    
     gCurrentDungeonIndex= 0;
     gStartXPos=15;
     gStartYPos=1;
-    */
-    gCurrentDungeonIndex= 1;
-    gStartXPos= 10;
-    gStartYPos= 18;
+    //gCurrentDungeonIndex= 1;
+    //gStartXPos= 10;
+    //gStartYPos= 18;
     gCurrentGameMode= gm_init;
     prepareForGameMode(gm_dungeon);
     mainDispatchLoop();

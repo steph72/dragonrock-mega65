@@ -31,9 +31,35 @@ static signed char gPalDir;
 
 static clock_t lastPaletteTick;
 
+unsigned char drColours[16][3]= {
+    {0x00, 0x00, 0x00}, // black
+    {0xff, 0xff, 0xff}, // white
+    {0x68, 0x37, 0x2b}, // red
+    {0x70, 0xa4, 0xb2}, // cyan
+    {0x6f, 0x3d, 0x86}, // purple
+    {0x68, 0x9d, 0x43}, // green
+    {0x35, 0x28, 0x79}, // 6
+    {0xb8, 0xc7, 0x6f}, // 7
+    {0x6f, 0x4f, 0x25}, // 8
+    {0x43, 0x39, 0x00}, // 9
+    {0x9a, 0x67, 0x59}, // 10
+    {0x44, 0x44, 0x44}, // 11
+    {0x6c, 0x6c, 0x6c}, // 12
+    {0x9a, 0xd2, 0x84}, // 13
+    {0x6c, 0x5e, 0xb5}, // 14
+    {0x95, 0x95, 0x95}  // 15
+};
+
+char cg_getkey(void);
+void cg_setPalette(byte num, byte red, byte green, byte blue);
+
 void cg_init() {
+    byte i;
     mega65_io_enable();
     POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
+    for (i=0;i<15;++i) {
+        cg_setPalette(i,drColours[i][0],drColours[i][1],drColours[i][2]);
+    }
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     textcolor(COLOR_GREEN);
@@ -121,10 +147,15 @@ byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
     return currentNum;
 }
 
+unsigned char nyblswap(unsigned char in) // oh why?!
+{
+  return ((in & 0xf) << 4) + ((in & 0xf0) >> 4);
+}
+
 void cg_setPalette(byte num, byte red, byte green, byte blue) {
-    POKE(0xd100U + num, red);
-    POKE(0xd200U + num, green);
-    POKE(0xd300U + num, blue);
+    POKE(0xd100U + num, nyblswap(red));
+    POKE(0xd200U + num, nyblswap(green));
+    POKE(0xd300U + num, nyblswap(blue));
 }
 
 void cg_stepColor(void) {
