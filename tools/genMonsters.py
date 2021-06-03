@@ -3,6 +3,7 @@
 import sys
 import pickle
 import csv
+import yaml
 
 types = ["it_armor",
          "it_shield",
@@ -22,24 +23,12 @@ def checkFormat(aRow):
     return True, ""
 
 
-def read(aFile):
-    itemRows = []
-    processedRow = 0
-    with open(aFile, newline='') as csvfile:
-        confreader = csv.reader(csvfile, delimiter=',', quotechar='\"')
-        for row in confreader:
-            processedRow += 1
-            if len(row) > 0:
-                if row[0][0] != "#":
-                    checkResult, msg = checkFormat(row)
-                    if checkResult == False:
-                        print("Error:\n"+msg+" at line "+str(processedRow))
-                        exit(1)
-                    itemRows.append(row)
-                    # print(', '.join(row))
-                else:
-                    pass
-    return itemRows
+def read(aFilename):
+    with open(aFilename, 'r') as stream:
+        try:
+            print(yaml.safe_load(stream))
+        except yaml.YAMLError as exc:
+            print(exc)
 
 
 def buildDescriptions(src):
@@ -130,9 +119,4 @@ if len(sys.argv) < 3:
 srcFilename = sys.argv[1]
 destFilename = sys.argv[2]
 
-itemRows = read(srcFilename)
-itemData = rowsToData(itemRows)
-
-outfile = open(destFilename, "wb")
-outfile.write(itemData)
-outfile.close()
+monsterData = read(srcFilename)

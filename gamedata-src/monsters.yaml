@@ -1,0 +1,27 @@
+---
+
+  monsters:
+  
+      - id: 0x00
+        defaultLevel: 1
+        spriteID: 0x10
+        name: "Noob"
+        AC: 10
+        hitDice: 6
+        hitPoints: 6
+        magPoints: 0
+        numAttacks: 0
+        attackTypes: [at_fists, at_weapon]
+        xpValue: 1
+      
+      - id: 0x01
+        defaultLevel: 1
+        spriteID: 0x11
+        name: "Kobold"
+        AC: 9
+        hitDice: 6
+        hitPoints: 6
+        magPoints: 0
+        numAttacks: 0
+        attackTypes: [at_fists, at_weapon]
+        xpValue: 10
