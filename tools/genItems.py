@@ -62,8 +62,8 @@ def rowsToData(srcRows):
     for i in srcRows:
         res,err = checkFormat(i)
         if (res==False):
-            print (err)
-            exit(0)
+            print (err+" in",i)
+            exit(1)
         anItem = {}
         itemID = i[0]
         if itemID in items:
@@ -116,6 +116,7 @@ def rowsToData(srcRows):
 
     return outbytes
 
+print("DragonRock item builder v0.1, (w) Stephan Kleinert, 2021/06")
 
 if len(sys.argv) < 3:
     print("usage: "+sys.argv[0]+" infile outfile")

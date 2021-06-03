@@ -14,21 +14,14 @@ types = ["it_armor",
          "it_special"]
 
 
-def checkFormat(aRow):
-    if len(aRow) != 7:
-        return False, "7 columns expected but got "+str(len(aRow))
-    type = aRow[2].strip()
-    if not type in types:
-        return False, "Unknown type '"+type+"'"
-    return True, ""
-
-
 def read(aFilename):
     with open(aFilename, 'r') as stream:
         try:
-            print(yaml.safe_load(stream))
+            monsterData =  yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
+            exit(127)
+    return monsterData
 
 
 def buildDescriptions(src):
@@ -110,6 +103,8 @@ def rowsToData(srcRows):
     # print(outbytes)
 
     return outbytes
+
+print("DragonRock monster builder v0.1, (w) Stephan Kleinert, 2021/06")
 
 
 if len(sys.argv) < 3:
