@@ -1,6 +1,11 @@
 #include "config.h"
 #include "types.h"
 
+#define SCREEN ((unsigned char *)0x400)
+#define ITEM_BASE 0x8020000
+#define BUFSIZE 0xb0
+#define TEXTBUF_SIZE 0x400
+
 /*  ----
     main
     ---- */

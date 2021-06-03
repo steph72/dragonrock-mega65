@@ -10,7 +10,6 @@
 #include "memory.h"
 #include "spell.h"
 
-#define ITEM_BASE 0x8010000
 #define ITEM_HEADER_SIZE 0x08
 
 character *party[PARTYSIZE];

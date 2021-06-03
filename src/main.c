@@ -109,7 +109,7 @@ void initEngine(void) {
     puts("init sprites\n");
     initSprites();
     puts("load items\n");
-    loadExt("items", 0x8010000);
+    loadExt("items", ITEM_BASE);
     puts("init party\n");
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
