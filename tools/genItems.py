@@ -45,7 +45,9 @@ def read(aFile):
 def buildDescriptions(src):
     offsets = []
     destbytes = bytearray()
-    currentOffset = 0
+    startMarker = "STRINGS*"
+    destbytes.extend(map(ord, startMarker))
+    currentOffset = len(startMarker)
     for i in src:
         offsets.append(currentOffset)
         commobytes = bytearray()
@@ -76,7 +78,8 @@ def rowsToData(srcRows):
         desc = i[1].strip().strip("\"")
         if not desc in descriptions:
             descriptions.append(desc)
-        anItem["description"] = descriptions.index(desc)
+        anItem["id"] = itemID
+        anItem["descriptionIndex"] = descriptions.index(desc)
         anItem["type"] = types.index(i[2].strip())
         anItem["val1"] = int(i[3])
         anItem["val2"] = int(i[4])
@@ -85,10 +88,39 @@ def rowsToData(srcRows):
         items[itemID] = anItem
 
     descbytes, offsets = buildDescriptions(descriptions)
-    print(offsets)
-    print(descbytes)
 
-    return 0
+    # replace desc index with offset
+    # assuming one item definition = 10 bytes
+
+    itemMarker = "DRITEMS0"
+
+    stringsBase = len(itemMarker)+(len(items)*10)
+    print("Strings base is", hex(stringsBase))
+
+    outbytes = bytearray()
+    outbytes.extend(map(ord, itemMarker))
+
+    for i in items:
+        theItem = items[i]
+        theItem["descOffset"] = stringsBase + \
+            offsets[theItem["descriptionIndex"]]
+        outbytes.append(theItem["id"] % 256)            # 0
+        outbytes.append(theItem["id"]//256)
+        outbytes.append(theItem["descOffset"] % 256)    # 2
+        outbytes.append(theItem["descOffset"]//256)
+        outbytes.append(theItem["type"])                # 4
+        outbytes.append(theItem["val1"])                # 5
+        outbytes.append(theItem["val2"])                # 6
+        outbytes.append(theItem["val3"])                # 7
+        outbytes.append(theItem["xp"] % 256)            # 8
+        outbytes.append(theItem["xp"]//256)
+    outbytes.extend(descbytes)
+
+    # print(offsets)
+    # print(descbytes)
+    # print(outbytes)
+
+    return outbytes
 
 
 if len(sys.argv) < 3:
@@ -100,3 +132,7 @@ destFilename = sys.argv[2]
 
 itemRows = read(srcFilename)
 itemData = rowsToData(itemRows)
+
+outfile = open(destFilename, "wb")
+outfile.write(itemData)
+outfile.close()

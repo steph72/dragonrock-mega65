@@ -34,6 +34,8 @@ typedef unsigned char byte;
 
 typedef byte attrT;
 typedef byte itemT;
+typedef unsigned long himemPtr;
+
 
 typedef enum attribute { aSTR, aINT, aWIS, aDEX, aCON, aCHR } attrKind;
 
@@ -143,8 +145,8 @@ typedef struct _spell {
 // -------------- equipment ----------------
 
 typedef struct _item { // inventory item
-    byte id;
-    char *name;
+    unsigned int id;
+    unsigned int namePtr;
     itemType type;
     byte val1; // armor, weapon: minStrength needed; scroll: scrollID
     byte val2; // armor: ac value; weapon: hit dice
@@ -227,7 +229,6 @@ typedef struct _character {
     byte encDestination;
 } character;
 
-typedef unsigned long himemPtr;
 
 typedef struct {
     byte x1, y1, x2, y2;

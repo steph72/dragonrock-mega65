@@ -45,6 +45,8 @@
 #include "memory.h"
 #include "sprites.h"
 
+#include "utils.h"
+
 #ifndef DRE_VERSION
 #define DRE_VERSION "0.1a"
 #endif
@@ -102,14 +104,17 @@ void initEngine(void) {
     loadModules();
     puts("init monster rows\n");
     initMonsterRows();
-    puts("loading charset\n");
+    puts("load charset\n");
     loadCharset();
     puts("init sprites\n");
     initSprites();
+    puts("load items\n");
+    loadExt("items", 0x8010000);
     puts("init party\n");
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     gCurrentGameMode= gm_init;
+    cg_getkey();
     initVIC();
     cg_init();
 
@@ -129,13 +134,13 @@ void debugEncounter(void) {
 }
 
 void debugDungeon(void) {
-    
+
     gCurrentDungeonIndex= 0;
-    gStartXPos=15;
-    gStartYPos=1;
-    //gCurrentDungeonIndex= 1;
-    //gStartXPos= 10;
-    //gStartYPos= 18;
+    gStartXPos= 15;
+    gStartYPos= 1;
+    // gCurrentDungeonIndex= 1;
+    // gStartXPos= 10;
+    // gStartYPos= 18;
     gCurrentGameMode= gm_init;
     prepareForGameMode(gm_dungeon);
     mainDispatchLoop();

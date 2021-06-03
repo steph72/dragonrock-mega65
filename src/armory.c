@@ -103,7 +103,7 @@ void dispInvFromIndex(byte idx) {
         gotoxy(3, 3 + i);
         if (shopInventory[itemIdx]) {
             anItem= inventoryItemForID(shopInventory[itemIdx]);
-            printf("%c %-10s %5u", 'A' + i, anItem->name, anItem->price);
+            printf("%c %-10s %5u", 'A' + i, nameOfInventoryItem(anItem), anItem->price);
         }
     }
 }
@@ -146,7 +146,7 @@ void sellItem(character *shopper) {
         anItem= inventoryItemForID(shopper->inventory[slot]);
         price= anItem->price;
         gotoxy(0, 20);
-        printf("\nSell %s for %u coins (y/n)?", anItem->name, price);
+        printf("\nSell %s for %u coins (y/n)?", nameOfInventoryItem(anItem), price);
         cursor(1);
         do {
             val= cg_getkey();

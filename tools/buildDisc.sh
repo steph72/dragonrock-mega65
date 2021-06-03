@@ -15,7 +15,6 @@ c1541 <<EOF
 attach disc/drock.d81
 delete loader
 delete tbnk*
-delete tbnk*
 delete autoboot.c65
 delete main
 delete city
@@ -26,6 +25,7 @@ delete map*
 delete out*
 delete spr*
 delete fmsg*
+delete items
 write cbm/autoboot.c65
 write cbm/loader
 write cbm/tbnk4

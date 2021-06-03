@@ -24,7 +24,6 @@ extern char *gStateDesc[];
 
 extern cityCoordsT gCityCoords[NUM_CITIES];
 
-extern item gItems[];
 extern spell gSpells[];
 extern monsterDef gMonsters[];
 

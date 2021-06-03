@@ -1,32 +1,44 @@
-#include <conio.h>
 #include <c64.h>
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "character.h"
 #include "congui.h"
-#include "spell.h"
 #include "globals.h"
+#include "memory.h"
+#include "spell.h"
+
+#define ITEM_BASE 0x8010000
+#define ITEM_HEADER_SIZE 0x08
 
 character *party[PARTYSIZE];
 
 long int gPartyGold;
 long int gPartyExperience;
 
+item tempItem;
+char tempItemDesc[32];
+
 item *inventoryItemForID(itemT anItemID) {
     register byte i;
-    item *anItem;
+    himemPtr ext;
     for (i= 0; i < 255; i++) {
-        anItem= &gItems[i];
-        if (anItem->id == anItemID) {
-            return anItem;
-        }
-        if (anItem->id == 255) {
-            break;
+        ext= ITEM_BASE + ITEM_HEADER_SIZE + (sizeof(item) * i);
+        lcopy(ext, (long)&tempItem, sizeof(item));
+        if (tempItem.id == anItemID) {
+            return &tempItem;
         }
     }
     return NULL;
+}
+
+char *rawNameOfInventoryItem(item *anItem) {
+    himemPtr ext;
+    ext= ITEM_BASE + anItem->namePtr;
+    lcopy(ext, tempItemDesc, 32);
+    return tempItemDesc;
 }
 
 char *nameOfInventoryItemWithID(itemT anItemID) {
@@ -34,15 +46,18 @@ char *nameOfInventoryItemWithID(itemT anItemID) {
 }
 
 char *nameOfInventoryItem(item *anItem) {
+    char *rawName;
+    rawName= rawNameOfInventoryItem(anItem);
+
     if (anItem->type == it_scroll) {
-        sprintf(drbuf, "%s %d", anItem->name, anItem->val1);
+        sprintf(drbuf, "%s %d", rawName, anItem->val1);
         return drbuf;
     }
     if (anItem->val3 > 0) {
-        sprintf(drbuf, "%s +%d", anItem->name, anItem->val3);
+        sprintf(drbuf, "%s +%d", rawName, anItem->val3);
         return drbuf;
     }
-    return anItem->name;
+    return rawName;
 }
 
 byte hasInventoryItem(character *aCharacter, itemT anItemID) {
@@ -154,13 +169,12 @@ void showCurrentParty(byte small) {
         x= 19;
     } else {
         x= 0;
-        cputsxy(17,2,"MP");
-        cputsxy(25,2,"HP");
-        cputsxy(2,2,"Name");
-        cputsxy(0,2,"#");
-        cputsxy(33,2,"Status");
+        cputsxy(17, 2, "MP");
+        cputsxy(25, 2, "HP");
+        cputsxy(2, 2, "Name");
+        cputsxy(0, 2, "#");
+        cputsxy(33, 2, "Status");
     }
-
 
     for (i= 0; i < PARTYSIZE; i++) {
         if (party[i]) {
@@ -175,10 +189,10 @@ void showCurrentParty(byte small) {
                 printf("%d %s", i + 1, c->name);
             }
             if (!small) {
-                gotoxy(17,y);
-                cprintf("%d/%d",c->aMP,c->aMaxMP);
-                gotoxy(25,y);
-                cprintf("%d/%d",c->aHP,c->aMaxHP);
+                gotoxy(17, y);
+                cprintf("%d/%d", c->aMP, c->aMaxMP);
+                gotoxy(25, y);
+                cprintf("%d/%d", c->aHP, c->aMaxHP);
             }
             cputsxy(33, y, gStateDesc[c->status]);
         }
@@ -488,7 +502,7 @@ void inspectCharacter(byte idx) {
         printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
         gotoxy(0, 14);
         puts("Inventory:");
-        displayInventoryAtRow(ic,16,'D');
+        displayInventoryAtRow(ic, 16, 'D');
         gotoxy(0, 23);
         cputs("u)se/ready r)emove g)ive ex)it\r\n>");
         cursor(1);
