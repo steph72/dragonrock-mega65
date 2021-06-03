@@ -4,23 +4,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void loadExt(char *filename, himemPtr addr) {
+unsigned int loadExt(char *filename, himemPtr addr) {
 
     FILE *inFile;
     unsigned int readBytes;
+    unsigned int overallRead;
     unsigned long insertPos;
 
     insertPos = addr;
-
+    overallRead = 0;
     inFile= fopen(filename, "r");
 
     do {
         readBytes = fread(textbuf,1,TEXTBUF_SIZE,inFile);
         if (readBytes) {
+            overallRead += readBytes;
             lcopy((long)textbuf,insertPos,readBytes);
             insertPos+=readBytes;
         }
     } while (readBytes);
+
+    return overallRead;
 
 }
 

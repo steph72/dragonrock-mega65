@@ -70,7 +70,14 @@ void doGuild(void);
 void loadSaved(void);
 
 const char *prompt=
-    "drenigne/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
+    "DREngine/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n";
+/*"Written by Stephan Kleinert, 2018-2022\n"
+"at  K-Burg, Bad Honnef,\n"
+"    Hundehaus im Reinhwardswald,\n"
+"and K-Cottage, Kasbach-Ohlenberg\n\n"
+"with very special thanks to Katja K.,\n"
+"Buba K., Candor K., and - of course -\n"
+"the 7 turtles\n"*/
 
 void loadCharset(void) {
     byte *charTemp;
@@ -95,28 +102,37 @@ void initVIC() {
     POKE(53297L, 96);
 }
 
+void loadResources(void) {
+    unsigned int readBytes;
+    printf("load items; ");
+    readBytes= loadExt("items", ITEM_BASE);
+    printf("$%x bytes read\n", readBytes);
+}
+
 void initEngine(void) {
     unsigned char i;
+    unsigned int readBytes;
+
     srand(42);
-    puts("\n");       // cancel leftover quote mode
-    cbm_k_bsout(14);    // lowercase
+    puts("\n");      // cancel leftover quote mode
+    cbm_k_bsout(14); // lowercase
     clrscr();
     puts(prompt);
-    puts("initializing engine.\n");
     loadModules();
-    puts("init monster rows\n");
+    puts("init monster rows");
     initMonsterRows();
-    puts("load charset\n");
+    puts("load charset");
     loadCharset();
-    puts("init sprites\n");
+    puts("init sprites");
     initSprites();
-    puts("load items\n");
-    loadExt("items", ITEM_BASE);
-    puts("init party\n");
+    loadResources();
+    puts("init party");
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     gCurrentGameMode= gm_init;
+    puts("\ninitialization complete");
     cg_getkey();
+    
     initVIC();
     cg_init();
 
