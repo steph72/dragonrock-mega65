@@ -3,6 +3,7 @@
 import sys
 import pickle
 import csv
+import yaml
 
 types = ["it_armor",
          "it_shield",
@@ -16,29 +17,18 @@ types = ["it_armor",
 def checkFormat(aRow):
     if len(aRow) != 7:
         return False, "7 columns expected but got "+str(len(aRow))
-    type = aRow[2].strip()
+    type = aRow[2]
     if not type in types:
         return False, "Unknown type '"+type+"'"
     return True, ""
 
 
-def read(aFile):
-    itemRows = []
-    processedRow = 0
-    with open(aFile, newline='') as csvfile:
-        confreader = csv.reader(csvfile, delimiter=',', quotechar='\"')
-        for row in confreader:
-            processedRow += 1
-            if len(row) > 0:
-                if row[0][0] != "#":
-                    checkResult, msg = checkFormat(row)
-                    if checkResult == False:
-                        print("Error:\n"+msg+" at line "+str(processedRow))
-                        exit(1)
-                    itemRows.append(row)
-                    # print(', '.join(row))
-                else:
-                    pass
+def read(aFilename):
+    with open(aFilename, 'r') as stream:
+        try:
+            itemRows = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
     return itemRows
 
 
@@ -70,17 +60,21 @@ def rowsToData(srcRows):
     descriptions = []
     items = {}
     for i in srcRows:
+        res,err = checkFormat(i)
+        if (res==False):
+            print (err)
+            exit(0)
         anItem = {}
-        itemID = int(i[0], 0)
+        itemID = i[0]
         if itemID in items:
             print("Error: Duplicate item ID "+i[0])
             exit(1)
-        desc = i[1].strip().strip("\"")
+        desc = i[1]
         if not desc in descriptions:
             descriptions.append(desc)
         anItem["id"] = itemID
         anItem["descriptionIndex"] = descriptions.index(desc)
-        anItem["type"] = types.index(i[2].strip())
+        anItem["type"] = types.index(i[2])
         anItem["val1"] = int(i[3])
         anItem["val2"] = int(i[4])
         anItem["val3"] = int(i[5])

@@ -96,9 +96,11 @@ void initVIC() {
 }
 
 void initEngine(void) {
-
     unsigned char i;
     srand(42);
+    puts("\n");       // cancel leftover quote mode
+    cbm_k_bsout(14);    // lowercase
+    clrscr();
     puts(prompt);
     puts("initializing engine.\n");
     loadModules();
