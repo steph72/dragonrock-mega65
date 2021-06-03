@@ -2,7 +2,7 @@
 ; deserted library
 ;
 
-includemap "mapsrc/library.drm"
+includemap "maps/library.drm"
 
 ; =========================
 ; entrance & first corridor

@@ -1,5 +1,5 @@
 
-includemap "mapsrc/outdoor33.drm"
+includemap "maps/outdoor33.drm"
 
 $ msgWaitkey," -- key -- "
 

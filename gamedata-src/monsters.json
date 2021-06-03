@@ -1,0 +1,11 @@
+{
+    "monsters": [
+        {
+            "id": 0,
+            "name": "Noob",
+            "defaultLevel": 1,
+            "spriteID": 0,
+            "monsterType": "mt_humanoid"
+        }
+    ]
+}
