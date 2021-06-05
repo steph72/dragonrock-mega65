@@ -4,9 +4,15 @@
 #include "spell.h"
 #include "types.h"
 #include "utils.h"
+#include "memory.h"
 
 #include <c64.h>
 #include <unistd.h>
+
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
+
 
 static char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
                                      "Parry", "Cast",   "Shoot"};
@@ -14,19 +20,17 @@ static char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
 static char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                                      "parries", "casts",   "shoots"};
 
-// clang-format off
-#pragma code-name(push, "OVERLAY3");
-// clang-format on
 
 void setupCombatScreen(void);
 byte runPreCombat(void);
+
 
 // get monster name for given row
 char *getMonsterNameForRow(byte row) {
     monster *res;
     res= gMonsterRows[row][0];
     if (res) {
-        return res->def->name;
+        return nameForMonsterID(res->monsterDefID);
     }
     return "---";
 }

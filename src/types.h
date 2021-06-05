@@ -167,25 +167,25 @@ typedef struct _opcode {
 } opcode;
 
 typedef struct _monsterDef {
-    byte id;
-    byte level;
-    byte spriteID;
-    monsterType type;
-    char *name;
-    char *pluralname; // nil if 's' suffix suffices :)
-    signed char armorClass;
-    byte hitDice;
-    byte hpPerLevel;
-    byte mpPerLevel;
-    byte numAttacks;
-    byte courageModifier;
-    signed char hitModifier;
-    attackType aType;
-    int xpBaseValue;
+    unsigned int id;                    // 0-1
+    byte level;                         // 2
+    byte spriteID;                      // 3
+    monsterType type;                   // 4  
+    unsigned int namePtr;               // 5-6
+    unsigned int pluralnamePtr;         // 7-8
+    signed char armorClass;             // 9
+    byte hitDice;                       // 10  
+    byte hpPerLevel;                    // 11
+    byte mpPerLevel;                    // 12
+    byte numAttacks;                    // 13
+    signed char courageModifier;        // 14
+    signed char hitModifier;            // 15
+    attackType aType;                   // 16
+    int xpBaseValue;                    // 17-18
 } monsterDef;
 
 typedef struct monster {
-    monsterDef *def;
+    unsigned int monsterDefID;
     characterStateT status;
     byte hasDoneTurn;
     byte level;

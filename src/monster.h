@@ -11,9 +11,13 @@
 #define MONSTER_SLOTS 6
 #define MROSTER_SIZE 16
 
+monsterDef *monsterDefForID(unsigned int id);
+char *nameForMonsterDef(monsterDef *aDef);
+char *nameForMonsterID(unsigned int id);
+
 void clearMonsters(void);
 void addNewMonster(byte monsterID, byte level, byte num, byte row);
-monster* createMonster(byte monsterID, byte level);
+monster* createMonster(unsigned int monsterID, byte level);
 
 void initMonsterRows();
 

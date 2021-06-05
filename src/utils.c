@@ -24,6 +24,8 @@ unsigned int loadExt(char *filename, himemPtr addr) {
         }
     } while (readBytes);
 
+    fclose(inFile);
+
     return overallRead;
 
 }

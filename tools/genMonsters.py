@@ -5,19 +5,28 @@ import pickle
 import csv
 import yaml
 
-types = ["it_armor",
-         "it_shield",
-         "it_weapon",
-         "it_missile",
-         "it_potion",
-         "it_scroll",
-         "it_special"]
+monsterType = {
+    "mt_humanoid": 1,
+    "mt_animal": 2,
+    "mt_magical": 4,
+    "mt_unique": 128
+}
 
+attackTypes = {
+    "at_fists": 1,
+    "at_weapon": 2,
+    "at_fire": 4,
+    "at_ice": 8,
+    "at_claws": 16,
+    "at_drain": 32,
+    "at_breath": 64,
+    "at_reserved": 128
+}
 
 def read(aFilename):
     with open(aFilename, 'r') as stream:
         try:
-            monsterData =  yaml.safe_load(stream)
+            monsterData = yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
             exit(127)
@@ -48,54 +57,96 @@ def buildDescriptions(src):
     return destbytes, offsets
 
 
-def rowsToData(srcRows):
-    descriptions = []
-    items = {}
-    for i in srcRows:
-        anItem = {}
-        itemID = int(i[0], 0)
-        if itemID in items:
-            print("Error: Duplicate item ID "+i[0])
-            exit(1)
-        desc = i[1].strip().strip("\"")
-        if not desc in descriptions:
-            descriptions.append(desc)
-        anItem["id"] = itemID
-        anItem["descriptionIndex"] = descriptions.index(desc)
-        anItem["type"] = types.index(i[2].strip())
-        anItem["val1"] = int(i[3])
-        anItem["val2"] = int(i[4])
-        anItem["val3"] = int(i[5])
-        anItem["xp"] = int(i[6])
-        items[itemID] = anItem
+def reduce(aMonster):
+    global ids
+    global names
+    i = aMonster
+    monsterID = i["id"]
+    if monsterID in ids:
+        print("Error: Duplicate item ID in", i)
+        exit(1)
 
-    descbytes, offsets = buildDescriptions(descriptions)
+    names.append(i["name"])
+    i["name"] = len(names)-1
+
+    if "pluralName" in i:
+        names.append(i["pluralName"])
+        i["pluralName"] = len(names)-1
+
+    atype = 0
+    for at in i["attackTypes"]:
+        atype += attackTypes[at]
+    i["attackTypes"] = atype
+
+    mtype = 0
+    for mt in i["monsterType"]:
+        mtype += monsterType[mt]
+    i["monsterType"] = mtype
+
+    return i
+
+
+def toMonsters(data):
+    global ids
+    global names
+
+    ids = []
+    names = []
+    monsters = []
+
+    monsters.extend(map(reduce, data))
+    descbytes, offsets = buildDescriptions(names)
+    # print(descbytes, offsets)
 
     # replace desc index with offset
     # assuming one item definition = 10 bytes
 
-    itemMarker = "DRITEMS0"
+    itemMarker = "DRMONST0"
+    monsterRecordLength = 19   # IMPORTANT: Keep in sync with C struct!!
 
-    stringsBase = len(itemMarker)+(len(items)*10)
-    print("Strings base is", hex(stringsBase))
+    stringsBase = len(itemMarker)+(len(monsters)*monsterRecordLength)
+    # print("Strings base is", hex(stringsBase))
 
     outbytes = bytearray()
     outbytes.extend(map(ord, itemMarker))
 
-    for i in items:
-        theItem = items[i]
-        theItem["descOffset"] = stringsBase + \
-            offsets[theItem["descriptionIndex"]]
-        outbytes.append(theItem["id"] % 256)            # 0
-        outbytes.append(theItem["id"]//256)
-        outbytes.append(theItem["descOffset"] % 256)    # 2
-        outbytes.append(theItem["descOffset"]//256)
-        outbytes.append(theItem["type"])                # 4
-        outbytes.append(theItem["val1"])                # 5
-        outbytes.append(theItem["val2"])                # 6
-        outbytes.append(theItem["val3"])                # 7
-        outbytes.append(theItem["xp"] % 256)            # 8
-        outbytes.append(theItem["xp"]//256)
+    for i in monsters:
+        i["name"] = stringsBase + offsets[i["name"]]
+        if "pluralName" in i:
+            i["pluralName"] = stringsBase + offsets[i["pluralName"]]
+        else:
+            i["pluralName"] = 0
+
+        # print(i)
+        outbytes.append(i["id"] % 256)              #  0 : id
+        outbytes.append(i["id"]//256)               #  1 :
+        outbytes.append(i["defaultLevel"])          #  2 : defaultLevel
+        outbytes.append(i["spriteID"])              #  3 : spriteID
+        outbytes.append(i["monsterType"])           #  4 : monster type
+        outbytes.append(i["name"] % 256)            #  5 : monster name
+        outbytes.append(i["name"]//256)             #  6 :
+        outbytes.append(i["pluralName"] % 256)      #  7 : plural name
+        outbytes.append(i["pluralName"]//256)       #  8 :
+        if i["AC"] < 0:
+            outbytes.append(i["AC"]+256)            #  9 : armor class
+        else:
+            outbytes.append(i["AC"])
+        outbytes.append(i["hitDice"])               # 10 : hit dice
+        outbytes.append(i["hitPoints"])             # 11 : hit points per level
+        outbytes.append(i["magPoints"])             # 12 : mag points per level
+        outbytes.append(i["numAttacks"])            # 13 : num attacks
+        if i["courageMod"] < 0:
+            outbytes.append(i["courageMod"]+256)    # 14 : courage modifier
+        else:
+            outbytes.append(i["courageMod"])
+        if i["hitMod"] < 0:
+            outbytes.append(i["hitMod"]+256)        # 15 : hit modifier
+        else:
+            outbytes.append(i["hitMod"])
+        outbytes.append(i["attackTypes"])           # 16 : attack types
+        outbytes.append(i["xpValue"] % 256)         # 17 : plural name
+        outbytes.append(i["xpValue"]//256)          # 18 :
+
     outbytes.extend(descbytes)
 
     # print(offsets)
@@ -103,6 +154,7 @@ def rowsToData(srcRows):
     # print(outbytes)
 
     return outbytes
+
 
 print("DragonRock monster builder v0.1, (w) Stephan Kleinert, 2021/06")
 
@@ -114,4 +166,14 @@ if len(sys.argv) < 3:
 srcFilename = sys.argv[1]
 destFilename = sys.argv[2]
 
-monsterData = read(srcFilename)
+monsterDict = read(srcFilename)
+if "monsters" in monsterDict:
+    monsterData = toMonsters(monsterDict["monsters"])
+else:
+    print("?no monster node found in configuration file")
+    exit(1)
+
+outfile = open(destFilename, "wb")
+outfile.write(monsterData)
+print("Monster file written successfully.")
+outfile.close()

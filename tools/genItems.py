@@ -58,7 +58,7 @@ def buildDescriptions(src):
 
 def rowsToData(srcRows):
     descriptions = []
-    items = {}
+    items = []
     for i in srcRows:
         res,err = checkFormat(i)
         if (res==False):
@@ -79,7 +79,7 @@ def rowsToData(srcRows):
         anItem["val2"] = int(i[4])
         anItem["val3"] = int(i[5])
         anItem["xp"] = int(i[6])
-        items[itemID] = anItem
+        items.append(anItem)
 
     descbytes, offsets = buildDescriptions(descriptions)
 
@@ -94,8 +94,7 @@ def rowsToData(srcRows):
     outbytes = bytearray()
     outbytes.extend(map(ord, itemMarker))
 
-    for i in items:
-        theItem = items[i]
+    for theItem in items:
         theItem["descOffset"] = stringsBase + \
             offsets[theItem["descriptionIndex"]]
         outbytes.append(theItem["id"] % 256)            # 0
@@ -130,4 +129,5 @@ itemData = rowsToData(itemRows)
 
 outfile = open(destFilename, "wb")
 outfile.write(itemData)
+print("Items file written successfully.")
 outfile.close()

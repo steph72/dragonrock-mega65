@@ -25,6 +25,5 @@ extern char *gStateDesc[];
 extern cityCoordsT gCityCoords[NUM_CITIES];
 
 extern spell gSpells[];
-extern monsterDef gMonsters[];
 
 extern int gRaceModifiers[NUM_RACES][6];

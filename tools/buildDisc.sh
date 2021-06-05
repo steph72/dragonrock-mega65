@@ -13,7 +13,7 @@ cat cbm/wrapper.prg bin/drmain.c64 > bin/main
 
 c1541 <<EOF
 attach disc/drock.d81
-delete loader
+delete loader*
 delete tbnk*
 delete autoboot.c65
 delete main
@@ -26,8 +26,10 @@ delete out*
 delete spr*
 delete fmsg*
 delete items
+delete monsters
 write cbm/autoboot.c65
-write cbm/loader
+write cbm/loader0
+write cbm/loader1
 write cbm/tbnk4
 write cbm/tbnk5
 write bin/main main

@@ -21,7 +21,7 @@ int gRaceModifiers[NUM_RACES][6]= {
 
 char *gClasses[NUM_CLASSES]= {"Fighter", "Ranger", "Priest",
                               "Wizard",  "Thief",  "Monk"};
-char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH"};
+char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH", "MO"};
 
 char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
                             "Tia's Grove", "Modder",        "Foodim"};

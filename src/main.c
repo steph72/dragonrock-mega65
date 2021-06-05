@@ -63,6 +63,7 @@ char drbuf[BUFSIZE];
 char textbuf[TEXTBUF_SIZE];
 
 byte hasLoadedGame;
+byte devmode;
 
 void initEngine(void);
 void runCityMenu(void);
@@ -70,25 +71,7 @@ void doGuild(void);
 void loadSaved(void);
 
 const char *prompt=
-    "DREngine/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n";
-/*"Written by Stephan Kleinert, 2018-2022\n"
-"at  K-Burg, Bad Honnef,\n"
-"    Hundehaus im Reinhwardswald,\n"
-"and K-Cottage, Kasbach-Ohlenberg\n\n"
-"with very special thanks to Katja K.,\n"
-"Buba K., Candor K., and - of course -\n"
-"the 7 turtles\n"*/
-
-void loadCharset(void) {
-    byte *charTemp;
-    charTemp= (byte *)malloc(4096);
-    if (cbm_load("charset", getcurrentdevice(), (void *)charTemp) == 0) {
-        puts("Failed loading charset.");
-        exit(0);
-    }
-    lcopy((long)charTemp, 0xff7e800U, 4096); // directly overwrite charset
-    free(charTemp);
-}
+    "DREngine/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void initVIC() {
     byte *vic3_control= (byte *)0xd031;
@@ -96,10 +79,10 @@ void initVIC() {
 
     POKE(0xd02fL, 0x47);
     POKE(0xd02fL, 0x53);
-    *vic3_control&= (255 ^ 128); // disable 80chars
-    *vic3_control&= (255 ^ 8);   // disable interlace
-    *hotreg&= 127;               // disable hotreg
-    POKE(53297L, 96);
+    //*vic3_control&= (255 ^ 128); // disable 80chars
+    //*vic3_control&= (255 ^ 8);   // disable interlace
+    //*hotreg&= 127;               // disable hotreg
+    POKE(53297L, 96); // quit bitplane mode
 }
 
 void loadResources(void) {
@@ -107,22 +90,38 @@ void loadResources(void) {
     printf("load items; ");
     readBytes= loadExt("items", ITEM_BASE);
     printf("$%x bytes read\n", readBytes);
+    printf("load monsters; ");
+    readBytes= loadExt("monsters", MONSTERS_BASE);
+    printf("$%x bytes read\n", readBytes);
 }
 
 void initEngine(void) {
     unsigned char i;
     unsigned int readBytes;
 
+    mega65_io_enable();
     srand(42);
-    puts("\n");      // cancel leftover quote mode
+    puts("\n");      // cancel leftover quote mode from wrapper or whatever
     cbm_k_bsout(14); // lowercase
     clrscr();
     puts(prompt);
+
+    lcopy(0x5f000, drbuf, 4);
+    if (drbuf[0] == 0x53 && drbuf[1] == 0x4b) {
+        devmode= true;
+    } else if (drbuf[0] != 0x23 || drbuf[1] != 0x45) {
+        initVIC();
+        puts("Please BOOT the dragon rock disc to");
+        puts("correctly initialize the game.");
+        while(1);
+    }
+    
+    drbuf[0]=0; drbuf[1]=0;
+    lcopy(drbuf,0x5f000,4);
+
     loadModules();
     puts("init monster rows");
     initMonsterRows();
-    puts("load charset");
-    loadCharset();
     puts("init sprites");
     initSprites();
     loadResources();
@@ -130,9 +129,12 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     gCurrentGameMode= gm_init;
-    puts("\ninitialization complete");
-    cg_getkey();
-    
+    if (devmode) {
+        puts("\ninitialization complete");
+        puts("** development mode. press any key **");
+        cg_getkey();
+    }
+
     initVIC();
     cg_init();
 

@@ -1,8 +1,33 @@
 #include "monster.h"
+#include "memory.h"
 #include "utils.h"
 
 monster *gMonsterRows[MONSTER_ROWS][MONSTER_SLOTS];
 monster *gMonsterRoster[MONSTER_SLOTS * MONSTER_ROWS];
+
+monsterDef tempDef;
+
+monsterDef *monsterDefForID(unsigned int id) {
+    unsigned int i;
+    for (i= 0; i < 512; ++i) {
+        lcopy((long)MONSTERS_BASE + 8 + (sizeof(monsterDef) * i),
+              (long)&tempDef, sizeof(monsterDef));
+        if (tempDef.id == id) {
+            return &tempDef;
+        }
+    }
+    return NULL;
+}
+
+char *nameForMonsterDef(monsterDef *aDef) {
+    char namebuf[32];
+    lcopy((long)MONSTERS_BASE + (aDef->namePtr), (long)namebuf, 32);
+    return namebuf;
+}
+
+char *nameForMonsterID(unsigned int id) {
+    return nameForMonsterDef(monsterDefForID(id));
+}
 
 void _initMonsterRoster(byte dealloc) {
     byte i;
@@ -43,8 +68,8 @@ void addMonster(monster *aMonster, byte row) {
     for (i= 0; i < MONSTER_SLOTS; ++i) {
         if (gMonsterRows[row][i] == NULL) {
             gMonsterRows[row][i]= aMonster;
-            aMonster->row = row;
-            aMonster->column = i;
+            aMonster->row= row;
+            aMonster->column= i;
             _addMonsterToRoster(aMonster);
             return;
         }
@@ -59,23 +84,13 @@ void clearMonsters(void) { _initMonsterRows(true); }
 // create a monster with given ID and level
 // (creates standard level if level==0)
 
-monster *createMonster(byte monsterID, byte level) {
+monster *createMonster(unsigned int monsterID, byte level) {
 
     byte i;
     monster *newMonster;
     monsterDef *aDef;
 
-    aDef= NULL;
-
-    for (i= 0; i < 255; ++i) {
-        if (gMonsters[i].id == monsterID) {
-            aDef= &gMonsters[i];
-            break;
-        }
-        if (gMonsters[i].id == 255) { // stop if end of monster list reached
-            break;
-        }
-    }
+    aDef= monsterDefForID(monsterID);
 
     if (aDef == NULL) {
         printf("?invalid monster ID %d", monsterID);
@@ -88,10 +103,11 @@ monster *createMonster(byte monsterID, byte level) {
         level= aDef->level;
     }
 
+
     newMonster->hp= 0;
     newMonster->mp= 0;
 
-    newMonster->def= aDef;
+    newMonster->monsterDefID= monsterID;
     for (i= 0; i < level; i++) {
         newMonster->hp+= drand(aDef->hpPerLevel) + 1;
         newMonster->mp+= drand(aDef->mpPerLevel) + 1;

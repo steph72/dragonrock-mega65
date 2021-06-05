@@ -1,27 +1,64 @@
 ---
-
-  monsters:
   
+  monsters:
+
       - id: 0x00
         defaultLevel: 1
         spriteID: 0x10
+        monsterType: [mt_humanoid]
         name: "Noob"
+        pluralName: "Noobs"
         AC: 10
         hitDice: 6
         hitPoints: 6
         magPoints: 0
         numAttacks: 0
+        courageMod: 0
+        hitMod: 0
         attackTypes: [at_fists, at_weapon]
         xpValue: 1
       
       - id: 0x01
         defaultLevel: 1
         spriteID: 0x11
+        monsterType: [mt_humanoid]
         name: "Kobold"
         AC: 9
         hitDice: 6
         hitPoints: 6
         magPoints: 0
         numAttacks: 0
+        courageMod: -1
+        hitMod: 0
         attackTypes: [at_fists, at_weapon]
         xpValue: 10
+
+      - id: 0xa0
+        defaultLevel: 2
+        spriteID: 0xa0
+        monsterType: [mt_humanoid,mt_unique]
+        name: "Lukasz"
+        AC: 3
+        hitDice: 12
+        hitPoints: 6
+        magPoints: 0
+        numAttacks: 2
+        courageMod: 5
+        hitMod: 0
+        attackTypes: [at_fists,at_weapon]
+        xpValue: 20
+
+      - id: 0xc0
+        defaultLevel: 10
+        spriteID: 0xc0
+        monsterType: [mt_magical,mt_unique]
+        name: "Obezna, Dragon of Mistrust"
+        AC: 3
+        hitDice: 12
+        hitPoints: 12
+        magPoints: 14
+        numAttacks: 4
+        courageMod: 2
+        hitMod: 3
+        attackTypes: [at_claws, at_breath, at_ice]
+        xpValue: 900
