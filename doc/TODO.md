@@ -2,12 +2,21 @@
 
 cc65 V2.18 - Git de630a12
 
+## city
+- implement "you must assemble a party first"
+- implement armory
+- implement inn
+- implement mystic
+- finish guild
+
+
 ## dungeon
 - DONE sanitize filenames of maps and dungeons 
 - implement saving the map state
 - fix reload of current outdoor map
 
 ## dungeonscript
+- modify ADDENC with min/max
 - DONE implement 'random' call and branch
 - DONE get rid of start cooords
 - DONE implement daemons
@@ -23,5 +32,4 @@ cc65 V2.18 - Git de630a12
 ## overall
 - DONE implement outdoors
 - DONE implement user defined shares of xp and coins
-- implement armory
-- implement inn
+
