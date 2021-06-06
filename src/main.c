@@ -96,8 +96,6 @@ void loadResources(void) {
 }
 
 void initEngine(void) {
-    unsigned char i;
-    unsigned int readBytes;
 
     mega65_io_enable();
     srand(42);
@@ -106,18 +104,20 @@ void initEngine(void) {
     clrscr();
     puts(prompt);
 
-    lcopy(0x5f000, drbuf, 4);
+    lcopy(0x5f000, (long)drbuf, 4);
     if (drbuf[0] == 0x53 && drbuf[1] == 0x4b) {
         devmode= true;
     } else if (drbuf[0] != 0x23 || drbuf[1] != 0x45) {
         initVIC();
         puts("Please BOOT the dragon rock disc to");
         puts("correctly initialize the game.");
-        while(1);
+        while (1)
+            ;
     }
-    
-    drbuf[0]=0; drbuf[1]=0;
-    lcopy(drbuf,0x5f000,4);
+
+    drbuf[0]= 0;
+    drbuf[1]= 0;
+    lcopy((long)drbuf, 0x5f000, 4);
 
     loadModules();
     puts("init monster rows");
@@ -146,9 +146,9 @@ void initEngine(void) {
 
 void debugEncounter(void) {
     gCurrentGameMode= gm_init;
-    addNewMonster(1, 1, 3, 0);
-    addNewMonster(1, 1, 4, 1);
-    addNewMonster(1, 1, 5, 2);
+    addNewMonster(1, 1, 3, 4, 0);
+    addNewMonster(1, 1, 4, 5, 1);
+    addNewMonster(1, 1, 3, 5, 2);
     prepareForGameMode(gm_encounter);
     mainDispatchLoop();
 }
@@ -178,9 +178,10 @@ int main() {
     gCurrentCityIndex= 0;
     prepareForGameMode(gm_city);
 
-    do {
-        choice= cgetc();
-    } while (strchr("12de", choice) == NULL);
+    choice= cgetc();
+    if (strchr("12de", choice) == NULL) {
+        choice= '1';
+    }
 
     if (choice == 'd') {
         debugDungeon();

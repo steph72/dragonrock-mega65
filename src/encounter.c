@@ -82,9 +82,8 @@ void signalPreCombatResult(preCombatResult res) {
                       "The monsters don't respond."};
 
     setupCombatScreen();
-    cg_block(0, 0, 39, 2, 160, COLOR_CYAN);
     textcolor(COLOR_CYAN);
-    cg_center(0, 1, 40, results[res]);
+    puts(results[res]);
     sleep(1);
 }
 
@@ -100,12 +99,6 @@ encResult doEncounter() {
 
 void setupCombatScreen(void) {
 
-    // setup screen
-    cg_clear();
-    bgcolor(COLOR_BLACK);
-
-    // menu area
-    cg_block(29, 0, 39, 24, 160, COLOR_GRAY2);
 }
 
 byte runPreCombat(void) {
@@ -123,17 +116,6 @@ byte runPreCombat(void) {
     gotoxy(30, 15);
     cputs(" options ");
 
-    // title bar
-    cg_line(0, 0, 39, 160, COLOR_RED);
-
-    // party area
-    cg_block(0, 1, 39, 6, 160, COLOR_YELLOW);
-
-    for (j= 0; j < 3; ++j) {
-        if (getMonsterCountForRow(j)) {
-            cg_line(24 - j, 0, 39, 160, COLOR_GREEN);
-        }
-    }
 
     gotoxy(0, 0);
     textcolor(COLOR_RED);
@@ -180,7 +162,8 @@ byte runPreCombat(void) {
         }
     }
     gotoxy(29, 8);
-    return (cg_menu(11, COLOR_GRAY2, preEncounterMenu));
+    // return (cg_menu(11, COLOR_GRAY2, preEncounterMenu));
+    return 0;
 }
 
 // clang-format off

@@ -161,7 +161,7 @@ int performDisplayFeelOpcode(opcode *anOpcode) {
 // 0x02: DISP
 int performDisplayTextOpcode(opcode *anOpcode) {
 
-    byte feelIndex = anOpcode->param1;
+    byte feelIndex= anOpcode->param1;
 
     if (anOpcode->id & 0x20) {
         displayFeel(feelIndex);
@@ -413,12 +413,10 @@ int performClearencOpcode(void) {
 
 // 0x0e: ADDENC
 int performAddencOpcode(opcode *anOpcode) {
-
     if (anOpcode->param1) {
         addNewMonster(anOpcode->param1, anOpcode->param2, anOpcode->param3,
-                      anOpcode->param4);
+                      anOpcode->param4, anOpcode->param5);
     }
-
     return 0;
 }
 
@@ -427,8 +425,10 @@ int performDoencOpcode(opcode *anOpcode) {
 
     // save result opcode indices for later on
     // when re-entering dungeon module
+    puts("doenc!");
     encounterWonOpcIdx= anOpcode->param1 + (256 * (anOpcode->param2));
     encounterLostOpcIdx= anOpcode->param3 + (256 * (anOpcode->param4));
+    puts("prepare");
     prepareForGameMode(gm_encounter);
     quitDungeon= true;
     /* cg_clearLower(5);
@@ -1081,7 +1081,6 @@ void setupOutdoorScreen(void) {
     bordercolor(COLOR_BLACK);
     textcolor(COLOR_GRAY2);
     cg_clear();
-    cg_block(0, 0, 39, 24, 32, COLOR_GREEN);
     revers(0);
 }
 
@@ -1091,10 +1090,7 @@ void setupDungeonScreen(void) {
     cg_clear();
     bordercolor(COLOR_GRAY1);
     bgcolor(COLOR_GRAY3);
-    cg_block(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
-             screenY + mapWindowSizeY, 160, COLOR_GREEN);
-    cg_block(screenX, screenY, screenX + mapWindowSizeX - 1,
-             screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
+
 }
 
 void setupScreen() {
@@ -1109,8 +1105,10 @@ void setupScreen() {
 void unloadDungeon(void) {
 
     if (desc != NULL) {
-        if (desc->feelTbl) free(desc->feelTbl);
-        if (desc->daemonTbl) free(desc->daemonTbl);
+        if (desc->feelTbl)
+            free(desc->feelTbl);
+        if (desc->daemonTbl)
+            free(desc->daemonTbl);
         free(seenMap);
         free(desc);
         desc= NULL;
@@ -1121,7 +1119,7 @@ void unloadDungeon(void) {
 
 void initLoadedDungeon(void) {
 
-    byte correctY = 0;
+    byte correctY= 0;
 
     encounterLostOpcIdx= 0;
     encounterWonOpcIdx= 0;
@@ -1152,15 +1150,13 @@ void initLoadedDungeon(void) {
     }
 
     // move view up if we're at the bottom
-    while ((offsetY+currentY+mapWindowSizeY/2)>=desc->dungeonMapHeight) {
+    while ((offsetY + currentY + mapWindowSizeY / 2) >=
+           desc->dungeonMapHeight) {
         offsetY--;
         correctY++;
     }
 
-    currentY += correctY;
-
-
-
+    currentY+= correctY;
 }
 
 void loadNewDungeon(void) {

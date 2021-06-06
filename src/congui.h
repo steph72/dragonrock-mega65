@@ -17,21 +17,5 @@ void cg_clear(void);
 void cg_stepColor(void);
 void cg_stopColor(void);
 
-void cg_center(byte x, byte y, byte width, char *text);
-void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
-void cg_colorLine(byte y, byte x0, byte x1, byte col);
-void cg_line(byte y, byte x0, byte x1, byte character, byte col);
-
-byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
-                     char *items[]);
-
-byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
-                        byte menuItemCount, byte defaultItem);
-
-byte cg_verticalMenu(byte x0, byte y0, byte lineSpacing, byte width,
-                     byte menuItemCount);
 
 void cg_setPalette(byte num, byte red, byte green, byte blue);
-
-byte cg_menu(byte width, byte color, char *items[]);
-byte cg_horizontalMenu(byte color, byte defaultItem, char *items[]);

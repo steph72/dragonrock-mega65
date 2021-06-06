@@ -16,7 +16,7 @@ char *nameForMonsterDef(monsterDef *aDef);
 char *nameForMonsterID(unsigned int id);
 
 void clearMonsters(void);
-void addNewMonster(byte monsterID, byte level, byte num, byte row);
+void addNewMonster(byte monsterID, byte level, byte min, byte max, byte row);
 monster* createMonster(unsigned int monsterID, byte level);
 
 void initMonsterRows();

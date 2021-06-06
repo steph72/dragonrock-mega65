@@ -94,7 +94,8 @@ monster *createMonster(unsigned int monsterID, byte level) {
 
     if (aDef == NULL) {
         printf("?invalid monster ID %d", monsterID);
-        exit(0);
+        while (1)
+            ;
     }
 
     newMonster= malloc(sizeof(monster));
@@ -102,7 +103,6 @@ monster *createMonster(unsigned int monsterID, byte level) {
     if (level == 0) {
         level= aDef->level;
     }
-
 
     newMonster->hp= 0;
     newMonster->mp= 0;
@@ -118,9 +118,11 @@ monster *createMonster(unsigned int monsterID, byte level) {
 }
 
 // add new monster to row
-void addNewMonster(byte monsterID, byte level, byte num, byte row) {
+void addNewMonster(byte monsterID, byte level, byte min, byte max, byte row) {
     byte i;
+    byte num;
     monster *theMonster;
+    num= min + (drand(max - min));
     for (i= 0; i < num; ++i) {
         theMonster= createMonster(monsterID, level);
         theMonster->status= awake; /* TODO */

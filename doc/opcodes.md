@@ -69,10 +69,10 @@ Set register *regNum* to value *regVal*
 ## 0x0d CLRENC
 Clear encounter list
 
-## 0x0e ADDENC <01:mID> <02:mLvl> <03:count> <04:row> 
-Add <count> monsters with monster ID <mID> of level <mLvl> to encounter row <row>
+## 0x0e ADDENC <01:mID> <02:mLvl> <03:minCount> <04:maxCount> <05:row> 
+Add <minCount>  to <maxCount> monsters with monster ID <mID> of level <mLvl> to encounter row <row>
 
-## 0x0f DOENC <01/02:winOpcIdx> <03/04:loseOpcIdx>
+## 0x0f GOENC <01/02:winOpcIdx> <03/04:loseOpcIdx>
 Start encounter
 
 ## 0x10 ENTER_W <01:mapId> <02:xpos> <03:ypos>

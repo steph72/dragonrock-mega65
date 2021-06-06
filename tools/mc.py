@@ -423,8 +423,9 @@ class mapCompiler:
             opc = [0x0e, 0, 0, 0, 0, 0, 0, 0]
             opc[1] = int(pline.tMonsterID)
             opc[2] = int(pline.tMonsterLevel)
-            opc[3] = int(pline.tMonsterCount)
-            opc[4] = int(pline.tMonsterRow)
+            opc[3] = int(pline.tMonsterMinCount)
+            opc[4] = int(pline.tMonsterMaxCount)
+            opc[5] = int(pline.tMonsterRow)
             return opc
 
         def opCreate_ADDENC1(pline):
@@ -653,7 +654,8 @@ class mapCompiler:
             ^ (pp.Keyword("ADDENC")('opcode')
                + p_monsterID('tMonsterID') + ","
                + p_monsterLevel('tMonsterLevel') + ","
-               + p_monsterID('tMonsterCount') + ","
+               + p_monsterID('tMonsterMinCount') + ","
+               + p_monsterID('tMonsterMaxCount') + ","
                + p_monsterLevel('tMonsterRow')
                )
             

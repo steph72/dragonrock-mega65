@@ -112,12 +112,6 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     lfill((long)COLOR_RAM + bas + x0, col, x1 - x0 + 1);
 }
 
-void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col) {
-    byte i;
-    for (i= y0; i <= y1; ++i) {
-        cg_line(i, x0, x1, character, col);
-    }
-}
 
 void cg_center(byte x, byte y, byte width, char *text) {
     byte mid;
@@ -126,26 +120,6 @@ void cg_center(byte x, byte y, byte width, char *text) {
     cputs(text);
 }
 
-byte cg_verticalList(byte x0, byte y0, byte lineSpacing, byte width, byte col,
-                     char *items[]) {
-    byte currentNum;
-    char *currentItem;
-
-    currentNum= 0;
-    currentItem= items[0];
-    textcolor(col);
-    revers(1);
-    while (currentItem[0] != '\0') {
-        if (width != 0) {
-            cg_center(x0, y0 + (currentNum * lineSpacing), width, currentItem);
-        } else {
-            gotoxy(x0, y0 + (currentNum * lineSpacing));
-            cputs(currentItem);
-        }
-        currentItem= items[++currentNum];
-    }
-    return currentNum;
-}
 
 unsigned char nyblswap(unsigned char in) // oh why?!
 {
@@ -192,115 +166,6 @@ char cg_getkeyP(byte x, byte y, const char *prompt) {
     return cgetc();
 }
 
-byte cg_verticalChooser(byte x0, byte y0, byte lineSpacing, byte width,
-                        byte menuItemCount, byte defaultItem) {
-    static byte originalColor;
-    static byte currentRow;
-    static byte *currentBase;
-    static char input;
-
-    currentRow= defaultItem;
-
-    do {
-        currentBase= COLOR_RAM + ((y0 + (lineSpacing * currentRow)) * 40) + x0;
-        originalColor= *currentBase;
-        lfill((long)currentBase, 1, width);
-        while (!kbhit()) {
-            cg_stepColor();
-        }
-        input= cgetc();
-        lfill((long)currentBase, originalColor, width);
-        switch (input) {
-        case 17: // down
-            if (currentRow < menuItemCount - 1)
-                currentRow++;
-            else {
-                currentRow= 0;
-            }
-
-            break;
-        case 145: // up
-            if (currentRow > 0)
-                currentRow--;
-            else {
-                currentRow= menuItemCount - 1;
-            }
-
-        default:
-            break;
-        }
-    } while (input != 13);
-    cg_stopColor();
-    return currentRow;
-}
-
-byte cg_horizontalMenu(byte color, byte defaultItem, char *items[]) {
-    byte x, y, i, currentIdx, width;
-    char input;
-    byte indent;
-    byte numItems;
-    byte *currentBase;
-    byte originalColor;
-    char *currentItem;
-
-    numItems= 0;
-    x= wherex();
-    y= wherey();
-
-    textcolor(color);
-    do {
-        currentItem= items[numItems];
-        if (currentItem[0] != 0) {
-            indent= 0;
-            for (i= 0; i < numItems; ++i) {
-                indent+= strlen(items[i]) + 1;
-            }
-            cputsxy(x + indent, y, currentItem);
-            numItems++;
-        }
-    } while (currentItem[0] != 0);
-
-    currentIdx= defaultItem;
-
-    do {
-        indent= 0;
-        for (i= 0; i < currentIdx; ++i) {
-            indent+= strlen(items[i]) + 1;
-        }
-        currentItem= items[currentIdx];
-        width= strlen(currentItem);
-        currentBase= COLOR_RAM + ((y * 40) + x + indent);
-        originalColor= *currentBase;
-        lfill((long)currentBase, 1, width);
-        while (!kbhit()) {
-            cg_stepColor();
-        }
-        input= cgetc();
-        lfill((long)currentBase, originalColor, width);
-        switch (input) {
-        case 157: // left
-            if (currentIdx > 0)
-                currentIdx--;
-            break;
-        case 29: // right
-            if (currentIdx < numItems - 1)
-                currentIdx++;
-            break;
-        default:
-            break;
-        }
-    } while (input != 13);
-    return currentIdx;
-}
-
-byte cg_menu(byte width, byte color, char *items[]) {
-    byte x, y;
-    byte numItems;
-    x= wherex();
-    y= wherey();
-    numItems= cg_verticalList(x + 1, y, 1, 0, color, items);
-    return cg_verticalChooser(x, y, 1, width, numItems, 0);
-}
 
 char *cg_input(byte maxlen) {
     // TODO

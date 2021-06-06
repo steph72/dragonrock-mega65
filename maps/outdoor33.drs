@@ -176,6 +176,11 @@ lTrollBridge:
     YESNO_B payday
     DISP msgLukasCoward
     WKEY msgWaitkey
+    CLRENC
+    ADDENC 2,1,2,3,1
+    GOENC wWin,wLose
+wWin:
+wLose:
     REDRAW
     ---
 

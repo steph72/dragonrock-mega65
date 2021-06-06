@@ -115,9 +115,9 @@ historyRoomKoboldsPrompt:
 
 historyRoomKobolds:
     CLRENC
-    ADDENC 1,1,3,0
-    ADDENC 2,1,4,1
-    ADDENC 1,1,5,2
+    ADDENC 1,1,2,3,0
+    ADDENC 2,1,3,4,1
+    ADDENC 1,1,4,5,2
     GOENC winH,loseH
     ---
 
@@ -187,7 +187,7 @@ crazyMan:
     DISP crazyManMsg,True
     WKEY msgWaitkey
     CLRENC
-    ADDENC 1,1,1,0
+    ADDENC 1,1,1,1,0
     GOENC winCrazy,loseCrazy
 
 winCrazy:
