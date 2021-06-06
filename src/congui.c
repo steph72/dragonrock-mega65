@@ -113,6 +113,14 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
 }
 
 
+void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col) {
+    byte i;
+    for (i= y0; i <= y1; ++i) {
+        cg_line(i, x0, x1, character, col);
+    }
+}
+
+
 void cg_center(byte x, byte y, byte width, char *text) {
     byte mid;
     mid= width / 2;
