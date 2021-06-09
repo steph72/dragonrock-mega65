@@ -103,17 +103,27 @@ void signalPreCombatResult(preCombatResult res) {
                       "A fight begins!",
                       "No response"};
 
-    // setupCombatScreen();
-    // textcolor(COLOR_CYAN);
+    setupCombatScreen();
+    textcolor(COLOR_CYAN);
     puts(results[res]);
     sleep(1);
 }
 
+encResult doFight() {
+    //TODO
+    return encWon;
+}
+
 encResult doEncounter() {
-    byte choice;
+    preCombatResult res;
     combatStarted= false;
-    choice= runPreCombat();
-    signalPreCombatResult(preCombatResultNoResponse);
+    res= runPreCombat();
+    signalPreCombatResult(res);
+    if (res==preCombatResultBeginFight) {
+        return doFight();
+    } else if (res==preCombatResultFleeSuccess) {
+        return encFled;
+    }
     clearMonsters();
     return encWon;
 }
@@ -230,6 +240,7 @@ preCombatResult preCombatResultForChoice(byte choice) {
         } else {
             res= preCombatResultFleeFailure;
         }
+        break;
 
     default:
         res= preCombatResultNoResponse;
@@ -289,7 +300,6 @@ byte runPreCombat(void) {
     puts("4) fight  5) attempt to flee\n");
     textcolor(COLOR_ORANGE);
     do {
- 
         gotoxy(0, 18);
         cputs("Your choice:");
         cursor(1);
@@ -297,11 +307,11 @@ byte runPreCombat(void) {
         cursor(0);
         res= preCombatResultForChoice(choice);
         signalPreCombatResult(res);
-        printf(" %d ==>%d  ", choice, res);
+        // tf(" %d ==>%d  ", choice, res);
     } while (1); // (choice == 0 || choice > 5);
 
-    // return (cg_menu(11, COLOR_GRAY2, preEncounterMenu));
-    return 0;
+    return preCombatResultForChoice(choice);
+
 }
 
 // clang-format off
