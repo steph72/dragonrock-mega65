@@ -98,7 +98,7 @@ void loadResources(void) {
 void initEngine(void) {
 
     mega65_io_enable();
-    srand(42);
+    srand(DRE_BUILDNUM);
     puts("\n");      // cancel leftover quote mode from wrapper or whatever
     cbm_k_bsout(14); // lowercase
     clrscr();
@@ -147,8 +147,8 @@ void initEngine(void) {
 void debugEncounter(void) {
     gCurrentGameMode= gm_init;
     addNewMonster(1, 1, 3, 4, 0);
-    addNewMonster(1, 1, 4, 5, 1);
-    addNewMonster(1, 1, 3, 5, 2);
+    addNewMonster(2, 1, 2, 5, 1);
+    addNewMonster(0xa0, 1, 1, 1, 2);
     prepareForGameMode(gm_encounter);
     mainDispatchLoop();
 }

@@ -14,6 +14,8 @@
 monsterDef *monsterDefForID(unsigned int id);
 char *nameForMonsterDef(monsterDef *aDef);
 char *nameForMonsterID(unsigned int id);
+char *pluralNameForMonsterID(unsigned int id);
+
 
 void clearMonsters(void);
 void addNewMonster(byte monsterID, byte level, byte min, byte max, byte row);

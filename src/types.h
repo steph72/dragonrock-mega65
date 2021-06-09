@@ -69,6 +69,8 @@ typedef enum _pcr {
     preCombatResultSurrender,
     preCombatResultMercy,
     preCombatResultFleeFailure,
+    preCombatResultFleeSuccess,
+    preCombatResultBeginFight,
     preCombatResultNoResponse
 } preCombatResult;
 

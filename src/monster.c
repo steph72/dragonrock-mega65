@@ -5,6 +5,8 @@
 monster *gMonsterRows[MONSTER_ROWS][MONSTER_SLOTS];
 monster *gMonsterRoster[MONSTER_SLOTS * MONSTER_ROWS];
 
+char monsterNameBuf[32];
+
 monsterDef tempDef;
 
 monsterDef *monsterDefForID(unsigned int id) {
@@ -20,13 +22,28 @@ monsterDef *monsterDefForID(unsigned int id) {
 }
 
 char *nameForMonsterDef(monsterDef *aDef) {
-    char namebuf[32];
-    lcopy((long)MONSTERS_BASE + (aDef->namePtr), (long)namebuf, 32);
-    return namebuf;
+    lcopy((long)MONSTERS_BASE + (aDef->namePtr), (long)monsterNameBuf, 32);
+    return monsterNameBuf;
+}
+
+char *pluralNameForMonsterDef(monsterDef *aDef) {
+    lcopy((long)MONSTERS_BASE + (aDef->pluralnamePtr), (long)monsterNameBuf, 32);
+    return monsterNameBuf;
 }
 
 char *nameForMonsterID(unsigned int id) {
     return nameForMonsterDef(monsterDefForID(id));
+}
+
+char *pluralNameForMonsterID(unsigned int id) {
+    monsterDef *aDef= monsterDefForID(id);
+    if (aDef->pluralnamePtr) {
+        pluralNameForMonsterDef(aDef);
+    } else {
+        nameForMonsterDef(aDef);
+        strcat(monsterNameBuf,"s");
+    }
+    return monsterNameBuf;
 }
 
 void _initMonsterRoster(byte dealloc) {
@@ -75,7 +92,8 @@ void addMonster(monster *aMonster, byte row) {
         }
     }
     printf("?no more space for monsters");
-    exit(0);
+    while (1)
+        ;
 }
 
 // clear monster roster
@@ -122,7 +140,7 @@ void addNewMonster(byte monsterID, byte level, byte min, byte max, byte row) {
     byte i;
     byte num;
     monster *theMonster;
-    num= min + (drand(max - min));
+    num = max==min ? max : min + (drand(max - min));
     for (i= 0; i < num; ++i) {
         theMonster= createMonster(monsterID, level);
         theMonster->status= awake; /* TODO */

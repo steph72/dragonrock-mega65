@@ -18,7 +18,7 @@ void loadSprite(char *name, byte spriteNo, byte width, byte height) {
     if (!spritefile) {
         cputs("?sprite file not found: ");
         cputs(name);
-        exit(0);
+        while(1);
     }
 
     // skip 3 header lines

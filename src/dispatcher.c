@@ -85,7 +85,7 @@ void commitNewGameMode(void) {
 
     case gm_init:
         puts("??new gamemode is init");
-        exit(0);
+        while(1);
         break;
 
     default:
@@ -153,7 +153,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
 */
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");
-        exit(0);
+        while(1);
     }
     return 1;
 }

@@ -40,7 +40,7 @@ unsigned int verifySegment(himemPtr *adr, char *segmentID) {
     lcopy(*adr, (long)drbuf, 16);
     if (strcmp(segmentID, drbuf) != 0) {
         printf("fatal: marker %s found, %s expected\n", drbuf, segmentID);
-        exit(0);
+        while(1);
     }
     *adr+= strlen(segmentID) + 2;
     return count;
@@ -80,7 +80,7 @@ dungeonDescriptor *loadMap(char *filename) {
     if (!infile) {
         cputs("file not found: ");
         cputs(filename);
-        exit(0);
+        while(1);
     }
 
     fread(drbuf, 3, 1, infile);
@@ -93,7 +93,7 @@ dungeonDescriptor *loadMap(char *filename) {
     if (strcmp(drbuf, "dr0") != 0) {
         printf("?fatal: wrong map file format");
         fclose(infile);
-        exit(0);
+        while(1);
     }
 
     desc= (dungeonDescriptor *)malloc(sizeof(dungeonDescriptor));

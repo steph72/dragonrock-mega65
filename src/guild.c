@@ -236,7 +236,7 @@ void initGuildMem(void) {
     guild= (character *)malloc(sizeBytes);
     if (guild == NULL) {
         puts("???fatal: no memory for guild");
-        exit(0);
+        while(1);
     }
     bzero(guild, sizeBytes);
 }

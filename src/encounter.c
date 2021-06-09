@@ -1,10 +1,10 @@
 #include "encounter.h"
 #include "congui.h"
 #include "globals.h"
+#include "memory.h"
 #include "spell.h"
 #include "types.h"
 #include "utils.h"
-#include "memory.h"
 
 #include <c64.h>
 #include <unistd.h>
@@ -13,27 +13,16 @@
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
 
-
 static char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
                                      "Parry", "Cast",   "Shoot"};
 
 static char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                                      "parries", "casts",   "shoots"};
 
-
 void setupCombatScreen(void);
 byte runPreCombat(void);
 
-
-// get monster name for given row
-char *getMonsterNameForRow(byte row) {
-    monster *res;
-    res= gMonsterRows[row][0];
-    if (res) {
-        return nameForMonsterID(res->monsterDefID);
-    }
-    return "---";
-}
+byte combatStarted;
 
 // get monster count for given row
 char getMonsterCountForRow(byte row) {
@@ -42,6 +31,34 @@ char getMonsterCountForRow(byte row) {
     for (i= 0; i < MONSTER_SLOTS; ++i) {
         if (gMonsterRows[row][i] != NULL) {
             res++;
+        }
+    }
+    return res;
+}
+
+// get monster name for given row
+char *getMonsterNameForRow(byte row) {
+    monster *res;
+    byte count= getMonsterCountForRow(row);
+    res= gMonsterRows[row][0];
+    if (res) {
+        if (count > 1) {
+            return pluralNameForMonsterID(res->monsterDefID);
+        } else {
+            return nameForMonsterID(res->monsterDefID);
+        }
+    }
+    return "---";
+}
+
+byte getMonsterCount() {
+    byte i, j, res;
+    res= 0;
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        for (j= 0; j < MONSTER_SLOTS; ++j) {
+            if (gMonsterRows[i][j]) {
+                ++res;
+            }
         }
     }
     return res;
@@ -65,30 +82,36 @@ void removeMonster(byte row, byte column) {
 }
 
 // remove a monster from combat
-// (does NOT delete or free the monster, just removes it from active encounter)
+// (does NOT delete or free the monster, just removes it from active
+// encounter)
 void removeMonsterFromCombat(monster *aMonster) {
     removeMonster(aMonster->row, aMonster->column);
 }
 
 char *statusLineForRow(byte row) {
-    sprintf(drbuf, "Rank %d: %d %s(s)", row + 1, getMonsterCountForRow(row),
+    sprintf(drbuf, "Rank %d - %d %s", row + 1, getMonsterCountForRow(row),
             getMonsterNameForRow(row));
     return drbuf;
 }
 
 void signalPreCombatResult(preCombatResult res) {
-    char *results[]= {"The monsters greet you.", "The monsters surrender.",
-                      "The monsters take your money.", "You don't get away.",
-                      "The monsters don't respond."};
+    char *results[]= {"The monsters greet you.",
+                      "The monsters surrender.",
+                      "The monsters take your money.",
+                      "You don't get away.",
+                      "You manage to flee",
+                      "A fight begins!",
+                      "No response"};
 
-    setupCombatScreen();
-    textcolor(COLOR_CYAN);
+    // setupCombatScreen();
+    // textcolor(COLOR_CYAN);
     puts(results[res]);
     sleep(1);
 }
 
 encResult doEncounter() {
     byte choice;
+    combatStarted= false;
     choice= runPreCombat();
     signalPreCombatResult(preCombatResultNoResponse);
     clearMonsters();
@@ -98,43 +121,139 @@ encResult doEncounter() {
 // ------------------ screen config ---------------------
 
 void setupCombatScreen(void) {
+    bgcolor(0);
+    textcolor(4);
+    bordercolor(2);
+    clrscr();
+}
 
+// ------------------ courage handling  ---------------------
+
+unsigned int mc, pc;
+
+
+unsigned int partyCourage() {
+    byte i;
+    unsigned int courage= 0;
+    character *aChar;
+
+    for (i= 0; i < partyMemberCount(); ++i) {
+        aChar= party[i];
+        courage+= (aChar->level) * 100;
+        courage+= bonusValueForAttribute(aChar->attributes[aCHR]) *
+                  25; // add/remove CHR bonus
+    }
+
+    return courage;
+}
+
+unsigned int monstersCourage() {
+    byte i, j;
+    unsigned int courage= 0;
+    monster *aMonster;
+    monsterDef *def;
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        for (j= 0; j < MONSTER_SLOTS; ++j) {
+            aMonster= gMonsterRows[i][j];
+            if (aMonster) {
+                def= monsterDefForID(aMonster->monsterDefID);
+                courage+= (aMonster->level) * 110;
+                courage+= (def->courageModifier) * 25;
+            }
+        }
+    }
+    if (combatStarted) {
+        courage+= 100;
+    }
+    return courage;
+}
+
+void updateCourage() {
+    mc= monstersCourage() + drand(50 * getMonsterCount());
+    pc= partyCourage();
+           gotoxy(0, 22);
+        printf("pCourage, mCourage: %d, %d ", pc, mc);
+}
+
+preCombatResult checkGreet() {
+    if (combatStarted) {
+        return preCombatResultNoResponse;
+    }
+    if (mc < pc) {
+        return preCombatResultGreet;
+    }
+    return preCombatResultBeginFight;
+}
+
+preCombatResult checkThreaten() {
+    if (mc < pc) {
+        return preCombatResultSurrender;
+    }
+    return combatStarted ? preCombatResultNoResponse
+                         : preCombatResultBeginFight;
+}
+
+preCombatResult checkBegForMercy() {
+    if (abs(mc - pc) < 10) {
+        return preCombatResultMercy;
+    }
+    return combatStarted ? preCombatResultNoResponse
+                         : preCombatResultBeginFight;
+}
+
+preCombatResult preCombatResultForChoice(byte choice) {
+
+    preCombatResult res;
+    updateCourage();
+
+    switch (choice) {
+    case 1:
+        return checkGreet();
+        break;
+
+    case 2: // threaten
+        return checkThreaten();
+        break;
+
+    case 3: // beg for mercy
+        return checkBegForMercy();
+        break;
+
+    case 4: // fight
+        return combatStarted ? preCombatResultNoResponse
+                             : preCombatResultBeginFight;
+        break;
+
+    case 5: // flee
+        if (drand(100) > 50) {
+            res= preCombatResultFleeSuccess;
+        } else {
+            res= preCombatResultFleeFailure;
+        }
+
+    default:
+        res= preCombatResultNoResponse;
+        break;
+    }
+
+    return res;
 }
 
 byte runPreCombat(void) {
     byte i, j;
     byte choice;
+    preCombatResult res;
     character *aChar;
-    static char *preEncounterMenu[]= {"greet", "threaten", "beg mercy",
-                                      "fight", "run",      ""};
 
     setupCombatScreen();
-    textcolor(COLOR_CYAN);
-    revers(1);
-    gotoxy(30, 14);
-    cputs("  party  ");
-    gotoxy(30, 15);
-    cputs(" options ");
-
-
     gotoxy(0, 0);
-    textcolor(COLOR_RED);
-    revers(1);
+    textcolor(COLOR_GRAY2);
     cputs("# ---Name--- Attacks  Hit pts  -Magics-");
-    textcolor(COLOR_GRAY3);
-    gotoxy(4, 7);
-    cputs(" dead ");
-    textcolor(COLOR_YELLOW);
-    gotoxy(11, 7);
-    cputs(" okay ");
-    textcolor(COLOR_BLUE);
-    gotoxy(18, 7);
-    cputs(" sleep ");
 
     // show party
     for (i= 0; i < partyMemberCount(); ++i) {
+        textcolor(aChar->aHP > 0 ? COLOR_GREEN : COLOR_RED);
         aChar= party[i];
-        textcolor(COLOR_YELLOW);
         gotoxy(0, 1 + i);
         printf("%d %s", i + 1, aChar->name);
         gotoxy(16, 1 + i);
@@ -154,14 +273,33 @@ byte runPreCombat(void) {
     }
 
     // show enemies
+    textcolor(COLOR_ORANGE);
+    gotoxy(0, 11);
+    puts("You are facing:");
+    textcolor(COLOR_LIGHTRED);
     for (i= 0; i < MONSTER_ROWS; i++) {
-        gotoxy(0, 24 - i);
-        textcolor(COLOR_GREEN);
-        if (getMonsterCountForRow(i)) {
-            cputs(statusLineForRow(i));
+        gotoxy(0, 12 + i);
+        if (getMonsterCountForRow(MONSTER_ROWS - i - 1)) {
+            cputs(statusLineForRow(MONSTER_ROWS - i - 1));
         }
     }
-    gotoxy(29, 8);
+    gotoxy(0, 16);
+    textcolor(COLOR_GREEN);
+    puts("1) greet  2) threaten  3) beg for mercy");
+    puts("4) fight  5) attempt to flee\n");
+    textcolor(COLOR_ORANGE);
+    do {
+ 
+        gotoxy(0, 18);
+        cputs("Your choice:");
+        cursor(1);
+        choice= cg_getkey() - '0';
+        cursor(0);
+        res= preCombatResultForChoice(choice);
+        signalPreCombatResult(res);
+        printf(" %d ==>%d  ", choice, res);
+    } while (1); // (choice == 0 || choice > 5);
+
     // return (cg_menu(11, COLOR_GRAY2, preEncounterMenu));
     return 0;
 }

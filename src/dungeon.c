@@ -397,8 +397,8 @@ int performSetregOpcode(opcode *anOpcode) {
     value= anOpcode->param2;
 
     if (regNr > 16) {
-        printf("??invalid register nr %d... quitting", regNr);
-        exit(0);
+        printf("??invalid register nr %d... bailing out", regNr);
+        while(1);
     }
 
     registers[regNr]= value;
@@ -1179,7 +1179,7 @@ void loadNewDungeon(void) {
     if (!desc) {
         puts("could not load dungeon ");
         puts(mfile);
-        exit(0);
+        while(1);
     }
 
     initLoadedDungeon();
@@ -1193,7 +1193,7 @@ void enterDungeonMode(byte reInitMap) {
         puts("entering outdoor mode");
     } else {
         puts("??unknown game mode in dungeon!");
-        exit(0);
+        while(1);
     }
     singleStepMode= false;
 #endif
