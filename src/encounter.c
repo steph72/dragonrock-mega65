@@ -109,8 +109,54 @@ void signalPreCombatResult(preCombatResult res) {
     sleep(1);
 }
 
+void showParty() {
+    byte i;
+    character *aChar;
+    gotoxy(0, 0);
+    textcolor(COLOR_GRAY2);
+    cputs("# ---Name--- Attacks  Hit pts  -Magics-");
+
+    // show party
+    for (i= 0; i < partyMemberCount(); ++i) {
+        textcolor(aChar->aHP > 0 ? COLOR_GREEN : COLOR_RED);
+        aChar= party[i];
+        gotoxy(0, 1 + i);
+        printf("%d %s", i + 1, aChar->name);
+        gotoxy(16, 1 + i);
+        printf("%d", getNumberOfAttacks(aChar));
+        gotoxy(23, 1 + i);
+        sprintf(drbuf, "%d/%d", aChar->aHP, aChar->aMaxHP);
+        if (strlen(drbuf) < 5) {
+            cputc(' ');
+        }
+        cputs(drbuf);
+        gotoxy(32, 1 + i);
+        sprintf(drbuf, "%d/%d", aChar->aMP, aChar->aMaxMP);
+        if (strlen(drbuf) < 5) {
+            cputc(' ');
+        }
+        cputs(drbuf);
+    }
+}
+
+void rollInitiative() {
+    byte i, j;
+    monster *aMonster;
+    char *aChar;
+    for (i= 0; i < MONSTER_ROWS; ++i) {
+        for (j= 0; j < getMonsterCountForRow(i); ++j) {
+            aMonster= gMonsterRows[i][j];
+            aMonster->initiative= drand(6);
+            printf("%d %d %s:%d\n",i,j,nameForMonsterID(aMonster->monsterDefID),
+                   aMonster->initiative);
+            cg_getkey();
+        }
+    }
+}
+
 encResult doFight() {
-    //TODO
+    rollInitiative();
+
     return encWon;
 }
 
@@ -119,9 +165,9 @@ encResult doEncounter() {
     combatStarted= false;
     res= runPreCombat();
     signalPreCombatResult(res);
-    if (res==preCombatResultBeginFight) {
+    if (res == preCombatResultBeginFight) {
         return doFight();
-    } else if (res==preCombatResultFleeSuccess) {
+    } else if (res == preCombatResultFleeSuccess) {
         return encFled;
     }
     clearMonsters();
@@ -140,7 +186,6 @@ void setupCombatScreen(void) {
 // ------------------ courage handling  ---------------------
 
 unsigned int mc, pc;
-
 
 unsigned int partyCourage() {
     byte i;
@@ -181,8 +226,8 @@ unsigned int monstersCourage() {
 void updateCourage() {
     mc= monstersCourage() + drand(50 * getMonsterCount());
     pc= partyCourage();
-           gotoxy(0, 22);
-        printf("pCourage, mCourage: %d, %d ", pc, mc);
+    gotoxy(0, 22);
+    printf("pCourage, mCourage: %d, %d ", pc, mc);
 }
 
 preCombatResult checkGreet() {
@@ -251,37 +296,11 @@ preCombatResult preCombatResultForChoice(byte choice) {
 }
 
 byte runPreCombat(void) {
-    byte i, j;
+    byte i;
     byte choice;
-    preCombatResult res;
-    character *aChar;
 
     setupCombatScreen();
-    gotoxy(0, 0);
-    textcolor(COLOR_GRAY2);
-    cputs("# ---Name--- Attacks  Hit pts  -Magics-");
-
-    // show party
-    for (i= 0; i < partyMemberCount(); ++i) {
-        textcolor(aChar->aHP > 0 ? COLOR_GREEN : COLOR_RED);
-        aChar= party[i];
-        gotoxy(0, 1 + i);
-        printf("%d %s", i + 1, aChar->name);
-        gotoxy(16, 1 + i);
-        printf("%d", getNumberOfAttacks(aChar));
-        gotoxy(23, 1 + i);
-        sprintf(drbuf, "%d/%d", aChar->aHP, aChar->aMaxHP);
-        if (strlen(drbuf) < 5) {
-            cputc(' ');
-        }
-        cputs(drbuf);
-        gotoxy(32, 1 + i);
-        sprintf(drbuf, "%d/%d", aChar->aMP, aChar->aMaxMP);
-        if (strlen(drbuf) < 5) {
-            cputc(' ');
-        }
-        cputs(drbuf);
-    }
+    showParty();
 
     // show enemies
     textcolor(COLOR_ORANGE);
@@ -294,24 +313,20 @@ byte runPreCombat(void) {
             cputs(statusLineForRow(MONSTER_ROWS - i - 1));
         }
     }
-    gotoxy(0, 16);
+    gotoxy(0, 20);
     textcolor(COLOR_GREEN);
     puts("1) greet  2) threaten  3) beg for mercy");
-    puts("4) fight  5) attempt to flee\n");
+    puts("4) fight  5) attempt to flee");
     textcolor(COLOR_ORANGE);
     do {
-        gotoxy(0, 18);
+        gotoxy(0, 22);
         cputs("Your choice:");
         cursor(1);
         choice= cg_getkey() - '0';
         cursor(0);
-        res= preCombatResultForChoice(choice);
-        signalPreCombatResult(res);
-        // tf(" %d ==>%d  ", choice, res);
-    } while (1); // (choice == 0 || choice > 5);
+    } while (choice == 0 || choice > 5);
 
     return preCombatResultForChoice(choice);
-
 }
 
 // clang-format off

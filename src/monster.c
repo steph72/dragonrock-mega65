@@ -3,7 +3,6 @@
 #include "utils.h"
 
 monster *gMonsterRows[MONSTER_ROWS][MONSTER_SLOTS];
-monster *gMonsterRoster[MONSTER_SLOTS * MONSTER_ROWS];
 
 char monsterNameBuf[32];
 
@@ -46,30 +45,10 @@ char *pluralNameForMonsterID(unsigned int id) {
     return monsterNameBuf;
 }
 
-void _initMonsterRoster(byte dealloc) {
-    byte i;
-    for (i= 0; i < MONSTER_ROWS * MONSTER_SLOTS; i++) {
-        if (dealloc && gMonsterRoster[i]) {
-            free(gMonsterRoster[i]);
-        }
-        gMonsterRoster[i]= NULL;
-    }
-}
 
-void _addMonsterToRoster(monster *aMonster) {
-    byte i;
-    for (i= 0; i < MONSTER_ROWS * MONSTER_SLOTS; i++) {
-        if (!gMonsterRoster[i]) {
-            gMonsterRoster[i]= aMonster;
-            return;
-        }
-    }
-    printf("?no more space in monster roster");
-}
 
 void _initMonsterRows(byte dealloc) {
     byte i, j;
-    _initMonsterRoster(dealloc);
     for (i= 0; i < MONSTER_ROWS; ++i) {
         for (j= 0; j < MONSTER_SLOTS; ++j) {
             gMonsterRows[i][j]= NULL;
@@ -87,7 +66,6 @@ void addMonster(monster *aMonster, byte row) {
             gMonsterRows[row][i]= aMonster;
             aMonster->row= row;
             aMonster->column= i;
-            _addMonsterToRoster(aMonster);
             return;
         }
     }
@@ -96,7 +74,7 @@ void addMonster(monster *aMonster, byte row) {
         ;
 }
 
-// clear monster roster
+// clear monsters
 void clearMonsters(void) { _initMonsterRows(true); }
 
 // create a monster with given ID and level
