@@ -167,23 +167,34 @@ character *getRandomCharacter() {
 encResult doMonsterTurn(monster *aMonster) {
     character *aChar;
     byte hitRoll;
+    byte isHit;
     byte isCritical;
+    byte isCriticalFailure;
+    signed char destinationAC;
+
     monsterDef *def= monsterDefForMonster(aMonster);
     // TODO: charmed and sleep state
     if (aMonster->status != awake) {
         return encFight;
     }
     aChar= getRandomCharacter();
+    destinationAC = getArmorClassForCharacter(aChar);
+    hitRoll= 1 + drand(20);
+    isCritical= (hitRoll == 20);
+    isCriticalFailure= (hitRoll == 0);
+    hitRoll+= def->hitModifier;
     cputs(nameForMonsterID(aMonster->monsterDefID));
     cputs(" attacks ");
     cputs(aChar->name);
-    hitRoll= 1 + drand(20);
-    isCritical= (hitRoll == 20);
-    hitRoll+= def->hitModifier;
-    printf("\n%d (AC %d) \n", hitRoll, 20 - hitRoll);
+    printf("\n%d (AC %d, dest AC %d)\n", hitRoll, 20 - hitRoll,destinationAC);
     if (isCritical) {
         cputs("and critically hits ");
     }
+    if (isCriticalFailure) {
+        cputs("and critically fails, ");
+
+    }
+    cputs("\r\n");
     sleep(1);
     return encFight;
 }
@@ -202,6 +213,7 @@ encResult doFight() {
     byte i, j;
     rollInitiative();
     while (1) {
+        clrscr();
         for (currentInitiative= 64; currentInitiative > -64;
              --currentInitiative) {
             // check if monster's turn
