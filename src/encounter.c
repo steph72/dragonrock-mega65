@@ -142,22 +142,88 @@ void showParty() {
 void rollInitiative() {
     byte i, j;
     monster *aMonster;
-    char *aChar;
+    character *aChar;
     for (i= 0; i < MONSTER_ROWS; ++i) {
         for (j= 0; j < getMonsterCountForRow(i); ++j) {
             aMonster= gMonsterRows[i][j];
-            aMonster->initiative= drand(6);
-            printf("%d %d %s:%d\n",i,j,nameForMonsterID(aMonster->monsterDefID),
-                   aMonster->initiative);
-            cg_getkey();
+            aMonster->initiative= 1 + drand(32);
         }
+    }
+    for (i= 0; i < partyMemberCount(); ++i) {
+        aChar= party[i];
+        aChar->initiative=
+            1 + drand(32) + bonusValueForAttribute(aChar->attributes[aDEX]);
     }
 }
 
-encResult doFight() {
-    rollInitiative();
+encResult doMonsterTurn(monster *aMonster) {
+    printf("%x %s:%d\n", aMonster, nameForMonsterID(aMonster->monsterDefID),
+           aMonster->initiative);
+    return encFight;
+}
 
-    return encWon;
+encResult doCharacterTurn(character *aChar) {
+    printf("%x %s:%d (%d)\n", aChar, aChar->name, aChar->initiative,
+           bonusValueForAttribute(aChar->attributes[aDEX]));
+    return encFight;
+}
+
+encResult doFight() {
+    signed char currentInitiative;
+    monster *aMonster;
+    character *aChar;
+    encResult res;
+    byte i, j;
+    rollInitiative();
+    while (1) {
+        for (currentInitiative= 64; currentInitiative > -64;
+             --currentInitiative) {
+            // check if monster's turn
+            for (i= 0; i < MONSTER_ROWS; ++i) {
+                for (j= 0; j < MONSTER_SLOTS; ++j) {
+                    aMonster= gMonsterRows[i][j];
+                    if (aMonster && aMonster->initiative == currentInitiative) {
+                        res= doMonsterTurn(aMonster);
+                        if (res != encFight) {
+                            return res;
+                        }
+                    }
+                }
+            }
+            // check if character's turn
+            for (i= 0; i < partyMemberCount(); ++i) {
+                aChar= party[i];
+                if (aChar->initiative == currentInitiative) {
+                    res= doCharacterTurn(aChar);
+                    if (res != encFight) {
+                        return res;
+                    }
+                }
+            }
+        }
+        cg_getkey();
+        res= runPreCombat();
+        if (res != preCombatResultBeginFight) {
+            signalPreCombatResult(res);
+        }
+
+        switch (res) {
+        case preCombatResultFleeSuccess:
+            return encFled;
+            break;
+
+        case preCombatResultMercy:
+            return encMercy;
+            break;
+
+        case preCombatResultSurrender:
+            return encSurrender;
+            break;
+
+        default:
+            break;
+        }
+    }
 }
 
 encResult doEncounter() {
@@ -165,7 +231,7 @@ encResult doEncounter() {
     combatStarted= false;
     res= runPreCombat();
     signalPreCombatResult(res);
-    if (res == preCombatResultBeginFight) {
+    if (res == preCombatResultBeginFight || res == preCombatResultFleeFailure) {
         return doFight();
     } else if (res == preCombatResultFleeSuccess) {
         return encFled;
@@ -262,24 +328,24 @@ preCombatResult preCombatResultForChoice(byte choice) {
     updateCourage();
 
     switch (choice) {
-    case 1:
+    case 'g':
         return checkGreet();
         break;
 
-    case 2: // threaten
+    case 't': // threaten
         return checkThreaten();
         break;
 
-    case 3: // beg for mercy
+    case 'b': // beg for mercy
         return checkBegForMercy();
         break;
 
-    case 4: // fight
+    case 'f': // fight
         return combatStarted ? preCombatResultNoResponse
                              : preCombatResultBeginFight;
         break;
 
-    case 5: // flee
+    case 'r': // flee
         if (drand(100) > 50) {
             res= preCombatResultFleeSuccess;
         } else {
@@ -315,16 +381,16 @@ byte runPreCombat(void) {
     }
     gotoxy(0, 20);
     textcolor(COLOR_GREEN);
-    puts("1) greet  2) threaten  3) beg for mercy");
-    puts("4) fight  5) attempt to flee");
+    puts("g)reet  t)hreaten  b)eg for mercy");
+    puts("f)ight  r)un away");
     textcolor(COLOR_ORANGE);
     do {
         gotoxy(0, 22);
         cputs("Your choice:");
         cursor(1);
-        choice= cg_getkey() - '0';
+        choice= cg_getkey();
         cursor(0);
-    } while (choice == 0 || choice > 5);
+    } while (strchr("gtbfr", choice) == NULL);
 
     return preCombatResultForChoice(choice);
 }
