@@ -156,15 +156,41 @@ void rollInitiative() {
     }
 }
 
+character *getRandomCharacter() {
+    character *retChar;
+    do {
+        retChar= party[drand(partyMemberCount())];
+    } while (retChar->status == 3);
+    return retChar;
+}
+
 encResult doMonsterTurn(monster *aMonster) {
-    printf("%x %s:%d\n", aMonster, nameForMonsterID(aMonster->monsterDefID),
-           aMonster->initiative);
+    character *aChar;
+    byte hitRoll;
+    byte isCritical;
+    monsterDef *def= monsterDefForMonster(aMonster);
+    // TODO: charmed and sleep state
+    if (aMonster->status != awake) {
+        return encFight;
+    }
+    aChar= getRandomCharacter();
+    cputs(nameForMonsterID(aMonster->monsterDefID));
+    cputs(" attacks ");
+    cputs(aChar->name);
+    hitRoll= 1 + drand(20);
+    isCritical= (hitRoll == 20);
+    hitRoll+= def->hitModifier;
+    printf("\n%d (AC %d) \n", hitRoll, 20 - hitRoll);
+    if (isCritical) {
+        cputs("and critically hits ");
+    }
+    sleep(1);
     return encFight;
 }
 
 encResult doCharacterTurn(character *aChar) {
-    printf("%x %s:%d (%d)\n", aChar, aChar->name, aChar->initiative,
-           bonusValueForAttribute(aChar->attributes[aDEX]));
+    // printf("%x %s:%d (%d)\n", aChar, aChar->name, aChar->initiative,
+    //       bonusValueForAttribute(aChar->attributes[aDEX]));
     return encFight;
 }
 

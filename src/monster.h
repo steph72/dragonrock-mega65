@@ -15,6 +15,9 @@ monsterDef *monsterDefForID(unsigned int id);
 char *nameForMonsterDef(monsterDef *aDef);
 char *nameForMonsterID(unsigned int id);
 char *pluralNameForMonsterID(unsigned int id);
+char *nameForMonster(monster *aMonster);
+char *pluralNameForMonster(monster *aMonster);
+monsterDef *monsterDefForMonster(monster *aMonster);
 
 
 void clearMonsters(void);

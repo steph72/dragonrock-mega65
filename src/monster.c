@@ -20,6 +20,10 @@ monsterDef *monsterDefForID(unsigned int id) {
     return NULL;
 }
 
+monsterDef *monsterDefForMonster(monster *aMonster) {
+    return monsterDefForID(aMonster->monsterDefID);
+}
+
 char *nameForMonsterDef(monsterDef *aDef) {
     lcopy((long)MONSTERS_BASE + (aDef->namePtr), (long)monsterNameBuf, 32);
     return monsterNameBuf;
@@ -34,6 +38,10 @@ char *nameForMonsterID(unsigned int id) {
     return nameForMonsterDef(monsterDefForID(id));
 }
 
+char *nameForMonster(monster *aMonster) {
+    return nameForMonsterID(aMonster->monsterDefID);
+}
+
 char *pluralNameForMonsterID(unsigned int id) {
     monsterDef *aDef= monsterDefForID(id);
     if (aDef->pluralnamePtr) {
@@ -43,6 +51,10 @@ char *pluralNameForMonsterID(unsigned int id) {
         strcat(monsterNameBuf,"s");
     }
     return monsterNameBuf;
+}
+
+char *pluralNameForMonster(monster *aMonster) {
+    return pluralNameForMonsterID(aMonster->monsterDefID);
 }
 
 

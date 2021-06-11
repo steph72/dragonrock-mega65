@@ -53,13 +53,13 @@
         spriteID: 0xa0
         monsterType: [mt_humanoid,mt_unique]
         name: "Lukasz"
-        AC: 3
+        AC: 8
         hitDice: 12
         hitPoints: 6
         magPoints: 0
         numAttacks: 2
         courageMod: 5
-        hitMod: 0
+        hitMod: 1
         attackTypes: [at_fists,at_weapon]
         xpValue: 20
 
