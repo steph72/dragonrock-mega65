@@ -9,13 +9,13 @@
         name: "Noob"
         pluralName: "Noobs"
         AC: 10
-        hitDice: 6
         hitPoints: 6
         magPoints: 0
-        numAttacks: 0
         courageMod: 0
-        hitMod: 0
-        attackTypes: [at_fists, at_weapon]
+        attackTypes: [at_weapon]
+        minDamage: [1]
+        maxDamage: [4]
+        hitModifier: [0]
         xpValue: 1
       
       - id: 0x01
@@ -24,13 +24,13 @@
         monsterType: [mt_humanoid]
         name: "Kobold"
         AC: 9
-        hitDice: 6
         hitPoints: 6
         magPoints: 0
-        numAttacks: 0
         courageMod: -1
-        hitMod: 0
-        attackTypes: [at_fists, at_weapon]
+        attackTypes: [at_weapon]
+        minDamage: [1]
+        maxDamage: [5]
+        hitModifier: [0]
         xpValue: 10
 
       - id: 0x02
@@ -39,13 +39,14 @@
         monsterType: [mt_humanoid]
         name: "Pig rider"
         AC: 9
-        hitDice: 6
         hitPoints: 6
         magPoints: 0
-        numAttacks: 0
+        numAttacks: 1
         courageMod: 0
-        hitMod: 0
-        attackTypes: [at_fists, at_weapon]
+        attackTypes: [at_weapon]
+        minDamage: [1]
+        maxDamage: [4]
+        hitModifier: [0]
         xpValue: 2
 
       - id: 0xa0
@@ -54,13 +55,13 @@
         monsterType: [mt_humanoid,mt_unique]
         name: "Lukasz"
         AC: 8
-        hitDice: 12
         hitPoints: 6
         magPoints: 0
-        numAttacks: 2
         courageMod: 5
-        hitMod: 1
         attackTypes: [at_fists,at_weapon]
+        minDamage: [1,1]
+        maxDamage: [3,4]
+        hitModifier: [0,0]
         xpValue: 20
 
       - id: 0xc0
@@ -69,11 +70,11 @@
         monsterType: [mt_magical,mt_unique]
         name: "Obezna, Dragon of Mistrust"
         AC: 3
-        hitDice: 12
         hitPoints: 12
         magPoints: 14
-        numAttacks: 4
         courageMod: 2
-        hitMod: 3
-        attackTypes: [at_claws, at_breath, at_ice]
+        attackTypes: [at_claws, at_claws, at_ice]
+        minDamage: [1,1,2]
+        maxDamage: [6,6,12]
+        hitModifier: [1,1,0]
         xpValue: 900

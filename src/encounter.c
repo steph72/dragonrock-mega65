@@ -118,8 +118,8 @@ void showParty() {
 
     // show party
     for (i= 0; i < partyMemberCount(); ++i) {
-        textcolor(aChar->aHP > 0 ? COLOR_GREEN : COLOR_RED);
         aChar= party[i];
+        textcolor(aChar->aHP > 0 ? COLOR_GREEN : COLOR_RED);
         gotoxy(0, 1 + i);
         printf("%d %s", i + 1, aChar->name);
         gotoxy(16, 1 + i);
@@ -160,16 +160,37 @@ character *getRandomCharacter() {
     character *retChar;
     do {
         retChar= party[drand(partyMemberCount())];
-    } while (retChar->status == 3);
+    } while (retChar->status == dead || retChar->status == down);
     return retChar;
+}
+
+void updateMonsterStatus(monster *aMonster) {
+    // TODO
+}
+
+void updateCharacterStatus(character *aChar) {
+    if (aChar->aHP == 0 ||
+        (aChar->aHP < 0 &&
+         aChar->aHP >= bonusValueForAttribute(aChar->attributes[aCON]))) {
+        printf("\n%s goes down.\n", aChar->name);
+        aChar->status= down;
+        return;
+    }
+
+    if (aChar->aHP < 0) {
+        printf("\n%s dies!\n", aChar->name);
+        aChar->status= dead;
+    }
 }
 
 encResult doMonsterTurn(monster *aMonster) {
     character *aChar;
+    byte i;
     byte hitRoll;
-    byte isHit;
     byte isCritical;
     byte isCriticalFailure;
+    unsigned int damage;
+    signed char acHit;
     signed char destinationAC;
 
     monsterDef *def= monsterDefForMonster(aMonster);
@@ -177,25 +198,46 @@ encResult doMonsterTurn(monster *aMonster) {
     if (aMonster->status != awake) {
         return encFight;
     }
-    aChar= getRandomCharacter();
-    destinationAC = getArmorClassForCharacter(aChar);
-    hitRoll= 1 + drand(20);
-    isCritical= (hitRoll == 20);
-    isCriticalFailure= (hitRoll == 0);
-    hitRoll+= def->hitModifier;
-    cputs(nameForMonsterID(aMonster->monsterDefID));
-    cputs(" attacks ");
-    cputs(aChar->name);
-    printf("\n%d (AC %d, dest AC %d)\n", hitRoll, 20 - hitRoll,destinationAC);
-    if (isCritical) {
-        cputs("and critically hits ");
-    }
-    if (isCriticalFailure) {
-        cputs("and critically fails, ");
 
+    for (i= 0; i < def->numAttacks; ++i) {
+
+        aChar= getRandomCharacter();
+        destinationAC= getArmorClassForCharacter(aChar);
+        hitRoll= 1 + drand(20);
+        isCritical= (hitRoll == 20);
+        isCriticalFailure= (hitRoll == 1);
+        hitRoll+= def->hitModifier;
+        acHit= 20 - hitRoll;
+        printf("%s attacks %s\nand ", nameForMonsterID(aMonster->monsterDefID),
+               aChar->name);
+        // printf("(roll %d, AC %d, dest AC %d)\n", hitRoll,
+        // acHit,destinationAC);
+
+        damage= 1 + drand(def->hitDice + def->hitModifier);
+
+        if (acHit > destinationAC) {
+            if (isCriticalFailure) {
+                printf(
+                    "critically misses,\ngetting hurt for %d points of damage.",
+                    damage);
+                aMonster->hp-= damage;
+                updateMonsterStatus(aMonster);
+            } else {
+                printf("misses.");
+            }
+        } else {
+            if (isCritical) {
+                damage*= 2;
+                printf("critically hits for\n%d points of damage.", damage);
+            } else {
+                printf("hits for %d points of damage.", damage);
+            }
+            aChar->aHP-= damage;
+            updateCharacterStatus(aChar);
+        }
+        printf("\n\n");
+        sleep(1);
     }
-    cputs("\r\n");
-    sleep(1);
     return encFight;
 }
 

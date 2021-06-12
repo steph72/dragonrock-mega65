@@ -73,9 +73,10 @@ def reduce(aMonster):
         names.append(i["pluralName"])
         i["pluralName"] = len(names)-1
 
-    atype = 0
+    atype = []
     for at in i["attackTypes"]:
-        atype += attackTypes[at]
+        atype.append(attackTypes[at])
+    
     i["attackTypes"] = atype
 
     mtype = 0
@@ -83,6 +84,19 @@ def reduce(aMonster):
         mtype += monsterType[mt]
     i["monsterType"] = mtype
 
+    while len(i["attackTypes"])<4:
+        i["attackTypes"].append(0)
+
+    while len(i["minDamage"])<4:
+        i["minDamage"].append(0)
+
+    while len(i["maxDamage"])<4:
+        i["maxDamage"].append(0)
+
+    while len(i["hitModifier"])<4:
+        i["hitModifier"].append(0)
+        
+    print (i)
     return i
 
 
@@ -131,6 +145,9 @@ def toMonsters(data):
             outbytes.append(i["AC"]+256)            #  9 : armor class
         else:
             outbytes.append(i["AC"])
+        for c in range(4):
+            outbytes.append(i["minDamage"][i])
+
         outbytes.append(i["hitDice"])               # 10 : hit dice
         outbytes.append(i["hitPoints"])             # 11 : hit points per level
         outbytes.append(i["magPoints"])             # 12 : mag points per level

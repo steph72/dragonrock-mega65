@@ -123,6 +123,12 @@ typedef enum _attackType {
     at_fire= 0x80
 } attackType;
 
+typedef enum _spellClass {
+    sc_priest = 0x01,
+    sc_necromancer = 0x02,
+    sc_battlemage = 0x04
+} spellClassT;
+
 typedef struct _cityCoords {
     byte mapNr;
     byte x;
@@ -176,14 +182,15 @@ typedef struct _monsterDef {
     unsigned int namePtr;               // 5-6
     unsigned int pluralnamePtr;         // 7-8
     signed char armorClass;             // 9
-    byte hitDice;                       // 10  
-    byte hpPerLevel;                    // 11
-    byte mpPerLevel;                    // 12
-    byte numAttacks;                    // 13
-    signed char courageModifier;        // 14
-    signed char hitModifier;            // 15
-    attackType aType;                   // 16
-    int xpBaseValue;                    // 17-18
+    byte minDmg[4];                     // 10-13
+    byte maxDmg[4];                     // 14-17
+    signed char hitModifier[4];         // 18-21
+    attackType aType[4];                // 22-25
+    byte hpPerLevel;                    // 26
+    byte mpPerLevel;                    // 27
+    signed char courageModifier;        // 28
+    spellClassT spellClass;             // 29 
+    int xpBaseValue;                    // 30-31
 } monsterDef;
 
 typedef struct monster {
