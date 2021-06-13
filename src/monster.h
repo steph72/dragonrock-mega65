@@ -18,6 +18,7 @@ char *pluralNameForMonsterID(unsigned int id);
 char *nameForMonster(monster *aMonster);
 char *pluralNameForMonster(monster *aMonster);
 monsterDef *monsterDefForMonster(monster *aMonster);
+byte getNumberOfMonsterAttacks(monster *aMonster);
 
 
 void clearMonsters(void);

@@ -20,6 +20,18 @@ monsterDef *monsterDefForID(unsigned int id) {
     return NULL;
 }
 
+byte getNumberOfMonsterAttacks(monster *aMonster) {
+    byte i;
+    byte num = 0;
+    monsterDef *def = monsterDefForMonster(aMonster);
+    for (i=0;i<4;++i) {
+        if (def->aType[i]!=0) {
+            num++;
+        }
+    }
+    return num;
+}
+
 monsterDef *monsterDefForMonster(monster *aMonster) {
     return monsterDefForID(aMonster->monsterDefID);
 }

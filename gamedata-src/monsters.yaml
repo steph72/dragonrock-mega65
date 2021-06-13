@@ -77,4 +77,5 @@
         minDamage: [1,1,2]
         maxDamage: [6,6,12]
         hitModifier: [1,1,0]
+        spellClass: [sc_battlemage]
         xpValue: 900

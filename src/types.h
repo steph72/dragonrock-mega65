@@ -182,10 +182,10 @@ typedef struct _monsterDef {
     unsigned int namePtr;               // 5-6
     unsigned int pluralnamePtr;         // 7-8
     signed char armorClass;             // 9
-    byte minDmg[4];                     // 10-13
-    byte maxDmg[4];                     // 14-17
-    signed char hitModifier[4];         // 18-21
-    attackType aType[4];                // 22-25
+    attackType aType[4];                // 10-13
+    byte minDmg[4];                     // 14-17
+    byte maxDmg[4];                     // 18-21
+    signed char hitModifier[4];         // 22-25
     byte hpPerLevel;                    // 26
     byte mpPerLevel;                    // 27
     signed char courageModifier;        // 28

@@ -192,28 +192,30 @@ encResult doMonsterTurn(monster *aMonster) {
     unsigned int damage;
     signed char acHit;
     signed char destinationAC;
-
+    byte numAttacks= getNumberOfMonsterAttacks(aMonster);
     monsterDef *def= monsterDefForMonster(aMonster);
+
     // TODO: charmed and sleep state
     if (aMonster->status != awake) {
         return encFight;
     }
 
-    for (i= 0; i < def->numAttacks; ++i) {
+    for (i= 0; i < numAttacks; ++i) {
 
         aChar= getRandomCharacter();
         destinationAC= getArmorClassForCharacter(aChar);
         hitRoll= 1 + drand(20);
         isCritical= (hitRoll == 20);
         isCriticalFailure= (hitRoll == 1);
-        hitRoll+= def->hitModifier;
+        hitRoll+= def->hitModifier[i];
         acHit= 20 - hitRoll;
         printf("%s attacks %s\nand ", nameForMonsterID(aMonster->monsterDefID),
                aChar->name);
         // printf("(roll %d, AC %d, dest AC %d)\n", hitRoll,
         // acHit,destinationAC);
 
-        damage= 1 + drand(def->hitDice + def->hitModifier);
+        damage= def->minDmg[i] + drand(def->maxDmg[i] - def->minDmg[i]) +
+                def->hitModifier[i];
 
         if (acHit > destinationAC) {
             if (isCriticalFailure) {

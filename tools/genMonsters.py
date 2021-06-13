@@ -12,6 +12,12 @@ monsterType = {
     "mt_unique": 128
 }
 
+spellClass = {
+    "sc_priest": 1,
+    "sc_necromancer": 2,
+    "sc_battlemage": 4
+}
+
 attackTypes = {
     "at_fists": 1,
     "at_weapon": 2,
@@ -84,6 +90,12 @@ def reduce(aMonster):
         mtype += monsterType[mt]
     i["monsterType"] = mtype
 
+    sclass = 0
+    if "spellClass" in i:
+       for sc in i["spellClass"]:
+            sclass += spellClass[sc]
+    i["spellClass"] = sclass
+
     while len(i["attackTypes"])<4:
         i["attackTypes"].append(0)
 
@@ -95,7 +107,7 @@ def reduce(aMonster):
 
     while len(i["hitModifier"])<4:
         i["hitModifier"].append(0)
-        
+
     print (i)
     return i
 
@@ -116,7 +128,7 @@ def toMonsters(data):
     # assuming one item definition = 10 bytes
 
     itemMarker = "DRMONST0"
-    monsterRecordLength = 19   # IMPORTANT: Keep in sync with C struct!!
+    monsterRecordLength = 32   # IMPORTANT: Keep in sync with C struct!!
 
     stringsBase = len(itemMarker)+(len(monsters)*monsterRecordLength)
     # print("Strings base is", hex(stringsBase))
@@ -132,37 +144,40 @@ def toMonsters(data):
             i["pluralName"] = 0
 
         # print(i)
-        outbytes.append(i["id"] % 256)              #  0 : id
-        outbytes.append(i["id"]//256)               #  1 :
+        outbytes.append(i["id"] % 256)              #  0-1 : id
+        outbytes.append(i["id"]//256)               #  
         outbytes.append(i["defaultLevel"])          #  2 : defaultLevel
         outbytes.append(i["spriteID"])              #  3 : spriteID
         outbytes.append(i["monsterType"])           #  4 : monster type
-        outbytes.append(i["name"] % 256)            #  5 : monster name
-        outbytes.append(i["name"]//256)             #  6 :
-        outbytes.append(i["pluralName"] % 256)      #  7 : plural name
-        outbytes.append(i["pluralName"]//256)       #  8 :
+        outbytes.append(i["name"] % 256)            #  5-6 : monster name
+        outbytes.append(i["name"]//256)             #  
+        outbytes.append(i["pluralName"] % 256)      #  7-8 : plural name
+        outbytes.append(i["pluralName"]//256)       #  
         if i["AC"] < 0:
             outbytes.append(i["AC"]+256)            #  9 : armor class
         else:
             outbytes.append(i["AC"])
-        for c in range(4):
-            outbytes.append(i["minDamage"][i])
-
-        outbytes.append(i["hitDice"])               # 10 : hit dice
-        outbytes.append(i["hitPoints"])             # 11 : hit points per level
-        outbytes.append(i["magPoints"])             # 12 : mag points per level
-        outbytes.append(i["numAttacks"])            # 13 : num attacks
+        for c in i["attackTypes"]:                  # 10-13: attackTypes
+            outbytes.append(c)
+        for c in i["minDamage"]:                    # 14-17: minDamage
+            outbytes.append(c)
+        for c in i["maxDamage"]:                    # 18-21: maxDamage 
+            outbytes.append(c)
+        for c in i["hitModifier"]:                  # 22-25: hitModifier
+            if (c<0):
+                outbytes.append(c+256)             
+            else:
+                outbytes.append(c)
+        outbytes.append(i["hitPoints"])             # 26 : hit points per level
+        outbytes.append(i["magPoints"])             # 27 : mag points per level
         if i["courageMod"] < 0:
-            outbytes.append(i["courageMod"]+256)    # 14 : courage modifier
+            outbytes.append(i["courageMod"]+256)    # 28 : courage modifier
         else:
             outbytes.append(i["courageMod"])
-        if i["hitMod"] < 0:
-            outbytes.append(i["hitMod"]+256)        # 15 : hit modifier
-        else:
-            outbytes.append(i["hitMod"])
-        outbytes.append(i["attackTypes"])           # 16 : attack types
-        outbytes.append(i["xpValue"] % 256)         # 17 : plural name
-        outbytes.append(i["xpValue"]//256)          # 18 :
+        outbytes.append(i["spellClass"])            # 29 : spell class
+
+        outbytes.append(i["xpValue"] % 256)         # 30-31 : xp value
+        outbytes.append(i["xpValue"]//256)
 
     outbytes.extend(descbytes)
 
