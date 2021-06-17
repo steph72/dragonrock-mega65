@@ -26,7 +26,7 @@ attackTypes = {
     "at_claws": 16,
     "at_drain": 32,
     "at_breath": 64,
-    "at_reserved": 128
+    "at_spell": 128
 }
 
 def read(aFilename):
@@ -143,7 +143,7 @@ def toMonsters(data):
         else:
             i["pluralName"] = 0
 
-        # print(i)
+        print(i)
         outbytes.append(i["id"] % 256)              #  0-1 : id
         outbytes.append(i["id"]//256)               #  
         outbytes.append(i["defaultLevel"])          #  2 : defaultLevel
@@ -158,6 +158,7 @@ def toMonsters(data):
         else:
             outbytes.append(i["AC"])
         for c in i["attackTypes"]:                  # 10-13: attackTypes
+            print(c)
             outbytes.append(c)
         for c in i["minDamage"]:                    # 14-17: minDamage
             outbytes.append(c)

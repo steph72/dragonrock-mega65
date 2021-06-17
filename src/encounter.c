@@ -114,28 +114,41 @@ void showParty() {
     character *aChar;
     gotoxy(0, 0);
     textcolor(COLOR_GRAY2);
-    cputs("# ---Name--- Attacks  Hit pts  -Magics-");
-
+    cputs("# Name          Att HP      MP   Status");
     // show party
     for (i= 0; i < partyMemberCount(); ++i) {
+        textcolor(COLOR_GREEN);
         aChar= party[i];
-        textcolor(aChar->aHP > 0 ? COLOR_GREEN : COLOR_RED);
         gotoxy(0, 1 + i);
         printf("%d %s", i + 1, aChar->name);
-        gotoxy(16, 1 + i);
+        gotoxy(17, 1 + i);
         printf("%d", getNumberOfAttacks(aChar));
-        gotoxy(23, 1 + i);
+        gotoxy(19, 1 + i);
         sprintf(drbuf, "%d/%d", aChar->aHP, aChar->aMaxHP);
         if (strlen(drbuf) < 5) {
             cputc(' ');
         }
         cputs(drbuf);
-        gotoxy(32, 1 + i);
+        gotoxy(27, 1 + i);
         sprintf(drbuf, "%d/%d", aChar->aMP, aChar->aMaxMP);
         if (strlen(drbuf) < 5) {
             cputc(' ');
         }
         cputs(drbuf);
+        gotoxy(33, 1 + i);
+        if (aChar->status == down) {
+            textcolor(COLOR_VIOLET);
+            printf("down");
+        } else if (aChar->status == dead) {
+            textcolor(COLOR_RED);
+            printf("dead");
+        } else if (aChar->status == sleep) {
+            textcolor(COLOR_LIGHTBLUE);
+            printf("asleep");
+        } else {
+            textcolor(COLOR_GREEN);
+            printf("ok");
+        }
     }
 }
 
@@ -166,6 +179,10 @@ character *getRandomCharacter() {
 
 void updateMonsterStatus(monster *aMonster) {
     // TODO
+    if (aMonster->hp <= 0) {
+        aMonster->status= dead;
+        printf("%s dies.\n", nameForMonster(aMonster));
+    }
 }
 
 void updateCharacterStatus(character *aChar) {
@@ -183,15 +200,73 @@ void updateCharacterStatus(character *aChar) {
     }
 }
 
-encResult doMonsterTurn(monster *aMonster) {
-    character *aChar;
-    byte i;
+static char *dtDefault= "";
+static char *dtFrost= "cold ";
+static char *dtFire= "fire ";
+
+void monsterAttackSingleCharacter(monster *aMonster, character *aChar,
+                                  byte attackTypeIndex) {
+
     byte hitRoll;
     byte isCritical;
     byte isCriticalFailure;
     unsigned int damage;
     signed char acHit;
     signed char destinationAC;
+    monsterDef *def; 
+    attackType type; 
+    char *damageType;
+
+    def = monsterDefForMonster(aMonster);
+    type = def->aType[attackTypeIndex];
+    damageType = dtDefault;
+
+    if (type == at_fire) {
+        damageType = dtFire;
+    } else if (type == at_ice) {
+        damageType = dtFrost;
+    } 
+    destinationAC= getArmorClassForCharacter(aChar);
+    hitRoll= 1 + drand(20);
+    isCritical= (hitRoll == 20);
+    isCriticalFailure= (hitRoll == 1);
+    hitRoll+= def->hitModifier[attackTypeIndex];
+    acHit= 20 - hitRoll;
+    printf("%s attacks %s\nand ", nameForMonsterID(aMonster->monsterDefID),
+           aChar->name);
+    // printf("(roll %d, AC %d, dest AC %d)\n", hitRoll,
+    // acHit,destinationAC);
+
+    damage= def->minDmg[attackTypeIndex] +
+            drand(def->maxDmg[attackTypeIndex] - def->minDmg[attackTypeIndex]) +
+            def->hitModifier[attackTypeIndex];
+
+    if (acHit > destinationAC) {
+        if (isCriticalFailure) {
+            printf("critically misses,\ngetting hurt for %d points of "
+                   "damage.",
+                   damage);
+            aMonster->hp-= damage;
+            updateMonsterStatus(aMonster);
+        } else {
+            printf("misses.");
+        }
+    } else {
+        if (isCritical) {
+            damage*= 2;
+            printf("critically hits for\n%d points of %sdamage.", damage, damageType);
+        } else {
+            printf("hits for %d points of %sdamage.", damage, damageType);
+        }
+        aChar->aHP-= damage;
+        updateCharacterStatus(aChar);
+    }
+}
+
+encResult doMonsterTurn(monster *aMonster) {
+    character *aChar;
+    byte i;
+
     byte numAttacks= getNumberOfMonsterAttacks(aMonster);
     monsterDef *def= monsterDefForMonster(aMonster);
 
@@ -201,42 +276,8 @@ encResult doMonsterTurn(monster *aMonster) {
     }
 
     for (i= 0; i < numAttacks; ++i) {
-
         aChar= getRandomCharacter();
-        destinationAC= getArmorClassForCharacter(aChar);
-        hitRoll= 1 + drand(20);
-        isCritical= (hitRoll == 20);
-        isCriticalFailure= (hitRoll == 1);
-        hitRoll+= def->hitModifier[i];
-        acHit= 20 - hitRoll;
-        printf("%s attacks %s\nand ", nameForMonsterID(aMonster->monsterDefID),
-               aChar->name);
-        // printf("(roll %d, AC %d, dest AC %d)\n", hitRoll,
-        // acHit,destinationAC);
-
-        damage= def->minDmg[i] + drand(def->maxDmg[i] - def->minDmg[i]) +
-                def->hitModifier[i];
-
-        if (acHit > destinationAC) {
-            if (isCriticalFailure) {
-                printf(
-                    "critically misses,\ngetting hurt for %d points of damage.",
-                    damage);
-                aMonster->hp-= damage;
-                updateMonsterStatus(aMonster);
-            } else {
-                printf("misses.");
-            }
-        } else {
-            if (isCritical) {
-                damage*= 2;
-                printf("critically hits for\n%d points of damage.", damage);
-            } else {
-                printf("hits for %d points of damage.", damage);
-            }
-            aChar->aHP-= damage;
-            updateCharacterStatus(aChar);
-        }
+        monsterAttackSingleCharacter(aMonster, aChar, i);
         printf("\n\n");
         sleep(1);
     }
@@ -255,6 +296,7 @@ encResult doFight() {
     character *aChar;
     encResult res;
     byte i, j;
+    combatStarted = true;
     rollInitiative();
     while (1) {
         clrscr();
@@ -411,19 +453,19 @@ preCombatResult preCombatResultForChoice(byte choice) {
 
     switch (choice) {
     case 'g':
-        return checkGreet();
+        res = checkGreet();
         break;
 
     case 't': // threaten
-        return checkThreaten();
+        res = checkThreaten();
         break;
 
     case 'b': // beg for mercy
-        return checkBegForMercy();
+        res = checkBegForMercy();
         break;
 
     case 'f': // fight
-        return combatStarted ? preCombatResultNoResponse
+        res = combatStarted ? preCombatResultNoResponse
                              : preCombatResultBeginFight;
         break;
 
