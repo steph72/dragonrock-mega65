@@ -32,7 +32,6 @@ typedef byte attrT;
 typedef byte itemT;
 typedef unsigned long himemPtr;
 
-
 typedef enum attribute { aSTR, aINT, aWIS, aDEX, aCON, aCHR } attrKind;
 
 typedef enum _gameMode {
@@ -115,18 +114,18 @@ typedef enum _monstertype {
 typedef enum _attackType {
     at_fists= 0x01,
     at_weapon= 0x02,
-    at_claws= 0x04,
-    at_spell= 0x08,
-    at_breath= 0x10,
-    at_wtouch= 0x20,
-    at_ice= 0x40,
-    at_fire= 0x80
+    at_fire= 0x04,
+    at_ice= 0x08,
+    at_claws= 0x10,
+    at_drain= 0x20,
+    at_breath= 0x40,
+    at_spell= 0x80
 } attackType;
 
 typedef enum _spellClass {
-    sc_priest = 0x01,
-    sc_necromancer = 0x02,
-    sc_battlemage = 0x04
+    sc_priest= 0x01,
+    sc_necromancer= 0x02,
+    sc_battlemage= 0x04
 } spellClassT;
 
 typedef struct _cityCoords {
@@ -175,22 +174,22 @@ typedef struct _opcode {
 } opcode;
 
 typedef struct _monsterDef {
-    unsigned int id;                    // 0-1
-    byte level;                         // 2
-    byte spriteID;                      // 3
-    monsterType type;                   // 4  
-    unsigned int namePtr;               // 5-6
-    unsigned int pluralnamePtr;         // 7-8
-    signed char armorClass;             // 9
-    attackType aType[4];                // 10-13
-    byte minDmg[4];                     // 14-17
-    byte maxDmg[4];                     // 18-21
-    signed char hitModifier[4];         // 22-25
-    byte hpPerLevel;                    // 26
-    byte mpPerLevel;                    // 27
-    signed char courageModifier;        // 28
-    spellClassT spellClass;             // 29 
-    int xpBaseValue;                    // 30-31
+    unsigned int id;             // 0-1
+    byte level;                  // 2
+    byte spriteID;               // 3
+    monsterType type;            // 4
+    unsigned int namePtr;        // 5-6
+    unsigned int pluralnamePtr;  // 7-8
+    signed char armorClass;      // 9
+    attackType aType[4];         // 10-13
+    byte minDmg[4];              // 14-17
+    byte maxDmg[4];              // 18-21
+    signed char hitModifier[4];  // 22-25
+    byte hpPerLevel;             // 26
+    byte mpPerLevel;             // 27
+    signed char courageModifier; // 28
+    spellClassT spellClass;      // 29
+    int xpBaseValue;             // 30-31
 } monsterDef;
 
 typedef struct monster {
@@ -233,7 +232,6 @@ typedef struct _character {
     byte encSpell;
     byte encDestination;
 } character;
-
 
 typedef struct {
     byte x1, y1, x2, y2;
