@@ -418,6 +418,10 @@ void useOrEquipItem(character *ic) {
     case it_missile:
     case it_shield:
     case it_weapon:
+        if (equipmentSlot!=255) {
+            dispCharacterActionError("Already equipped item!");
+            return;
+        }
         equipItem(anItem, inventorySlot, ic);
         break;
 
@@ -457,6 +461,11 @@ void inspectCharacter(byte idx) {
         spellLine= 0;
         ic= party[idx];
         cg_clear();
+        if (gCurrentGameMode==gm_dungeon) {
+            textcolor(0);
+        } else {
+            textcolor(5);
+        }
         revers(1);
         cputs(ic->name);
         revers(0);
