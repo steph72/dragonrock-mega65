@@ -315,6 +315,36 @@ encResult doCharacterTurn(character *aChar) {
     return encFight;
 }
 
+encCommand getCharacterCommandForRangedCombat() {
+    byte c;
+    cputs("1) Shoot   2) Cast    3) Parry\r\n>");
+    do {
+        c= cg_getkey() - '0';
+    } while (c < 1 || c > 3);
+    switch (c)
+    {
+    case 1:
+        return ec_attack;
+        break;
+
+    case 2:
+        return ec_spell;
+    
+    default:
+        return ec_parry;
+    }
+}
+
+encCommand getCharacterCommand() {
+    encCommand choice;
+    cputs("1) Thrust  2) Attack  3) Slash\r\n"
+          "4) Lunge   5) Cast    6) Parry\r\n>");
+    do {
+        choice= cg_getkey() - '0';
+    } while (choice < 1 || choice > 6);
+    return choice;
+}
+
 void queryPartyActions() {
     byte i;
     char choice;
@@ -345,20 +375,11 @@ void queryPartyActions() {
             textcolor(COLOR_GRAY2);
             puts(" will you");
             if (hasMissile) {
-                cputs("1) Shoot   2) Cast    3) Parry");
-                numChoices= 3;
+                aChar->currentEncounterCommand=
+                    getCharacterCommandForRangedCombat();
             } else {
-                cputs("1) Thrust  2) Attack  3) Slash\r\n"
-                      "4) Lunge   5) Cast    6) Parry\r\n>");
-                numChoices= 6;
+                aChar->currentEncounterCommand= getCharacterCommand();
             }
-            cursor(1);
-            do {
-                choice= cg_getkey() - '0';
-            } while (choice < 1 || choice > numChoices);
-
-            aChar->currentEncounterCommand= choice;
-            cursor(0);
         }
         cg_block(0, 15, 39, 24, ' ', 0);
         gotoxy(0, 15);
