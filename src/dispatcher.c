@@ -135,22 +135,10 @@ void mainDispatchLoop(void) {
 }
 
 unsigned char loadfile(char *name, void *addr, void *size) {
-#ifdef DEBUG
-    byte x, y;
-#endif
     /* Avoid compiler warnings about unused parameters. */
     (void)addr;
     (void)size;
-    /*
-#ifdef DEBUG
-    x= wherex();
-    y= wherey();
-    gotoxy(0, 24);
-    printf("l %s size $%x @ $%x ", name, size, addr);
-    printf("$%x rem", 0x2000 - (int)size);
-    gotoxy(x, y);
-#endif
-*/
+    
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
         cputs("Loading overlay file failed");
         while(1);

@@ -75,6 +75,9 @@ void _initMonsterRows(byte dealloc) {
     byte i, j;
     for (i= 0; i < MONSTER_ROWS; ++i) {
         for (j= 0; j < MONSTER_SLOTS; ++j) {
+            if (dealloc && gMonsterRows[i][j]) {
+                free(gMonsterRows[i][j]);
+            }
             gMonsterRows[i][j]= NULL;
         }
     }

@@ -552,9 +552,11 @@ void inspectCharacter(byte idx) {
             giveItem(ic);
             break;
 
+#ifdef DEBUG
         case 'D':
             debugAddItem(ic);
             break;
+#endif
 
         default:
             break;

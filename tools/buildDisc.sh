@@ -9,7 +9,7 @@ fi
 
 /bin/sh tools/buildResources.sh
 
-cat cbm/wrapper.prg bin/drmain.c64 > bin/main
+cat cbm/wrapper.prg bin/drmain > bin/main
 
 c1541 <<EOF
 attach disc/drock.d81
@@ -32,10 +32,10 @@ write cbm/loader0
 write cbm/loader1
 write cbm/tbnk4
 write cbm/tbnk5
-write bin/main main
-write bin/drmain.c64.1 dungeon
-write bin/drmain.c64.2 city
-write bin/drmain.c64.3 encounter
+write bin/main
+write bin/dungeon
+write bin/encounter
+write bin/city
 write bin/drcharset charset
 EOF
 
