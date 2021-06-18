@@ -54,13 +54,13 @@ typedef enum _classT {
 typedef enum _raceT { rt_human, rt_dwarf, rt_elf, rt_halfelf, rt_gnome } raceT;
 
 typedef enum _encCommand {
-    ec_nothing,
+    ec_nothing =0,
     ec_thrust,
     ec_attack,
     ec_slash,
+    ec_lunge,
+    ec_spell,
     ec_parry,
-    ec_magic,
-    ec_fireBow
 } encCommand;
 
 typedef enum _pcr {

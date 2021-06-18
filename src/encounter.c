@@ -13,11 +13,16 @@
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
 
-static char *encounterActionNoun[]= {"Wait",  "Thrust", "Attack", "Slash",
-                                     "Parry", "Cast",   "Shoot"};
+static char *encounterActionNoun[]= {"Wait",
+                                     "Thrust",
+                                     "Attack",
+                                     "Slash",
+                                     "Lunge"
+                                     "Spell",
+                                     "Parry"};
 
-static char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
-                                     "parries", "casts",   "shoots"};
+static char *encounterActionVerb[]= {"waits",  "thrusts", "attacks", "slashes",
+                                     "lunges", "casts",   "parries"};
 
 void setupCombatScreen(void);
 preCombatResult runPreCombat(void);
@@ -183,7 +188,7 @@ character *getRandomCharacter() {
 void killParty() {
     byte i;
     for (i= 0; i < partyMemberCount(); ++i) {
-        party[i]->status = dead;
+        party[i]->status= dead;
     }
     clrscr();
     textcolor(COLOR_LIGHTRED);
@@ -313,7 +318,10 @@ encResult doCharacterTurn(character *aChar) {
 void queryPartyActions() {
     byte i;
     char choice;
+    byte numChoices;
     character *aChar;
+    item *weapon;
+    byte hasMissile;
     while (1) {
         setupCombatScreen();
         showParty();
@@ -321,24 +329,34 @@ void queryPartyActions() {
         for (i= 0; i < partyMemberCount(); ++i) {
             aChar= party[i];
             aChar->currentEncounterCommand= 0;
-            aChar->encDestination = 0;
-            aChar->encSpell = 0;
+            aChar->encDestination= 0;
+            aChar->encSpell= 0;
             if (aChar->status == dead || aChar->status == asleep ||
                 aChar->status == charmed || aChar->status == down) {
                 continue;
             }
+            weapon= getWeapon(aChar);
+            hasMissile= (weapon && weapon->type == it_missile);
+            cg_block(0, 15, 39, 24, ' ', 0);
             gotoxy(0, 15);
             textcolor(COLOR_LIGHTBLUE);
             cputs(aChar->name);
             cputc(',');
             textcolor(COLOR_GRAY2);
-            cputs(" will you                \r\n"
-                  "1) Thrust  2) Attack  3) Slash\r\n"
-                  "4) Parry   5) Cast    6) Shoot\r\n>");
+            puts(" will you");
+            if (hasMissile) {
+                cputs("1) Shoot   2) Cast    3) Parry");
+                numChoices= 3;
+            } else {
+                cputs("1) Thrust  2) Attack  3) Slash\r\n"
+                      "4) Lunge   5) Cast    6) Parry\r\n>");
+                numChoices= 6;
+            }
             cursor(1);
             do {
                 choice= cg_getkey() - '0';
-            } while (choice < 1 || choice > 6);
+            } while (choice < 1 || choice > numChoices);
+
             aChar->currentEncounterCommand= choice;
             cursor(0);
         }
@@ -355,7 +373,7 @@ void queryPartyActions() {
         cputs("Is this ok (y/n)?");
         cursor(1);
         choice= cg_getkey();
-        if (choice!='n') {
+        if (choice != 'n') {
             break;
         }
     }

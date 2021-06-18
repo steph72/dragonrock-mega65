@@ -89,6 +89,14 @@ byte addInventoryItem(byte anItemID, character *aCharacter) {
     return 0;
 }
 
+void debugAddItem(character *aCharacter) {
+    byte itemID;
+    cputs("DEBUG ADD ITEM: ");
+    fgets(drbuf, 3, stdin);
+    itemID= atoi(drbuf);
+    printf("added %d", addInventoryItem(itemID, aCharacter));
+}
+
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
 
 byte getNumberOfAttacks(character *aCharacter) {
@@ -340,15 +348,15 @@ void removeItem(character *ic) {
     addInventoryItem(anItem->id, ic);
     switch (equipmentSlot) {
     case 0:
-        ic->weapon= NULL;
+        ic->weapon= 0;
         break;
 
     case 1:
-        ic->armor= NULL;
+        ic->armor= 0;
         break;
 
     case 2:
-        ic->shield= NULL;
+        ic->shield= 0;
 
     default:
         break;
@@ -361,21 +369,21 @@ void equipItem(item *anItem, byte inventorySlot, character *ic) {
     switch (anItem->type) {
     case it_weapon:
     case it_missile:
-        if (ic->weapon != NULL) {
+        if (ic->weapon != 0) {
             addInventoryItem(ic->weapon, ic);
         }
         ic->weapon= ic->inventory[inventorySlot];
-        ic->inventory[inventorySlot]= NULL;
+        ic->inventory[inventorySlot]= 0;
         break;
     case it_armor:
-        if (ic->armor != NULL) {
+        if (ic->armor != 0) {
             addInventoryItem(ic->armor, ic);
         }
         ic->armor= ic->inventory[inventorySlot];
         ic->inventory[inventorySlot]= 0;
         break;
     case it_shield:
-        if (ic->shield != NULL) {
+        if (ic->shield != 0) {
             addInventoryItem(ic->armor, ic);
         }
         ic->shield= ic->inventory[inventorySlot];
@@ -533,6 +541,10 @@ void inspectCharacter(byte idx) {
 
         case 'g':
             giveItem(ic);
+            break;
+
+        case 'D':
+            debugAddItem(ic);
             break;
 
         default:
