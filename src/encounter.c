@@ -20,7 +20,10 @@ static char *encounterActionVerb[]= {"waits",   "thrusts", "attacks", "slashes",
                                      "parries", "casts",   "shoots"};
 
 void setupCombatScreen(void);
-byte runPreCombat(void);
+preCombatResult runPreCombat(void);
+byte numAliveCharacters();
+
+void showMonsterRowStatus(void);
 
 byte combatStarted;
 
@@ -142,7 +145,7 @@ void showParty() {
         } else if (aChar->status == dead) {
             textcolor(COLOR_RED);
             printf("dead");
-        } else if (aChar->status == sleep) {
+        } else if (aChar->status == asleep) {
             textcolor(COLOR_LIGHTBLUE);
             printf("asleep");
         } else {
@@ -177,8 +180,21 @@ character *getRandomCharacter() {
     return retChar;
 }
 
+void killParty() {
+    byte i;
+    for (i= 0; i < partyMemberCount(); ++i) {
+        party[i]->status = dead;
+    }
+    clrscr();
+    textcolor(COLOR_LIGHTRED);
+    gotoxy(5, 12);
+    puts("The party has been defeated...");
+    sleep(1);
+    textcolor(COLOR_GREEN);
+}
+
 void updateMonsterStatus(monster *aMonster) {
-    // TODO
+    // TODO: sleep/charmed/etc
     if (aMonster->hp <= 0) {
         aMonster->status= dead;
         printf("%s dies.\n", nameForMonster(aMonster));
@@ -213,19 +229,19 @@ void monsterAttackSingleCharacter(monster *aMonster, character *aChar,
     unsigned int damage;
     signed char acHit;
     signed char destinationAC;
-    monsterDef *def; 
-    attackType type; 
+    monsterDef *def;
+    attackType type;
     char *damageType;
 
-    def = monsterDefForMonster(aMonster);
-    type = def->aType[attackTypeIndex];
-    damageType = dtDefault;
+    def= monsterDefForMonster(aMonster);
+    type= def->aType[attackTypeIndex];
+    damageType= dtDefault;
 
     if (type == at_fire) {
-        damageType = dtFire;
+        damageType= dtFire;
     } else if (type == at_ice) {
-        damageType = dtFrost;
-    } 
+        damageType= dtFrost;
+    }
     destinationAC= getArmorClassForCharacter(aChar);
     hitRoll= 1 + drand(20);
     isCritical= (hitRoll == 20);
@@ -254,7 +270,8 @@ void monsterAttackSingleCharacter(monster *aMonster, character *aChar,
     } else {
         if (isCritical) {
             damage*= 2;
-            printf("critically hits for\n%d points of %sdamage.", damage, damageType);
+            printf("critically hits for\n%d points of %sdamage.", damage,
+                   damageType);
         } else {
             printf("hits for %d points of %sdamage.", damage, damageType);
         }
@@ -276,10 +293,13 @@ encResult doMonsterTurn(monster *aMonster) {
     }
 
     for (i= 0; i < numAttacks; ++i) {
+        if (numAliveCharacters() == 0) {
+            killParty();
+            return encDead;
+        }
         aChar= getRandomCharacter();
         monsterAttackSingleCharacter(aMonster, aChar, i);
         printf("\n\n");
-        sleep(1);
     }
     return encFight;
 }
@@ -290,16 +310,80 @@ encResult doCharacterTurn(character *aChar) {
     return encFight;
 }
 
+void queryPartyActions() {
+    byte i;
+    char choice;
+    character *aChar;
+    while (1) {
+        setupCombatScreen();
+        showParty();
+        showMonsterRowStatus();
+        for (i= 0; i < partyMemberCount(); ++i) {
+            aChar= party[i];
+            aChar->currentEncounterCommand= 0;
+            aChar->encDestination = 0;
+            aChar->encSpell = 0;
+            if (aChar->status == dead || aChar->status == asleep ||
+                aChar->status == charmed || aChar->status == down) {
+                continue;
+            }
+            gotoxy(0, 15);
+            textcolor(COLOR_LIGHTBLUE);
+            cputs(aChar->name);
+            cputc(',');
+            textcolor(COLOR_GRAY2);
+            cputs(" will you                \r\n"
+                  "1) Thrust  2) Attack  3) Slash\r\n"
+                  "4) Parry   5) Cast    6) Shoot\r\n>");
+            cursor(1);
+            do {
+                choice= cg_getkey() - '0';
+            } while (choice < 1 || choice > 6);
+            aChar->currentEncounterCommand= choice;
+            cursor(0);
+        }
+        cg_block(0, 15, 39, 24, ' ', 0);
+        gotoxy(0, 15);
+        for (i= 0; i < partyMemberCount(); ++i) {
+            aChar= party[i];
+            if (aChar->currentEncounterCommand) {
+                printf("%s %s\n", aChar->name,
+                       encounterActionVerb[aChar->currentEncounterCommand]);
+            }
+        }
+        textcolor(COLOR_LIGHTBLUE);
+        cputs("Is this ok (y/n)?");
+        cursor(1);
+        choice= cg_getkey();
+        if (choice!='n') {
+            break;
+        }
+    }
+}
+
+byte numAliveCharacters() {
+    byte i;
+    character *aChar;
+    byte alive= 0;
+    for (i= 0; i < partyMemberCount(); ++i) {
+        aChar= party[i];
+        if (aChar->status == awake) {
+            ++alive;
+        }
+    }
+    return alive;
+}
+
 encResult doFight() {
     signed char currentInitiative;
     monster *aMonster;
     character *aChar;
     encResult res;
     byte i, j;
-    combatStarted = true;
+    combatStarted= true;
     rollInitiative();
     while (1) {
-        clrscr();
+        queryPartyActions();
         for (currentInitiative= 64; currentInitiative > -64;
              --currentInitiative) {
             // check if monster's turn
@@ -346,6 +430,11 @@ encResult doFight() {
 
         default:
             break;
+        }
+
+        if (numAliveCharacters() == 0) {
+            killParty();
+            return encDead;
         }
     }
 }
@@ -453,20 +542,19 @@ preCombatResult preCombatResultForChoice(byte choice) {
 
     switch (choice) {
     case 'g':
-        res = checkGreet();
+        res= checkGreet();
         break;
 
     case 't': // threaten
-        res = checkThreaten();
+        res= checkThreaten();
         break;
 
     case 'b': // beg for mercy
-        res = checkBegForMercy();
+        res= checkBegForMercy();
         break;
 
     case 'f': // fight
-        res = combatStarted ? preCombatResultNoResponse
-                             : preCombatResultBeginFight;
+        res= preCombatResultBeginFight;
         break;
 
     case 'r': // flee
@@ -485,24 +573,27 @@ preCombatResult preCombatResultForChoice(byte choice) {
     return res;
 }
 
-byte runPreCombat(void) {
+void showMonsterRowStatus(void) {
     byte i;
-    byte choice;
-
-    setupCombatScreen();
-    showParty();
-
-    // show enemies
-    textcolor(COLOR_ORANGE);
-    gotoxy(0, 11);
+    textcolor(COLOR_PURPLE);
+    gotoxy(0, 9);
     puts("You are facing:");
     textcolor(COLOR_LIGHTRED);
     for (i= 0; i < MONSTER_ROWS; i++) {
-        gotoxy(0, 12 + i);
+        gotoxy(0, 10 + i);
         if (getMonsterCountForRow(MONSTER_ROWS - i - 1)) {
             cputs(statusLineForRow(MONSTER_ROWS - i - 1));
         }
     }
+}
+
+preCombatResult runPreCombat(void) {
+    byte choice;
+
+    setupCombatScreen();
+    showParty();
+    showMonsterRowStatus();
+
     gotoxy(0, 20);
     textcolor(COLOR_GREEN);
     puts("g)reet  t)hreaten  b)eg for mercy");
