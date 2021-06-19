@@ -139,6 +139,10 @@ void initEngine(void) {
     cg_init();
     cg_go16bit();
     cg_clrscr();
+    cg_gotoxy(5,5);
+    cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy Buba!\n", 1234, 5678);
+    cg_textcolor(COLOR_RED);
+    cg_printf("This should be red!");
     cg_getkey();
     cg_go8bit();
 
