@@ -21,7 +21,7 @@ static char *encounterActionNoun[]= {"Wait",
                                      "Spell",
                                      "Parry"};
 
-static char *encounterActionVerb[]= {"waits",  "thrusts", "attacks", "slashes",
+static char *encounterActionVerb[]= {"waits",  "thrusts at", "attacks", "slashes at",
                                      "lunges", "casts",   "parries"};
 
 void setupCombatScreen(void);
@@ -33,12 +33,20 @@ void showMonsterRowStatus(void);
 byte combatStarted;
 
 // get monster count for given row
-char getMonsterCountForRow(byte row) {
+char getMonsterCountForRow(byte row, byte countOnlyAlive) {
     byte res, i;
+    characterStateT status;
     res= 0;
     for (i= 0; i < MONSTER_SLOTS; ++i) {
         if (gMonsterRows[row][i] != NULL) {
-            res++;
+            status= gMonsterRows[row][i]->status;
+            if (countOnlyAlive) {
+                if (status == awake || status == charmed || status == asleep) {
+                    res++;
+                }
+            } else {
+                res++;
+            }
         }
     }
     return res;
@@ -47,7 +55,7 @@ char getMonsterCountForRow(byte row) {
 // get monster name for given row
 char *getMonsterNameForRow(byte row) {
     monster *res;
-    byte count= getMonsterCountForRow(row);
+    byte count= getMonsterCountForRow(row, true);
     res= gMonsterRows[row][0];
     if (res) {
         if (count > 1) {
@@ -97,7 +105,7 @@ void removeMonsterFromCombat(monster *aMonster) {
 }
 
 char *statusLineForRow(byte row) {
-    sprintf(drbuf, "Rank %d - %d %s", row + 1, getMonsterCountForRow(row),
+    sprintf(drbuf, "Rank %d - %d %s", row + 1, getMonsterCountForRow(row, true),
             getMonsterNameForRow(row));
     return drbuf;
 }
@@ -165,7 +173,7 @@ void rollInitiative() {
     monster *aMonster;
     character *aChar;
     for (i= 0; i < MONSTER_ROWS; ++i) {
-        for (j= 0; j < getMonsterCountForRow(i); ++j) {
+        for (j= 0; j < getMonsterCountForRow(i, false); ++j) {
             aMonster= gMonsterRows[i][j];
             aMonster->initiative= 1 + drand(32);
         }
@@ -309,9 +317,34 @@ encResult doMonsterTurn(monster *aMonster) {
     return encFight;
 }
 
+monster *getRandomMonsterForRow(byte aRow) {
+    byte count;
+    monster *retMonster;
+    count= getMonsterCountForRow(aRow, true);
+    if (count == 0) {
+        return NULL;
+    }
+    do {
+        retMonster= gMonsterRows[aRow][drand(count)];
+    } while (retMonster->status == dead || retMonster->status == down);
+    return retMonster;
+}
+
 encResult doCharacterTurn(character *aChar) {
+    monster *destMonster;
+    monsterDef *def;
+    destMonster= getRandomMonsterForRow(aChar->encDestination);
+    if (!destMonster) {
+        return encFled;
+    }
+    def= monsterDefForMonster(destMonster);
+    printf("%s %s %s\n", aChar->name,
+           encounterActionVerb[aChar->currentEncounterCommand],
+           nameForMonster(destMonster));
+
     // printf("%x %s:%d (%d)\n", aChar, aChar->name, aChar->initiative,
     //       bonusValueForAttribute(aChar->attributes[aDEX]));
+
     return encFight;
 }
 
@@ -321,15 +354,14 @@ encCommand getCharacterCommandForRangedCombat() {
     do {
         c= cg_getkey() - '0';
     } while (c < 1 || c > 3);
-    switch (c)
-    {
+    switch (c) {
     case 1:
         return ec_attack;
         break;
 
     case 2:
         return ec_spell;
-    
+
     default:
         return ec_parry;
     }
@@ -348,7 +380,6 @@ encCommand getCharacterCommand() {
 void queryPartyActions() {
     byte i;
     char choice;
-    byte numChoices;
     character *aChar;
     item *weapon;
     byte hasMissile;
@@ -380,14 +411,17 @@ void queryPartyActions() {
             } else {
                 aChar->currentEncounterCommand= getCharacterCommand();
             }
+            if (aChar->currentEncounterCommand == ec_lunge) {
+                aChar->encDestination= 1;
+            }
         }
         cg_block(0, 15, 39, 24, ' ', 0);
         gotoxy(0, 15);
         for (i= 0; i < partyMemberCount(); ++i) {
             aChar= party[i];
             if (aChar->currentEncounterCommand) {
-                printf("%s %s\n", aChar->name,
-                       encounterActionVerb[aChar->currentEncounterCommand]);
+                printf("%s: %s\n", aChar->name,
+                       encounterActionNoun[aChar->currentEncounterCommand]);
             }
         }
         textcolor(COLOR_LIGHTBLUE);
@@ -431,6 +465,8 @@ encResult doFight() {
                     aMonster= gMonsterRows[i][j];
                     if (aMonster && aMonster->initiative == currentInitiative) {
                         res= doMonsterTurn(aMonster);
+                        cg_getkey();
+
                         if (res != encFight) {
                             return res;
                         }
@@ -442,6 +478,8 @@ encResult doFight() {
                 aChar= party[i];
                 if (aChar->initiative == currentInitiative) {
                     res= doCharacterTurn(aChar);
+                    cg_getkey();
+
                     if (res != encFight) {
                         return res;
                     }
@@ -620,7 +658,7 @@ void showMonsterRowStatus(void) {
     textcolor(COLOR_LIGHTRED);
     for (i= 0; i < MONSTER_ROWS; i++) {
         gotoxy(0, 10 + i);
-        if (getMonsterCountForRow(MONSTER_ROWS - i - 1)) {
+        if (getMonsterCountForRow(MONSTER_ROWS - i - 1, true)) {
             cputs(statusLineForRow(MONSTER_ROWS - i - 1));
         }
     }

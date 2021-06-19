@@ -28,7 +28,6 @@
 
 static byte gPal;
 static signed char gPalDir;
-
 static clock_t lastPaletteTick;
 
 unsigned char drColours[16][3]= {
@@ -50,16 +49,76 @@ unsigned char drColours[16][3]= {
     {0x95, 0x95, 0x95}  // 15
 };
 
-
 char cg_getkey(void);
 void cg_setPalette(byte num, byte red, byte green, byte blue);
+
+#define SCREENBASE 0x10000l
+#define COLBASE 0x1f800l
+#define SCREEN_COLUMNS 40
+#define SCREEN_ROWS 25
+
+#define VIC4CTRL (*(unsigned char *)(0xd054))
+#define VIC3CTRL (*(unsigned char *)(0xd031))
+#define LINESTEP_LO (*(unsigned char *)(0xd058))
+#define LINESTEP_HI (*(unsigned char *)(0xd059))
+
+#define SCNPTR_0 (*(unsigned char *)(0xd060))
+#define SCNPTR_1 (*(unsigned char *)(0xd061))
+#define SCNPTR_2 (*(unsigned char *)(0xd062))
+#define SCNPTR_3 (*(unsigned char *)(0xd063))
+
+byte is16BitModeEnabled;
+
+void cg_go16bit() {
+    mega65_io_enable();
+    VIC4CTRL|= 0x04; // enable full colour for characters with high byte set
+    VIC4CTRL|= 0x01; // enable 16 bit characters
+    VIC3CTRL&= 0x80; // disable H640
+    LINESTEP_LO= 80; // 80 bytes to read per screen row
+    LINESTEP_HI= 0;
+    SCNPTR_0= 0x00; // screen to 0x10000
+    SCNPTR_1= 0x00;
+    SCNPTR_2= 0x01;
+    SCNPTR_3&= 0xF0;
+    lfill(0x10000, 0, 2000);
+    lfill(0x1f800, 0, 2000);
+    is16BitModeEnabled= true;
+}
+
+void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
+    int x, y;
+    unsigned int adrOffset;
+    for (x= x0; x < x1; ++x) {
+        for (y= y0; y < y1; ++y) {
+            adrOffset = x*2 + (y*2*SCREEN_COLUMNS);
+            lpoke(SCREENBASE + adrOffset, b);
+            lpoke(COLBASE + adrOffset+1,c);
+        }
+    }
+}
+
+void fillscreen16(byte b, byte c) {
+    box16(0, 0, SCREEN_COLUMNS, SCREEN_ROWS, b, c);
+}
+
+void cg_clrscr() { fillscreen16(65, 5); }
+
+void cg_go8bit() {
+    VIC4CTRL&= 0xFA; // clear fchi and 16bit chars
+    LINESTEP_LO= 40;
+    LINESTEP_HI= 0;
+    SCNPTR_0= 0x00; // screen back to 0x800
+    SCNPTR_1= 0x08;
+    SCNPTR_2= 0x00;
+    SCNPTR_3&= 0xF0;
+}
 
 void cg_init() {
     byte i;
     mega65_io_enable();
     POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
-    for (i=0;i<15;++i) {
-        cg_setPalette(i,drColours[i][0],drColours[i][1],drColours[i][2]);
+    for (i= 0; i < 15; ++i) {
+        cg_setPalette(i, drColours[i][0], drColours[i][1], drColours[i][2]);
     }
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
@@ -113,14 +172,12 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     lfill((long)COLOR_RAM + bas + x0, col, x1 - x0 + 1);
 }
 
-
 void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col) {
     byte i;
     for (i= y0; i <= y1; ++i) {
         cg_line(i, x0, x1, character, col);
     }
 }
-
 
 void cg_center(byte x, byte y, byte width, char *text) {
     byte mid;
@@ -129,10 +186,9 @@ void cg_center(byte x, byte y, byte width, char *text) {
     cputs(text);
 }
 
-
 unsigned char nyblswap(unsigned char in) // oh why?!
 {
-  return ((in & 0xf) << 4) + ((in & 0xf0) >> 4);
+    return ((in & 0xf) << 4) + ((in & 0xf0) >> 4);
 }
 
 void cg_setPalette(byte num, byte red, byte green, byte blue) {
@@ -174,7 +230,6 @@ char cg_getkeyP(byte x, byte y, const char *prompt) {
     cg_stopColor();
     return cgetc();
 }
-
 
 char *cg_input(byte maxlen) {
     // TODO

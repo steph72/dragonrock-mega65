@@ -131,12 +131,16 @@ void initEngine(void) {
     gCurrentGameMode= gm_init;
     if (devmode) {
         puts("\ninitialization complete");
-        puts("** development mode. press any key **");
-        cg_getkey();
+        // puts("** development mode. press any key **");
+        // cg_getkey();
     }
 
     initVIC();
     cg_init();
+    cg_go16bit();
+    cg_clrscr();
+    cg_getkey();
+    cg_go8bit();
 
     /*
     gPartyExperience= 1000;

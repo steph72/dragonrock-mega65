@@ -25,6 +25,7 @@ extern struct dmagic_dmalist dmalist;
 extern unsigned char dma_byte;
 
 void mega65_io_enable(void);
+void init_dma(void);
 unsigned char lpeek(long address);
 unsigned char lpeek_debounced(long address);
 void lpoke(long address, unsigned char value);
