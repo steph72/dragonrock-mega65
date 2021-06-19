@@ -22,6 +22,7 @@
 #include <c64.h>
 #include <cbm.h>
 #include <conio.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -68,6 +69,18 @@ void cg_setPalette(byte num, byte red, byte green, byte blue);
 #define SCNPTR_3 (*(unsigned char *)(0xd063))
 
 byte is16BitModeEnabled;
+byte xc16, yc16;
+byte textcolor16;
+
+char asciiToPetscii(byte c) {
+    if (c >= 65 && c <= 95) {
+        return c - 64;
+    }
+    if (c >= 193) {
+        return c - 128;
+    }
+    return c;
+}
 
 void cg_go16bit() {
     mega65_io_enable();
@@ -82,7 +95,40 @@ void cg_go16bit() {
     SCNPTR_3&= 0xF0;
     lfill(0x10000, 0, 2000);
     lfill(0x1f800, 0, 2000);
+    xc16= 0;
+    yc16= 0;
+    textcolor16= 5;
     is16BitModeEnabled= true;
+}
+
+void cr() {
+    xc16= 0;
+    yc16++;
+}
+
+void outc16(char c) {
+    char out;
+    unsigned int adrOffset;
+    if (c == '\n') {
+        cr();
+        return;
+    }
+    out= asciiToPetscii(c);
+    adrOffset= (xc16 * 2) + (yc16 * 2 * SCREEN_COLUMNS);
+    lpoke(SCREENBASE + adrOffset, out);
+    lpoke(COLBASE + adrOffset + 1, textcolor16);
+    xc16++;
+    if (xc16 >= SCREEN_COLUMNS) {
+        yc16++;
+        xc16= 0;
+    }
+}
+
+void outs16(char *s) {
+    char *current= s;
+    while (*current) {
+        outc16(*current++);
+    }
 }
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
@@ -90,9 +136,9 @@ void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
     unsigned int adrOffset;
     for (x= x0; x < x1; ++x) {
         for (y= y0; y < y1; ++y) {
-            adrOffset = x*2 + (y*2*SCREEN_COLUMNS);
+            adrOffset= x * 2 + (y * 2 * SCREEN_COLUMNS);
             lpoke(SCREENBASE + adrOffset, b);
-            lpoke(COLBASE + adrOffset+1,c);
+            lpoke(COLBASE + adrOffset + 1, c);
         }
     }
 }
@@ -101,7 +147,23 @@ void fillscreen16(byte b, byte c) {
     box16(0, 0, SCREEN_COLUMNS, SCREEN_ROWS, b, c);
 }
 
-void cg_clrscr() { fillscreen16(65, 5); }
+void cg_textcolor(byte c) { textcolor16= c; }
+
+void cg_gotoxy(byte x, byte y) {
+    xc16= x;
+    yc16= y;
+}
+
+int cg_printf(const char *format, ...) {
+    char buf[160];
+    va_list args;
+    va_start(args, format);
+    vsprintf(buf, format, args);
+    va_end(args);
+    outs16(buf);
+}
+
+void cg_clrscr() { fillscreen16(32, 5); }
 
 void cg_go8bit() {
     VIC4CTRL&= 0xFA; // clear fchi and 16bit chars
@@ -111,6 +173,7 @@ void cg_go8bit() {
     SCNPTR_1= 0x08;
     SCNPTR_2= 0x00;
     SCNPTR_3&= 0xF0;
+    cbm_k_bsout(14); // lowercase charset
 }
 
 void cg_init() {
