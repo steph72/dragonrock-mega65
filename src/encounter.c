@@ -398,7 +398,7 @@ void queryPartyActions() {
             }
             weapon= getWeapon(aChar);
             hasMissile= (weapon && weapon->type == it_missile);
-            cg_block(0, 15, 39, 24, ' ', 0);
+            cg_block_raw(0, 15, 39, 24, ' ', 0);
             gotoxy(0, 15);
             textcolor(COLOR_LIGHTBLUE);
             cputs(aChar->name);
@@ -415,7 +415,7 @@ void queryPartyActions() {
                 aChar->encDestination= 1;
             }
         }
-        cg_block(0, 15, 39, 24, ' ', 0);
+        cg_block_raw(0, 15, 39, 24, ' ', 0);
         gotoxy(0, 15);
         for (i= 0; i < partyMemberCount(); ++i) {
             aChar= party[i];

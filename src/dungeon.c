@@ -1081,7 +1081,7 @@ void setupOutdoorScreen(void) {
     bordercolor(COLOR_BLACK);
     textcolor(COLOR_GRAY2);
     cg_clrscr();
-    cg_block(0, 0, 39, 24, 32, COLOR_GREEN);
+    cg_block_raw(0, 0, 39, 24, 32, COLOR_GREEN);
     revers(0);
 }
 
@@ -1091,9 +1091,9 @@ void setupDungeonScreen(void) {
     cg_clrscr();
     bordercolor(COLOR_GRAY1);
     bgcolor(COLOR_GRAY3);
-    cg_block(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
+    cg_block_raw(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
              screenY + mapWindowSizeY, 160, COLOR_GREEN);
-    cg_block(screenX, screenY, screenX + mapWindowSizeX - 1,
+    cg_block_raw(screenX, screenY, screenX + mapWindowSizeX - 1,
              screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
 }
 

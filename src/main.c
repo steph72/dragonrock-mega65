@@ -140,11 +140,11 @@ void initEngine(void) {
     cg_go16bit();
     cg_clrscr();
     cg_puts("Outside!");
-    cg_gotoxy(15,20);
+    cg_gotoxy(13,13);
     cg_puts("Outside2!");
     cg_setwin(3,3,10,10);
     cg_gotoxy(0,0);
-    cg_puts("012345678901234567890123456789");
+    cg_puts("!1234567892\n3\n4\n");
     cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy Buba!\n", 1234, 5678);
     cg_textcolor(COLOR_RED);
     cg_printf("This should be red!");

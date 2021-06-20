@@ -36,6 +36,8 @@ typedef struct _textwin {
     byte y0;
     byte x1;
     byte y1;
+    byte width;
+    byte height;
 } textwin;
 
 textwin currentWin;
@@ -61,7 +63,8 @@ unsigned char drColours[16][3]= {
 
 char cg_getkey(void);
 void cg_setPalette(byte num, byte red, byte green, byte blue);
-void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
+void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
+void cg_go8bit();
 
 #define SCREENBASE 0x12000l
 #define COLBASE 0x1f800l
@@ -99,10 +102,10 @@ void cg_go16bit() {
     VIC3CTRL&= 0x80; // disable H640
     LINESTEP_LO= 80; // 80 bytes to read per screen row
     LINESTEP_HI= 0;
-    SCNPTR_0= 0x00; // screen to 0x10000
-    SCNPTR_1= 0x20;
-    SCNPTR_2= 0x01;
-    SCNPTR_3&= 0xF0;
+    SCNPTR_0= SCREENBASE & 0xff; // screen to 0x10000
+    SCNPTR_1= (SCREENBASE >> 8) & 0xff;
+    SCNPTR_2= (SCREENBASE >> 16) & 0xff;
+    SCNPTR_3&= 0xF0 | ((SCREENBASE) << 24 & 0xff);
     lfill(SCREENBASE, 0, 2000);
     lfill(COLBASE, 0, 2000);
     xc16= 0;
@@ -113,11 +116,32 @@ void cg_go16bit() {
     currentWin.x1= SCREEN_COLUMNS - 1;
     currentWin.y0= 0;
     currentWin.y1= SCREEN_ROWS - 1;
+    currentWin.width= SCREEN_COLUMNS;
+    currentWin.height= SCREEN_ROWS;
+}
+
+void scrollUp() {
+    byte y;
+    long bas0, bas1;
+    for (y= currentWin.y0; y < currentWin.y1; y++) {
+        bas0= SCREENBASE + (currentWin.x0 * 2 + (y * SCREEN_COLUMNS * 2));
+        bas1= SCREENBASE + (currentWin.x0 * 2 + ((y + 1) * SCREEN_COLUMNS * 2));
+        lcopy(bas1, bas0, currentWin.width * 2);
+        bas0= COLBASE + (currentWin.x0 * 2 + (y * SCREEN_COLUMNS * 2));
+        bas1= COLBASE + (currentWin.x0 * 2 + ((y + 1) * SCREEN_COLUMNS * 2));
+        lcopy(bas1, bas0, currentWin.width * 2);
+    }
+    cg_block_raw(currentWin.x0, currentWin.y1, currentWin.x1, currentWin.y1, 32,
+                 textcolor16);
 }
 
 void cr() {
     xc16= currentWin.x0;
     yc16++;
+    if (yc16 > currentWin.y1) {
+        yc16= currentWin.y1;
+        scrollUp();
+    }
 }
 
 void outc16(char c) {
@@ -135,6 +159,10 @@ void outc16(char c) {
     if (xc16 > currentWin.x1) {
         yc16++;
         xc16= currentWin.x0;
+        if (yc16 > currentWin.y1) {
+            yc16= currentWin.y1;
+            scrollUp();
+        }
     }
 }
 
@@ -161,11 +189,11 @@ void cg_textcolor(byte c) { textcolor16= c; }
 
 void cg_gotoxy(byte x, byte y) {
     if (is16BitModeEnabled) {
-        xc16= currentWin.x0+x;
-        yc16= currentWin.y0+y;
+        xc16= currentWin.x0 + x;
+        yc16= currentWin.y0 + y;
         return;
-    } 
-    gotoxy(x,y);
+    }
+    gotoxy(x, y);
 }
 
 int cg_printf(const char *format, ...) {
@@ -179,7 +207,8 @@ int cg_printf(const char *format, ...) {
 
 void cg_clrscr() {
     if (is16BitModeEnabled) {
-        cg_block(currentWin.x0, currentWin.y0, currentWin.x1, currentWin.y1, 32, 5);
+        cg_block_raw(currentWin.x0, currentWin.y0, currentWin.x1, currentWin.y1,
+                     32, 5);
         return;
     }
     lfill((long)SCREEN, 32, 1000);
@@ -190,8 +219,10 @@ void cg_clrscr() {
 void cg_setwin(byte x0, byte y0, byte width, byte height) {
     currentWin.x0= x0;
     currentWin.y0= y0;
-    currentWin.x1= x0+width-1;
-    currentWin.y1= y0+height-1;
+    currentWin.x1= x0 + width - 1;
+    currentWin.y1= y0 + height - 1;
+    currentWin.width= width;
+    currentWin.height= height;
     cg_gotoxy(0, 0);
 }
 
@@ -265,7 +296,8 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     lfill((long)COLOR_RAM + bas + x0, col, x1 - x0 + 1);
 }
 
-void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col) {
+void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character,
+                  byte col) {
     byte i;
     for (i= y0; i <= y1; ++i) {
         cg_line(i, x0, x1, character, col);

@@ -17,7 +17,7 @@ void cg_clear(void);
 void cg_stepColor(void);
 void cg_stopColor(void);
 
-void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
+void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
 void cg_colorLine(byte y, byte x0, byte x1, byte col);
 void cg_line(byte y, byte x0, byte x1, byte character, byte col);
 
