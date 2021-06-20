@@ -46,7 +46,7 @@ void distributeSpoils(void) {
     if (partyMemberCount() == 0) {
         return;
     }
-    cg_clear();
+    cg_clrscr();
     cg_borders();
     revers(1);
     cputsxy(2, 3, "Distribute gold and experience\n\n");
@@ -74,7 +74,7 @@ void distributeSpoils(void) {
 }
 
 void enterCityMode(void) {
-    cg_clear();
+    cg_clrscr();
     gotoxy(4, 12);
     printf("Welcome to %s", gCities[gCurrentCityIndex]);
     sleep(1);
@@ -186,7 +186,7 @@ void runCityMenu(void) {
         switch (cmd) {
 
         case 'l':
-            cg_clear();
+            cg_clrscr();
             gotoxy(0, 23);
             printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
             do {
@@ -209,7 +209,7 @@ void runCityMenu(void) {
             break;
 
         case 's':
-            cg_clear();
+            cg_clrscr();
             cg_borders();
             puts("\nPlease wait\nSaving economy...");
             saveArmory();

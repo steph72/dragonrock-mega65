@@ -31,6 +31,15 @@ static byte gPal;
 static signed char gPalDir;
 static clock_t lastPaletteTick;
 
+typedef struct _textwin {
+    byte x0;
+    byte y0;
+    byte x1;
+    byte y1;
+} textwin;
+
+textwin currentWin;
+
 unsigned char drColours[16][3]= {
     {0x00, 0x00, 0x00}, // black
     {0xff, 0xff, 0xff}, // white
@@ -52,8 +61,9 @@ unsigned char drColours[16][3]= {
 
 char cg_getkey(void);
 void cg_setPalette(byte num, byte red, byte green, byte blue);
+void cg_block(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
 
-#define SCREENBASE 0x10000l
+#define SCREENBASE 0x12000l
 #define COLBASE 0x1f800l
 #define SCREEN_COLUMNS 40
 #define SCREEN_ROWS 25
@@ -90,19 +100,23 @@ void cg_go16bit() {
     LINESTEP_LO= 80; // 80 bytes to read per screen row
     LINESTEP_HI= 0;
     SCNPTR_0= 0x00; // screen to 0x10000
-    SCNPTR_1= 0x00;
+    SCNPTR_1= 0x20;
     SCNPTR_2= 0x01;
     SCNPTR_3&= 0xF0;
-    lfill(0x10000, 0, 2000);
-    lfill(0x1f800, 0, 2000);
+    lfill(SCREENBASE, 0, 2000);
+    lfill(COLBASE, 0, 2000);
     xc16= 0;
     yc16= 0;
     textcolor16= 5;
     is16BitModeEnabled= true;
+    currentWin.x0= 0;
+    currentWin.x1= SCREEN_COLUMNS - 1;
+    currentWin.y0= 0;
+    currentWin.y1= SCREEN_ROWS - 1;
 }
 
 void cr() {
-    xc16= 0;
+    xc16= currentWin.x0;
     yc16++;
 }
 
@@ -118,13 +132,13 @@ void outc16(char c) {
     lpoke(SCREENBASE + adrOffset, out);
     lpoke(COLBASE + adrOffset + 1, textcolor16);
     xc16++;
-    if (xc16 >= SCREEN_COLUMNS) {
+    if (xc16 > currentWin.x1) {
         yc16++;
-        xc16= 0;
+        xc16= currentWin.x0;
     }
 }
 
-void outs16(char *s) {
+void cg_puts(char *s) {
     char *current= s;
     while (*current) {
         outc16(*current++);
@@ -134,8 +148,8 @@ void outs16(char *s) {
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
     int x, y;
     unsigned int adrOffset;
-    for (x= x0; x < x1; ++x) {
-        for (y= y0; y < y1; ++y) {
+    for (x= x0; x <= x1; ++x) {
+        for (y= y0; y <= y1; ++y) {
             adrOffset= x * 2 + (y * 2 * SCREEN_COLUMNS);
             lpoke(SCREENBASE + adrOffset, b);
             lpoke(COLBASE + adrOffset + 1, c);
@@ -143,15 +157,15 @@ void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
     }
 }
 
-void fillscreen16(byte b, byte c) {
-    box16(0, 0, SCREEN_COLUMNS, SCREEN_ROWS, b, c);
-}
-
 void cg_textcolor(byte c) { textcolor16= c; }
 
 void cg_gotoxy(byte x, byte y) {
-    xc16= x;
-    yc16= y;
+    if (is16BitModeEnabled) {
+        xc16= currentWin.x0+x;
+        yc16= currentWin.y0+y;
+        return;
+    } 
+    gotoxy(x,y);
 }
 
 int cg_printf(const char *format, ...) {
@@ -160,10 +174,26 @@ int cg_printf(const char *format, ...) {
     va_start(args, format);
     vsprintf(buf, format, args);
     va_end(args);
-    outs16(buf);
+    cg_puts(buf);
 }
 
-void cg_clrscr() { fillscreen16(32, 5); }
+void cg_clrscr() {
+    if (is16BitModeEnabled) {
+        cg_block(currentWin.x0, currentWin.y0, currentWin.x1, currentWin.y1, 32, 5);
+        return;
+    }
+    lfill((long)SCREEN, 32, 1000);
+    lfill((long)COLOR_RAM, 0, 1000);
+    cg_gotoxy(0, 0);
+}
+
+void cg_setwin(byte x0, byte y0, byte width, byte height) {
+    currentWin.x0= x0;
+    currentWin.y0= y0;
+    currentWin.x1= x0+width-1;
+    currentWin.y1= y0+height-1;
+    cg_gotoxy(0, 0);
+}
 
 void cg_go8bit() {
     VIC4CTRL&= 0xFA; // clear fchi and 16bit chars
@@ -174,6 +204,7 @@ void cg_go8bit() {
     SCNPTR_2= 0x00;
     SCNPTR_3&= 0xF0;
     cbm_k_bsout(14); // lowercase charset
+    is16BitModeEnabled= false;
 }
 
 void cg_init() {
@@ -214,20 +245,19 @@ void cg_clearFromTo(byte start, byte end) {
 
 void cg_clearLower(byte num) { cg_clearFromTo(24 - num, 24); }
 
-void cg_clear(void) {
-    lfill((long)SCREEN, 32, 1000);
-    lfill((long)COLOR_RAM, 0, 1000);
-    gotoxy(0, 0);
-}
-
-void cg_colorLine(byte y, byte x0, byte x1, byte col) {
-    static unsigned int bas;
-    bas= y * 40;
-    lfill((long)COLOR_RAM + bas + x0, col, x1 - x0 + 1);
-}
-
 void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     static unsigned int bas;
+    static unsigned int bas2;
+    unsigned int i;
+    if (is16BitModeEnabled) {
+        bas= x0 * 2 + (y * SCREEN_COLUMNS * 2);
+        bas2= x1 * 2 + (y * SCREEN_COLUMNS * 2);
+        for (i= bas; i <= bas2; i+= 2) {
+            lpoke(SCREENBASE + i, character);
+            lpoke(COLBASE + i + 1, col);
+        }
+        return;
+    }
     bas= y * 40;
     if (character) {
         lfill((long)SCREEN + bas + x0, character, x1 - x0 + 1);
@@ -309,7 +339,7 @@ void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
     byte splitPos= 12;
 
     xpos= 20 - (strlen(t) / 2);
-    cg_clear();
+    cg_clrscr();
     textcolor(lcol);
     cg_borders();
     if (splitScreen) {

@@ -68,7 +68,7 @@ dungeonDescriptor *loadMap(char *filename) {
     FILE *infile;
 
 #ifdef DLDEBUG
-    cg_clear();
+    cg_clrscr();
     printf("load map %s\n\nloading map header\n", filename);
 #endif
 

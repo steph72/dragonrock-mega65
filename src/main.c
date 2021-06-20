@@ -139,10 +139,17 @@ void initEngine(void) {
     cg_init();
     cg_go16bit();
     cg_clrscr();
-    cg_gotoxy(5,5);
+    cg_puts("Outside!");
+    cg_gotoxy(15,20);
+    cg_puts("Outside2!");
+    cg_setwin(3,3,10,10);
+    cg_gotoxy(0,0);
+    cg_puts("012345678901234567890123456789");
     cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy Buba!\n", 1234, 5678);
     cg_textcolor(COLOR_RED);
     cg_printf("This should be red!");
+    cg_getkey();
+    cg_clrscr();
     cg_getkey();
     cg_go8bit();
 
@@ -177,7 +184,7 @@ void debugDungeon(void) {
 int main() {
     static char choice;
     initEngine();
-    cg_clear();
+    cg_clrscr();
     gotoxy(0, 2);
     cputsxy(2, 11, "1 - load saved game");
     cputsxy(2, 13, "2 - start in ");

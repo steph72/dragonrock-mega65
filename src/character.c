@@ -218,7 +218,7 @@ void useSpecial(item *anItem) {
 void more(char *filename) {
     FILE *infile;
     int line= 0;
-    cg_clear();
+    cg_clrscr();
     infile= fopen(filename, "r");
     while (!feof(infile)) {
         fgets(drbuf, BUFSIZE, infile);
@@ -231,7 +231,7 @@ void more(char *filename) {
             cgetc();
             cursor(0);
             line= 0;
-            cg_clear();
+            cg_clrscr();
         }
     }
     fclose(infile);
@@ -460,7 +460,7 @@ void inspectCharacter(byte idx) {
 
         spellLine= 0;
         ic= party[idx];
-        cg_clear();
+        cg_clrscr();
         if (gCurrentGameMode==gm_dungeon) {
             textcolor(0);
         } else {

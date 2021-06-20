@@ -169,7 +169,7 @@ int performDisplayTextOpcode(opcode *anOpcode) {
     }
 
     if (anOpcode->param2 != 0) {
-        cg_clear();
+        cg_clrscr();
     }
     // cprintf("%s",feelForIndex(anOpcode->param1));
     fetchFeelForIndex(anOpcode->param1, textbuf);
@@ -433,7 +433,7 @@ int performDoencOpcode(opcode *anOpcode) {
     quitDungeon= true;
     /* cg_clearLower(5);
     gotoxy(0, 19); */
-    cg_clear();
+    cg_clrscr();
     cputs("An encounter!");
     sleep(1);
     return 0;
@@ -1080,7 +1080,7 @@ void setupOutdoorScreen(void) {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     textcolor(COLOR_GRAY2);
-    cg_clear();
+    cg_clrscr();
     cg_block(0, 0, 39, 24, 32, COLOR_GREEN);
     revers(0);
 }
@@ -1088,7 +1088,7 @@ void setupOutdoorScreen(void) {
 void setupDungeonScreen(void) {
 
     textcolor(COLOR_BLACK);
-    cg_clear();
+    cg_clrscr();
     bordercolor(COLOR_GRAY1);
     bgcolor(COLOR_GRAY3);
     cg_block(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
