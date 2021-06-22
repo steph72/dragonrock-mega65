@@ -19,6 +19,7 @@
 
 #include "globals.h"
 #include "memory.h"
+#include "utils.h"
 #include <c64.h>
 #include <cbm.h>
 #include <conio.h>
@@ -155,11 +156,32 @@ void cg_go8bit() {
     CHRCOUNT= 40;
     LINESTEP_LO= 40;
     LINESTEP_HI= 0;
-    HOTREG|= 0x80; // enable hotreg
+    HOTREG|= 0x80;   // enable hotreg
     VIC3CTRL&= 0x7f; // disable H640
     VIC3CTRL&= 0xf7; // disable V400
     cbm_k_bsout(14); // lowercase charset
     is16BitModeEnabled= false;
+}
+
+void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
+                        himemPtr bitmapData) {
+    byte x, y;
+    long adr;
+    word currentCharIdx;
+
+    currentCharIdx= bitmapData/64;
+
+    for (y= y0; y < y0 + height; ++y) {
+        for (x= x0; x < x0 + width; ++x) {
+            adr= SCREENBASE + (x * 2) + (y * gScreenColumns * 2);
+            lpoke(adr, currentCharIdx % 256);
+            lpoke(adr + 1, currentCharIdx / 256);
+            currentCharIdx++;
+        }
+    }
+    for (adr=0x40000;adr<0x45000;++adr) {
+        lpoke (adr,drand(255));
+    }
 }
 
 void scrollUp() {

@@ -135,7 +135,8 @@ void initEngine(void) {
     cg_puts("Outside!");
     cg_gotoxy(13,13);
     cg_puts("Outside2!");
-    cg_setwin(3,3,10,10);
+    cg_setwin(20,1,10,10);
+    cg_addGraphicsRect(1,1,16,16,0x40000);
     cg_gotoxy(0,0);
     cg_puts("!1234567892\n3\n4\n");
     cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy Buba!\n", 1234, 5678);

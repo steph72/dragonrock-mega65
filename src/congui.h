@@ -31,3 +31,5 @@ int cg_printf(const char *format, ...);
 void cg_gotoxy(byte x, byte y);
 void cg_textcolor(byte c);
 void cg_setwin(byte x0, byte y0, byte width, byte height);
+
+void cg_addGraphicsRect(byte x0,byte y0, byte width, byte height, himemPtr bitmapData);
