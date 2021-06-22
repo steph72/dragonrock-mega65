@@ -74,14 +74,7 @@ const char *prompt=
     "DREngine/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
 void initVIC() {
-    byte *vic3_control= (byte *)0xd031;
-    byte *hotreg= (byte *)0xd05d;
-
-    POKE(0xd02fL, 0x47);
-    POKE(0xd02fL, 0x53);
-    //*vic3_control&= (255 ^ 128); // disable 80chars
-    //*vic3_control&= (255 ^ 8);   // disable interlace
-    //*hotreg&= 127;               // disable hotreg
+    mega65_io_enable();
     POKE(53297L, 96); // quit bitplane mode
 }
 
@@ -137,7 +130,7 @@ void initEngine(void) {
 
     initVIC();
     cg_init();
-    cg_go16bit();
+    cg_go16bit(0,0);
     cg_clrscr();
     cg_puts("Outside!");
     cg_gotoxy(13,13);

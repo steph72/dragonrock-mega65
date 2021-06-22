@@ -95,8 +95,6 @@ void commitNewGameMode(void) {
 
 void enterCurrentGameMode() {
 
-    bordercolor(COLOR_BLACK);
-
     switch (gCurrentGameMode) {
 
     case gm_city:

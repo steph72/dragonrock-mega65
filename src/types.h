@@ -27,6 +27,7 @@
 #define false 0
 
 typedef unsigned char byte;
+typedef unsigned int word;
 
 typedef byte attrT;
 typedef byte itemT;

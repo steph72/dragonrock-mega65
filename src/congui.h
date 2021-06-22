@@ -23,7 +23,7 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col);
 
 void cg_setPalette(byte num, byte red, byte green, byte blue);
 
-void cg_go16bit();
+void cg_go16bit(byte h640, byte v400);
 void cg_go8bit();
 void cg_clrscr();
 void cg_puts(char *s);

@@ -67,14 +67,14 @@ void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
 void cg_go8bit();
 
 #define SCREENBASE 0x12000l
-#define COLBASE 0x1f800l
-#define SCREEN_COLUMNS 40
-#define SCREEN_ROWS 25
+#define COLBASE 0xff80000l
 
 #define VIC4CTRL (*(unsigned char *)(0xd054))
 #define VIC3CTRL (*(unsigned char *)(0xd031))
 #define LINESTEP_LO (*(unsigned char *)(0xd058))
 #define LINESTEP_HI (*(unsigned char *)(0xd059))
+#define CHRCOUNT (*(unsigned char *)(0xd05e))
+#define HOTREG (*(unsigned char *)(0xd05d))
 
 #define SCNPTR_0 (*(unsigned char *)(0xd060))
 #define SCNPTR_1 (*(unsigned char *)(0xd061))
@@ -84,6 +84,9 @@ void cg_go8bit();
 byte is16BitModeEnabled;
 byte xc16, yc16;
 byte textcolor16;
+unsigned long gScreenSize;
+byte gScreenColumns;
+byte gScreenRows;
 
 char asciiToPetscii(byte c) {
     if (c >= 65 && c <= 95) {
@@ -95,40 +98,79 @@ char asciiToPetscii(byte c) {
     return c;
 }
 
-void cg_go16bit() {
+void cg_go16bit(byte h640, byte v400) {
     mega65_io_enable();
     VIC4CTRL|= 0x04; // enable full colour for characters with high byte set
     VIC4CTRL|= 0x01; // enable 16 bit characters
-    VIC3CTRL&= 0x80; // disable H640
-    LINESTEP_LO= 80; // 80 bytes to read per screen row
+
+    if (h640) {
+        VIC3CTRL|= 0x80; // enable H640
+        gScreenSize= 2000;
+        gScreenColumns= 80;
+    } else {
+        VIC3CTRL&= 0x7f; // disable H640
+        gScreenSize= 1000;
+        gScreenColumns= 40;
+    }
+
+    if (v400) {
+        VIC3CTRL|= 0x08;
+        gScreenRows= 50;
+        gScreenSize*= 2;
+    } else {
+        gScreenRows= 25;
+        VIC3CTRL&= 0xf7;
+    }
+
+    HOTREG&= 127; // disable hotreg
+    CHRCOUNT= gScreenColumns;
+    LINESTEP_LO= gScreenColumns * 2;
     LINESTEP_HI= 0;
+
     SCNPTR_0= SCREENBASE & 0xff; // screen to 0x10000
     SCNPTR_1= (SCREENBASE >> 8) & 0xff;
     SCNPTR_2= (SCREENBASE >> 16) & 0xff;
     SCNPTR_3&= 0xF0 | ((SCREENBASE) << 24 & 0xff);
-    lfill(SCREENBASE, 0, 2000);
-    lfill(COLBASE, 0, 2000);
+    lfill(SCREENBASE, 0, gScreenSize * 2);
+    lfill(COLBASE, 0, gScreenSize * 2);
     xc16= 0;
     yc16= 0;
     textcolor16= 5;
     is16BitModeEnabled= true;
     currentWin.x0= 0;
-    currentWin.x1= SCREEN_COLUMNS - 1;
+    currentWin.x1= gScreenColumns - 1;
     currentWin.y0= 0;
-    currentWin.y1= SCREEN_ROWS - 1;
-    currentWin.width= SCREEN_COLUMNS;
-    currentWin.height= SCREEN_ROWS;
+    currentWin.y1= gScreenRows - 1;
+    currentWin.width= gScreenColumns;
+    currentWin.height= gScreenRows;
+}
+
+void cg_go8bit() {
+    mega65_io_enable();
+    SCNPTR_0= 0x00; // screen back to 0x800
+    SCNPTR_1= 0x08;
+    SCNPTR_2= 0x00;
+    SCNPTR_3&= 0xF0;
+    VIC4CTRL&= 0xFA; // clear fchi and 16bit chars
+    CHRCOUNT= 40;
+    LINESTEP_LO= 40;
+    LINESTEP_HI= 0;
+    HOTREG|= 0x80; // enable hotreg
+    VIC3CTRL&= 0x7f; // disable H640
+    VIC3CTRL&= 0xf7; // disable V400
+    cbm_k_bsout(14); // lowercase charset
+    is16BitModeEnabled= false;
 }
 
 void scrollUp() {
     byte y;
     long bas0, bas1;
     for (y= currentWin.y0; y < currentWin.y1; y++) {
-        bas0= SCREENBASE + (currentWin.x0 * 2 + (y * SCREEN_COLUMNS * 2));
-        bas1= SCREENBASE + (currentWin.x0 * 2 + ((y + 1) * SCREEN_COLUMNS * 2));
+        bas0= SCREENBASE + (currentWin.x0 * 2 + (y * gScreenColumns * 2));
+        bas1= SCREENBASE + (currentWin.x0 * 2 + ((y + 1) * gScreenColumns * 2));
         lcopy(bas1, bas0, currentWin.width * 2);
-        bas0= COLBASE + (currentWin.x0 * 2 + (y * SCREEN_COLUMNS * 2));
-        bas1= COLBASE + (currentWin.x0 * 2 + ((y + 1) * SCREEN_COLUMNS * 2));
+        bas0= COLBASE + (currentWin.x0 * 2 + (y * gScreenColumns * 2));
+        bas1= COLBASE + (currentWin.x0 * 2 + ((y + 1) * gScreenColumns * 2));
         lcopy(bas1, bas0, currentWin.width * 2);
     }
     cg_block_raw(currentWin.x0, currentWin.y1, currentWin.x1, currentWin.y1, 32,
@@ -146,13 +188,13 @@ void cr() {
 
 void outc16(char c) {
     char out;
-    unsigned int adrOffset;
+    word adrOffset;
     if (c == '\n') {
         cr();
         return;
     }
     out= asciiToPetscii(c);
-    adrOffset= (xc16 * 2) + (yc16 * 2 * SCREEN_COLUMNS);
+    adrOffset= (xc16 * 2) + (yc16 * 2 * gScreenColumns);
     lpoke(SCREENBASE + adrOffset, out);
     lpoke(COLBASE + adrOffset + 1, textcolor16);
     xc16++;
@@ -175,10 +217,10 @@ void cg_puts(char *s) {
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
     int x, y;
-    unsigned int adrOffset;
+    word adrOffset;
     for (x= x0; x <= x1; ++x) {
         for (y= y0; y <= y1; ++y) {
-            adrOffset= x * 2 + (y * 2 * SCREEN_COLUMNS);
+            adrOffset= x * 2 + (y * 2 * gScreenColumns);
             lpoke(SCREENBASE + adrOffset, b);
             lpoke(COLBASE + adrOffset + 1, c);
         }
@@ -226,21 +268,10 @@ void cg_setwin(byte x0, byte y0, byte width, byte height) {
     cg_gotoxy(0, 0);
 }
 
-void cg_go8bit() {
-    VIC4CTRL&= 0xFA; // clear fchi and 16bit chars
-    LINESTEP_LO= 40;
-    LINESTEP_HI= 0;
-    SCNPTR_0= 0x00; // screen back to 0x800
-    SCNPTR_1= 0x08;
-    SCNPTR_2= 0x00;
-    SCNPTR_3&= 0xF0;
-    cbm_k_bsout(14); // lowercase charset
-    is16BitModeEnabled= false;
-}
-
 void cg_init() {
     byte i;
     mega65_io_enable();
+    POKE(53297U, 96);                 // quit bitplane mode
     POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
     for (i= 0; i < 15; ++i) {
         cg_setPalette(i, drColours[i][0], drColours[i][1], drColours[i][2]);
@@ -277,12 +308,12 @@ void cg_clearFromTo(byte start, byte end) {
 void cg_clearLower(byte num) { cg_clearFromTo(24 - num, 24); }
 
 void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
-    static unsigned int bas;
-    static unsigned int bas2;
-    unsigned int i;
+    static word bas;
+    static word bas2;
+    word i;
     if (is16BitModeEnabled) {
-        bas= x0 * 2 + (y * SCREEN_COLUMNS * 2);
-        bas2= x1 * 2 + (y * SCREEN_COLUMNS * 2);
+        bas= x0 * 2 + (y * gScreenColumns * 2);
+        bas2= x1 * 2 + (y * gScreenColumns * 2);
         for (i= bas; i <= bas2; i+= 2) {
             lpoke(SCREENBASE + i, character);
             lpoke(COLBASE + i + 1, col);
