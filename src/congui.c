@@ -163,13 +163,20 @@ void cg_go8bit() {
     is16BitModeEnabled= false;
 }
 
+unsigned long pixel_addr, final_addr;
+void cg_plot_pixel(unsigned short x, unsigned short y, unsigned char colour) {
+    pixel_addr=
+        (x & 7) + (x >> 3) * 0x40L + ((y & 7) << 3) + (y >> 3) * 80 * 0x40L;
+    lpoke(0x40000 + pixel_addr, colour);
+}
+
 void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
                         himemPtr bitmapData) {
     byte x, y;
     long adr;
     word currentCharIdx;
 
-    currentCharIdx= bitmapData/64;
+    currentCharIdx= bitmapData / 64;
 
     for (y= y0; y < y0 + height; ++y) {
         for (x= x0; x < x0 + width; ++x) {
@@ -179,8 +186,8 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
             currentCharIdx++;
         }
     }
-    for (adr=0x40000;adr<0x45000;++adr) {
-        lpoke (adr,drand(255));
+    for (adr= 0x40000; adr < 0x45000; ++adr) {
+        lpoke(adr, drand(255));
     }
 }
 
