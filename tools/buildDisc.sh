@@ -39,12 +39,13 @@ write bin/city
 write bin/drcharset charset
 EOF
 
-#for filename in graphics/*.pbm; do
-#  c1541 disc/drock.d81 -delete $(basename $filename)
-#  c1541 disc/drock.d81 -write $filename
-#done
+for filename in graphics/*.dbm; do
+  c1541 disc/drock.d81 -delete $(basename $filename)
+  c1541 disc/drock.d81 -write $filename
+done
 
-for filename in gamedata/*; do 
+for filename in gamedata/*; do
+  c1541 disc/drock.d81 -delete $(basename $filename)
   c1541 disc/drock.d81 -write $filename
 done
 

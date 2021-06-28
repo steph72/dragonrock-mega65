@@ -7,11 +7,13 @@
 #######################################################################
 
 import sys
+from zlib import compress
 import png
 import io
 
 gVerbose = False
 gReserve = False
+gCompress = False
 gVersion = "1.0"
 
 
@@ -20,6 +22,7 @@ def showUsage():
     print("convert PNG to MEGA65 DBM file")
     print("options: -r  reserve system palette entries")
     print("         -v  verbose output")
+    print("         -c  compress output")
     exit(0)
 
 
@@ -35,6 +38,7 @@ def parseArgs():
     args.remove(args[0])
     fReserve = False
     fVerbose = False
+    fCompress = False
     fileargcount = 0
 
     for arg in args:
@@ -45,6 +49,8 @@ def parseArgs():
                     fReserve = True
                 elif opt == "v":
                     fVerbose = True
+                elif opt == "c":
+                    fCompress = True
                 else:
                     print("Unknown option", opt)
                     showUsage()
@@ -57,7 +63,7 @@ def parseArgs():
             else:
                 print("too many arguments")
                 showUsage()
-    return infile, outfile, fReserve, fVerbose
+    return infile, outfile, fReserve, fVerbose, fCompress
 
 
 def vprint(*values):
@@ -72,7 +78,7 @@ def pngRowsToM65Rows(pngRows):
     width = len(pngRows[0])
     columnCount = width//8
     rowCount = height//8
-    vprint("using", rowCount, "rows,",columnCount,"columns.")
+    vprint("using", rowCount, "rows,", columnCount, "columns.")
     m65Rows = []
     for i in range(rowCount):
         aRow = []
@@ -87,22 +93,54 @@ def pngRowsToM65Rows(pngRows):
         for currentColumn in currentRow:
             if gReserve:
                 currentColumn += 16
-            m65X    = pngX//8
-            m65Y    = pngY//8
-            m65Byte = ((pngX%8)+(pngY*8))%64
-            # print (pngX,pngY,"->",m65X,m65Y,m65Byte)
+            m65X = pngX//8
+            m65Y = pngY//8
+            m65Byte = ((pngX%8)+(pngY*8)) % 64
             m65Rows[m65Y][m65X][m65Byte] = currentColumn
             pngX += 1
         pngY += 1
-    return m65Rows, rowCount, columnCount
+
+    imageData = bytearray()
+    for currentRow in m65Rows:
+        for currentColumn in currentRow:
+            imageData.extend(currentColumn)
+    return imageData, rowCount, columnCount
+
+
+def rle(data):
+    outdata = []
+    dsize = len(data)
+    i = 0
+    while i < dsize:
+        current = data[i]
+        count = 1
+        if i < dsize:
+            j = i+1
+            while (j < dsize-1) and (data[j] == current and (count < 255)):
+                count += 1
+                j += 1
+        if count == 1:
+            outdata.append(current)
+            i += 1
+        else:
+            outdata.append(current)
+            outdata.append(current)
+            outdata.append(count)
+            i = j
+    # print(outdata)
+    return outdata
+
 
 ####################### main program ########################
 
-infile, outfile, gReserve, gVerbose = parseArgs()
+# print(rle(["a", "b", "c", "c", "c", "d", "e"]))
+# exit(0)
+
+inputFileName, outputFileName, gReserve, gVerbose, gCompress = parseArgs()
 
 vprint("### png2dbm v"+gVersion+" ###")
-vprint("reading", infile)
-pngReader = png.Reader(filename=infile)
+vprint("reading", inputFileName)
+pngReader = png.Reader(filename=inputFileName)
 pngData = pngReader.read()
 pngInfo = pngData[3]
 
@@ -126,6 +164,7 @@ if gReserve:
         exit(2)
 
     # add placeholders for system colours
+    vprint("reserving system colour space")
     for i in range(16):
         vic4_palette.append((0, 0, 0))
 
@@ -138,24 +177,28 @@ for i in palette:
     vic4_palette.append((r, g, b))
 
 rows = list(pngData[2])
-m65Rows, numRows, numColumns = pngRowsToM65Rows(rows)
-m65file = bytearray()
+imageData, numRows, numColumns = pngRowsToM65Rows(rows)
+m65data = bytearray()
 
 vprint("building outfile")
-m65file.extend(map(ord,'dbmp'))         #   0-3 : identifier bytes for format
-m65file.append(0x01)                    #     4 : version
-m65file.append(numRows)                 #     5 : number of rows
-m65file.append(numColumns)              #     6 : number of columns
-m65file.append(gReserve)                #     7 : options byte (bit 0: system colours reserved)
-m65file.append(len(vic4_palette))       #     8 : palette size
-m65file.extend(map(ord,'pal'))          #  9-11 : pal header 
+m65data.extend(map(ord, 'DBMP'))  # 0-3 : identifier bytes for format
+m65data.append(0x01)  # 4 : version
+m65data.append(numRows)  # 5 : number of rows
+m65data.append(numColumns)  # 6 : number of columns
+# 7 : options (b0: RLE compressed; b1: sys palette reserved)
+m65data.append(gCompress+(2*gReserve))
+m65data.append(len(vic4_palette))  # 8 : palette size
+m65data.extend(map(ord, 'pal'))  # 9-11 : pal header
 
 for entry in vic4_palette:
-    m65file.extend(entry)
+    m65data.extend(entry)
 
-m65file.extend(map(ord,'img'))          #         bitmap data header
+if gCompress:
+    m65data.extend(rle(imageData))
+else:
+    m65data.extend(imageData)
 
-for currentRow in m65Rows:
-    for currentColumn in currentRow:
-            m65file.extend(currentColumn)
-
+outfile = open(outputFileName, "wb")
+outfile.write(m65data)
+vprint("done.")
+outfile.close()

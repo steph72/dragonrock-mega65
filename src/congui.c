@@ -20,11 +20,13 @@
 #include "globals.h"
 #include "memory.h"
 #include "utils.h"
+#include "congui.h"
 #include <c64.h>
 #include <cbm.h>
 #include <conio.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -61,11 +63,6 @@ unsigned char drColours[16][3]= {
     {0x6c, 0x5e, 0xb5}, // 14
     {0x95, 0x95, 0x95}  // 15
 };
-
-char cg_getkey(void);
-void cg_setPalette(byte num, byte red, byte green, byte blue);
-void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
-void cg_go8bit();
 
 #define SCREENBASE 0x12000l
 #define COLBASE 0xff80000l
@@ -186,9 +183,75 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
             currentCharIdx++;
         }
     }
-    for (adr= 0x40000; adr < 0x45000; ++adr) {
-        lpoke(adr, drand(255));
+
+}
+
+void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr) {
+
+    FILE *dbmfile;
+    byte i;
+    byte r, g, b;
+    byte numColumns, numRows, numColours;
+    byte dbmOptions;
+    byte reservedSysPalette;
+    byte *palette;
+    word palsize;
+    word imgsize;
+    word colAdr;
+
+    dbmfile= fopen(filename, "rb");
+    if (!dbmfile) {
+        puts("can't load ");
+        puts(filename);
+        while (1)
+            ;
     }
+    fread(drbuf, 1, 12, dbmfile);
+    if (0 != memcmp(drbuf, "dbmp", 4)) {
+        puts("not a dbm file");
+        while (1)
+            ;
+    }
+    numRows= drbuf[5];
+    numColumns= drbuf[6];
+    dbmOptions= drbuf[7];
+    numColours= drbuf[8];
+    reservedSysPalette= dbmOptions & 2;
+    /* printf("%d rows, %d columns, %d colours, options: %d \n", numRows,
+           numColumns, numColours, dbmOptions); */
+
+    if (0 == memcmp(&drbuf[9], "PAL", 3)) {
+        puts("missing pal entry");
+        while (1)
+            ;
+    }
+
+    palsize= numColours * 3;
+    palette= (byte *)malloc(palsize);
+    fread(palette, 3, numColours, dbmfile);
+
+    mega65_io_enable();
+    for (i= 0; i < numColours; ++i) {
+        if (reservedSysPalette && i<15) {
+            continue;
+        }
+        colAdr = i*3;
+        r= palette[colAdr];
+        g= palette[colAdr + 1];
+        b= palette[colAdr + 2];
+        POKE(0xd100u + i, r);
+        POKE(0xd200u + i, g);
+        POKE(0xd300u + i, b);
+    }
+    free(palette);
+
+    imgsize = numColumns*numRows*64;
+
+    readExt(dbmfile, adr);
+    mega65_io_enable();
+    bordercolor(5);
+    cg_addGraphicsRect(x0,y0,numColumns,numRows,adr);
+
 }
 
 void scrollUp() {
