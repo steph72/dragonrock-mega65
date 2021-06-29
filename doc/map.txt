@@ -4,6 +4,11 @@ BANK 0
 0x00801 - 0x08fff       main program    36k
 0x09000 - 0x0cfff       overlays        16k
 
+BANK 1
+0x12000 - 0x12fff       16 bit screen   
+
+
+
 ATTIC RAM
 0800.0000 - 0800-ffff   map & dungeon script storage    64k
 0801.0000 - 0801.3fff   dungeon code                    16k
