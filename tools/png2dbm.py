@@ -176,6 +176,7 @@ for i in palette:
     b = nybswap(i[2])
     vic4_palette.append((r, g, b))
 
+vprint("outfile has ",len(vic4_palette),"palette entries")
 rows = list(pngData[2])
 imageData, numRows, numColumns = pngRowsToM65Rows(rows)
 m65data = bytearray()

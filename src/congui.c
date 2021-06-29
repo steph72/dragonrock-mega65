@@ -34,14 +34,6 @@ static byte gPal;
 static signed char gPalDir;
 static clock_t lastPaletteTick;
 
-typedef struct _textwin {
-    byte x0;
-    byte y0;
-    byte x1;
-    byte y1;
-    byte width;
-    byte height;
-} textwin;
 
 textwin currentWin;
 
@@ -66,6 +58,7 @@ unsigned char drColours[16][3]= {
 
 #define SCREENBASE 0x12000l
 #define COLBASE 0xff80000l
+#define SHAPEBASE 0x50000l
 
 #define SHAPETBLSIZE 16
 
@@ -89,22 +82,33 @@ byte gScreenColumns;
 byte gScreenRows;
 
 himemPtr shapeTbl[SHAPETBLSIZE];
+himemPtr nextFreeShapeMem;
+
+void scrollUp();
+
+void cg_clearShapes() {
+    byte i;
+    for (i= 0; i < SHAPETBLSIZE; ++i) {
+        shapeTbl[i]= 0;
+    }
+    nextFreeShapeMem= SHAPEBASE;
+}
 
 void cg_test() {
+    word foo;
     cg_go16bit(0, 0);
     cg_clrscr();
-    cg_loadDBM("foo.dbm", 0, 0, 0x40000);
-    cg_gotoxy(0,0);
-    cg_puts("This is a test.");
-    cg_gotoxy(1,1);
-    cg_puts("a");
+    cg_displayDBMFile("foo.dbm",0,0);
+    // foo= cg_loadDBM("foo.dbm", 0, 0, 0x50000);
     cg_getkey();
-
-    cg_puts("Outside!");
+    cg_displayDBMFile("foo2.dbm",1,1);
+    // foo= cg_loadDBM("foo2.dbm", 1, 1, 0x40000);
+    cg_gotoxy(1, 1);
+    cg_printf("This is a test. nextFree = %x", foo);
+    cg_getkey();
     cg_gotoxy(13, 13);
-    cg_puts("Outside2!");
-    cg_setwin(20, 1, 10, 10);
-    cg_addGraphicsRect(1, 1, 16, 16, 0x40000);
+    cg_puts("Outside!");
+    cg_setwin(20, 2, 15, 15);
     cg_gotoxy(0, 0);
     cg_puts("!1234567892\n3\n4\n");
     cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy "
@@ -112,9 +116,15 @@ void cg_test() {
               1234, 5678);
     cg_textcolor(COLOR_RED);
     cg_printf("This should be red!");
-    cg_getkey();
-    cg_clrscr();
-    cg_getkey();
+    for (foo= 0; foo < 5; ++foo) {
+        cg_getkey();
+        scrollUp();
+    }
+    cg_setwin(0, 0, 40, 25);
+    for (foo= 0; foo < 5; ++foo) {
+        cg_getkey();
+        scrollUp();
+    }
     cg_go8bit();
 }
 
@@ -192,13 +202,6 @@ void cg_go8bit() {
     is16BitModeEnabled= false;
 }
 
-unsigned long pixel_addr, final_addr;
-void cg_plot_pixel(unsigned short x, unsigned short y, unsigned char colour) {
-    pixel_addr=
-        (x & 7) + (x >> 3) * 0x40L + ((y & 7) << 3) + (y >> 3) * 80 * 0x40L;
-    lpoke(0x40000 + pixel_addr, colour);
-}
-
 void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
                         himemPtr bitmapData) {
     byte x, y;
@@ -217,18 +220,21 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
     }
 }
 
-void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr) {
+void cg_loadDBM(char *filename, himemPtr adr, dbmInfo *info) {
 
     FILE *dbmfile;
     byte i;
     byte r, g, b;
     byte numColumns, numRows, numColours;
     byte dbmOptions;
-    byte reservedSysPalette;
     byte *palette;
     word palsize;
     word imgsize;
     word colAdr;
+    word bytesRead;
+    dbmInfo retInfo;
+
+    byte reservedSysPalette;
 
     dbmfile= fopen(filename, "rb");
     if (!dbmfile) {
@@ -275,11 +281,28 @@ void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr) {
     free(palette);
     imgsize= numColumns * numRows * 64;
 
-    readExt(dbmfile, adr);
+    bytesRead= readExt(dbmfile, adr);
     fclose(dbmfile);
     mega65_io_enable();
-    cg_addGraphicsRect(x0, y0, numColumns, numRows, adr);
-    bordercolor(5);
+
+    if (info != NULL) {
+        info->columns= numColumns;
+        info->rows= numRows;
+        info->size= bytesRead;
+        info->baseAdr= adr;
+    }
+}
+
+void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
+    mega65_io_enable();
+    cg_addGraphicsRect(x0,y0,info->columns,info->rows,info->baseAdr);
+}
+
+void cg_displayDBMFile(char *filename, byte x0, byte y0) {
+    dbmInfo info;
+    // TODO: manage addresses
+    cg_loadDBM(filename, 0x40000, &info);
+    cg_displayDBMInfo(&info, x0, y0);
 }
 
 void scrollUp() {
@@ -408,9 +431,6 @@ void cg_init() {
     gPalDir= 1;
     cbm_k_bsout(11); // disable shift+cmd on c128 & 364
     cbm_k_bsout(14); // lowercase charset
-    for (i=0;i<SHAPETBLSIZE;++i) {
-        shapeTbl[i]=0;
-    }
 }
 
 void cg_emptyBuffer(void) {
@@ -443,6 +463,7 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
         for (i= bas; i <= bas2; i+= 2) {
             lpoke(SCREENBASE + i, character);
             lpoke(SCREENBASE + i + 1, 0);
+            lpoke(COLBASE + i, 0);
             lpoke(COLBASE + i + 1, col);
         }
         return;

@@ -1,6 +1,27 @@
 
 #include "types.h"
 
+#ifndef __CONGUI
+#define __CONGUI
+
+// --------------- graphics ------------------
+
+typedef struct _dbmInfo {
+    himemPtr baseAdr;
+    byte columns;
+    byte rows;
+    word size;
+} dbmInfo;
+
+typedef struct _textwin {
+    byte x0;
+    byte y0;
+    byte x1;
+    byte y1;
+    byte width;
+    byte height;
+} textwin;
+
 void cg_init(void);
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t);
 void cg_borders(void);
@@ -33,6 +54,10 @@ void cg_textcolor(byte c);
 void cg_setwin(byte x0, byte y0, byte width, byte height);
 
 void cg_addGraphicsRect(byte x0,byte y0, byte width, byte height, himemPtr bitmapData);
-void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr);
+void cg_loadDBM(char *filename, himemPtr adr, dbmInfo *info);
+void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0);
+void cg_displayDBMFile(char *filename, byte x0, byte y0);
 
 void cg_test();
+
+#endif

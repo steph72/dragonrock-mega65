@@ -55,7 +55,7 @@ typedef enum _classT {
 typedef enum _raceT { rt_human, rt_dwarf, rt_elf, rt_halfelf, rt_gnome } raceT;
 
 typedef enum _encCommand {
-    ec_nothing =0,
+    ec_nothing= 0,
     ec_thrust,
     ec_attack,
     ec_slash,
@@ -134,6 +134,7 @@ typedef struct _cityCoords {
     byte x;
     byte y;
 } cityCoordsT;
+
 
 // --------------- spells ------------------
 
