@@ -17,10 +17,10 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "congui.h"
 #include "globals.h"
 #include "memory.h"
 #include "utils.h"
-#include "congui.h"
 #include <c64.h>
 #include <cbm.h>
 #include <conio.h>
@@ -67,6 +67,8 @@ unsigned char drColours[16][3]= {
 #define SCREENBASE 0x12000l
 #define COLBASE 0xff80000l
 
+#define SHAPETBLSIZE 16
+
 #define VIC4CTRL (*(unsigned char *)(0xd054))
 #define VIC3CTRL (*(unsigned char *)(0xd031))
 #define LINESTEP_LO (*(unsigned char *)(0xd058))
@@ -85,6 +87,36 @@ byte textcolor16;
 unsigned long gScreenSize;
 byte gScreenColumns;
 byte gScreenRows;
+
+himemPtr shapeTbl[SHAPETBLSIZE];
+
+void cg_test() {
+    cg_go16bit(0, 0);
+    cg_clrscr();
+    cg_loadDBM("foo.dbm", 0, 0, 0x40000);
+    cg_gotoxy(0,0);
+    cg_puts("This is a test.");
+    cg_gotoxy(1,1);
+    cg_puts("a");
+    cg_getkey();
+
+    cg_puts("Outside!");
+    cg_gotoxy(13, 13);
+    cg_puts("Outside2!");
+    cg_setwin(20, 1, 10, 10);
+    cg_addGraphicsRect(1, 1, 16, 16, 0x40000);
+    cg_gotoxy(0, 0);
+    cg_puts("!1234567892\n3\n4\n");
+    cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy "
+              "Buba!\n",
+              1234, 5678);
+    cg_textcolor(COLOR_RED);
+    cg_printf("This should be red!");
+    cg_getkey();
+    cg_clrscr();
+    cg_getkey();
+    cg_go8bit();
+}
 
 char asciiToPetscii(byte c) {
     if (c >= 65 && c <= 95) {
@@ -183,7 +215,6 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
             currentCharIdx++;
         }
     }
-
 }
 
 void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr) {
@@ -217,10 +248,8 @@ void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr) {
     dbmOptions= drbuf[7];
     numColours= drbuf[8];
     reservedSysPalette= dbmOptions & 2;
-    /* printf("%d rows, %d columns, %d colours, options: %d \n", numRows,
-           numColumns, numColours, dbmOptions); */
 
-    if (0 == memcmp(&drbuf[9], "PAL", 3)) {
+    if (0 != memcmp(&drbuf[9], "pal", 3)) {
         puts("missing pal entry");
         while (1)
             ;
@@ -232,10 +261,10 @@ void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr) {
 
     mega65_io_enable();
     for (i= 0; i < numColours; ++i) {
-        if (reservedSysPalette && i<15) {
+        if (reservedSysPalette && i < 15) {
             continue;
         }
-        colAdr = i*3;
+        colAdr= i * 3;
         r= palette[colAdr];
         g= palette[colAdr + 1];
         b= palette[colAdr + 2];
@@ -244,14 +273,13 @@ void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr) {
         POKE(0xd300u + i, b);
     }
     free(palette);
-
-    imgsize = numColumns*numRows*64;
+    imgsize= numColumns * numRows * 64;
 
     readExt(dbmfile, adr);
+    fclose(dbmfile);
     mega65_io_enable();
+    cg_addGraphicsRect(x0, y0, numColumns, numRows, adr);
     bordercolor(5);
-    cg_addGraphicsRect(x0,y0,numColumns,numRows,adr);
-
 }
 
 void scrollUp() {
@@ -288,7 +316,9 @@ void outc16(char c) {
     out= asciiToPetscii(c);
     adrOffset= (xc16 * 2) + (yc16 * 2 * gScreenColumns);
     lpoke(SCREENBASE + adrOffset, out);
+    lpoke(SCREENBASE + adrOffset + 1, 0);
     lpoke(COLBASE + adrOffset + 1, textcolor16);
+    lpoke(COLBASE + adrOffset, 0);
     xc16++;
     if (xc16 > currentWin.x1) {
         yc16++;
@@ -314,6 +344,7 @@ void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
         for (y= y0; y <= y1; ++y) {
             adrOffset= x * 2 + (y * 2 * gScreenColumns);
             lpoke(SCREENBASE + adrOffset, b);
+            lpoke(SCREENBASE + adrOffset + 1, 0);
             lpoke(COLBASE + adrOffset + 1, c);
         }
     }
@@ -377,6 +408,9 @@ void cg_init() {
     gPalDir= 1;
     cbm_k_bsout(11); // disable shift+cmd on c128 & 364
     cbm_k_bsout(14); // lowercase charset
+    for (i=0;i<SHAPETBLSIZE;++i) {
+        shapeTbl[i]=0;
+    }
 }
 
 void cg_emptyBuffer(void) {
@@ -408,6 +442,7 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
         bas2= x1 * 2 + (y * gScreenColumns * 2);
         for (i= bas; i <= bas2; i+= 2) {
             lpoke(SCREENBASE + i, character);
+            lpoke(SCREENBASE + i + 1, 0);
             lpoke(COLBASE + i + 1, col);
         }
         return;

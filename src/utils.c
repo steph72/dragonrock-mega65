@@ -22,17 +22,19 @@ unsigned int readExt(FILE *inFile, himemPtr addr) {
         }
     } while (readBytes);
 
-    fclose(inFile);
-
     return overallRead;
 }
 
 unsigned int loadExt(char *filename, himemPtr addr) {
 
     FILE *inFile;
-    inFile= fopen(filename, "r");
+    word readBytes;
 
-    return readExt(inFile, addr);
+    inFile= fopen(filename, "r");
+    readBytes = readExt(inFile,addr);
+    fclose(inFile);
+
+    return readBytes;
 }
 
 unsigned int drand(unsigned int max) {

@@ -34,3 +34,5 @@ void cg_setwin(byte x0, byte y0, byte width, byte height);
 
 void cg_addGraphicsRect(byte x0,byte y0, byte width, byte height, himemPtr bitmapData);
 void cg_loadDBM(char *filename, byte x0, byte y0, himemPtr adr);
+
+void cg_test();

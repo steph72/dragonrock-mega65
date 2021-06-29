@@ -2,7 +2,7 @@
 
 #######################################################################
 # png2dbm version 1.0                                                 #
-# written by stephan kleinert @ hundehaus im reinhardswald, june 2020 #
+# written by stephan kleinert @ hundehaus im reinhardswald, june 2021 #
 # with very special thanks to frau k., buba k. and candor k.!         #
 #######################################################################
 
@@ -188,7 +188,7 @@ m65data.append(numColumns)  # 6 : number of columns
 # 7 : options (b0: RLE compressed; b1: sys palette reserved)
 m65data.append(gCompress+(2*gReserve))
 m65data.append(len(vic4_palette))  # 8 : palette size
-m65data.extend(map(ord, 'pal'))  # 9-11 : pal header
+m65data.extend(map(ord, 'PAL'))  # 9-11 : pal header
 
 for entry in vic4_palette:
     m65data.extend(entry)
