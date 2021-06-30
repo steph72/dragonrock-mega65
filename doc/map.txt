@@ -8,7 +8,6 @@ BANK 1
 0x12000 - 0x12fff       16 bit screen   
 
 
-
 ATTIC RAM
 0800.0000 - 0800-ffff   map & dungeon script storage    64k
 0801.0000 - 0801.3fff   dungeon code                    16k
