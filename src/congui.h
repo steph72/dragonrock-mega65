@@ -13,6 +13,12 @@ typedef struct _dbmInfo {
     word size;
 } dbmInfo;
 
+typedef struct _shapeInfo {
+    byte shapeID;
+    dbmInfo *shape0;
+    dbmInfo *shape1;
+} shapeInfo;
+
 typedef struct _textwin {
     byte x0;
     byte y0;
@@ -54,9 +60,9 @@ void cg_textcolor(byte c);
 void cg_setwin(byte x0, byte y0, byte width, byte height);
 
 void cg_addGraphicsRect(byte x0,byte y0, byte width, byte height, himemPtr bitmapData);
-void cg_loadDBM(char *filename, himemPtr adr, dbmInfo *info);
+dbmInfo *cg_loadDBM(char *filename);
 void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0);
-void cg_displayDBMFile(char *filename, byte x0, byte y0);
+dbmInfo *cg_displayDBMFile(char *filename, byte x0, byte y0);
 
 void cg_test();
 

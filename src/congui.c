@@ -34,7 +34,6 @@ static byte gPal;
 static signed char gPalDir;
 static clock_t lastPaletteTick;
 
-
 textwin currentWin;
 
 unsigned char drColours[16][3]= {
@@ -58,7 +57,7 @@ unsigned char drColours[16][3]= {
 
 #define SCREENBASE 0x12000l
 #define COLBASE 0xff80000l
-#define SHAPEBASE 0x50000l
+#define GRAPHBASE 0x40000l
 
 #define SHAPETBLSIZE 16
 
@@ -81,30 +80,49 @@ unsigned long gScreenSize;
 byte gScreenColumns;
 byte gScreenRows;
 
-himemPtr shapeTbl[SHAPETBLSIZE];
-himemPtr nextFreeShapeMem;
+himemPtr nextFreeGraphMem;
 
 void scrollUp();
 
-void cg_clearShapes() {
-    byte i;
-    for (i= 0; i < SHAPETBLSIZE; ++i) {
-        shapeTbl[i]= 0;
+void cg_freeGraphAreas(void) { nextFreeGraphMem= GRAPHBASE; }
+
+/*
+very simple graphics memory allocation scheme:
+try to find space in 128K beginning at GRAPHBASE, without
+crossing bank boundaries. If everything's full, bail out.
+*/
+
+himemPtr cg_allocGraphMem(word size) {
+    himemPtr adr= nextFreeGraphMem;
+    if (nextFreeGraphMem + size < GRAPHBASE + 0x10000) {
+        nextFreeGraphMem+= size;
+        return adr;
     }
-    nextFreeShapeMem= SHAPEBASE;
+    if (nextFreeGraphMem < GRAPHBASE + 0x10000) {
+        nextFreeGraphMem= GRAPHBASE + 0x10000;
+        adr= nextFreeGraphMem;
+    }
+    if (nextFreeGraphMem + size < GRAPHBASE + 0x20000) {
+        nextFreeGraphMem+= size;
+        return adr;
+    }
+    return NULL;
 }
 
 void cg_test() {
     word foo;
+    cg_freeGraphAreas();
     cg_go16bit(0, 0);
     cg_clrscr();
-    cg_displayDBMFile("foo.dbm",0,0);
+    cg_displayDBMFile("foo.dbm", 0, 0);
     // foo= cg_loadDBM("foo.dbm", 0, 0, 0x50000);
     cg_getkey();
-    cg_displayDBMFile("foo2.dbm",1,1);
+    cg_printf("%05lx ", cg_displayDBMFile("foo2.dbm", 1, 5)->baseAdr);
+    cg_printf("%05lx ", cg_displayDBMFile("foo2.dbm", 15, 5)->baseAdr);
+
     // foo= cg_loadDBM("foo2.dbm", 1, 1, 0x40000);
     cg_gotoxy(1, 1);
-    cg_printf("This is a test. nextFree = %x", foo);
+    cg_printf("This is a test. nextFree = %05lx", nextFreeGraphMem);
     cg_getkey();
     cg_gotoxy(13, 13);
     cg_puts("Outside!");
@@ -220,7 +238,14 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
     }
 }
 
-void cg_loadDBM(char *filename, himemPtr adr, dbmInfo *info) {
+/**
+ * @brief allocate memory for DBM file and load it
+ * 
+ * @param filename name of DBM file to load
+ * @return dbmInfo* info block containging start address and metadata
+ */
+
+dbmInfo *cg_loadDBM(char *filename) {
 
     FILE *dbmfile;
     byte i;
@@ -232,9 +257,11 @@ void cg_loadDBM(char *filename, himemPtr adr, dbmInfo *info) {
     word imgsize;
     word colAdr;
     word bytesRead;
-    dbmInfo retInfo;
+    himemPtr bitmampAdr;
+    dbmInfo *info;
 
     byte reservedSysPalette;
+    info = (dbmInfo*)malloc(sizeof(dbmInfo));
 
     dbmfile= fopen(filename, "rb");
     if (!dbmfile) {
@@ -281,7 +308,14 @@ void cg_loadDBM(char *filename, himemPtr adr, dbmInfo *info) {
     free(palette);
     imgsize= numColumns * numRows * 64;
 
-    bytesRead= readExt(dbmfile, adr);
+    bitmampAdr= cg_allocGraphMem(imgsize);
+    if (bitmampAdr == NULL) {
+        cg_go8bit();
+        puts("no more graphics memory");
+        while (1)
+            ;
+    }
+    bytesRead= readExt(dbmfile, bitmampAdr);
     fclose(dbmfile);
     mega65_io_enable();
 
@@ -289,20 +323,31 @@ void cg_loadDBM(char *filename, himemPtr adr, dbmInfo *info) {
         info->columns= numColumns;
         info->rows= numRows;
         info->size= bytesRead;
-        info->baseAdr= adr;
+        info->baseAdr= bitmampAdr;
     }
+
+    return info;
 }
 
 void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
     mega65_io_enable();
-    cg_addGraphicsRect(x0,y0,info->columns,info->rows,info->baseAdr);
+    cg_addGraphicsRect(x0, y0, info->columns, info->rows, info->baseAdr);
 }
 
-void cg_displayDBMFile(char *filename, byte x0, byte y0) {
-    dbmInfo info;
-    // TODO: manage addresses
-    cg_loadDBM(filename, 0x40000, &info);
-    cg_displayDBMInfo(&info, x0, y0);
+/**
+ * @brief load DBM file and display it
+ * 
+ * @param filename DBM file to load
+ * @param x0 origin x
+ * @param y0 origin y
+ * @return dbmInfo* associated dbmInfo block for file
+ */
+
+dbmInfo *cg_displayDBMFile(char *filename, byte x0, byte y0) {
+    dbmInfo *info;
+    info = cg_loadDBM(filename);
+    cg_displayDBMInfo(info, x0, y0);
+    return info;
 }
 
 void scrollUp() {
@@ -417,6 +462,7 @@ void cg_setwin(byte x0, byte y0, byte width, byte height) {
 void cg_init() {
     byte i;
     mega65_io_enable();
+    cg_freeGraphAreas();
     POKE(53297U, 96);                 // quit bitplane mode
     POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
     for (i= 0; i < 15; ++i) {
