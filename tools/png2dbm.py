@@ -11,16 +11,17 @@ from zlib import compress
 import png
 import io
 
-gVerbose = False
-gReserve = False
-gCompress = False
-gVersion = "1.0"
+def vprint(*values):
+    global gVerbose
+    if gVerbose == True:
+        print(*values)
 
 
 def showUsage():
     print("usage: "+sys.argv[0]+" [-rv] infile outfile")
     print("convert PNG to MEGA65 DBM file")
     print("options: -r  reserve system palette entries")
+    print("         -x  exclude palette data")
     print("         -v  verbose output")
     print("         -c  compress output")
     exit(0)
@@ -34,11 +35,9 @@ def nybswap(i):
 
 
 def parseArgs():
+    global gReserve, gVerbose, gCompress, gExcludePalette
     args = sys.argv.copy()
     args.remove(args[0])
-    fReserve = False
-    fVerbose = False
-    fCompress = False
     fileargcount = 0
 
     for arg in args:
@@ -46,11 +45,13 @@ def parseArgs():
             opts = arg[1:]
             for opt in opts:
                 if opt == "r":
-                    fReserve = True
+                    gReserve = True
                 elif opt == "v":
-                    fVerbose = True
+                    gVerbose = True
                 elif opt == "c":
-                    fCompress = True
+                    gCompress = True
+                elif opt == "x":
+                    gExcludePalette = True
                 else:
                     print("Unknown option", opt)
                     showUsage()
@@ -63,13 +64,7 @@ def parseArgs():
             else:
                 print("too many arguments")
                 showUsage()
-    return infile, outfile, fReserve, fVerbose, fCompress
-
-
-def vprint(*values):
-    if gVerbose:
-        print(*values)
-
+    return infile, outfile
 
 def pngRowsToM65Rows(pngRows):
     pngX = 0
@@ -133,10 +128,17 @@ def rle(data):
 
 ####################### main program ########################
 
+gVerbose = False
+gReserve = False
+gCompress = False
+gExcludePalette = False
+gVersion = "1.0"
+
+
 # print(rle(["a", "b", "c", "c", "c", "d", "e"]))
 # exit(0)
 
-inputFileName, outputFileName, gReserve, gVerbose, gCompress = parseArgs()
+inputFileName, outputFileName = parseArgs()
 
 vprint("### png2dbm v"+gVersion+" ###")
 vprint("reading", inputFileName)
@@ -155,28 +157,33 @@ except:
     print("error: infile has no palette")
     exit(1)
 
+
 vic4_palette = []
 
-if gReserve:
-    if len(palette) > 240:
-        print("error: can't reserve system palette because source PNG "
-              "has >240 palette entries.")
-        exit(2)
+if gExcludePalette:
+    vprint("excluding palette data")
+else:
+    if gReserve:
+        if len(palette) > 240:
+            print("error: can't reserve system palette because source PNG "
+                "has >240 palette entries.")
+            exit(2)
 
-    # add placeholders for system colours
-    vprint("reserving system colour space")
-    for i in range(16):
-        vic4_palette.append((0, 0, 0))
+        # add placeholders for system colours
+        vprint("reserving system colour space")
+        for i in range(16):
+            vic4_palette.append((0, 0, 0))
 
-# swap nyybles in palette
-vprint("swapping nybbles for", len(palette), "palette entries")
-for i in palette:
-    r = nybswap(i[0])
-    g = nybswap(i[1])
-    b = nybswap(i[2])
-    vic4_palette.append((r, g, b))
+    # swap nyybles in palette
+    vprint("swapping nybbles for", len(palette), "palette entries")
+    for i in palette:
+        r = nybswap(i[0])
+        g = nybswap(i[1])
+        b = nybswap(i[2])
+        vic4_palette.append((r, g, b))
 
-vprint("outfile has ",len(vic4_palette),"palette entries")
+    vprint("outfile has",len(vic4_palette),"palette entries")
+    
 rows = list(pngData[2])
 imageData, numRows, numColumns = pngRowsToM65Rows(rows)
 m65data = bytearray()
@@ -189,10 +196,12 @@ m65data.append(numColumns)  # 6 : number of columns
 # 7 : options (b0: RLE compressed; b1: sys palette reserved)
 m65data.append(gCompress+(2*gReserve))
 m65data.append(len(vic4_palette))  # 8 : palette size
-m65data.extend(map(ord, 'PAL'))  # 9-11 : pal header
 
-for entry in vic4_palette:
-    m65data.extend(entry)
+if not gExcludePalette:
+    for entry in vic4_palette:
+        m65data.extend(entry)
+
+m65data.extend(map(ord,'IMG'))
 
 if gCompress:
     m65data.extend(rle(imageData))

@@ -7,6 +7,8 @@ BANK 0
 BANK 1
 0x12000 - 0x12fff       16 bit screen   
 
+BANK 4,5:
+0x40000 - 0x5ffff       bitmap storage
 
 ATTIC RAM
 0800.0000 - 0800-ffff   map & dungeon script storage    64k

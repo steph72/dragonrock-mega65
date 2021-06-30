@@ -29,6 +29,8 @@ typedef struct _textwin {
 } textwin;
 
 void cg_init(void);
+int cg_fatal(const char *format, ...);
+
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t);
 void cg_borders(void);
 void cg_emptyBuffer(void);

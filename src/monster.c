@@ -96,9 +96,7 @@ void addMonster(monster *aMonster, byte row) {
             return;
         }
     }
-    printf("?no more space for monsters");
-    while (1)
-        ;
+    cg_fatal("no more space for monsters");
 }
 
 // clear monsters

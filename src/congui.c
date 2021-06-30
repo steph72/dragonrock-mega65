@@ -79,10 +79,25 @@ byte textcolor16;
 unsigned long gScreenSize;
 byte gScreenColumns;
 byte gScreenRows;
-
 himemPtr nextFreeGraphMem;
 
 void scrollUp();
+
+int cg_fatal(const char *format, ...) {
+    char buf[160];
+    va_list args;
+    va_start(args, format);
+    vsprintf(buf, format, args);
+    va_end(args);
+    cg_go8bit();
+    bordercolor(2);
+    textcolor(2);
+    bgcolor(0);
+    puts("## dr fatal error ##");
+    puts(buf);
+    while (1)
+        ;
+}
 
 void cg_freeGraphAreas(void) { nextFreeGraphMem= GRAPHBASE; }
 
@@ -111,22 +126,41 @@ himemPtr cg_allocGraphMem(word size) {
 
 void cg_test() {
     word foo;
+    dbmInfo *info;
     cg_freeGraphAreas();
     cg_go16bit(0, 0);
     cg_clrscr();
-    cg_displayDBMFile("foo.dbm", 0, 0);
-    // foo= cg_loadDBM("foo.dbm", 0, 0, 0x50000);
+    cg_displayDBMFile("drock.dbm", 0, 0);
     cg_getkey();
-    cg_printf("%05lx ", cg_displayDBMFile("foo2.dbm", 1, 5)->baseAdr);
-    cg_printf("%05lx ", cg_displayDBMFile("foo2.dbm", 15, 5)->baseAdr);
 
-    // foo= cg_loadDBM("foo2.dbm", 1, 1, 0x40000);
+    cg_displayDBMFile("0.dbm", 1, 5);
+    cg_getkey();
+
+    cg_displayDBMFile("1.dbm", 1 + 5, 5);
+    cg_getkey();
+
+    cg_displayDBMFile("2.dbm", 1 + 10, 5);
+    cg_getkey();
+
+    cg_displayDBMFile("3.dbm", 1 + 15, 5);
+    cg_getkey();
+
+    cg_displayDBMFile("4.dbm", 1 + 20, 5);
+    cg_getkey();
+
+    cg_getkey();
+
+    cg_clrscr();
+    info= cg_displayDBMFile("2.dbm", 1, 5);
+    cg_printf("%05lx ", info->baseAdr);
+    cg_displayDBMInfo(info, 12, 5);
     cg_gotoxy(1, 1);
     cg_printf("This is a test. nextFree = %05lx", nextFreeGraphMem);
     cg_getkey();
-    cg_gotoxy(13, 13);
+
+    cg_gotoxy(13, 18);
     cg_puts("Outside!");
-    cg_setwin(20, 2, 15, 15);
+    cg_setwin(25, 5, 15, 15);
     cg_gotoxy(0, 0);
     cg_puts("!1234567892\n3\n4\n");
     cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy "
@@ -240,7 +274,7 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
 
 /**
  * @brief allocate memory for DBM file and load it
- * 
+ *
  * @param filename name of DBM file to load
  * @return dbmInfo* info block containging start address and metadata
  */
@@ -261,32 +295,22 @@ dbmInfo *cg_loadDBM(char *filename) {
     dbmInfo *info;
 
     byte reservedSysPalette;
-    info = (dbmInfo*)malloc(sizeof(dbmInfo));
+    info= (dbmInfo *)malloc(sizeof(dbmInfo));
 
     dbmfile= fopen(filename, "rb");
     if (!dbmfile) {
-        puts("can't load ");
-        puts(filename);
-        while (1)
-            ;
+        cg_fatal("dbmfile not found: %s", filename);
     }
-    fread(drbuf, 1, 12, dbmfile);
+    fread(drbuf, 1, 9, dbmfile);
+
     if (0 != memcmp(drbuf, "dbmp", 4)) {
-        puts("not a dbm file");
-        while (1)
-            ;
+        cg_fatal("not a dbm file: %s", filename);
     }
     numRows= drbuf[5];
     numColumns= drbuf[6];
     dbmOptions= drbuf[7];
     numColours= drbuf[8];
     reservedSysPalette= dbmOptions & 2;
-
-    if (0 != memcmp(&drbuf[9], "pal", 3)) {
-        puts("missing pal entry");
-        while (1)
-            ;
-    }
 
     palsize= numColours * 3;
     palette= (byte *)malloc(palsize);
@@ -308,13 +332,16 @@ dbmInfo *cg_loadDBM(char *filename) {
     free(palette);
     imgsize= numColumns * numRows * 64;
 
+    fread(drbuf, 1, 3, dbmfile);
+    if (0 != memcmp(drbuf, "img", 3)) {
+        cg_fatal("missing img entry in %s", filename);
+    }
+
     bitmampAdr= cg_allocGraphMem(imgsize);
     if (bitmampAdr == NULL) {
-        cg_go8bit();
-        puts("no more graphics memory");
-        while (1)
-            ;
+        cg_fatal("no more graphics memory for %s", filename);
     }
+
     bytesRead= readExt(dbmfile, bitmampAdr);
     fclose(dbmfile);
     mega65_io_enable();
@@ -336,7 +363,7 @@ void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
 
 /**
  * @brief load DBM file and display it
- * 
+ *
  * @param filename DBM file to load
  * @param x0 origin x
  * @param y0 origin y
@@ -345,7 +372,7 @@ void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
 
 dbmInfo *cg_displayDBMFile(char *filename, byte x0, byte y0) {
     dbmInfo *info;
-    info = cg_loadDBM(filename);
+    info= cg_loadDBM(filename);
     cg_displayDBMInfo(info, x0, y0);
     return info;
 }
