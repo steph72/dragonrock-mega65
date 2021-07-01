@@ -227,7 +227,7 @@ void buildFeelsTable(himemPtr *startAddr, dungeonDescriptor *desc,
     while (currentFeelIdx < numFeels) {
         desc->feelTbl[currentFeelIdx]= currentPtr;
 #ifdef DLDEBUG
-        cputc('.');
+        cg_putc('.');
         // cg_printf("%d-%lx ", currentFeelIdx, currentPtr);
 #endif
         while (lpeek(currentPtr) != 0) {
