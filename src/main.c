@@ -59,6 +59,8 @@
 
 char drbuf[DRBUFSIZE];
 
+
+
 byte hasLoadedGame;
 byte devmode;
 
@@ -119,8 +121,8 @@ void initEngine(void) {
     gCurrentGameMode= gm_init;
     if (devmode) {
         puts("\ninitialization complete");
-        // puts("** development mode. press any key **");
-        // cg_getkey();
+        puts("** development mode. press any key **");
+        cg_getkey();
     }
 
     initVIC();
@@ -159,10 +161,10 @@ int main() {
     static char choice;
     initEngine();
     cg_clrscr();
-    gotoxy(0, 2);
-    cputsxy(2, 11, "1 - load saved game");
-    cputsxy(2, 13, "2 - start in ");
-    cputs(gCities[0]);
+    cg_gotoxy(0, 2);
+    cg_putsxy(2, 11, "1 - load saved game");
+    cg_putsxy(2, 13, "2 - start in ");
+    cg_puts(gCities[0]);
 
     gCurrentCityIndex= 0;
     prepareForGameMode(gm_city);

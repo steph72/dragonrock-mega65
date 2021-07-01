@@ -665,44 +665,19 @@ void redrawAll() {
     }
 }
 
-/*
-void plotDungeonItem(dungeonItem *item, byte x, byte y, byte alternate) {
-
-    register byte *screenPtr; // working pointer to screen
-    register byte *colorPtr;
-    byte mapSign;
-    byte modifier;
-
-    mapSign= item->mapItem & 31;
-
-    modifier= 0;
-    colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
-
-    screenPtr= SCREEN + (screenWidth * screenY) + screenX;
-    screenPtr+= x + (y * screenWidth);
-    colorPtr+= x + (y * screenWidth);
-
-    if (mapSign >= 5) {
-        modifier= alternate ? 1 : 0;
-    }
-
-    *screenPtr= signs[mapSign].characterCode + modifier;
-    *colorPtr= signs[mapSign].colour;
-}
-*/
 
 void plotPlayer(byte x, byte y) {
-    register byte *screenPtr; // working pointer to screen
-    register byte *colorPtr;
+    himemPtr screenPtr;
+    himemPtr colorPtr;
 
-    colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
+    colorPtr= COLBASE + (screenWidth * screenY * 2) + (screenX * 2);
+    screenPtr= SCREENBASE + (screenWidth * screenY * 2) + (screenX * 2);
 
-    screenPtr= SCREEN + (screenWidth * screenY) + screenX;
-    screenPtr+= x + (y * screenWidth);
-    colorPtr+= x + (y * screenWidth);
+    screenPtr+= x*2 + (y * screenWidth*2);
+    colorPtr+= x*2 + (y * screenWidth*2);
 
-    *screenPtr= 0x5f;
-    *colorPtr= isDungeonMode ? COLOR_BLUE : COLOR_WHITE;
+    lpoke (screenPtr,0x5f);
+    lpoke (colorPtr+1,isDungeonMode?COLOR_BLUE:COLOR_WHITE);
 }
 
 void clearStatus(void) { cg_clearLower(5); }
@@ -1252,7 +1227,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
                 if (mapItem >= 5) {
                     modifier= xpos % 2;
                 }
-                lpoke(colorPtr - 1, signs[mapItem].colour);
+                lpoke(colorPtr + 1, signs[mapItem].colour);
                 lpoke(screenPtr, signs[mapItem].characterCode + modifier);
             } else {
                 lpoke(screenPtr, isDungeonMode ? 160 : 32);

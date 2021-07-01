@@ -96,15 +96,13 @@ void cg_init() {
     }
     cg_freeGraphAreas();
     cg_resetPalette();
+    cg_go16bit(0,0);
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
-    textcolor(COLOR_GREEN);
-    cbm_k_bsout(13);
-    clrscr();
+    cg_textcolor(COLOR_GREEN);
+    cg_clrscr();
     gPal= 0;
     gPalDir= 1;
-    cbm_k_bsout(11); // disable shift+cmd on c128 & 364
-    cbm_k_bsout(14); // lowercase charset
 }
 
 void cg_resetPalette() {
@@ -527,7 +525,7 @@ int cg_printf(const char *format, ...) {
 
 void cg_clrscr() {
     cg_block_raw(currentWin.x0, currentWin.y0, currentWin.x1, currentWin.y1, 32,
-                 5);
+                 textcolor16);
     cg_gotoxy(0, 0);
 }
 
