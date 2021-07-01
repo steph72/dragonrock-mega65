@@ -7,6 +7,7 @@
 #define SCREENBASE 0x12000l
 #define COLBASE 0xff80000l
 #define GRAPHBASE 0x40000l
+#define EXTCHARBASE 0x13000l
 
 // --------------- graphics ------------------
 
@@ -71,9 +72,11 @@ void cg_setwin(byte x0, byte y0, byte width, byte height);
 
 void cg_freeGraphAreas(void);
 void cg_addGraphicsRect(byte x0,byte y0, byte width, byte height, himemPtr bitmapData);
-dbmInfo *cg_loadDBM(char *filename);
+dbmInfo *cg_loadDBM(char *filename, himemPtr address);
 void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0);
 dbmInfo *cg_displayDBMFile(char *filename, byte x0, byte y0);
+
+void cg_plotExtChar(byte x, byte y, byte c);
 
 void cg_test();
 

@@ -74,7 +74,7 @@ void commitNewGameMode(void) {
         break;
 
     case gm_city:
-        bordercolor(COLOR_GREEN);
+        // bordercolor(COLOR_GREEN);
         lcopy(ATTIC_CITY,(long)_OVERLAY2_LOAD__,(unsigned int)_OVERLAY2_SIZE__);
         break;
 

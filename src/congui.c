@@ -96,7 +96,8 @@ void cg_init() {
     }
     cg_freeGraphAreas();
     cg_resetPalette();
-    cg_go16bit(0,0);
+    cg_go16bit(0, 0);
+    cg_loadDBM("borders.dbm", 0x13000);
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     cg_textcolor(COLOR_GREEN);
@@ -168,7 +169,6 @@ void cg_test() {
     dbmInfo *info;
     testMem();
     cg_getkey();
-    return;
     /*
 
     cg_freeGraphAreas();
@@ -226,10 +226,10 @@ char asciiToPetscii(byte c) {
     if (c >= 65 && c <= 95) {
         return c - 64;
     }
-    if (c >= 96 && c <= 192) {
+    if (c >= 96 && c < 192) {
         return c - 32;
     }
-    if (c >= 193) {
+    if (c >= 192) {
         return c - 128;
     }
     return c;
@@ -300,6 +300,15 @@ void cg_go8bit() {
     cg_resetPalette();
 }
 
+void cg_plotExtChar(byte x, byte y, byte c) {
+    word charIdx;
+    long adr;
+    charIdx= (EXTCHARBASE / 64) + c;
+    adr= SCREENBASE + (x * 2) + (y * gScreenColumns * 2);
+    lpoke(adr, charIdx % 256);
+    lpoke(adr + 1, charIdx / 256);
+}
+
 void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
                         himemPtr bitmapData) {
     static byte x, y;
@@ -322,10 +331,11 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
  * @brief allocate memory for DBM file and load it
  *
  * @param filename name of DBM file to load
+ * @param address address to load (or 0 for automatic allocation)
  * @return dbmInfo* info block containging start address and metadata
  */
 
-dbmInfo *cg_loadDBM(char *filename) {
+dbmInfo *cg_loadDBM(char *filename, himemPtr address) {
 
     static byte r, g, b;
     static byte numColumns, numRows, numColours;
@@ -341,8 +351,12 @@ dbmInfo *cg_loadDBM(char *filename) {
     himemPtr bitmampAdr;
     dbmInfo *info;
 
-    info= (dbmInfo *)malloc(sizeof(dbmInfo));
-    infoBlocks[infoBlockCount++]= info;
+    info= NULL;
+
+    if (!address) {
+        info= (dbmInfo *)malloc(sizeof(dbmInfo));
+        infoBlocks[infoBlockCount++]= info;
+    }
 
     dbmfile= fopen(filename, "rb");
     if (!dbmfile) {
@@ -384,9 +398,13 @@ dbmInfo *cg_loadDBM(char *filename) {
         cg_fatal("missing img entry in %s", filename);
     }
 
-    bitmampAdr= cg_allocGraphMem(imgsize);
-    if (bitmampAdr == NULL) {
-        cg_fatal("no more graphics memory for %s", filename);
+    if (!address) {
+        bitmampAdr= cg_allocGraphMem(imgsize);
+        if (bitmampAdr == NULL) {
+            cg_fatal("no more graphics memory for %s", filename);
+        }
+    } else {
+        bitmampAdr= address;
     }
 
     bytesRead= readExt(dbmfile, bitmampAdr);
@@ -419,7 +437,7 @@ void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
 
 dbmInfo *cg_displayDBMFile(char *filename, byte x0, byte y0) {
     dbmInfo *info;
-    info= cg_loadDBM(filename);
+    info= cg_loadDBM(filename, 0);
     cg_displayDBMInfo(info, x0, y0);
     return info;
 }
@@ -637,9 +655,30 @@ char *cg_input(byte maxlen) {
     return 0;
 }
 
+void cg_hlinexy(byte x0, byte y, byte x1) {
+    for (cgi= x0; cgi <= x1; cgi++) {
+        cg_plotExtChar(cgi, y, 0);
+        // cg_putcxy(cgi, y, 192);
+    }
+}
+
+void cg_vlinexy(byte x, byte y0, byte y1) {
+    cg_plotExtChar(x, y0, 2);
+    cg_plotExtChar(x, y1, 3);
+    for (cgi= y0 + 1; cgi <= y1 - 1; cgi++) {
+        cg_plotExtChar(x, cgi, 4);
+    }
+}
+
+void cg_frame(byte x0, byte y0, byte x1, byte y1) {
+    cg_hlinexy(x0, y0, x1);
+    cg_hlinexy(x0, y1, x1);
+    cg_vlinexy(x0, y0+1, y1-1);
+    cg_vlinexy(x1, y0+1, y1-1);
+}
+
 void cg_borders(void) {
-    chlinexy(0, 0, 40);
-    chlinexy(0, 24, 40);
+    cg_frame(0,0,39,24);
     gotoxy(0, 1);
 }
 
@@ -649,13 +688,13 @@ void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
 
     xpos= 20 - (strlen(t) / 2);
     cg_clrscr();
-    textcolor(lcol);
+    cg_textcolor(lcol);
     cg_borders();
     if (splitScreen) {
         if (splitScreen != true) {
             splitPos= splitScreen;
         }
-        chlinexy(0, splitPos, 40);
+        cg_hlinexy(0, splitPos, 40);
     }
     cg_putsxy(xpos, 0, t);
     cg_putcxy(xpos - 1, 0, 32);

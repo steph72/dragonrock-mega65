@@ -127,7 +127,7 @@ void initEngine(void) {
 
     initVIC();
     cg_init();
-    cg_test();
+    // cg_test();
  
     /*
     gPartyExperience= 1000;
@@ -161,9 +161,10 @@ int main() {
     static char choice;
     initEngine();
     cg_clrscr();
+    cg_borders();
     cg_gotoxy(0, 2);
-    cg_putsxy(2, 11, "1 - load saved game");
-    cg_putsxy(2, 13, "2 - start in ");
+    cg_putsxy(4, 11, "1 - load saved game");
+    cg_putsxy(4, 13, "2 - start in ");
     cg_puts(gCities[0]);
 
     gCurrentCityIndex= 0;
