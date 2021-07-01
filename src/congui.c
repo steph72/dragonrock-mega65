@@ -41,7 +41,7 @@ textwin currentWin;
 unsigned char drColours[16][3]= {
     {0x00, 0x00, 0x00}, // black
     {0xff, 0xff, 0xff}, // white
-    {0x68, 0x37, 0x2b}, // red
+    {0xa8, 0x27, 0x2b}, // red
     {0x70, 0xa4, 0xb2}, // cyan
     {0x6f, 0x3d, 0x86}, // purple
     {0x68, 0x9d, 0x43}, // green
@@ -88,7 +88,7 @@ himemPtr
 dbmInfo *infoBlocks[MAX_DBM_BLOCKS]; // loaded dbm file info blocks
 byte infoBlockCount;                 // number of info blocks
 
-byte cgi;
+byte cgi; // universal loop var
 
 void scrollUp();
 

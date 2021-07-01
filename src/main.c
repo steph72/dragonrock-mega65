@@ -42,7 +42,6 @@
 
 #include "dispatcher.h"
 #include "memory.h"
-#include "sprites.h"
 
 #include "utils.h"
 
@@ -113,8 +112,6 @@ void initEngine(void) {
     loadModules();
     puts("init monster rows");
     initMonsterRows();
-    puts("init sprites");
-    initSprites();
     loadResources();
     puts("init party");
     hasLoadedGame= loadParty();

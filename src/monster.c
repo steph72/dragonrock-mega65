@@ -8,17 +8,12 @@ char monsterNameBuf[32];
 
 monsterDef tempDef;
 
-monsterDef *monsterDefForID(unsigned int id) {
-    unsigned int i;
-    for (i= 0; i < 512; ++i) {
-        lcopy((long)MONSTERS_BASE + 8 + (sizeof(monsterDef) * i),
-              (long)&tempDef, sizeof(monsterDef));
-        if (tempDef.id == id) {
-            return &tempDef;
-        }
-    }
-    return NULL;
-}
+
+
+
+// clang-format off
+#pragma code-name(push, "OVERLAY3");
+// clang-format on
 
 byte getNumberOfMonsterAttacks(monster *aMonster) {
     byte i;
@@ -30,10 +25,6 @@ byte getNumberOfMonsterAttacks(monster *aMonster) {
         }
     }
     return num;
-}
-
-monsterDef *monsterDefForMonster(monster *aMonster) {
-    return monsterDefForID(aMonster->monsterDefID);
 }
 
 char *nameForMonsterDef(monsterDef *aDef) {
@@ -69,6 +60,27 @@ char *pluralNameForMonster(monster *aMonster) {
     return pluralNameForMonsterID(aMonster->monsterDefID);
 }
 
+// clang-format off
+#pragma code-name(pop);
+// clang-format on
+
+// -------------------------- common code ----------------------------------
+
+monsterDef *monsterDefForID(unsigned int id) {
+    unsigned int i;
+    for (i= 0; i < 512; ++i) {
+        lcopy((long)MONSTERS_BASE + 8 + (sizeof(monsterDef) * i),
+              (long)&tempDef, sizeof(monsterDef));
+        if (tempDef.id == id) {
+            return &tempDef;
+        }
+    }
+    return NULL;
+}
+
+monsterDef *monsterDefForMonster(monster *aMonster) {
+    return monsterDefForID(aMonster->monsterDefID);
+}
 
 
 void _initMonsterRows(byte dealloc) {
