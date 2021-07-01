@@ -52,11 +52,11 @@ sign signs[]= {
 
     /* -- dungeon signs -- */
 
-    {0x20, 0, 0}, //  0  empty space
-    {0x5b, 0, 0}, //  1  diamond
-    {0x5c, 0, 1}, //  2  vertical door
-    {0x5d, 0, 1}, //  3  horizontal door
-    {0x5e, 0, 1}, //  4  filled space
+    {0x20, COLOR_GRAY3, 0}, //  0  empty space
+    {0x5b, COLOR_GRAY3, 0}, //  1  diamond
+    {0x5c, COLOR_GRAY3, 1}, //  2  vertical door
+    {0x5d, COLOR_GRAY3, 1}, //  3  horizontal door
+    {0x5e, COLOR_GRAY3, 1}, //  4  filled space
 
     /* -- outdoor signs -- */
 
@@ -100,8 +100,8 @@ const byte mapWindowSizeY= 15;
 
 const byte scrollMargin= 4;
 const byte screenWidth= 40;
-const byte screenX= 2;
-const byte screenY= 2;
+const byte screenX= 1;
+const byte screenY= 1;
 
 int encounterWonOpcIdx;
 int encounterLostOpcIdx;
@@ -665,7 +665,6 @@ void redrawAll() {
     }
 }
 
-
 void plotPlayer(byte x, byte y) {
     himemPtr screenPtr;
     himemPtr colorPtr;
@@ -673,11 +672,11 @@ void plotPlayer(byte x, byte y) {
     colorPtr= COLBASE + (screenWidth * screenY * 2) + (screenX * 2);
     screenPtr= SCREENBASE + (screenWidth * screenY * 2) + (screenX * 2);
 
-    screenPtr+= x*2 + (y * screenWidth*2);
-    colorPtr+= x*2 + (y * screenWidth*2);
+    screenPtr+= x * 2 + (y * screenWidth * 2);
+    colorPtr+= x * 2 + (y * screenWidth * 2);
 
-    lpoke (screenPtr,0x5f);
-    lpoke (colorPtr+1,isDungeonMode?COLOR_BLUE:COLOR_WHITE);
+    lpoke(screenPtr, 0x5f);
+    lpoke(colorPtr + 1, COLOR_WHITE);
 }
 
 void clearStatus(void) { cg_clearLower(5); }
@@ -1051,25 +1050,30 @@ void printFeelForIndex(byte idx) {
     } while (current);
 }
 
+void setupFrames() {
+    cg_frame(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
+             screenX + mapWindowSizeY);
+    cg_hlinexy(0, 0, 39);
+    cg_hlinexy(0, 16, 39);
+    cg_vlinexy(39, 1, 15);
+}
+
 void setupOutdoorScreen(void) {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     cg_textcolor(COLOR_GRAY2);
     cg_clrscr();
-    cg_block_raw(0, 0, 39, 24, 32, COLOR_GREEN);
-    revers(0);
+    setupFrames();
 }
 
 void setupDungeonScreen(void) {
-
-    cg_textcolor(COLOR_BLACK);
+    cg_textcolor(COLOR_GRAY2);
+    bordercolor(COLOR_BLACK);
+    bgcolor(COLOR_BLACK);
     cg_clrscr();
-    bordercolor(COLOR_GRAY1);
-    bgcolor(COLOR_GRAY3);
-    cg_block_raw(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
-                 screenY + mapWindowSizeY, 160, COLOR_GREEN);
     cg_block_raw(screenX, screenY, screenX + mapWindowSizeX - 1,
-                 screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
+                 screenY + mapWindowSizeY - 1, 32, COLOR_GRAY1);
+    setupFrames();
 }
 
 void setupScreen() {
@@ -1231,6 +1235,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
                 lpoke(screenPtr, signs[mapItem].characterCode + modifier);
             } else {
                 lpoke(screenPtr, isDungeonMode ? 160 : 32);
+                lpoke(colorPtr + 1, isDungeonMode ? COLOR_GRAY1 : COLOR_BLACK);
             }
         }
         screenPtr+= screenStride;

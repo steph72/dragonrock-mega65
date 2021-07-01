@@ -658,7 +658,6 @@ char *cg_input(byte maxlen) {
 void cg_hlinexy(byte x0, byte y, byte x1) {
     for (cgi= x0; cgi <= x1; cgi++) {
         cg_plotExtChar(cgi, y, 0);
-        // cg_putcxy(cgi, y, 192);
     }
 }
 
