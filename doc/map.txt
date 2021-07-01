@@ -6,6 +6,7 @@ BANK 0
 
 BANK 1
 0x12000 - 0x12fff       16 bit screen   
+0x13000 - 0x13fff       extended charset
 
 BANK 4,5:
 0x40000 - 0x5ffff       bitmap storage
