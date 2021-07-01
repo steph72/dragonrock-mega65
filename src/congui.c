@@ -57,10 +57,6 @@ unsigned char drColours[16][3]= {
     {0x95, 0x95, 0x95}  // 15
 };
 
-#define SCREENBASE 0x12000l
-#define COLBASE 0xff80000l
-#define GRAPHBASE 0x40000l
-
 #define MAX_DBM_BLOCKS 16
 #define SHAPETBLSIZE 16
 
@@ -115,7 +111,8 @@ void cg_resetPalette() {
     mega65_io_enable();
     POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
     for (cgi= 0; cgi < 15; ++cgi) {
-        cg_setPalette(cgi, drColours[cgi][0], drColours[cgi][1], drColours[cgi][2]);
+        cg_setPalette(cgi, drColours[cgi][0], drColours[cgi][1],
+                      drColours[cgi][2]);
     }
 }
 
@@ -173,13 +170,14 @@ void cg_test() {
     dbmInfo *info;
     testMem();
     cg_getkey();
+    return;
+    /*
 
     cg_freeGraphAreas();
     cg_go16bit(0, 0);
     cg_clrscr();
     cg_displayDBMFile("drock.dbm", 0, 0);
     cg_getkey();
-
 
     cg_displayDBMFile("0.dbm", 1, 5);
 
@@ -223,11 +221,15 @@ void cg_test() {
     cg_freeGraphAreas();
     testMem();
     cg_getkey();
+    */
 }
 
 char asciiToPetscii(byte c) {
     if (c >= 65 && c <= 95) {
         return c - 64;
+    }
+    if (c >= 96 && c <= 192) {
+        return c - 32;
     }
     if (c >= 193) {
         return c - 128;
@@ -448,9 +450,12 @@ void cr() {
     }
 }
 
-void outc16(char c) {
+void cg_putc(char c) {
     static char out;
     word adrOffset;
+    if (!c) {
+        return;
+    }
     if (c == '\n') {
         cr();
         return;
@@ -475,8 +480,18 @@ void outc16(char c) {
 void cg_puts(char *s) {
     char *current= s;
     while (*current) {
-        outc16(*current++);
+        cg_putc(*current++);
     }
+}
+
+void cg_putsxy(byte x, byte y, char *s) {
+    cg_gotoxy(x, y);
+    cg_puts(s);
+}
+
+void cg_putcxy(byte x, byte y, char c) {
+    cg_gotoxy(x, y);
+    cg_putc(c);
 }
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
@@ -495,12 +510,8 @@ void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
 void cg_textcolor(byte c) { textcolor16= c; }
 
 void cg_gotoxy(byte x, byte y) {
-    if (is16BitModeEnabled) {
-        xc16= currentWin.x0 + x;
-        yc16= currentWin.y0 + y;
-        return;
-    }
-    gotoxy(x, y);
+    xc16= currentWin.x0 + x;
+    yc16= currentWin.y0 + y;
 }
 
 int cg_printf(const char *format, ...) {
@@ -515,13 +526,8 @@ int cg_printf(const char *format, ...) {
 }
 
 void cg_clrscr() {
-    if (is16BitModeEnabled) {
-        cg_block_raw(currentWin.x0, currentWin.y0, currentWin.x1, currentWin.y1,
-                     32, 5);
-        return;
-    }
-    lfill((long)SCREEN, 32, 1000);
-    lfill((long)COLOR_RAM, 0, 1000);
+    cg_block_raw(currentWin.x0, currentWin.y0, currentWin.x1, currentWin.y1, 32,
+                 5);
     cg_gotoxy(0, 0);
 }
 
@@ -547,9 +553,7 @@ char cg_getkey(void) {
 }
 
 void cg_clearFromTo(byte start, byte end) {
-    for (cgi= start; cgi < end; ++cgi) {
-        cclearxy(0, cgi, 40);
-    }
+    cg_block_raw(0, start, 40, end, 32, textcolor16);
 }
 
 void cg_clearLower(byte num) { cg_clearFromTo(24 - num, 24); }
@@ -558,22 +562,16 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     word bas;
     word bas2;
     word i;
-    if (is16BitModeEnabled) {
-        bas= x0 * 2 + (y * gScreenColumns * 2);
-        bas2= x1 * 2 + (y * gScreenColumns * 2);
-        for (i= bas; i <= bas2; i+= 2) {
-            lpoke(SCREENBASE + i, character);
-            lpoke(SCREENBASE + i + 1, 0);
-            lpoke(COLBASE + i, 0);
-            lpoke(COLBASE + i + 1, col);
-        }
-        return;
+
+    bas= x0 * 2 + (y * gScreenColumns * 2);
+    bas2= x1 * 2 + (y * gScreenColumns * 2);
+    for (i= bas; i <= bas2; i+= 2) {
+        lpoke(SCREENBASE + i, character);
+        lpoke(SCREENBASE + i + 1, 0);
+        lpoke(COLBASE + i, 0);
+        lpoke(COLBASE + i + 1, col);
     }
-    bas= y * 40;
-    if (character) {
-        lfill((long)SCREEN + bas + x0, character, x1 - x0 + 1);
-    }
-    lfill((long)COLOR_RAM + bas + x0, col, x1 - x0 + 1);
+    return;
 }
 
 void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character,
@@ -661,10 +659,10 @@ void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
         }
         chlinexy(0, splitPos, 40);
     }
-    cputsxy(xpos, 0, t);
-    cputcxy(xpos - 1, 0, 32);
-    cputcxy(xpos + strlen(t), 0, 32);
+    cg_putsxy(xpos, 0, t);
+    cg_putcxy(xpos - 1, 0, 32);
+    cg_putcxy(xpos + strlen(t), 0, 32);
 
-    textcolor(tcol);
-    gotoxy(0, 3);
+    cg_textcolor(tcol);
+    cg_gotoxy(0, 3);
 }

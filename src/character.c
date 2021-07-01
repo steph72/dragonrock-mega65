@@ -91,10 +91,10 @@ byte addInventoryItem(byte anItemID, character *aCharacter) {
 
 void debugAddItem(character *aCharacter) {
     byte itemID;
-    cputs("DEBUG ADD ITEM: ");
+    cg_puts("DEBUG ADD ITEM: ");
     fgets(drbuf, 3, stdin);
     itemID= atoi(drbuf);
-    printf("added %d", addInventoryItem(itemID, aCharacter));
+    cg_printf("added %d", addInventoryItem(itemID, aCharacter));
 }
 
 signed char bonusValueForAttribute(attrT a) { return -3 + (a / 3); }
@@ -176,32 +176,32 @@ void showCurrentParty(byte small) {
         x= 19;
     } else {
         x= 0;
-        cputsxy(17, 2, "MP");
-        cputsxy(25, 2, "HP");
-        cputsxy(2, 2, "Name");
-        cputsxy(0, 2, "#");
-        cputsxy(33, 2, "Status");
+        cg_putsxy(17, 2, "MP");
+        cg_putsxy(25, 2, "HP");
+        cg_putsxy(2, 2, "Name");
+        cg_putsxy(0, 2, "#");
+        cg_putsxy(33, 2, "Status");
     }
 
     for (i= 0; i < PARTYSIZE; i++) {
         if (party[i]) {
             c= party[i];
             ++y;
-            gotoxy(x, y);
+            cg_gotoxy(x, y);
             if (small) {
                 *drbuf= 0;
                 strncat(drbuf, c->name, 12);
-                printf("%d %s", i + 1, drbuf);
+                cg_printf("%d %s", i + 1, drbuf);
             } else {
-                printf("%d %s", i + 1, c->name);
+                cg_printf("%d %s", i + 1, c->name);
             }
             if (!small) {
-                gotoxy(17, y);
-                cprintf("%d/%d", c->aMP, c->aMaxMP);
-                gotoxy(25, y);
-                cprintf("%d/%d", c->aHP, c->aMaxHP);
+                cg_gotoxy(17, y);
+                cg_printf("%d/%d", c->aMP, c->aMaxMP);
+                cg_gotoxy(25, y);
+                cg_printf("%d/%d", c->aHP, c->aMaxHP);
             }
-            cputsxy(33, y, gStateDesc[c->status]);
+            cg_putsxy(33, y, gStateDesc[c->status]);
         }
     }
 }
@@ -209,8 +209,8 @@ void showCurrentParty(byte small) {
 void useSpecial(item *anItem) {
     if (anItem->id == 0) {
         cg_clearLower(2);
-        gotoxy(0, 23);
-        cputs("\r\nCurious. Nothing happens.\r\n--key--");
+        cg_gotoxy(0, 23);
+        cg_puts("\r\nCurious. Nothing happens.\n--key--");
         cgetc();
     }
 }
@@ -225,8 +225,8 @@ void more(char *filename) {
         ++line;
         fputs(drbuf, stdout);
         if (line == 23) {
-            gotoxy(28, 24);
-            cputs("-- more --");
+            cg_gotoxy(28, 24);
+            cg_puts("-- more --");
             cursor(1);
             cgetc();
             cursor(0);
@@ -235,8 +235,8 @@ void more(char *filename) {
         }
     }
     fclose(infile);
-    gotoxy(28, 24);
-    cputs("-- key --");
+    cg_gotoxy(28, 24);
+    cg_puts("-- key --");
     cgetc();
 }
 
@@ -275,7 +275,7 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
     *equipSlot= 255;
     *inventorySlot= 255;
 
-    cputs("which item (A-O)? ");
+    cg_puts("which item (A-O)? ");
     cursor(1);
     do {
         itemIdxChar= cgetc();
@@ -293,10 +293,10 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
 
 void dispCharacterActionError(char *msg) {
     cg_clearLower(2);
-    gotoxy(0, 23);
+    cg_gotoxy(0, 23);
     textcolor(COLOR_LIGHTRED);
-    cputs(msg);
-    cputs("\r\n--key--");
+    cg_puts(msg);
+    cg_puts("\n--key--");
     textcolor(COLOR_WHITE);
     cg_getkey();
 }
@@ -309,14 +309,14 @@ void giveItem(character *ic) {
     byte memberIdx;
 
     cg_clearLower(2);
-    gotoxy(0, 23);
-    cputs("give ");
+    cg_gotoxy(0, 23);
+    cg_puts("give ");
     anItem= whichItem(ic, &inventorySlot, &equipSlot);
     if (inventorySlot == 255) {
         dispCharacterActionError("unequip item first!");
         return;
     }
-    cputs("\r\nto party member #");
+    cg_puts("\r\nto party member #");
     memberIdx= cgetc() - '1';
     if (memberIdx > 6 || party[memberIdx] == NULL) {
         dispCharacterActionError("...to whom?!");
@@ -336,11 +336,11 @@ void removeItem(character *ic) {
     byte equipmentSlot;
     byte inventorySlot;
     cg_clearLower(2);
-    gotoxy(0, 23);
-    cputs("remove ");
+    cg_gotoxy(0, 23);
+    cg_puts("remove ");
     anItem= whichItem(ic, &inventorySlot, &equipmentSlot);
     cg_clearLower(2);
-    gotoxy(0, 23);
+    cg_gotoxy(0, 23);
     if (equipmentSlot == 255) {
         dispCharacterActionError("not equipped item!");
         return;
@@ -365,7 +365,7 @@ void removeItem(character *ic) {
 
 void equipItem(item *anItem, byte inventorySlot, character *ic) {
     cg_clearLower(2);
-    gotoxy(0, 23);
+    cg_gotoxy(0, 23);
     switch (anItem->type) {
     case it_weapon:
     case it_missile:
@@ -400,8 +400,8 @@ void useOrEquipItem(character *ic) {
     byte equipmentSlot;
     byte inventorySlot;
     cg_clearLower(2);
-    gotoxy(0, 23);
-    cputs("use ");
+    cg_gotoxy(0, 23);
+    cg_puts("use ");
     anItem= whichItem(ic, &inventorySlot, &equipmentSlot);
 
     switch (anItem->type) {
@@ -433,12 +433,12 @@ void useOrEquipItem(character *ic) {
 void displayInventoryAtRow(character *ic, byte row, char firstChar) {
     byte i;
     for (i= 0; i < INV_SIZE; i++) {
-        gotoxy(20 * (i / (INV_SIZE / 2)), row + (i % (INV_SIZE / 2)));
+        cg_gotoxy(20 * (i / (INV_SIZE / 2)), row + (i % (INV_SIZE / 2)));
         revers(1);
-        cputc(firstChar + i);
+        cg_putc(firstChar + i);
         revers(0);
-        cputc(32);
-        cputs(nameOfInventoryItemWithID(ic->inventory[i]));
+        cg_putc(32);
+        cg_puts(nameOfInventoryItemWithID(ic->inventory[i]));
     }
 }
 
@@ -467,60 +467,60 @@ void inspectCharacter(byte idx) {
             textcolor(5);
         }
         revers(1);
-        cputs(ic->name);
+        cg_puts(ic->name);
         revers(0);
-        printf(" (%s, %s)\n", gRaces[ic->aRace], gClasses[ic->aClass]);
+        cg_printf(" (%s, %s)\n", gRaces[ic->aRace], gClasses[ic->aClass]);
         for (i= 0; i < NUM_ATTRS; i++) {
-            cputsxy(0, i + 2, gAttributesS[i]);
-            cputsxy(3, i + 2, ":");
-            gotoxy(5, i + 2);
-            cprintf("%2d %s", ic->attributes[i],
+            cg_putsxy(0, i + 2, gAttributesS[i]);
+            cg_putsxy(3, i + 2, ":");
+            cg_gotoxy(5, i + 2);
+            cg_printf("%2d %s", ic->attributes[i],
                     bonusStrForAttribute(ic->attributes[i]));
         }
-        gotoxy(0, i + 3);
-        printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);
-        printf(" MP: %d/%d\n", ic->aMP, ic->aMaxMP);
-        printf(" AC: %d", getArmorClassForCharacter(ic));
-        gotoxy(24, 2);
-        cputs("Spells:");
-        gotoxy(24, 3);
+        cg_gotoxy(0, i + 3);
+        cg_printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);
+        cg_printf(" MP: %d/%d\n", ic->aMP, ic->aMaxMP);
+        cg_printf(" AC: %d", getArmorClassForCharacter(ic));
+        cg_gotoxy(24, 2);
+        cg_puts("Spells:");
+        cg_gotoxy(24, 3);
         for (i= 1; i < 64; ++i) {
             if (hasSpell(ic, i)) {
-                printf("%2d ", i);
+                cg_printf("%2d ", i);
             }
             if (wherex() >= 38) {
                 ++spellLine;
-                gotoxy(24, 3 + spellLine);
+                cg_gotoxy(24, 3 + spellLine);
             }
         }
-        gotoxy(13, 2);
-        printf("Age: %d", ic->age);
-        gotoxy(13, 3);
-        printf("Lvl: %d", ic->level);
-        gotoxy(13, 4);
-        printf(" XP: %d", ic->xp);
-        gotoxy(13, 5);
-        printf("Cns: %d", ic->gold);
-        gotoxy(16, 10);
+        cg_gotoxy(13, 2);
+        cg_printf("Age: %d", ic->age);
+        cg_gotoxy(13, 3);
+        cg_printf("Lvl: %d", ic->level);
+        cg_gotoxy(13, 4);
+        cg_printf(" XP: %d", ic->xp);
+        cg_gotoxy(13, 5);
+        cg_printf("Cns: %d", ic->gold);
+        cg_gotoxy(16, 10);
         revers(1);
-        cputc('A');
+        cg_putc('A');
         revers(0);
-        printf(" Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
-        gotoxy(16, 11);
+        cg_printf(" Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
+        cg_gotoxy(16, 11);
         revers(1);
-        cputc('B');
+        cg_putc('B');
         revers(0);
-        printf("  Armor: %s", nameOfInventoryItemWithID(ic->armor));
-        gotoxy(16, 12);
+        cg_printf("  Armor: %s", nameOfInventoryItemWithID(ic->armor));
+        cg_gotoxy(16, 12);
         revers(1);
-        cputc('C');
+        cg_putc('C');
         revers(0);
-        printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
-        gotoxy(0, 14);
-        puts("Inventory:");
+        cg_printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
+        cg_gotoxy(0, 14);
+        cg_puts("Inventory:");
         displayInventoryAtRow(ic, 16, 'D');
-        gotoxy(0, 23);
-        cputs("u)se/ready r)emove g)ive ex)it\r\n>");
+        cg_gotoxy(0, 23);
+        cg_puts("u)se/ready r)emove g)ive ex)it\n>");
         cursor(1);
         cmd= cgetc();
         cursor(0);

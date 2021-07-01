@@ -350,7 +350,7 @@ encResult doCharacterTurn(character *aChar) {
 
 encCommand getCharacterCommandForRangedCombat() {
     byte c;
-    cputs("1) Shoot   2) Cast    3) Parry\r\n>");
+    cputs("1) Shoot   2) Cast    3) Parry\n>");
     do {
         c= cg_getkey() - '0';
     } while (c < 1 || c > 3);
@@ -369,8 +369,8 @@ encCommand getCharacterCommandForRangedCombat() {
 
 encCommand getCharacterCommand() {
     encCommand choice;
-    cputs("1) Thrust  2) Attack  3) Slash\r\n"
-          "4) Lunge   5) Cast    6) Parry\r\n>");
+    cputs("1) Thrust  2) Attack  3) Slash\n"
+          "4) Lunge   5) Cast    6) Parry\n>");
     do {
         choice= cg_getkey() - '0';
     } while (choice < 1 || choice > 6);

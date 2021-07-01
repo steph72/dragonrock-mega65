@@ -4,6 +4,10 @@
 #ifndef __CONGUI
 #define __CONGUI
 
+#define SCREENBASE 0x12000l
+#define COLBASE 0xff80000l
+#define GRAPHBASE 0x40000l
+
 // --------------- graphics ------------------
 
 typedef struct _dbmInfo {
@@ -56,7 +60,10 @@ void cg_resetPalette();
 void cg_go16bit(byte h640, byte v400);
 void cg_go8bit();
 void cg_clrscr();
+void cg_putc(char c);
 void cg_puts(char *s);
+void cg_putsxy(byte x, byte y, char *s);
+void cg_putcxy(byte x, byte y, char c);
 int cg_printf(const char *format, ...);
 void cg_gotoxy(byte x, byte y);
 void cg_textcolor(byte c);

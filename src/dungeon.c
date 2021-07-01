@@ -200,7 +200,7 @@ int performYesNoOpcode(opcode *anOpcode) {
         inkey= cgetc();
     } while (inkey != 'y' && inkey != 'n');
     cursor(false);
-    printf("%c\n", inkey);
+    cg_printf("%c\n", inkey);
     if (inkey == 'y') {
         registers[0]= true;
         if (anOpcode->id & 0x40) {
@@ -321,8 +321,8 @@ int performIAddOpcode(opcode *anOpcode) {
         registers[0]= true;
         registers[1]= charIdx;
         if (anOpcode->param7) {
-            cprintf("%s takes %s\r\n", party[charIdx]->name,
-                    nameOfInventoryItemWithID(anItemID));
+            cg_printf("%s takes %s\n", party[charIdx]->name,
+                      nameOfInventoryItemWithID(anItemID));
         }
         performOpcodeAtIndex(yesAddr);
         return 0;
@@ -370,13 +370,13 @@ int performAddCoinsOpcode(opcode *anOpcode) {
     if (opcodeID == 0x0a) {
         gPartyGold+= *coins;
         if (anOpcode->param7) {
-            printf("The party gets %d coins\n", *coins);
+            cg_printf("The party gets %d coins\n", *coins);
         }
 
     } else {
         gPartyExperience+= *coins;
         if (anOpcode->param7) {
-            printf("The party gets %d experience\n", *coins);
+            cg_printf("The party gets %d experience\n", *coins);
         }
     }
     return 0;
@@ -395,7 +395,7 @@ int performSetregOpcode(opcode *anOpcode) {
     value= anOpcode->param2;
 
     if (regNr > 16) {
-        printf("??invalid register nr %d... bailing out", regNr);
+        cg_printf("??invalid register nr %d... bailing out", regNr);
         while (1)
             ;
     }
@@ -424,16 +424,16 @@ int performDoencOpcode(opcode *anOpcode) {
 
     // save result opcode indices for later on
     // when re-entering dungeon module
-    puts("doenc!");
+    cg_puts("doenc!");
     encounterWonOpcIdx= anOpcode->param1 + (256 * (anOpcode->param2));
     encounterLostOpcIdx= anOpcode->param3 + (256 * (anOpcode->param4));
-    puts("prepare");
+    cg_puts("prepare");
     prepareForGameMode(gm_encounter);
     quitDungeon= true;
     /* cg_clearLower(5);
-    gotoxy(0, 19); */
+    cg_gotoxy(0, 19); */
     cg_clrscr();
-    cputs("An encounter!");
+    cg_puts("An encounter!");
     sleep(1);
     return 0;
 }
@@ -510,20 +510,20 @@ int performOpcode(opcode *anOpcode, int currentPC) {
 #ifdef DEBUG
     xs= wherex();
     ys= wherey();
-    gotoxy(0, 24);
-    printf("%04x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
-           anOpcode->param1, anOpcode->param2, anOpcode->param3,
-           anOpcode->param4, anOpcode->param5, anOpcode->param6,
-           anOpcode->param7); // DEBUG
+    cg_gotoxy(0, 24);
+    cg_printf("%04x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
+              anOpcode->param1, anOpcode->param2, anOpcode->param3,
+              anOpcode->param4, anOpcode->param5, anOpcode->param6,
+              anOpcode->param7); // DEBUG
     if (singleStepMode) {
-        gotoxy(28, 23);
-        cputs("-- step --");
+        cg_gotoxy(28, 23);
+        cg_puts("-- step --");
         cgetc();
-        gotoxy(28, 0);
-        cputs("          ");
+        cg_gotoxy(28, 0);
+        cg_puts("          ");
     }
-    gotoxy(0, 23);
-    gotoxy(xs, ys);
+    cg_gotoxy(0, 23);
+    cg_gotoxy(xs, ys);
 #endif
 
     opcodeID= (anOpcode->id) & 31; // we have 5-bit opcodes from 0x00 - 0x1f
@@ -709,7 +709,7 @@ void clearStatus(void) { cg_clearLower(5); }
 
 void displayFeel(byte feelID) {
     clearStatus();
-    gotoxy(0, 19);
+    cg_gotoxy(0, 19);
     printFeelForIndex(feelID);
 }
 
@@ -1015,8 +1015,8 @@ void dungeonLoop() {
 
         case 's':
             singleStepMode= !singleStepMode;
-            gotoxy(0, 0);
-            printf("single step mode %d   ", singleStepMode);
+            cg_gotoxy(0, 0);
+            cg_printf("single step mode %d   ", singleStepMode);
             break;
 #endif
 
@@ -1041,10 +1041,10 @@ void dungeonLoop() {
 #ifdef DEBUG
             xs= wherex();
             ys= wherey();
-            gotoxy(27, 24);
-            printf("%2d,%2d: %02x %02x", mposX, mposY, dItem.opcodeID,
-                   dItem.mapItem);
-            gotoxy(xs, ys);
+            cg_gotoxy(27, 24);
+            cg_printf("%2d,%2d: %02x %02x", mposX, mposY, dItem.opcodeID,
+                      dItem.mapItem);
+            cg_gotoxy(xs, ys);
 #endif
 
             if (dItem.mapItem & 32) { // check impassable flag
@@ -1072,14 +1072,14 @@ void printFeelForIndex(byte idx) {
     adr= desc->feelTbl[idx];
     do {
         current= lpeek(adr++);
-        cbm_k_bsout(current);
+        cg_putc(current);
     } while (current);
 }
 
 void setupOutdoorScreen(void) {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
-    textcolor(COLOR_GRAY2);
+    cg_textcolor(COLOR_GRAY2);
     cg_clrscr();
     cg_block_raw(0, 0, 39, 24, 32, COLOR_GREEN);
     revers(0);
@@ -1087,7 +1087,7 @@ void setupOutdoorScreen(void) {
 
 void setupDungeonScreen(void) {
 
-    textcolor(COLOR_BLACK);
+    cg_textcolor(COLOR_BLACK);
     cg_clrscr();
     bordercolor(COLOR_GRAY1);
     bgcolor(COLOR_GRAY3);
@@ -1098,6 +1098,7 @@ void setupDungeonScreen(void) {
 }
 
 void setupScreen() {
+    cg_go16bit(0, 0);
 
     if (isDungeonMode) {
         setupDungeonScreen();
@@ -1177,8 +1178,8 @@ void loadNewDungeon(void) {
     desc= loadMap(drbuf);
 
     if (!desc) {
-        puts("could not load dungeon ");
-        puts(mfile);
+        cg_puts("could not load dungeon ");
+        cg_puts(mfile);
         while (1)
             ;
     }
@@ -1189,11 +1190,11 @@ void loadNewDungeon(void) {
 void enterDungeonMode(byte reInitMap) {
 #ifdef DEBUG
     if (gCurrentGameMode == gm_dungeon) {
-        puts("entering dungeon mode");
+        cg_puts("entering dungeon mode");
     } else if (gCurrentGameMode == gm_outdoor) {
-        puts("entering outdoor mode");
+        cg_puts("entering outdoor mode");
     } else {
-        puts("??unknown game mode in dungeon!");
+        cg_puts("??unknown game mode in dungeon!");
         while (1)
             ;
     }
@@ -1216,9 +1217,10 @@ void enterDungeonMode(byte reInitMap) {
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
-    register byte *screenPtr; // working pointer to screen
-    register byte *colorPtr;
     register byte *bufPtr; // working pointer to line buffer
+
+    himemPtr screenPtr;
+    himemPtr colorPtr;
     byte *seenMapPtr;
     unsigned int offset;
     byte mapItem;
@@ -1230,18 +1232,18 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     byte mapStride;
     byte modifier;
 
-    screenStride= screenWidth - mapWindowSizeX;
+    screenStride= (screenWidth - mapWindowSizeX) * 2;
     mapStride= dungeonMapWidth;
 
-    colorPtr= COLOR_RAM + (screenWidth * posY) + posX;
-    screenPtr= SCREEN + (screenWidth * posY) + posX;
+    colorPtr= COLBASE + (screenWidth * posY * 2) + posX * 2;
+    screenPtr= SCREENBASE + (screenWidth * posY * 2) + posX * 2;
     seenMapPtr= seenMap + (mapY * dungeonMapWidth) + mapX - 1;
 
     offset= 0;
 
     for (ys= 0; ys < mapWindowSizeY; ++ys) {
         bufPtr= seenMapPtr + offset;
-        for (xs= 0; xs < mapWindowSizeX; ++xs, ++screenPtr, ++colorPtr) {
+        for (xs= 0; xs < mapWindowSizeX; ++xs, screenPtr+= 2, colorPtr+= 2) {
             xpos= mapX + xs;
             mapItem= *(++bufPtr);
             modifier= 0;
@@ -1250,12 +1252,10 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
                 if (mapItem >= 5) {
                     modifier= xpos % 2;
                 }
-                *colorPtr= signs[mapItem].colour;
-                *screenPtr= signs[mapItem].characterCode + modifier;
+                lpoke(colorPtr - 1, signs[mapItem].colour);
+                lpoke(screenPtr, signs[mapItem].characterCode + modifier);
             } else {
-                *screenPtr= isDungeonMode ? 160 : 32;
-                // isDungeonMode ? *screenPtr=160 : screenPtr = 32;
-                // *screenPtr= 160;
+                lpoke(screenPtr, isDungeonMode ? 160 : 32);
             }
         }
         screenPtr+= screenStride;

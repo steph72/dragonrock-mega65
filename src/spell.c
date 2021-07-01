@@ -43,7 +43,7 @@ byte spellNeedsCharacterDestination(byte spellID) {
 }
 
 void announceSpell(character *aChar) {
-    cprintf("%s casts %s\r\n", aChar->name, nameOfSpellWithID(aChar->encSpell));
+    cprintf("%s casts %s\n", aChar->name, nameOfSpellWithID(aChar->encSpell));
 }
 
 // clang-format off
@@ -83,7 +83,7 @@ byte castHealingSpell(character *srcCharacter) {
     destCharacter->aHP+= healVal;
     cprintf("%s is healed.", destCharacter->name);
     if (destCharacter->status == down && destCharacter->aHP > 0) {
-        cprintf("\r\n%s gets up again!", destCharacter->name);
+        cprintf("\n%s gets up again!", destCharacter->name);
         destCharacter->status= awake;
     }
     return true;
