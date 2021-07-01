@@ -106,10 +106,10 @@ dungeonDescriptor *loadMap(char *filename) {
 
     while (!feof(infile)) {
         ++i;
-        bytesRead= fread(drbuf, 1, BUFSIZE, infile);
+        bytesRead= fread(drbuf, 1, DRBUFSIZE, infile);
         if (!(i % 8))
             cputc('.');
-        lcopy((long)drbuf, currentExternalDungeonPtr, BUFSIZE);
+        lcopy((long)drbuf, currentExternalDungeonPtr, DRBUFSIZE);
         currentExternalDungeonPtr+= bytesRead;
     }
 

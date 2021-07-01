@@ -29,7 +29,7 @@ typedef struct _textwin {
 } textwin;
 
 void cg_init(void);
-int cg_fatal(const char *format, ...);
+void cg_fatal(const char *format, ...);
 
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t);
 void cg_borders(void);
@@ -51,6 +51,7 @@ void cg_colorLine(byte y, byte x0, byte x1, byte col);
 void cg_line(byte y, byte x0, byte x1, byte character, byte col);
 
 void cg_setPalette(byte num, byte red, byte green, byte blue);
+void cg_resetPalette();
 
 void cg_go16bit(byte h640, byte v400);
 void cg_go8bit();
@@ -61,6 +62,7 @@ void cg_gotoxy(byte x, byte y);
 void cg_textcolor(byte c);
 void cg_setwin(byte x0, byte y0, byte width, byte height);
 
+void cg_freeGraphAreas(void);
 void cg_addGraphicsRect(byte x0,byte y0, byte width, byte height, himemPtr bitmapData);
 dbmInfo *cg_loadDBM(char *filename);
 void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0);

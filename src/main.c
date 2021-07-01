@@ -40,7 +40,6 @@
 #include "monster.h"
 #include "spell.h"
 
-#include "c65.h"
 #include "dispatcher.h"
 #include "memory.h"
 #include "sprites.h"
@@ -59,8 +58,7 @@
 #define DRE_BUILDNUM "-666"
 #endif
 
-char drbuf[BUFSIZE];
-char textbuf[TEXTBUF_SIZE];
+char drbuf[DRBUFSIZE];
 
 byte hasLoadedGame;
 byte devmode;

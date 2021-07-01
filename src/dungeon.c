@@ -1,11 +1,11 @@
 #include "dungeon.h"
-#include "c65.h"
 #include "character.h"
 #include "congui.h"
 #include "debug.h"
 #include "dungeonLoader.h"
 #include "encounter.h"
 #include "globals.h"
+#include "memory.h"
 #include "monster.h"
 
 #include <c64.h>
@@ -171,9 +171,7 @@ int performDisplayTextOpcode(opcode *anOpcode) {
     if (anOpcode->param2 != 0) {
         cg_clrscr();
     }
-    // cprintf("%s",feelForIndex(anOpcode->param1));
-    fetchFeelForIndex(anOpcode->param1, textbuf);
-    puts(textbuf);
+    printFeelForIndex(anOpcode->param1);
 
     return 0;
 }
@@ -398,7 +396,8 @@ int performSetregOpcode(opcode *anOpcode) {
 
     if (regNr > 16) {
         printf("??invalid register nr %d... bailing out", regNr);
-        while(1);
+        while (1)
+            ;
     }
 
     registers[regNr]= value;
@@ -711,8 +710,7 @@ void clearStatus(void) { cg_clearLower(5); }
 void displayFeel(byte feelID) {
     clearStatus();
     gotoxy(0, 19);
-    fetchFeelForIndex(feelID, textbuf);
-    puts(textbuf);
+    printFeelForIndex(feelID);
 }
 
 // moves origin and redraws map if player is in scroll area
@@ -1068,13 +1066,15 @@ void dungeonLoop() {
     } // of while (!quitDungeon);
 }
 
-void fetchFeelForIndex(byte idx, char *aFeel) {
+void printFeelForIndex(byte idx) {
     himemPtr adr;
+    char current;
     adr= desc->feelTbl[idx];
-    lcopy(adr, (long)aFeel, TEXTBUF_SIZE);
+    do {
+        current= lpeek(adr++);
+        cbm_k_bsout(current);
+    } while (current);
 }
-
-// char *feelForIndex(byte idx) { return desc->feelTbl[idx]; }
 
 void setupOutdoorScreen(void) {
     bgcolor(COLOR_BLACK);
@@ -1092,9 +1092,9 @@ void setupDungeonScreen(void) {
     bordercolor(COLOR_GRAY1);
     bgcolor(COLOR_GRAY3);
     cg_block_raw(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
-             screenY + mapWindowSizeY, 160, COLOR_GREEN);
+                 screenY + mapWindowSizeY, 160, COLOR_GREEN);
     cg_block_raw(screenX, screenY, screenX + mapWindowSizeX - 1,
-             screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
+                 screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
 }
 
 void setupScreen() {
@@ -1179,7 +1179,8 @@ void loadNewDungeon(void) {
     if (!desc) {
         puts("could not load dungeon ");
         puts(mfile);
-        while(1);
+        while (1)
+            ;
     }
 
     initLoadedDungeon();
@@ -1193,7 +1194,8 @@ void enterDungeonMode(byte reInitMap) {
         puts("entering outdoor mode");
     } else {
         puts("??unknown game mode in dungeon!");
-        while(1);
+        while (1)
+            ;
     }
     singleStepMode= false;
 #endif

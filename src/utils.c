@@ -14,10 +14,10 @@ unsigned int readExt(FILE *inFile, himemPtr addr) {
     overallRead= 0;
 
     do {
-        readBytes= fread(textbuf, 1, TEXTBUF_SIZE, inFile);
+        readBytes= fread(drbuf, 1, DRBUFSIZE, inFile);
         if (readBytes) {
             overallRead+= readBytes;
-            lcopy((long)textbuf, insertPos, readBytes);
+            lcopy((long)drbuf, insertPos, readBytes);
             insertPos+= readBytes;
         }
     } while (readBytes);

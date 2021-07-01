@@ -1,7 +1,8 @@
 /*
  * congui.c
+ * console, graphics and graphical user interface module for the MEGA65
  *
- * Copyright (C) 2019 - Stephan Kleinert
+ * Copyright (C) 2019-21 - Stephan Kleinert
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,7 @@
  */
 
 #include "congui.h"
+#include "debug.h"
 #include "globals.h"
 #include "memory.h"
 #include "utils.h"
@@ -59,6 +61,7 @@ unsigned char drColours[16][3]= {
 #define COLBASE 0xff80000l
 #define GRAPHBASE 0x40000l
 
+#define MAX_DBM_BLOCKS 16
 #define SHAPETBLSIZE 16
 
 #define VIC4CTRL (*(unsigned char *)(0xd054))
@@ -73,17 +76,50 @@ unsigned char drColours[16][3]= {
 #define SCNPTR_2 (*(unsigned char *)(0xd062))
 #define SCNPTR_3 (*(unsigned char *)(0xd063))
 
-byte is16BitModeEnabled;
-byte xc16, yc16;
-byte textcolor16;
-unsigned long gScreenSize;
-byte gScreenColumns;
-byte gScreenRows;
-himemPtr nextFreeGraphMem;
+byte is16BitModeEnabled;   // whether we're in full colour / extended attrs mode
+byte xc16, yc16;           // text cursor position
+byte textcolor16;          // text colour
+unsigned long gScreenSize; // screen size (in characters)
+byte gScreenColumns;       // number of screen columns (in characters)
+byte gScreenRows;          // number of screen rows (in characters)
+himemPtr
+    nextFreeGraphMem; // location of next free graphics block in banks 4 & 5
+
+dbmInfo *infoBlocks[MAX_DBM_BLOCKS]; // loaded dbm file info blocks
+byte infoBlockCount;                 // number of info blocks
+
+byte cgi;
 
 void scrollUp();
 
-int cg_fatal(const char *format, ...) {
+void cg_init() {
+    mega65_io_enable();
+    infoBlockCount= 0;
+    for (cgi= 0; cgi < MAX_DBM_BLOCKS; ++cgi) {
+        infoBlocks[cgi]= NULL;
+    }
+    cg_freeGraphAreas();
+    cg_resetPalette();
+    bgcolor(COLOR_BLACK);
+    bordercolor(COLOR_BLACK);
+    textcolor(COLOR_GREEN);
+    cbm_k_bsout(13);
+    clrscr();
+    gPal= 0;
+    gPalDir= 1;
+    cbm_k_bsout(11); // disable shift+cmd on c128 & 364
+    cbm_k_bsout(14); // lowercase charset
+}
+
+void cg_resetPalette() {
+    mega65_io_enable();
+    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
+    for (cgi= 0; cgi < 15; ++cgi) {
+        cg_setPalette(cgi, drColours[cgi][0], drColours[cgi][1], drColours[cgi][2]);
+    }
+}
+
+void cg_fatal(const char *format, ...) {
     char buf[160];
     va_list args;
     va_start(args, format);
@@ -99,7 +135,15 @@ int cg_fatal(const char *format, ...) {
         ;
 }
 
-void cg_freeGraphAreas(void) { nextFreeGraphMem= GRAPHBASE; }
+void cg_freeGraphAreas(void) {
+    for (cgi= 0; cgi < infoBlockCount; ++cgi) {
+        if (infoBlocks[cgi] != NULL) {
+            free(infoBlocks[cgi]);
+            infoBlocks[cgi]= NULL;
+        }
+    }
+    nextFreeGraphMem= GRAPHBASE;
+}
 
 /*
 very simple graphics memory allocation scheme:
@@ -127,30 +171,28 @@ himemPtr cg_allocGraphMem(word size) {
 void cg_test() {
     word foo;
     dbmInfo *info;
+    testMem();
+    cg_getkey();
+
     cg_freeGraphAreas();
     cg_go16bit(0, 0);
     cg_clrscr();
     cg_displayDBMFile("drock.dbm", 0, 0);
     cg_getkey();
 
+
     cg_displayDBMFile("0.dbm", 1, 5);
-    cg_getkey();
 
     cg_displayDBMFile("1.dbm", 1 + 5, 5);
-    cg_getkey();
 
     cg_displayDBMFile("2.dbm", 1 + 10, 5);
-    cg_getkey();
 
     cg_displayDBMFile("3.dbm", 1 + 15, 5);
-    cg_getkey();
 
     cg_displayDBMFile("4.dbm", 1 + 20, 5);
-    cg_getkey();
 
     cg_getkey();
 
-    cg_clrscr();
     info= cg_displayDBMFile("2.dbm", 1, 5);
     cg_printf("%05lx ", info->baseAdr);
     cg_displayDBMInfo(info, 12, 5);
@@ -178,6 +220,9 @@ void cg_test() {
         scrollUp();
     }
     cg_go8bit();
+    cg_freeGraphAreas();
+    testMem();
+    cg_getkey();
 }
 
 char asciiToPetscii(byte c) {
@@ -252,11 +297,12 @@ void cg_go8bit() {
     VIC3CTRL&= 0xf7; // disable V400
     cbm_k_bsout(14); // lowercase charset
     is16BitModeEnabled= false;
+    cg_resetPalette();
 }
 
 void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
                         himemPtr bitmapData) {
-    byte x, y;
+    static byte x, y;
     long adr;
     word currentCharIdx;
 
@@ -281,11 +327,12 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
 
 dbmInfo *cg_loadDBM(char *filename) {
 
+    static byte r, g, b;
+    static byte numColumns, numRows, numColours;
+    static byte dbmOptions;
+    static byte reservedSysPalette;
+
     FILE *dbmfile;
-    byte i;
-    byte r, g, b;
-    byte numColumns, numRows, numColours;
-    byte dbmOptions;
     byte *palette;
     word palsize;
     word imgsize;
@@ -294,8 +341,8 @@ dbmInfo *cg_loadDBM(char *filename) {
     himemPtr bitmampAdr;
     dbmInfo *info;
 
-    byte reservedSysPalette;
     info= (dbmInfo *)malloc(sizeof(dbmInfo));
+    infoBlocks[infoBlockCount++]= info;
 
     dbmfile= fopen(filename, "rb");
     if (!dbmfile) {
@@ -317,17 +364,17 @@ dbmInfo *cg_loadDBM(char *filename) {
     fread(palette, 3, numColours, dbmfile);
 
     mega65_io_enable();
-    for (i= 0; i < numColours; ++i) {
-        if (reservedSysPalette && i < 15) {
+    for (cgi= 0; cgi < numColours; ++cgi) {
+        if (reservedSysPalette && (cgi <= 15)) {
             continue;
         }
-        colAdr= i * 3;
+        colAdr= cgi * 3;
         r= palette[colAdr];
         g= palette[colAdr + 1];
         b= palette[colAdr + 2];
-        POKE(0xd100u + i, r);
-        POKE(0xd200u + i, g);
-        POKE(0xd300u + i, b);
+        POKE(0xd100u + cgi, r);
+        POKE(0xd200u + cgi, g);
+        POKE(0xd300u + cgi, b);
     }
     free(palette);
     imgsize= numColumns * numRows * 64;
@@ -378,7 +425,7 @@ dbmInfo *cg_displayDBMFile(char *filename, byte x0, byte y0) {
 }
 
 void scrollUp() {
-    byte y;
+    static byte y;
     long bas0, bas1;
     for (y= currentWin.y0; y < currentWin.y1; y++) {
         bas0= SCREENBASE + (currentWin.x0 * 2 + (y * gScreenColumns * 2));
@@ -402,7 +449,7 @@ void cr() {
 }
 
 void outc16(char c) {
-    char out;
+    static char out;
     word adrOffset;
     if (c == '\n') {
         cr();
@@ -433,7 +480,7 @@ void cg_puts(char *s) {
 }
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
-    int x, y;
+    static byte x, y;
     word adrOffset;
     for (x= x0; x <= x1; ++x) {
         for (y= y0; y <= y1; ++y) {
@@ -457,12 +504,14 @@ void cg_gotoxy(byte x, byte y) {
 }
 
 int cg_printf(const char *format, ...) {
+    int ret;
     char buf[160];
     va_list args;
     va_start(args, format);
     vsprintf(buf, format, args);
     va_end(args);
     cg_puts(buf);
+    return ret;
 }
 
 void cg_clrscr() {
@@ -486,26 +535,6 @@ void cg_setwin(byte x0, byte y0, byte width, byte height) {
     cg_gotoxy(0, 0);
 }
 
-void cg_init() {
-    byte i;
-    mega65_io_enable();
-    cg_freeGraphAreas();
-    POKE(53297U, 96);                 // quit bitplane mode
-    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
-    for (i= 0; i < 15; ++i) {
-        cg_setPalette(i, drColours[i][0], drColours[i][1], drColours[i][2]);
-    }
-    bgcolor(COLOR_BLACK);
-    bordercolor(COLOR_BLACK);
-    textcolor(COLOR_GREEN);
-    cbm_k_bsout(13);
-    clrscr();
-    gPal= 0;
-    gPalDir= 1;
-    cbm_k_bsout(11); // disable shift+cmd on c128 & 364
-    cbm_k_bsout(14); // lowercase charset
-}
-
 void cg_emptyBuffer(void) {
     while (kbhit()) {
         cgetc();
@@ -518,17 +547,16 @@ char cg_getkey(void) {
 }
 
 void cg_clearFromTo(byte start, byte end) {
-    static byte i;
-    for (i= start; i < end; ++i) {
-        cclearxy(0, i, 40);
+    for (cgi= start; cgi < end; ++cgi) {
+        cclearxy(0, cgi, 40);
     }
 }
 
 void cg_clearLower(byte num) { cg_clearFromTo(24 - num, 24); }
 
 void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
-    static word bas;
-    static word bas2;
+    word bas;
+    word bas2;
     word i;
     if (is16BitModeEnabled) {
         bas= x0 * 2 + (y * gScreenColumns * 2);
@@ -550,14 +578,14 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
 
 void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character,
                   byte col) {
-    byte i;
+    static byte i;
     for (i= y0; i <= y1; ++i) {
         cg_line(i, x0, x1, character, col);
     }
 }
 
 void cg_center(byte x, byte y, byte width, char *text) {
-    byte mid;
+    static byte mid;
     mid= width / 2;
     gotoxy(x + (width / 2) - (strlen(text) / 2), y);
     cputs(text);
@@ -610,6 +638,7 @@ char cg_getkeyP(byte x, byte y, const char *prompt) {
 
 char *cg_input(byte maxlen) {
     // TODO
+    return 0;
 }
 
 void cg_borders(void) {
@@ -619,8 +648,8 @@ void cg_borders(void) {
 }
 
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
-    byte xpos;
-    byte splitPos= 12;
+    static byte xpos;
+    static byte splitPos= 12;
 
     xpos= 20 - (strlen(t) / 2);
     cg_clrscr();

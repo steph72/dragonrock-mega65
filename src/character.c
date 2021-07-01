@@ -221,7 +221,7 @@ void more(char *filename) {
     cg_clrscr();
     infile= fopen(filename, "r");
     while (!feof(infile)) {
-        fgets(drbuf, BUFSIZE, infile);
+        fgets(drbuf, DRBUFSIZE, infile);
         ++line;
         fputs(drbuf, stdout);
         if (line == 23) {

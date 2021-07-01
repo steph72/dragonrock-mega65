@@ -4,15 +4,13 @@
 #define SCREEN ((unsigned char *)0x400)
 #define ITEM_BASE       0x8020000
 #define MONSTERS_BASE   0x8021000
-#define BUFSIZE         0xff
-#define TEXTBUF_SIZE    0x400
+#define DRBUFSIZE       0xff
 
 /*  ----
     main
     ---- */
 
 extern char drbuf[];   // general purpose buffer
-extern char textbuf[]; // buffer for text display
 extern byte devmode;   // devmode flag
 
 /*  ----------
