@@ -46,7 +46,7 @@ unsigned char drColours[16][3]= {
     {0x6f, 0x3d, 0x86}, // purple
     {0x68, 0x9d, 0x43}, // green
     {0x35, 0x28, 0x79}, // 06
-    {0xb8, 0xc7, 0x6f}, // 07
+    {0xb8, 0xa7, 0x5f}, // yellow
     {0xf0, 0xa0, 0x00}, // 08
     {0x43, 0x39, 0x00}, // 09
     {0xfa, 0x27, 0x39}, // 0a
@@ -655,9 +655,11 @@ char *cg_input(byte maxlen) {
     return 0;
 }
 
-void cg_hlinexy(byte x0, byte y, byte x1) {
+void cg_hlinexy(byte x0, byte y, byte x1, byte secondary) {
+    static byte lineChar;
+    lineChar = secondary ? 9:0;
     for (cgi= x0; cgi <= x1; cgi++) {
-        cg_plotExtChar(cgi, y, 0);
+        cg_plotExtChar(cgi, y, lineChar);
     }
 }
 
@@ -670,8 +672,8 @@ void cg_vlinexy(byte x, byte y0, byte y1) {
 }
 
 void cg_frame(byte x0, byte y0, byte x1, byte y1) {
-    cg_hlinexy(x0, y0, x1);
-    cg_hlinexy(x0, y1, x1);
+    cg_hlinexy(x0, y0, x1,0);
+    cg_hlinexy(x0, y1, x1,0);
     cg_vlinexy(x0, y0+1, y1-1);
     cg_vlinexy(x1, y0+1, y1-1);
 }
@@ -693,7 +695,7 @@ void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
         if (splitScreen != true) {
             splitPos= splitScreen;
         }
-        cg_hlinexy(0, splitPos, 40);
+        cg_hlinexy(1, splitPos, 38,1);
     }
     cg_putsxy(xpos, 0, t);
     cg_putcxy(xpos - 1, 0, 32);

@@ -11,6 +11,13 @@ from zlib import compress
 import png
 import io
 
+gVerbose = False
+gReserve = False
+gCompress = False
+gExcludePalette = False
+gVersion = "1.0"
+gPreserveBackgroundColour = False
+
 def vprint(*values):
     global gVerbose
     if gVerbose == True:
@@ -21,6 +28,7 @@ def showUsage():
     print("usage: "+sys.argv[0]+" [-rv] infile outfile")
     print("convert PNG to MEGA65 DBM file")
     print("options: -r  reserve system palette entries")
+    print("         -0  preserve background colour")
     print("         -x  exclude palette data")
     print("         -v  verbose output")
     print("         -c  compress output")
@@ -35,7 +43,7 @@ def nybswap(i):
 
 
 def parseArgs():
-    global gReserve, gVerbose, gCompress, gExcludePalette
+    global gReserve, gVerbose, gCompress, gExcludePalette, gPreserveBackgroundColour
     args = sys.argv.copy()
     args.remove(args[0])
     fileargcount = 0
@@ -52,6 +60,8 @@ def parseArgs():
                     gCompress = True
                 elif opt == "x":
                     gExcludePalette = True
+                elif opt == "0":
+                    gPreserveBackgroundColour = True
                 else:
                     print("Unknown option", opt)
                     showUsage()
@@ -87,7 +97,11 @@ def pngRowsToM65Rows(pngRows):
         pngX = 0
         for currentColumn in currentRow:
             if gReserve:
-                currentColumn += 16
+                if gPreserveBackgroundColour:
+                    if currentColumn!=0:
+                        currentColumn += 16
+                else:
+                    currentColumn += 16
             m65X = pngX//8
             m65Y = pngY//8
             m65Byte = ((pngX%8)+(pngY*8)) % 64
@@ -128,11 +142,7 @@ def rle(data):
 
 ####################### main program ########################
 
-gVerbose = False
-gReserve = False
-gCompress = False
-gExcludePalette = False
-gVersion = "1.0"
+
 
 
 # print(rle(["a", "b", "c", "c", "c", "d", "e"]))
@@ -171,7 +181,11 @@ else:
 
         # add placeholders for system colours
         vprint("reserving system colour space")
-        for i in range(16):
+        if gPreserveBackgroundColour:
+            maxC = 15
+        else:
+            maxC = 16
+        for i in range(maxC):
             vic4_palette.append((0, 0, 0))
 
     # swap nyybles in palette

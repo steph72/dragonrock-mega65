@@ -52,11 +52,11 @@ sign signs[]= {
 
     /* -- dungeon signs -- */
 
-    {0x20, COLOR_GRAY3, 0}, //  0  empty space
-    {0x5b, COLOR_GRAY3, 0}, //  1  diamond
-    {0x5c, COLOR_GRAY3, 1}, //  2  vertical door
-    {0x5d, COLOR_GRAY3, 1}, //  3  horizontal door
-    {0x5e, COLOR_GRAY3, 1}, //  4  filled space
+    {0x01, COLOR_GRAY3, 0}, //  0  empty space
+    {0x08, COLOR_GRAY3, 0}, //  1  diamond
+    {0x07, COLOR_GRAY3, 1}, //  2  vertical door
+    {0x06, COLOR_GRAY3, 1}, //  3  horizontal door
+    {0x05, COLOR_GRAY3, 1}, //  4  filled space
 
     /* -- outdoor signs -- */
 
@@ -676,6 +676,7 @@ void plotPlayer(byte x, byte y) {
     colorPtr+= x * 2 + (y * screenWidth * 2);
 
     lpoke(screenPtr, 0x5f);
+    lpoke(screenPtr + 1, 0);
     lpoke(colorPtr + 1, COLOR_WHITE);
 }
 
@@ -1053,8 +1054,8 @@ void printFeelForIndex(byte idx) {
 void setupFrames() {
     cg_frame(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
              screenX + mapWindowSizeY);
-    cg_hlinexy(0, 0, 39);
-    cg_hlinexy(0, 16, 39);
+    cg_hlinexy(0, 0, 39, 0);
+    cg_hlinexy(0, 16, 39, 0);
     cg_vlinexy(39, 1, 15);
 }
 
@@ -1071,8 +1072,10 @@ void setupDungeonScreen(void) {
     bordercolor(COLOR_BLACK);
     bgcolor(COLOR_BLACK);
     cg_clrscr();
+    /*
     cg_block_raw(screenX, screenY, screenX + mapWindowSizeX - 1,
-                 screenY + mapWindowSizeY - 1, 32, COLOR_GRAY1);
+                 screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
+                 */
     setupFrames();
 }
 
@@ -1200,6 +1203,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
     himemPtr screenPtr;
     himemPtr colorPtr;
+    word charIdx;
     byte *seenMapPtr;
     unsigned int offset;
     byte mapItem;
@@ -1231,11 +1235,17 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
                 if (mapItem >= 5) {
                     modifier= xpos % 2;
                 }
-                lpoke(colorPtr + 1, signs[mapItem].colour);
-                lpoke(screenPtr, signs[mapItem].characterCode + modifier);
+                // lpoke(colorPtr + 1, signs[mapItem].colour);
+                charIdx= (EXTCHARBASE / 64) + signs[mapItem].characterCode;
+                lpoke(screenPtr, charIdx % 256);
+                lpoke(screenPtr + 1, charIdx / 256);
+                // lpoke(screenPtr, signs[mapItem].characterCode + modifier);
             } else {
                 lpoke(screenPtr, isDungeonMode ? 160 : 32);
-                lpoke(colorPtr + 1, isDungeonMode ? COLOR_GRAY1 : COLOR_BLACK);
+                lpoke(screenPtr + 1, 0);
+                lpoke(colorPtr + 1, COLOR_BLACK);
+                // lpoke(colorPtr + 1, isDungeonMode ? COLOR_GRAY1 :
+                // COLOR_BLACK);
             }
         }
         screenPtr+= screenStride;

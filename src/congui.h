@@ -53,7 +53,7 @@ void cg_stopColor(void);
 
 void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
 void cg_frame(byte x0, byte y0, byte x1, byte y1);
-void cg_hlinexy(byte x0, byte y, byte x1);
+void cg_hlinexy(byte x0, byte y, byte x1, byte secondary);
 void cg_vlinexy(byte x, byte y0, byte y1);
 
 void cg_setPalette(byte num, byte red, byte green, byte blue);

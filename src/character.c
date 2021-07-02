@@ -173,13 +173,19 @@ void showCurrentParty(byte small) {
     y= 2;
 
     if (small) {
-        x= 19;
+        x= 18;
+        cg_textcolor(COLOR_YELLOW);
+        cg_putsxy(18,1,"#");
+        cg_putsxy(20,1,"Name");
+        cg_putsxy(33,1,"Status");
+        cg_textcolor(COLOR_GRAY2);
+        cg_hlinexy(17,2,38,1);
     } else {
-        x= 0;
+        x= 1;
         cg_putsxy(17, 2, "MP");
         cg_putsxy(25, 2, "HP");
-        cg_putsxy(2, 2, "Name");
-        cg_putsxy(0, 2, "#");
+        cg_putsxy(3, 2, "Name");
+        cg_putsxy(1, 2, "#");
         cg_putsxy(33, 2, "Status");
     }
 
@@ -188,6 +194,14 @@ void showCurrentParty(byte small) {
             c= party[i];
             ++y;
             cg_gotoxy(x, y);
+            if (c->status == asleep) {
+                cg_textcolor(COLOR_BLUE);
+            }
+            if (c->aHP>=1) {
+                cg_textcolor(COLOR_GREEN);
+            } else {
+                cg_textcolor(COLOR_RED);
+            }
             if (small) {
                 *drbuf= 0;
                 strncat(drbuf, c->name, 12);
