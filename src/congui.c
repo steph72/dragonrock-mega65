@@ -466,6 +466,14 @@ void cr() {
     }
 }
 
+byte cg_wherex() {
+    return xc16;
+}
+
+byte cg_wherey() {
+    return yc16;
+}
+
 void cg_putc(char c) {
     static char out;
     word adrOffset;

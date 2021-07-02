@@ -60,19 +60,19 @@ sign signs[]= {
     /* -- outdoor signs -- */
 
     {14, COLOR_GREEN, 0},   //  5  grass
-    {24, COLOR_YELLOW, 0}, //  6  sand
-    {18, COLOR_GRAY1, 0},  //  7  stone path
+    {24, COLOR_YELLOW, 0},  //  6  sand
+    {18, COLOR_GRAY1, 0},   //  7  stone path
     {16, COLOR_GREEN, 1},   //  8  trees1
     {16, COLOR_GREEN, 1},   //  9  trees2
-    {20, COLOR_BLUE, 0},   // 10  water1
-    {20, COLOR_BLUE, 0},   // 11  water2
-    {12, COLOR_BROWN, 1},  // 12  hills
-    {10, COLOR_GRAY3, 1},  // 13  mountains
-    {112, COLOR_YELLOW, 0}, // 14  village
+    {20, COLOR_BLUE, 0},    // 10  water1
+    {20, COLOR_BLUE, 0},    // 11  water2
+    {12, COLOR_BROWN, 1},   // 12  hills
+    {10, COLOR_GRAY3, 1},   // 13  mountains
+    {26, COLOR_YELLOW, 0},  // 14  village
     {112, COLOR_PURPLE, 0}, // 15  castle
     {112, COLOR_ORANGE, 0}, // 16  inn
     {114, COLOR_GRAY3, 0},  // 17  dungeon
-    {22, COLOR_BROWN, 0}   // 18 bridge
+    {22, COLOR_BROWN, 0}    // 18 bridge
 };
 
 byte isDungeonMode;
@@ -507,8 +507,8 @@ int performOpcode(opcode *anOpcode, int currentPC) {
                  // branching
 
 #ifdef DEBUG
-    xs= wherex();
-    ys= wherey();
+    xs= cg_wherex();
+    ys= cg_wherey();
     cg_gotoxy(0, 24);
     cg_printf("%04x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
               anOpcode->param1, anOpcode->param2, anOpcode->param3,
@@ -770,8 +770,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
             continue;
         }
 
-
-        lpoke(seenMap+(x + (dungeonMapWidth * y)),anItem.mapItem);
+        lpoke(seenMap + (x + (dungeonMapWidth * y)), anItem.mapItem);
 
         if (blocksView) {
             if (x != x0 || y != y0)
@@ -804,7 +803,8 @@ void look(int x, int y) {
                 mposY < desc->dungeonMapHeight) {
                 fetchDungeonItemAtPos(mposX, mposY, &anItem);
                 if (xdiff | ydiff) {
-                    lpoke(seenMap+(mposX + (dungeonMapWidth * mposY)),anItem.mapItem);
+                    lpoke(seenMap + (mposX + (dungeonMapWidth * mposY)),
+                          anItem.mapItem);
                 }
             }
         }
@@ -1021,8 +1021,8 @@ void dungeonLoop() {
             // dItem= dungeonItemAtPos(mposX, mposY);
 
 #ifdef DEBUG
-            xs= wherex();
-            ys= wherey();
+            xs= cg_wherex();
+            ys= cg_wherey();
             cg_gotoxy(27, 24);
             cg_printf("%2d,%2d: %02x %02x", mposX, mposY, dItem.opcodeID,
                       dItem.mapItem);
@@ -1208,7 +1208,6 @@ void enterDungeonMode(byte reInitMap) {
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
-
     himemPtr screenPtr;
     himemPtr colorPtr;
     word charIdx;
@@ -1237,7 +1236,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
         bufPtr= seenMapPtr + offset;
         for (xs= 0; xs < mapWindowSizeX; ++xs, screenPtr+= 2, colorPtr+= 2) {
             xpos= mapX + xs;
-            mapItem=lpeek(++bufPtr);
+            mapItem= lpeek(++bufPtr);
             // mapItem= *(++bufPtr);
             modifier= 0;
             if (mapItem != 255) {
@@ -1246,7 +1245,8 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
                     modifier= xpos % 2;
                 }
                 // lpoke(colorPtr + 1, signs[mapItem].colour);
-                charIdx= (EXTCHARBASE / 64) + signs[mapItem].characterCode+modifier;
+                charIdx= (EXTCHARBASE / 64) + signs[mapItem].characterCode +
+                         modifier;
                 lpoke(screenPtr, charIdx % 256);
                 lpoke(screenPtr + 1, charIdx / 256);
                 // lpoke(screenPtr, signs[mapItem].characterCode + modifier);

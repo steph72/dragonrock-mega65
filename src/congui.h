@@ -65,6 +65,8 @@ void cg_putsxy(byte x, byte y, char *s);
 void cg_putcxy(byte x, byte y, char c);
 int cg_printf(const char *format, ...);
 void cg_gotoxy(byte x, byte y);
+byte cg_wherex();
+byte cg_wherey();
 void cg_textcolor(byte c);
 void cg_setwin(byte x0, byte y0, byte width, byte height);
 
