@@ -16,27 +16,26 @@
 #include <unistd.h>
 
 /* ------------------------- opcodes ------------------------- */
-#define OPC_NOP 0x00    /* no operation                       */
-#define OPC_NSTAT 0x01  /* new status line                    */
-#define OPC_DISP 0x02   /* display text                       */
-#define OPC_WKEY 0x03   /* waitkey                            */
-#define OPC_YESNO 0x04  /* request y or n                     */
-#define OPC_IFREG 0x05  /* if register                        */
-#define OPC_IFPOS 0x06  /* if item in possession              */
-#define OPC_IADD 0x07   /* add item to character's inventory  */
-#define OPC_ALTER 0x08  /* alter map at coordinates           */
-#define OPC_REDRAW 0x09 /* redraw screen                      */
-#define OPC_ADDC 0x0a   /* add coins                          */
-#define OPC_ADDE 0x0b   /* add experience                     */
-#define OPC_SETREG 0x0c /* set register                       */
-#define OPC_CLRENC 0x0d /* clear encounter                    */
-#define OPC_ADDENC 0x0e /* add monsters to encounter row      */
-#define OPC_DOENC 0x0f  /* do encounter                       */
-#define OPC_ENTER 0x10  /* enter dungeon or wilderness        */
-#define OPC_ENTERC 0x11 /* enter city                         */
-#define OPC_RANDOMB                                                                        \
-    0x12 /* random branch */ /* ---------------------------------------------------------- \
-                              */
+#define OPC_NOP 0x00     /* no operation                       */
+#define OPC_NSTAT 0x01   /* new status line                    */
+#define OPC_DISP 0x02    /* display text                       */
+#define OPC_WKEY 0x03    /* waitkey                            */
+#define OPC_YESNO 0x04   /* request y or n                     */
+#define OPC_IFREG 0x05   /* if register                        */
+#define OPC_IFPOS 0x06   /* if item in possession              */
+#define OPC_IADD 0x07    /* add item to character's inventory  */
+#define OPC_ALTER 0x08   /* alter map at coordinates           */
+#define OPC_REDRAW 0x09  /* redraw screen                      */
+#define OPC_ADDC 0x0a    /* add coins                          */
+#define OPC_ADDE 0x0b    /* add experience                     */
+#define OPC_SETREG 0x0c  /* set register                       */
+#define OPC_CLRENC 0x0d  /* clear encounter                    */
+#define OPC_ADDENC 0x0e  /* add monsters to encounter row      */
+#define OPC_DOENC 0x0f   /* do encounter                       */
+#define OPC_ENTER 0x10   /* enter dungeon or wilderness        */
+#define OPC_ENTERC 0x11  /* enter city                         */
+#define OPC_RANDOMB 0x12 /* random branch                      */
+/* ----------------------------------------------------------  */
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -680,12 +679,19 @@ void plotPlayer(byte x, byte y) {
     lpoke(colorPtr + 1, COLOR_WHITE);
 }
 
-void clearStatus(void) { cg_clearLower(5); }
+void clearStatus(void) {
+    cg_setwin(1, 17, 37, 6);
+    cg_clrscr();
+    cg_setwin(0, 0, 40, 24);
+}
 
 void displayFeel(byte feelID) {
-    clearStatus();
-    cg_gotoxy(0, 19);
+    cg_setwin(1, 17, 37, 6);
+    cg_clrscr();
+    cg_textcolor(COLOR_YELLOW);
     printFeelForIndex(feelID);
+    cg_textcolor(COLOR_GRAY2);
+    cg_setwin(0, 0, 40, 24);
 }
 
 // moves origin and redraws map if player is in scroll area
@@ -764,7 +770,8 @@ void look_bh(int x0, int y0, int x1, int y1) {
             continue;
         }
 
-        seenMap[x + (dungeonMapWidth * y)]= anItem.mapItem;
+
+        lpoke(seenMap+(x + (dungeonMapWidth * y)),anItem.mapItem);
 
         if (blocksView) {
             if (x != x0 || y != y0)
@@ -797,7 +804,7 @@ void look(int x, int y) {
                 mposY < desc->dungeonMapHeight) {
                 fetchDungeonItemAtPos(mposX, mposY, &anItem);
                 if (xdiff | ydiff) {
-                    seenMap[mposX + (dungeonMapWidth * mposY)]= anItem.mapItem;
+                    lpoke(seenMap+(mposX + (dungeonMapWidth * mposY)),anItem.mapItem);
                 }
             }
         }
@@ -1057,6 +1064,9 @@ void setupFrames() {
     cg_hlinexy(0, 0, 39, 0);
     cg_hlinexy(0, 16, 39, 0);
     cg_vlinexy(39, 1, 15);
+    cg_vlinexy(0, 17, 22);
+    cg_vlinexy(39, 17, 22);
+    cg_hlinexy(0, 23, 39, 0);
 }
 
 void setupOutdoorScreen(void) {
@@ -1096,7 +1106,6 @@ void unloadDungeon(void) {
             free(desc->feelTbl);
         if (desc->daemonTbl)
             free(desc->daemonTbl);
-        free(seenMap);
         free(desc);
         desc= NULL;
     }
@@ -1199,12 +1208,12 @@ void enterDungeonMode(byte reInitMap) {
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
-    register byte *bufPtr; // working pointer to line buffer
 
     himemPtr screenPtr;
     himemPtr colorPtr;
     word charIdx;
-    byte *seenMapPtr;
+    himemPtr seenMapPtr;
+    himemPtr bufPtr;
     unsigned int offset;
     byte mapItem;
     byte xs, ys;
@@ -1228,7 +1237,8 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
         bufPtr= seenMapPtr + offset;
         for (xs= 0; xs < mapWindowSizeX; ++xs, screenPtr+= 2, colorPtr+= 2) {
             xpos= mapX + xs;
-            mapItem= *(++bufPtr);
+            mapItem=lpeek(++bufPtr);
+            // mapItem= *(++bufPtr);
             modifier= 0;
             if (mapItem != 255) {
                 mapItem&= 31;

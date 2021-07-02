@@ -4,10 +4,7 @@
 #ifndef __CONGUI
 #define __CONGUI
 
-#define SCREENBASE 0x12000l
-#define COLBASE 0xff80000l
-#define GRAPHBASE 0x40000l
-#define EXTCHARBASE 0x13000l
+
 
 // --------------- graphics ------------------
 

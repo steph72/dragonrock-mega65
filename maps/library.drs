@@ -161,11 +161,12 @@ wallWriting1:
 connectLabel greatHall: 17,11 - 30,15
 connectLabel crazyMan: 20,13
 
+;-----------------------------------
 $ greatHallMsg,"""
-This is the great hall of the library.
-The four marble pillars in the center 
-are all that has survived the burning
-and the looting.
+The great hall of the library. Four
+marble pillars in the center are all
+that has survived the burning and 
+the looting.
 """
 
 $ crazyManMsg,"""

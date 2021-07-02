@@ -1,30 +1,38 @@
 #include "config.h"
 #include "types.h"
 
-#define SCREEN ((unsigned char *)0x400)
-#define ITEM_BASE       0x8020000
-#define MONSTERS_BASE   0x8021000
-#define DRBUFSIZE       0xff
+// memory allocation
+
+#define SCREENBASE 0x12000l     // 16 bit screen
+#define COLBASE 0xff80000l      // colours
+#define GRAPHBASE 0x40000l      // bitmap characters
+#define EXTCHARBASE 0x13000l    // extended characters for map
+#define SEENMAP_BASE 0x18000l   // seen map
+#define ITEM_BASE 0x8020000     // item table
+#define MONSTERS_BASE 0x8021000 // monster table
+
+#define DRBUFSIZE 0xff
 
 /*  ----
     main
     ---- */
 
-extern char drbuf[];   // general purpose buffer
-extern byte devmode;   // devmode flag
+extern char drbuf[]; // general purpose buffer
+extern byte devmode; // devmode flag
 
 /*  ----------
     dispatcher
     ---------- */
 
-extern gameModeT gCurrentGameMode;  // current game mode
+extern gameModeT gCurrentGameMode; // current game mode
 
-extern byte gCurrentDungeonIndex;   // current dungeon (==dungeon to enter on mode change)   
-extern byte gLoadedDungeonIndex;    // currently loaded dungeon
-extern byte gStartXPos;           // landing position for entering new maps
-extern byte gStartYPos;    
-extern byte gCurrentCityIndex;      // current city index
-extern encResult gEncounterResult;  // result of last encounter
+extern byte
+    gCurrentDungeonIndex; // current dungeon (==dungeon to enter on mode change)
+extern byte gLoadedDungeonIndex; // currently loaded dungeon
+extern byte gStartXPos;          // landing position for entering new maps
+extern byte gStartYPos;
+extern byte gCurrentCityIndex;     // current city index
+extern encResult gEncounterResult; // result of last encounter
 
 /*  ---------------
     character/party
@@ -38,4 +46,4 @@ extern long int gPartyExperience;   // xp to be distributed when entering city
     dungeon
     ------- */
 
-extern byte *seenMap; // map of seen spaces in dungeon
+extern himemPtr seenMap;  // map of seen spaces in dungeon

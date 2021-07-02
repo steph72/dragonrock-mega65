@@ -15,7 +15,7 @@
 // #undef DLDEBUG
 
 const himemPtr externalDungeonAddr= 0x8000000;
-byte *seenMap;
+himemPtr seenMap;
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -134,13 +134,14 @@ dungeonDescriptor *loadMap(char *filename) {
 #endif
 
     smSize= desc->dungeonMapWidth * desc->dungeonMapHeight;
-    seenMap= (byte *)malloc(smSize);
-    memset(seenMap, 255, smSize);
+    lfill(SEENMAP_BASE,255,smSize);
+    seenMap = SEENMAP_BASE;
+
 
 #ifdef DLDEBUG
     cg_printf("dungeon size %x, width %d, height %d.\n", dungeonSize,
            desc->dungeonMapWidth, desc->dungeonMapHeight);
-    cg_printf("seen map is at $%x, size $%x\n", seenMap, smSize);
+    cg_printf("seen map is at $%lx, size $%x\n", seenMap, smSize);
 #endif
 
     // feels start behind end of dungeon
