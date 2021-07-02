@@ -119,12 +119,6 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     gCurrentGameMode= gm_init;
-    if (devmode) {
-        puts("\ninitialization complete");
-        puts("** development mode. press any key **");
-        cg_getkey();
-    }
-
     initVIC();
     cg_init();
     // cg_test();

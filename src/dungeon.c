@@ -59,20 +59,20 @@ sign signs[]= {
 
     /* -- outdoor signs -- */
 
-    {96, COLOR_GREEN, 0},   //  5  grass
-    {104, COLOR_YELLOW, 0}, //  6  sand
-    {108, COLOR_GRAY1, 0},  //  7  stone path
-    {98, COLOR_GREEN, 1},   //  8  trees1
-    {98, COLOR_GREEN, 1},   //  9  trees2
-    {110, COLOR_BLUE, 0},   // 10  water1
-    {110, COLOR_BLUE, 0},   // 11  water2
-    {100, COLOR_BROWN, 1},  // 12  hills
-    {102, COLOR_GRAY3, 1},  // 13  mountains
+    {14, COLOR_GREEN, 0},   //  5  grass
+    {24, COLOR_YELLOW, 0}, //  6  sand
+    {18, COLOR_GRAY1, 0},  //  7  stone path
+    {16, COLOR_GREEN, 1},   //  8  trees1
+    {16, COLOR_GREEN, 1},   //  9  trees2
+    {20, COLOR_BLUE, 0},   // 10  water1
+    {20, COLOR_BLUE, 0},   // 11  water2
+    {12, COLOR_BROWN, 1},  // 12  hills
+    {10, COLOR_GRAY3, 1},  // 13  mountains
     {112, COLOR_YELLOW, 0}, // 14  village
     {112, COLOR_PURPLE, 0}, // 15  castle
     {112, COLOR_ORANGE, 0}, // 16  inn
     {114, COLOR_GRAY3, 0},  // 17  dungeon
-    {116, COLOR_BROWN, 0}   // 18 bridge
+    {22, COLOR_BROWN, 0}   // 18 bridge
 };
 
 byte isDungeonMode;
@@ -1246,7 +1246,7 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
                     modifier= xpos % 2;
                 }
                 // lpoke(colorPtr + 1, signs[mapItem].colour);
-                charIdx= (EXTCHARBASE / 64) + signs[mapItem].characterCode;
+                charIdx= (EXTCHARBASE / 64) + signs[mapItem].characterCode+modifier;
                 lpoke(screenPtr, charIdx % 256);
                 lpoke(screenPtr + 1, charIdx / 256);
                 // lpoke(screenPtr, signs[mapItem].characterCode + modifier);

@@ -180,6 +180,7 @@ void showCurrentParty(byte small) {
         cg_putsxy(33,1,"Status");
         cg_textcolor(COLOR_GRAY2);
         cg_hlinexy(17,2,38,1);
+        cg_hlinexy(17,3+partyMemberCount(),38,1);
     } else {
         x= 1;
         cg_putsxy(17, 2, "MP");
@@ -215,7 +216,7 @@ void showCurrentParty(byte small) {
                 cg_gotoxy(25, y);
                 cg_printf("%d/%d", c->aHP, c->aMaxHP);
             }
-            cg_putsxy(33, y, gStateDesc[c->status]);
+            cg_putsxy(35, y, gStateDesc[c->status]);
         }
     }
 }
