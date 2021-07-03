@@ -21,8 +21,9 @@ static char *encounterActionNoun[]= {"Wait",
                                      "Spell",
                                      "Parry"};
 
-static char *encounterActionVerb[]= {"waits",  "thrusts at", "attacks", "slashes at",
-                                     "lunges", "casts",   "parries"};
+static char *encounterActionVerb[]= {"waits",      "thrusts at", "attacks",
+                                     "slashes at", "lunges",     "casts",
+                                     "parries"};
 
 void setupCombatScreen(void);
 preCombatResult runPreCombat(void);
@@ -120,50 +121,50 @@ void signalPreCombatResult(preCombatResult res) {
                       "No response"};
 
     setupCombatScreen();
-    textcolor(COLOR_CYAN);
-    puts(results[res]);
+    cg_textcolor(COLOR_CYAN);
+    cg_puts(results[res]);
     sleep(1);
 }
 
 void showParty() {
     byte i;
     character *aChar;
-    gotoxy(0, 0);
-    textcolor(COLOR_GRAY2);
-    cputs("# Name          Att HP      MP   Status");
+    cg_gotoxy(0, 0);
+    cg_textcolor(COLOR_GRAY2);
+    cg_puts("# Name          Att HP      MP   Status");
     // show party
     for (i= 0; i < partyMemberCount(); ++i) {
-        textcolor(COLOR_GREEN);
+        cg_textcolor(COLOR_GREEN);
         aChar= party[i];
-        gotoxy(0, 1 + i);
-        printf("%d %s", i + 1, aChar->name);
-        gotoxy(17, 1 + i);
-        printf("%d", getNumberOfAttacks(aChar));
-        gotoxy(19, 1 + i);
+        cg_gotoxy(0, 1 + i);
+        cg_printf("%d %s", i + 1, aChar->name);
+        cg_gotoxy(17, 1 + i);
+        cg_printf("%d", getNumberOfAttacks(aChar));
+        cg_gotoxy(19, 1 + i);
         sprintf(drbuf, "%d/%d", aChar->aHP, aChar->aMaxHP);
         if (strlen(drbuf) < 5) {
-            cputc(' ');
+            cg_putc(' ');
         }
-        cputs(drbuf);
-        gotoxy(27, 1 + i);
+        cg_puts(drbuf);
+        cg_gotoxy(27, 1 + i);
         sprintf(drbuf, "%d/%d", aChar->aMP, aChar->aMaxMP);
         if (strlen(drbuf) < 5) {
-            cputc(' ');
+            cg_putc(' ');
         }
-        cputs(drbuf);
-        gotoxy(33, 1 + i);
+        cg_puts(drbuf);
+        cg_gotoxy(33, 1 + i);
         if (aChar->status == down) {
-            textcolor(COLOR_VIOLET);
-            printf("down");
+            cg_textcolor(COLOR_VIOLET);
+            cg_printf("down");
         } else if (aChar->status == dead) {
-            textcolor(COLOR_RED);
-            printf("dead");
+            cg_textcolor(COLOR_RED);
+            cg_printf("dead");
         } else if (aChar->status == asleep) {
-            textcolor(COLOR_LIGHTBLUE);
-            printf("asleep");
+            cg_textcolor(COLOR_LIGHTBLUE);
+            cg_printf("asleep");
         } else {
-            textcolor(COLOR_GREEN);
-            printf("ok");
+            cg_textcolor(COLOR_GREEN);
+            cg_printf("ok");
         }
     }
 }
@@ -198,12 +199,12 @@ void killParty() {
     for (i= 0; i < partyMemberCount(); ++i) {
         party[i]->status= dead;
     }
-    clrscr();
-    textcolor(COLOR_LIGHTRED);
-    gotoxy(5, 12);
-    puts("The party has been defeated...");
+    cg_clrscr();
+    cg_textcolor(COLOR_LIGHTRED);
+    cg_gotoxy(5, 12);
+    cg_puts("The party has been defeated...");
     sleep(1);
-    textcolor(COLOR_GREEN);
+    cg_textcolor(COLOR_GREEN);
 }
 
 void updateMonsterStatus(monster *aMonster) {
@@ -350,7 +351,7 @@ encResult doCharacterTurn(character *aChar) {
 
 encCommand getCharacterCommandForRangedCombat() {
     byte c;
-    cputs("1) Shoot   2) Cast    3) Parry\n>");
+    cg_puts("1) Shoot   2) Cast    3) Parry\n>");
     do {
         c= cg_getkey() - '0';
     } while (c < 1 || c > 3);
@@ -369,8 +370,8 @@ encCommand getCharacterCommandForRangedCombat() {
 
 encCommand getCharacterCommand() {
     encCommand choice;
-    cputs("1) Thrust  2) Attack  3) Slash\n"
-          "4) Lunge   5) Cast    6) Parry\n>");
+    cg_puts("1) Thrust  2) Attack  3) Slash\n"
+            "4) Lunge   5) Cast    6) Parry\n>");
     do {
         choice= cg_getkey() - '0';
     } while (choice < 1 || choice > 6);
@@ -399,12 +400,12 @@ void queryPartyActions() {
             weapon= getWeapon(aChar);
             hasMissile= (weapon && weapon->type == it_missile);
             cg_block_raw(0, 15, 39, 24, ' ', 0);
-            gotoxy(0, 15);
-            textcolor(COLOR_LIGHTBLUE);
-            cputs(aChar->name);
-            cputc(',');
-            textcolor(COLOR_GRAY2);
-            puts(" will you");
+            cg_gotoxy(0, 15);
+            cg_textcolor(COLOR_LIGHTBLUE);
+            cg_puts(aChar->name);
+            cg_putc(',');
+            cg_textcolor(COLOR_GRAY2);
+            cg_puts(" will you");
             if (hasMissile) {
                 aChar->currentEncounterCommand=
                     getCharacterCommandForRangedCombat();
@@ -416,17 +417,17 @@ void queryPartyActions() {
             }
         }
         cg_block_raw(0, 15, 39, 24, ' ', 0);
-        gotoxy(0, 15);
+        cg_gotoxy(0, 15);
         for (i= 0; i < partyMemberCount(); ++i) {
             aChar= party[i];
             if (aChar->currentEncounterCommand) {
-                printf("%s: %s\n", aChar->name,
-                       encounterActionNoun[aChar->currentEncounterCommand]);
+                cg_printf("%s: %s\n", aChar->name,
+                          encounterActionNoun[aChar->currentEncounterCommand]);
             }
         }
-        textcolor(COLOR_LIGHTBLUE);
-        cputs("Is this ok (y/n)?");
-        cursor(1);
+        cg_textcolor(COLOR_LIGHTBLUE);
+        cg_puts("Is this ok (y/n)?");
+        cg_cursor(1);
         choice= cg_getkey();
         if (choice != 'n') {
             break;
@@ -533,10 +534,10 @@ encResult doEncounter() {
 // ------------------ screen config ---------------------
 
 void setupCombatScreen(void) {
-    bgcolor(0);
-    textcolor(4);
-    bordercolor(2);
-    clrscr();
+    cg_bgcolor(0);
+    cg_textcolor(4);
+    cg_bordercolor(2);
+    cg_clrscr();
 }
 
 // ------------------ courage handling  ---------------------
@@ -582,8 +583,8 @@ unsigned int monstersCourage() {
 void updateCourage() {
     mc= monstersCourage() + drand(50 * getMonsterCount());
     pc= partyCourage();
-    gotoxy(0, 22);
-    printf("pCourage, mCourage: %d, %d ", pc, mc);
+    cg_gotoxy(0, 22);
+    cg_printf("pCourage, mCourage: %d, %d ", pc, mc);
 }
 
 preCombatResult checkGreet() {
@@ -652,14 +653,14 @@ preCombatResult preCombatResultForChoice(byte choice) {
 
 void showMonsterRowStatus(void) {
     byte i;
-    textcolor(COLOR_PURPLE);
-    gotoxy(0, 9);
-    puts("You are facing:");
-    textcolor(COLOR_LIGHTRED);
+    cg_textcolor(COLOR_PURPLE);
+    cg_gotoxy(0, 9);
+    cg_puts("You are facing:");
+    cg_textcolor(COLOR_LIGHTRED);
     for (i= 0; i < MONSTER_ROWS; i++) {
-        gotoxy(0, 10 + i);
+        cg_gotoxy(0, 10 + i);
         if (getMonsterCountForRow(MONSTER_ROWS - i - 1, true)) {
-            cputs(statusLineForRow(MONSTER_ROWS - i - 1));
+            cg_puts(statusLineForRow(MONSTER_ROWS - i - 1));
         }
     }
 }
@@ -671,17 +672,16 @@ preCombatResult runPreCombat(void) {
     showParty();
     showMonsterRowStatus();
 
-    gotoxy(0, 20);
-    textcolor(COLOR_GREEN);
-    puts("g)reet  t)hreaten  b)eg for mercy");
-    puts("f)ight  r)un away");
-    textcolor(COLOR_ORANGE);
+    cg_gotoxy(0, 20);
+    cg_textcolor(COLOR_GREEN);
+    cg_puts("g)reet  t)hreaten  b)eg for mercy\nf)ight  r)un away");
+    cg_textcolor(COLOR_ORANGE);
     do {
-        gotoxy(0, 22);
-        cputs("Your choice:");
-        cursor(1);
+        cg_gotoxy(0, 22);
+        cg_puts("Your choice:");
+        cg_cursor(1);
         choice= cg_getkey();
-        cursor(0);
+        cg_cursor(0);
     } while (strchr("gtbfr", choice) == NULL);
 
     return preCombatResultForChoice(choice);

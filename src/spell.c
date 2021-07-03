@@ -2,7 +2,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "congui.h"
-#include <conio.h>
+//#include <conio.h>
 #include <stdio.h>
 
 static byte spellMapByteIdx;
@@ -43,7 +43,7 @@ byte spellNeedsCharacterDestination(byte spellID) {
 }
 
 void announceSpell(character *aChar) {
-    cprintf("%s casts %s\n", aChar->name, nameOfSpellWithID(aChar->encSpell));
+    cg_printf("%s casts %s\n", aChar->name, nameOfSpellWithID(aChar->encSpell));
 }
 
 // clang-format off
@@ -81,9 +81,9 @@ byte castHealingSpell(character *srcCharacter) {
         destCharacter->aHP= destCharacter->aMaxHP;
     }
     destCharacter->aHP+= healVal;
-    cprintf("%s is healed.", destCharacter->name);
+    cg_printf("%s is healed.", destCharacter->name);
     if (destCharacter->status == down && destCharacter->aHP > 0) {
-        cprintf("\n%s gets up again!", destCharacter->name);
+        cg_printf("\n%s gets up again!", destCharacter->name);
         destCharacter->status= awake;
     }
     return true;

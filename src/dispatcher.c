@@ -1,6 +1,6 @@
 #include "dispatcher.h"
 #include <cbm.h>
-#include <conio.h>
+//#include <conio.h>
 #include <device.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,7 +68,7 @@ void commitNewGameMode(void) {
     case gm_dungeon:
     case gm_outdoor:
         if (lastGameMode != gm_dungeon && lastGameMode != gm_outdoor) {
-            bordercolor(COLOR_BLUE);
+            cg_bordercolor(COLOR_BLUE);
             lcopy(ATTIC_DUNGEON,(long)_OVERLAY1_LOAD__,(unsigned int)_OVERLAY1_SIZE__);
         }
         break;
@@ -79,12 +79,12 @@ void commitNewGameMode(void) {
         break;
 
     case gm_encounter:
-        bordercolor(COLOR_RED);
+        cg_bordercolor(COLOR_RED);
         lcopy(ATTIC_ENCOUNTER,(long)_OVERLAY3_LOAD__,(unsigned int)_OVERLAY3_SIZE__);
         break;
 
     case gm_init:
-        puts("??new gamemode is init");
+        cg_puts("??new gamemode is init");
         while(1);
         break;
 
@@ -138,7 +138,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     (void)size;
     
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
-        cputs("Loading overlay file failed");
+        cg_puts("Loading overlay file failed");
         while(1);
     }
     return 1;

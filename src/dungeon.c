@@ -9,7 +9,7 @@
 #include "monster.h"
 
 #include <c64.h>
-#include <conio.h>
+//#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -178,10 +178,7 @@ int performDisplayTextOpcode(opcode *anOpcode) {
 // 0x03: WAITKEY
 int performWaitkeyOpcode(opcode *anOpcode) {
     performDisplayTextOpcode(anOpcode);
-    while (kbhit()) {
-        cgetc();
-    }
-    registers[anOpcode->param3]= cgetc();
+    registers[anOpcode->param3]= cg_getkey();
     return 0;
 }
 
@@ -194,11 +191,11 @@ int performYesNoOpcode(opcode *anOpcode) {
     yesAddr= anOpcode->param1 + (256 * (anOpcode->param2));
     noAddr= anOpcode->param3 + (256 * (anOpcode->param4));
 
-    cursor(true);
+    cg_cursor(true);
     do {
-        inkey= cgetc();
+        inkey= cg_getkey();
     } while (inkey != 'y' && inkey != 'n');
-    cursor(false);
+    cg_cursor(false);
     cg_printf("%c\n", inkey);
     if (inkey == 'y') {
         registers[0]= true;
@@ -517,7 +514,7 @@ int performOpcode(opcode *anOpcode, int currentPC) {
     if (singleStepMode) {
         cg_gotoxy(28, 23);
         cg_puts("-- step --");
-        cgetc();
+        cg_cgetc();
         cg_gotoxy(28, 0);
         cg_puts("          ");
     }
@@ -956,11 +953,11 @@ void dungeonLoop() {
 
         if (!quitDungeon) {
 
-            while (!kbhit()) {
+            while (!cg_kbhit()) {
                 cg_stepColor();
             }
 
-            cmd= cgetc();
+            cmd= cg_cgetc();
 
             if (cmd >= '1' && cmd <= '6' && cmd != 'l') {
                 inspectCharacter(cmd - '1');
@@ -1058,45 +1055,13 @@ void printFeelForIndex(byte idx) {
     } while (current);
 }
 
-void setupFrames() {
-    cg_frame(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
-             screenX + mapWindowSizeY);
-    cg_hlinexy(0, 0, 39, 0);
-    cg_hlinexy(0, 16, 39, 0);
-    cg_vlinexy(39, 1, 15);
-    cg_vlinexy(0, 17, 22);
-    cg_vlinexy(39, 17, 22);
-    cg_hlinexy(0, 23, 39, 0);
-}
-
-void setupOutdoorScreen(void) {
-    bgcolor(COLOR_BLACK);
-    bordercolor(COLOR_BLACK);
-    cg_textcolor(COLOR_GRAY2);
-    cg_clrscr();
-    setupFrames();
-}
-
-void setupDungeonScreen(void) {
-    cg_textcolor(COLOR_GRAY2);
-    bordercolor(COLOR_BLACK);
-    bgcolor(COLOR_BLACK);
-    cg_clrscr();
-    /*
-    cg_block_raw(screenX, screenY, screenX + mapWindowSizeX - 1,
-                 screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
-                 */
-    setupFrames();
-}
-
 void setupScreen() {
     cg_go16bit(0, 0);
-
-    if (isDungeonMode) {
-        setupDungeonScreen();
-    } else {
-        setupOutdoorScreen();
-    }
+    cg_bgcolor(COLOR_BLACK);
+    cg_bordercolor(COLOR_BLACK);
+    cg_textcolor(COLOR_GRAY2);
+    cg_clrscr();
+    cg_borders(true);
 }
 
 void unloadDungeon(void) {

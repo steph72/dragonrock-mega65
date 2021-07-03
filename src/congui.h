@@ -30,11 +30,15 @@ typedef struct _textwin {
     byte height;
 } textwin;
 
+#define cg_clearxy(x0,y,x1) cg_line(y,x0,x1,32,0)
+
+
 void cg_init(void);
 void cg_fatal(const char *format, ...);
 
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t);
-void cg_borders(void);
+void cg_borders(byte showSubwin);
+
 void cg_emptyBuffer(void);
 char cg_getkey(void);
 char cg_getkeyP(byte x, byte y, const char *prompt);
@@ -60,7 +64,7 @@ void cg_go16bit(byte h640, byte v400);
 void cg_go8bit();
 void cg_clrscr();
 void cg_putc(char c);
-void cg_puts(char *s);
+void cg_puts(const char *s);
 void cg_putsxy(byte x, byte y, char *s);
 void cg_putcxy(byte x, byte y, char c);
 int cg_printf(const char *format, ...);
@@ -69,6 +73,13 @@ byte cg_wherex();
 byte cg_wherey();
 void cg_textcolor(byte c);
 void cg_setwin(byte x0, byte y0, byte width, byte height);
+void cg_line(byte y, byte x0, byte x1, byte character, byte col);
+void cg_cursor(byte onoff);
+unsigned char cg_cgetc(void);
+unsigned char cg_kbhit(void);
+void cg_bordercolor(unsigned char c);
+void cg_bgcolor(unsigned char c);
+void cg_revers(byte r);
 
 void cg_freeGraphAreas(void);
 void cg_addGraphicsRect(byte x0,byte y0, byte width, byte height, himemPtr bitmapData);

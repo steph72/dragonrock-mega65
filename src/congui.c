@@ -60,6 +60,8 @@ unsigned char drColours[16][3]= {
 #define MAX_DBM_BLOCKS 16
 #define SHAPETBLSIZE 16
 
+#define VIC_BASE 0xD000UL
+
 #define VIC4CTRL (*(unsigned char *)(0xd054))
 #define VIC3CTRL (*(unsigned char *)(0xd031))
 #define LINESTEP_LO (*(unsigned char *)(0xd058))
@@ -86,6 +88,8 @@ byte infoBlockCount;                 // number of info blocks
 
 byte cgi; // universal loop var
 
+byte rvsflag; // revers
+
 void scrollUp();
 
 void cg_init() {
@@ -103,8 +107,11 @@ void cg_init() {
     cg_textcolor(COLOR_GREEN);
     cg_clrscr();
     gPal= 0;
+    rvsflag= 0;
     gPalDir= 1;
 }
+
+void cg_revers(byte r) { rvsflag= r; }
 
 void cg_resetPalette() {
     mega65_io_enable();
@@ -466,13 +473,9 @@ void cr() {
     }
 }
 
-byte cg_wherex() {
-    return xc16;
-}
+byte cg_wherex() { return xc16; }
 
-byte cg_wherey() {
-    return yc16;
-}
+byte cg_wherey() { return yc16; }
 
 void cg_putc(char c) {
     static char out;
@@ -485,6 +488,9 @@ void cg_putc(char c) {
         return;
     }
     out= asciiToPetscii(c);
+    if (rvsflag) {
+        out|= 128;
+    }
     adrOffset= (xc16 * 2) + (yc16 * 2 * gScreenColumns);
     lpoke(SCREENBASE + adrOffset, out);
     lpoke(SCREENBASE + adrOffset + 1, 0);
@@ -501,8 +507,8 @@ void cg_putc(char c) {
     }
 }
 
-void cg_puts(char *s) {
-    char *current= s;
+void cg_puts(const char *s) {
+    const char *current= s;
     while (*current) {
         cg_putc(*current++);
     }
@@ -516,6 +522,10 @@ void cg_putsxy(byte x, byte y, char *s) {
 void cg_putcxy(byte x, byte y, char c) {
     cg_gotoxy(x, y);
     cg_putc(c);
+}
+
+void cg_cursor(byte onoff) {
+    // TODO
 }
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
@@ -569,6 +579,15 @@ void cg_emptyBuffer(void) {
     while (kbhit()) {
         cgetc();
     }
+}
+
+unsigned char cg_cgetc(void) {
+    unsigned char k;
+    do {
+        k= PEEK(0xd610u);
+    } while (k == 0);
+    POKE(0xD610U, 0);
+    return k;
 }
 
 char cg_getkey(void) {
@@ -646,6 +665,12 @@ void cg_stopColor(void) {
     POKE(0xd300U + 1, 15);
 }
 
+unsigned char cg_kbhit(void) { return PEEK(0xD610U); }
+
+void cg_bordercolor(unsigned char c) { POKE(VIC_BASE + 0x20, c); }
+
+void cg_bgcolor(unsigned char c) { POKE(VIC_BASE + 0x21, c); }
+
 char cg_getkeyP(byte x, byte y, const char *prompt) {
     cg_emptyBuffer();
     gotoxy(x, y);
@@ -665,7 +690,7 @@ char *cg_input(byte maxlen) {
 
 void cg_hlinexy(byte x0, byte y, byte x1, byte secondary) {
     static byte lineChar;
-    lineChar = secondary ? 9:0;
+    lineChar= secondary ? 9 : 0;
     for (cgi= x0; cgi <= x1; cgi++) {
         cg_plotExtChar(cgi, y, lineChar);
     }
@@ -680,15 +705,19 @@ void cg_vlinexy(byte x, byte y0, byte y1) {
 }
 
 void cg_frame(byte x0, byte y0, byte x1, byte y1) {
-    cg_hlinexy(x0, y0, x1,0);
-    cg_hlinexy(x0, y1, x1,0);
-    cg_vlinexy(x0, y0+1, y1-1);
-    cg_vlinexy(x1, y0+1, y1-1);
+    cg_hlinexy(x0, y0, x1, 0);
+    cg_hlinexy(x0, y1, x1, 0);
+    cg_vlinexy(x0, y0 + 1, y1 - 1);
+    cg_vlinexy(x1, y0 + 1, y1 - 1);
 }
 
-void cg_borders(void) {
-    cg_frame(0,0,39,24);
-    gotoxy(0, 1);
+void cg_borders(byte showSubwin) {
+    cg_frame(0, 0, 39, 23);
+    if (showSubwin) {
+        cg_vlinexy(16, 1, 15);
+        cg_vlinexy(0, 1, 15);
+        cg_hlinexy(0, 16, 39, 0);
+    }
 }
 
 void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
@@ -698,12 +727,12 @@ void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
     xpos= 20 - (strlen(t) / 2);
     cg_clrscr();
     cg_textcolor(lcol);
-    cg_borders();
+    cg_borders(false);
     if (splitScreen) {
         if (splitScreen != true) {
             splitPos= splitScreen;
         }
-        cg_hlinexy(1, splitPos, 38,1);
+        cg_hlinexy(1, splitPos, 38, 1);
     }
     cg_putsxy(xpos, 0, t);
     cg_putcxy(xpos - 1, 0, 32);

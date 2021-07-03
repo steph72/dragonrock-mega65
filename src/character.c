@@ -1,5 +1,5 @@
 #include <c64.h>
-#include <conio.h>
+//#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -226,7 +226,7 @@ void useSpecial(item *anItem) {
         cg_clearLower(2);
         cg_gotoxy(0, 23);
         cg_puts("\r\nCurious. Nothing happens.\n--key--");
-        cgetc();
+        cg_getkey();
     }
 }
 
@@ -242,9 +242,9 @@ void more(char *filename) {
         if (line == 23) {
             cg_gotoxy(28, 24);
             cg_puts("-- more --");
-            cursor(1);
-            cgetc();
-            cursor(0);
+            cg_cursor(1);
+            cg_getkey();
+            cg_cursor(0);
             line= 0;
             cg_clrscr();
         }
@@ -252,7 +252,7 @@ void more(char *filename) {
     fclose(infile);
     cg_gotoxy(28, 24);
     cg_puts("-- key --");
-    cgetc();
+    cg_getkey();
 }
 
 void useScroll(item *anItem) {
@@ -291,12 +291,12 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
     *inventorySlot= 255;
 
     cg_puts("which item (A-O)? ");
-    cursor(1);
+    cg_cursor(1);
     do {
-        itemIdxChar= cgetc();
+        itemIdxChar= cg_getkey();
     } while (itemIdxChar < 'a' || itemIdxChar > 'o');
 
-    cursor(0);
+    cg_cursor(0);
     if (itemIdxChar >= 'a' && itemIdxChar <= 'c') {
         anItem= getEquippedItem(ic, itemIdxChar, equipSlot);
         return anItem;
@@ -309,10 +309,10 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
 void dispCharacterActionError(char *msg) {
     cg_clearLower(2);
     cg_gotoxy(0, 23);
-    textcolor(COLOR_LIGHTRED);
+    cg_textcolor(COLOR_LIGHTRED);
     cg_puts(msg);
     cg_puts("\n--key--");
-    textcolor(COLOR_WHITE);
+    cg_textcolor(COLOR_WHITE);
     cg_getkey();
 }
 
@@ -332,7 +332,7 @@ void giveItem(character *ic) {
         return;
     }
     cg_puts("\r\nto party member #");
-    memberIdx= cgetc() - '1';
+    memberIdx= cg_getkey() - '1';
     if (memberIdx > 6 || party[memberIdx] == NULL) {
         dispCharacterActionError("...to whom?!");
         return;
@@ -449,9 +449,9 @@ void displayInventoryAtRow(character *ic, byte row, char firstChar) {
     byte i;
     for (i= 0; i < INV_SIZE; i++) {
         cg_gotoxy(20 * (i / (INV_SIZE / 2)), row + (i % (INV_SIZE / 2)));
-        revers(1);
+        cg_revers(1);
         cg_putc(firstChar + i);
-        revers(0);
+        cg_revers(0);
         cg_putc(32);
         cg_puts(nameOfInventoryItemWithID(ic->inventory[i]));
     }
@@ -477,13 +477,13 @@ void inspectCharacter(byte idx) {
         ic= party[idx];
         cg_clrscr();
         if (gCurrentGameMode==gm_dungeon) {
-            textcolor(0);
+            cg_textcolor(0);
         } else {
-            textcolor(5);
+            cg_textcolor(5);
         }
-        revers(1);
+        cg_revers(1);
         cg_puts(ic->name);
-        revers(0);
+        cg_revers(0);
         cg_printf(" (%s, %s)\n", gRaces[ic->aRace], gClasses[ic->aClass]);
         for (i= 0; i < NUM_ATTRS; i++) {
             cg_putsxy(0, i + 2, gAttributesS[i]);
@@ -503,7 +503,7 @@ void inspectCharacter(byte idx) {
             if (hasSpell(ic, i)) {
                 cg_printf("%2d ", i);
             }
-            if (wherex() >= 38) {
+            if (cg_wherex() >= 38) {
                 ++spellLine;
                 cg_gotoxy(24, 3 + spellLine);
             }
@@ -517,28 +517,28 @@ void inspectCharacter(byte idx) {
         cg_gotoxy(13, 5);
         cg_printf("Cns: %d", ic->gold);
         cg_gotoxy(16, 10);
-        revers(1);
+        cg_revers(1);
         cg_putc('A');
-        revers(0);
+        cg_revers(0);
         cg_printf(" Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
         cg_gotoxy(16, 11);
-        revers(1);
+        cg_revers(1);
         cg_putc('B');
-        revers(0);
+        cg_revers(0);
         cg_printf("  Armor: %s", nameOfInventoryItemWithID(ic->armor));
         cg_gotoxy(16, 12);
-        revers(1);
+        cg_revers(1);
         cg_putc('C');
-        revers(0);
+        cg_revers(0);
         cg_printf(" Shield: %s", nameOfInventoryItemWithID(ic->shield));
         cg_gotoxy(0, 14);
         cg_puts("Inventory:");
         displayInventoryAtRow(ic, 16, 'D');
         cg_gotoxy(0, 23);
         cg_puts("u)se/ready r)emove g)ive ex)it\n>");
-        cursor(1);
-        cmd= cgetc();
-        cursor(0);
+        cg_cursor(1);
+        cmd= cg_getkey();
+        cg_cursor(0);
 
         if (cmd >= '1' && cmd <= '6') {
             i= cmd - '1';

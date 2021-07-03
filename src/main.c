@@ -17,7 +17,7 @@
  */
 
 #include <6502.h>
-#include <conio.h>
+//#include <conio.h>
 #include <em.h>
 #include <errno.h>
 #include <stdio.h>
@@ -93,7 +93,6 @@ void initEngine(void) {
     srand(DRE_BUILDNUM);
     puts("\n");      // cancel leftover quote mode from wrapper or whatever
     cbm_k_bsout(14); // lowercase
-    clrscr();
     puts(prompt);
 
     lcopy(0x5f000, (long)drbuf, 4);
@@ -155,7 +154,7 @@ int main() {
     static char choice;
     initEngine();
     cg_clrscr();
-    cg_borders();
+    cg_borders(false);
     cg_gotoxy(0, 2);
     cg_putsxy(4, 11, "1 - load saved game");
     cg_putsxy(4, 13, "2 - start in ");
@@ -164,7 +163,7 @@ int main() {
     gCurrentCityIndex= 0;
     prepareForGameMode(gm_city);
 
-    choice= cgetc();
+    choice= cg_getkey();
     if (strchr("12de", choice) == NULL) {
         choice= '1';
     }

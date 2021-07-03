@@ -3,7 +3,7 @@
 #include "globals.h"
 #include "memory.h"
 #include <c64.h>
-#include <conio.h>
+//#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -108,7 +108,7 @@ dungeonDescriptor *loadMap(char *filename) {
         ++i;
         bytesRead= fread(drbuf, 1, DRBUFSIZE, infile);
         if (!(i % 8))
-            cputc('.');
+            cg_putc('.');
         lcopy((long)drbuf, currentExternalDungeonPtr, DRBUFSIZE);
         currentExternalDungeonPtr+= bytesRead;
     }
@@ -170,7 +170,7 @@ dungeonDescriptor *loadMap(char *filename) {
     cg_printf("dungeon: %x-%x (size %x)\n", (int)desc, (int)debugPtr,
            (int)debugPtr - (int)desc);
     free(debugPtr);
-    cgetc();
+    cg_getkey();
 #endif
 
     return desc;
