@@ -15,6 +15,7 @@
 #include "utils.h"
 
 #include "dungeon.h"
+#include "menu.h"
 
 const char *invError= "INVERR (%d)";
 dbmInfo *cityDBM;
@@ -158,16 +159,26 @@ void doGuild(void) {
     }
 }
 
+void saveGame() {
+    cg_clrscr();
+    cg_borders(true);
+    cg_puts("\nPlease wait\nSaving economy...");
+    saveArmory();
+    cg_puts("Saving guild...");
+    saveGuild();
+    cg_puts("Saving party...");
+    saveParty();
+    cg_puts("\n\n...done.\n\n --key--");
+    cg_getkey();
+}
+
 void runCityMenu(void) {
 
-    const char menu[]= "Go to  A)rmory G)uild M)ystic\n"
-                       "       I)nn    B)ank  L)eave town\n\n"
-                       "C)ast spell\n"
-                       "U)se item\n"
-                       "S)ave game\n";
-
     static unsigned char cmd;
+    static byte menuChoice;
     static unsigned char quitCity;
+    char *cityMenu[]= {"Guild",  "Armory", "Inn", "Bank",
+                       "Mystic", "Leave",  NULL};
 
     quitCity= 0;
 
@@ -176,36 +187,31 @@ void runCityMenu(void) {
         cg_borders(true);
         cg_addGraphicsRect(1, 1, 15, 15, cityDBM->baseAdr);
         showCurrentParty(true);
-        cg_gotoxy(3,16);
+        cg_gotoxy(3, 16);
         cg_textcolor(COLOR_LIGHTBLUE);
         cg_revers(1);
-        cg_printf("%s (%d)", gCities[gCurrentCityIndex],
-                  gCurrentCityIndex + 1);
+        cg_printf("%s (%d)", gCities[gCurrentCityIndex], gCurrentCityIndex + 1);
         cg_revers(0);
-        cg_textcolor(COLOR_GRAY2);
-
-        // showCurrentParty(false);
-        cg_setwin(1, 17, 37, 6);
-        cg_clrscr();
-
-        // cg_puts(menu);
-        cg_puts("\n Command:");
-        cg_cursor(1);
-
-        do {
-            cmd= cg_getkey();
-        } while (strchr("agmiblcus123456", cmd) == NULL);
-
-        cg_cursor(0);
         cg_setwin(0, 0, 40, 25);
+        cg_textcolor(COLOR_CYAN);
+        menuChoice= runMenu(cityMenu);
+        cmd= 0;
 
-        if (cmd >= '1' && cmd <= '6') {
-            inspectCharacter(cmd - '1');
+        if (menuChoice >= 100) {
+            inspectCharacter(menuChoice - 100);
         }
 
-        switch (cmd) {
+        switch (menuChoice) {
 
-        case 'l':
+        case 0:
+            doGuild();
+            break;
+
+        case 1:
+            doArmory();
+            break;
+
+        case 5:
             cg_clrscr();
             cg_gotoxy(0, 23);
             cg_printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
@@ -218,27 +224,6 @@ void runCityMenu(void) {
                 quitCity= 1;
             }
             cmd= 0;
-            break;
-
-        case 'a':
-            doArmory();
-            break;
-
-        case 'g':
-            doGuild();
-            break;
-
-        case 's':
-            cg_clrscr();
-            cg_borders(true);
-            cg_puts("\nPlease wait\nSaving economy...");
-            saveArmory();
-            cg_puts("Saving guild...");
-            saveGuild();
-            cg_puts("Saving party...");
-            saveParty();
-            cg_puts("\n\n...done.\n\n --key--");
-            cg_getkey();
             break;
 
         default:

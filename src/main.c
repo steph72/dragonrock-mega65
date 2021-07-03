@@ -43,6 +43,7 @@
 #include "dispatcher.h"
 #include "memory.h"
 
+#include "menu.h"
 #include "utils.h"
 
 #ifndef DRE_VERSION
@@ -58,8 +59,6 @@
 #endif
 
 char drbuf[DRBUFSIZE];
-
-
 
 byte hasLoadedGame;
 byte devmode;
@@ -91,8 +90,9 @@ void initEngine(void) {
 
     mega65_io_enable();
     srand(DRE_BUILDNUM);
-    puts("\n");      // cancel leftover quote mode from wrapper or whatever
-    cbm_k_bsout(14); // lowercase
+    puts("\n");       // cancel leftover quote mode from wrapper or whatever
+    cbm_k_bsout(14);  // lowercase
+    cbm_k_bsout(147); // clr
     puts(prompt);
 
     lcopy(0x5f000, (long)drbuf, 4);
@@ -121,7 +121,7 @@ void initEngine(void) {
     initVIC();
     cg_init();
     // cg_test();
- 
+
     /*
     gPartyExperience= 1000;
     gPartyGold= 1000;
@@ -152,8 +152,10 @@ void debugDungeon(void) {
 
 int main() {
     static char choice;
+
     initEngine();
     cg_clrscr();
+ 
     cg_borders(false);
     cg_gotoxy(0, 2);
     cg_putsxy(4, 11, "1 - load saved game");
