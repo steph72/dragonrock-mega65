@@ -13,3 +13,7 @@ python3 tools/genMonsters.py gamedata-src/monsters.yaml  gamedata/monsters
 for filename in images-src/*.png; do
   python3 tools/png2dbm.py -vr $filename gamedata/$(basename $filename .png).dbm
 done
+
+for filename in images-src/villages/*.png; do
+  python3 tools/png2dbm.py -vrx $filename gamedata/$(basename $filename .png).dbm
+done

@@ -665,7 +665,7 @@ void cg_stopColor(void) {
     POKE(0xd300U + 1, 15);
 }
 
-unsigned char cg_kbhit(void) { return PEEK(0xD610U); }
+unsigned char cg_kbhit(void) { PEEK(0xD610U); }
 
 void cg_bordercolor(unsigned char c) { POKE(VIC_BASE + 0x20, c); }
 

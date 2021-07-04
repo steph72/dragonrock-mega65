@@ -97,15 +97,11 @@ void enterCityMode(void) {
 }
 
 void doGuild(void) {
-    const char menu[]= "  L)ist guild members  T)raining\n"
-                       "  N)ew guild member    S)pells\n"
-                       "  P)urge guild member\n"
-                       "  A)dd to party\n"
-                       "  D)rop from party\n"
-                       "  eX)it guild\n";
+    char *guildMenu[]= {"New",   "Purge",  "Add",  "Drop",
+                              "Train", "Spells", "Exit", NULL};
 
-    static unsigned char cmd;
     static unsigned char quitGuild;
+    static byte menuChoice;
 
     quitGuild= 0;
 
@@ -113,49 +109,39 @@ void doGuild(void) {
         sprintf(drbuf, "%s Guild", gCities[gCurrentCityIndex]);
         cg_titlec(COLOR_BROWN, COLOR_GREEN, 1, drbuf);
         showCurrentParty(false);
-        cg_gotoxy(0, 14);
-        cg_puts(menu);
-        cg_putsxy(2, 22, "Command:");
-        cg_cursor(1);
-        do {
-            cmd= cg_getkey();
-        } while (strchr("lnpadxts123456", cmd) == NULL);
+        
+        cg_textcolor(COLOR_PURPLE);
+        menuChoice= runMenu(guildMenu);
 
-        cg_cursor(0);
-
-        if (cmd >= '1' && cmd <= '6') {
-            inspectCharacter(cmd - '1');
+        if (menuChoice >= 100) {
+            inspectCharacter(menuChoice - 100);
         }
 
-        switch (cmd) {
-
-        case 'a':
-            addToParty();
-            break;
-
-        case 'd':
-            dropFromParty();
-            break;
-
-        case 'n':
+        switch (menuChoice) {
+        case 0:
             newGuildMember(gCurrentCityIndex);
             break;
 
-        case 'l':
-            listGuildMembers();
-            break;
-
-        case 'p':
+        case 1:
             purgeGuildMember();
             break;
 
-        case 'x':
-            return;
+        case 2:
+            addToParty();
+            break;
+
+        case 3:
+            dropFromParty();
+            break;
+        
+        case 6:
+            quitGuild=true;
             break;
 
         default:
             break;
         }
+
     }
 }
 

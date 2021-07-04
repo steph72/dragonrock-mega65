@@ -89,3 +89,14 @@ outdoor map tiles arrangement:
 50  51  52  53  54  55  56
 60  61  62  63  64  65  66
 
+
+
+artwork:
+
+foxhome
+https://www.flickr.com/photos/ergsart/22334549806/
+Polenov russian village
+
+king's winter
+https://www.flickr.com/photos/ergsart/22158793548/
+Levitan small village

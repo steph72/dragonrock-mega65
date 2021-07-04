@@ -957,7 +957,7 @@ void dungeonLoop() {
                 cg_stepColor();
             }
 
-            cmd= cg_cgetc();
+            cmd= cg_getkey();
 
             if (cmd >= '1' && cmd <= '6' && cmd != 'l') {
                 inspectCharacter(cmd - '1');
