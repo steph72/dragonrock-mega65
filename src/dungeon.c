@@ -1168,6 +1168,8 @@ void enterDungeonMode(byte reInitMap) {
 
     quitDungeon= false;
     nstatOnceCounter= 0;
+    cg_resetPalette();
+
     dungeonLoop();
 }
 

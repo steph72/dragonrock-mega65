@@ -87,13 +87,12 @@ void loadResources(void) {
 }
 
 void initEngine(void) {
-
     mega65_io_enable();
     srand(DRE_BUILDNUM);
     puts("\n");       // cancel leftover quote mode from wrapper or whatever
     cbm_k_bsout(14);  // lowercase
     cbm_k_bsout(147); // clr
-    puts(prompt);
+    // puts(prompt);
 
     lcopy(0x5f000, (long)drbuf, 4);
     if (drbuf[0] == 0x53 && drbuf[1] == 0x4b) {
@@ -162,7 +161,7 @@ int main() {
     cg_putsxy(4, 13, "2 - start in ");
     cg_puts(gCities[0]);
 
-    gCurrentCityIndex= 0;
+    gCurrentCityIndex= 1;
     prepareForGameMode(gm_city);
 
     choice= cg_getkey();

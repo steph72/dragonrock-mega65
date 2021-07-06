@@ -38,25 +38,6 @@ static clock_t lastPaletteTick;
 
 textwin currentWin;
 
-unsigned char drColours[16][3]= {
-    {0x00, 0x00, 0x00}, // black
-    {0xff, 0xff, 0xff}, // white
-    {0xa8, 0x27, 0x2b}, // red
-    {0x70, 0xa4, 0xb2}, // cyan
-    {0x6f, 0x3d, 0x86}, // purple
-    {0x68, 0x9d, 0x43}, // green
-    {0x35, 0x28, 0x79}, // blue
-    {0xb8, 0xa7, 0x5f}, // yellow
-    {0xf0, 0xa0, 0x00}, // orange
-    {0x43, 0x39, 0x00}, // brown
-    {0xfa, 0x27, 0x39}, // light red
-    {0x44, 0x44, 0x44}, // 11
-    {0x6c, 0x6c, 0x6c}, // 12
-    {0x9a, 0xd2, 0x84}, // 13
-    {0x6c, 0x5e, 0xb5}, // 14
-    {0x95, 0x95, 0x95}  // 15
-};
-
 #define MAX_DBM_BLOCKS 16
 #define SHAPETBLSIZE 16
 
@@ -82,6 +63,7 @@ byte gScreenColumns;       // number of screen columns (in characters)
 byte gScreenRows;          // number of screen rows (in characters)
 himemPtr
     nextFreeGraphMem; // location of next free graphics block in banks 4 & 5
+himemPtr nextFreePalMem;
 
 dbmInfo *infoBlocks[MAX_DBM_BLOCKS]; // loaded dbm file info blocks
 byte infoBlockCount;                 // number of info blocks
@@ -92,6 +74,7 @@ byte rvsflag; // revers
 
 void scrollUp();
 
+
 void cg_init() {
     mega65_io_enable();
     infoBlockCount= 0;
@@ -99,9 +82,9 @@ void cg_init() {
         infoBlocks[cgi]= NULL;
     }
     cg_freeGraphAreas();
-    cg_resetPalette();
     cg_go16bit(0, 0);
-    cg_loadDBM("borders.dbm", 0x13000);
+    cg_loadDBM("borders.dbm", 0x13000, SYSPAL);
+    cg_resetPalette(); // assumes standard colours at 0x13800
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     cg_textcolor(COLOR_GREEN);
@@ -115,11 +98,7 @@ void cg_revers(byte r) { rvsflag= r; }
 
 void cg_resetPalette() {
     mega65_io_enable();
-    POKE(0xd030U, PEEK(0xd030U) | 4); // enable palette
-    for (cgi= 0; cgi < 15; ++cgi) {
-        cg_setPalette(cgi, drColours[cgi][0], drColours[cgi][1],
-                      drColours[cgi][2]);
-    }
+    cg_loadPalette(SYSPAL, 255, false);
 }
 
 void cg_fatal(const char *format, ...) {
@@ -146,6 +125,7 @@ void cg_freeGraphAreas(void) {
         }
     }
     nextFreeGraphMem= GRAPHBASE;
+    nextFreePalMem= PALBASE;
 }
 
 /*
@@ -166,6 +146,15 @@ himemPtr cg_allocGraphMem(word size) {
     }
     if (nextFreeGraphMem + size < GRAPHBASE + 0x20000) {
         nextFreeGraphMem+= size;
+        return adr;
+    }
+    return NULL;
+}
+
+himemPtr cg_allocPalMem(word size) {
+    himemPtr adr= nextFreePalMem;
+    if (nextFreePalMem < 0x18000) {
+        nextFreePalMem+= size;
         return adr;
     }
     return NULL;
@@ -338,13 +327,13 @@ void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,
  * @brief allocate memory for DBM file and load it
  *
  * @param filename name of DBM file to load
- * @param address address to load (or 0 for automatic allocation)
+ * @param address address to load bitmap (or 0 for automatic allocation)
+ * @param pAddress address to load palette (or 0 for automatic allocation)
  * @return dbmInfo* info block containging start address and metadata
  */
 
-dbmInfo *cg_loadDBM(char *filename, himemPtr address) {
+dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
 
-    static byte r, g, b;
     static byte numColumns, numRows, numColours;
     static byte dbmOptions;
     static byte reservedSysPalette;
@@ -356,6 +345,7 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address) {
     word colAdr;
     word bytesRead;
     himemPtr bitmampAdr;
+    himemPtr palAdr;
     dbmInfo *info;
 
     info= NULL;
@@ -385,18 +375,16 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address) {
     fread(palette, 3, numColours, dbmfile);
 
     mega65_io_enable();
-    for (cgi= 0; cgi < numColours; ++cgi) {
-        if (reservedSysPalette && (cgi <= 15)) {
-            continue;
+
+    if (!paletteAddress) {
+        palAdr= cg_allocPalMem(palsize);
+        if (palAdr == NULL) {
+            cg_fatal("no palette memory");
         }
-        colAdr= cgi * 3;
-        r= palette[colAdr];
-        g= palette[colAdr + 1];
-        b= palette[colAdr + 2];
-        POKE(0xd100u + cgi, r);
-        POKE(0xd200u + cgi, g);
-        POKE(0xd300u + cgi, b);
+    } else {
+        palAdr= paletteAddress;
     }
+    lcopy(palette, palAdr, palsize);
     free(palette);
     imgsize= numColumns * numRows * 64;
 
@@ -423,13 +411,39 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address) {
         info->rows= numRows;
         info->size= bytesRead;
         info->baseAdr= bitmampAdr;
+        info->paletteAdr= palAdr;
+        info->paletteSize= numColours;
+        info->reservedSysPalette= reservedSysPalette;
     }
 
     return info;
 }
 
+void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette) {
+
+    himemPtr cgi;
+    static byte r, g, b;
+    himemPtr colAdr;
+
+    for (cgi= 0; cgi < size; ++cgi) {
+        if (reservedSysPalette && (cgi <= 15)) {
+            continue;
+        }
+        colAdr= cgi * 3;
+        r= lpeek(adr + colAdr);     //  palette[colAdr];
+        g= lpeek(adr + colAdr + 1); // palette[colAdr + 1];
+        b= lpeek(adr + colAdr + 2); // palette[colAdr + 2];
+        // if (cgi<16) cg_printf("%lx %x %x %x\n",adr+colAdr,r,g,b);
+        POKE(0xd100u + cgi, r);
+        POKE(0xd200u + cgi, g);
+        POKE(0xd300u + cgi, b);
+    }
+}
+
 void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
     mega65_io_enable();
+    cg_loadPalette(info->paletteAdr, info->paletteSize,
+                   info->reservedSysPalette);
     cg_addGraphicsRect(x0, y0, info->columns, info->rows, info->baseAdr);
 }
 
@@ -444,7 +458,7 @@ void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
 
 dbmInfo *cg_displayDBMFile(char *filename, byte x0, byte y0) {
     dbmInfo *info;
-    info= cg_loadDBM(filename, 0);
+    info= cg_loadDBM(filename, NULL, NULL);
     cg_displayDBMInfo(info, x0, y0);
     return info;
 }

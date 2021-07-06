@@ -77,7 +77,7 @@ void distributeSpoils(void) {
 
 void loadCityImage() {
     sprintf(drbuf, "city%d.dbm", gCurrentCityIndex + 1);
-    cityDBM= cg_loadDBM(drbuf, NULL);
+    cityDBM= cg_loadDBM(drbuf, NULL, NULL);
 }
 
 void enterCityMode(void) {
@@ -86,7 +86,6 @@ void enterCityMode(void) {
     cg_gotoxy(4, 12);
     loadCityImage();
     cg_printf("Welcome to %s", gCities[gCurrentCityIndex]);
-    sleep(1);
     initGuild();
     initArmory();
     if (gPartyExperience || gPartyGold) {
@@ -98,7 +97,7 @@ void enterCityMode(void) {
 
 void doGuild(void) {
     char *guildMenu[]= {"New",   "Purge",  "Add",  "Drop",
-                              "Train", "Spells", "Exit", NULL};
+                        "Train", "Spells", "Exit", NULL};
 
     static unsigned char quitGuild;
     static byte menuChoice;
@@ -109,7 +108,7 @@ void doGuild(void) {
         sprintf(drbuf, "%s Guild", gCities[gCurrentCityIndex]);
         cg_titlec(COLOR_BROWN, COLOR_GREEN, 1, drbuf);
         showCurrentParty(false);
-        
+
         cg_textcolor(COLOR_PURPLE);
         menuChoice= runMenu(guildMenu);
 
@@ -133,15 +132,14 @@ void doGuild(void) {
         case 3:
             dropFromParty();
             break;
-        
+
         case 6:
-            quitGuild=true;
+            quitGuild= true;
             break;
 
         default:
             break;
         }
-
     }
 }
 
@@ -171,7 +169,7 @@ void runCityMenu(void) {
     while (!quitCity) {
         cg_clrscr();
         cg_borders(true);
-        cg_addGraphicsRect(1, 1, 15, 15, cityDBM->baseAdr);
+        cg_displayDBMInfo(cityDBM,1,1);
         showCurrentParty(true);
         cg_gotoxy(3, 16);
         cg_textcolor(COLOR_LIGHTBLUE);
