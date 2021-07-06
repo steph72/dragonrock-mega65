@@ -3,7 +3,7 @@
 cc65 V2.18 - Git de630a12
 
 ## city
-- implement "you must assemble a party first"
+- DONE implement "you must assemble a party first"
 - implement armory
 - implement inn
 - implement mystic
@@ -14,6 +14,7 @@ cc65 V2.18 - Git de630a12
 - DONE sanitize filenames of maps and dungeons 
 - implement saving the map state
 - fix reload of current outdoor map
+- DONE put seenmap into attic
 
 ## dungeonscript
 - modify ADDENC with min/max

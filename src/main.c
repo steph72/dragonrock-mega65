@@ -17,7 +17,7 @@
  */
 
 #include <6502.h>
-#include <conio.h>
+//#include <conio.h>
 #include <em.h>
 #include <errno.h>
 #include <stdio.h>
@@ -43,6 +43,7 @@
 #include "dispatcher.h"
 #include "memory.h"
 
+#include "menu.h"
 #include "utils.h"
 
 #ifndef DRE_VERSION
@@ -86,13 +87,12 @@ void loadResources(void) {
 }
 
 void initEngine(void) {
-
     mega65_io_enable();
     srand(DRE_BUILDNUM);
-    puts("\n");      // cancel leftover quote mode from wrapper or whatever
-    cbm_k_bsout(14); // lowercase
-    clrscr();
-    puts(prompt);
+    puts("\n");       // cancel leftover quote mode from wrapper or whatever
+    cbm_k_bsout(14);  // lowercase
+    cbm_k_bsout(147); // clr
+    // puts(prompt);
 
     lcopy(0x5f000, (long)drbuf, 4);
     if (drbuf[0] == 0x53 && drbuf[1] == 0x4b) {
@@ -117,16 +117,10 @@ void initEngine(void) {
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     gCurrentGameMode= gm_init;
-    if (devmode) {
-        puts("\ninitialization complete");
-        // puts("** development mode. press any key **");
-        // cg_getkey();
-    }
-
     initVIC();
     cg_init();
-    cg_test();
- 
+    // cg_test();
+
     /*
     gPartyExperience= 1000;
     gPartyGold= 1000;
@@ -157,17 +151,20 @@ void debugDungeon(void) {
 
 int main() {
     static char choice;
+
     initEngine();
     cg_clrscr();
-    gotoxy(0, 2);
-    cputsxy(2, 11, "1 - load saved game");
-    cputsxy(2, 13, "2 - start in ");
-    cputs(gCities[0]);
+ 
+    cg_borders(false);
+    cg_gotoxy(0, 2);
+    cg_putsxy(4, 11, "1 - load saved game");
+    cg_putsxy(4, 13, "2 - start in ");
+    cg_puts(gCities[0]);
 
-    gCurrentCityIndex= 0;
+    gCurrentCityIndex= 1;
     prepareForGameMode(gm_city);
 
-    choice= cgetc();
+    choice= cg_getkey();
     if (strchr("12de", choice) == NULL) {
         choice= '1';
     }

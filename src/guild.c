@@ -1,6 +1,6 @@
 
 #include <cbm.h>
-#include <conio.h>
+//#include <conio.h>
 #include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,15 +35,15 @@ void _listGuildMembers(void) {
             tempChar= &guild[i];
             x= (20 * (i / charsPerRow));
             y= (4 + (i % charsPerRow));
-            gotoxy(x, y);
+            cg_gotoxy(x, y);
             if (isInParty(i)) {
-                cputc('*');
+                cg_putc('*');
             } else {
-                cputc(' ');
+                cg_putc(' ');
             }
-            cprintf("%2d %.10s", i + 1, tempChar->name);
-            gotoxy(x + 14, y);
-            cprintf("%s-%d", gClassesS[tempChar->aClass], tempChar->city + 1);
+            cg_printf("%2d %.10s", i + 1, tempChar->name);
+            cg_gotoxy(x + 14, y);
+            cg_printf("%s-%d", gClassesS[tempChar->aClass], tempChar->city + 1);
         }
     }
 }
@@ -52,18 +52,18 @@ void listGuildMembers(void) {
     cg_titlec(COLOR_LIGHTBLUE, COLOR_GREEN, 0,
               "Guild Members");
     _listGuildMembers();
-    cputsxy(0, 23, "-- key --");
-    cgetc();
+    cg_putsxy(0, 23, "-- key --");
+    cg_getkey();
 }
 
 void flagError(char *e) {
-    textcolor(2);
-    cursor(0);
-    cclearxy(0, 22, 40);
-    cputsxy(2, 22, e);
-    textcolor(8);
-    cputsxy(2, 23, "-- key --");
-    cgetc();
+    cg_textcolor(2);
+    cg_cursor(0);
+    cg_clearxy(0, 22, 40);
+    cg_putsxy(2, 22, e);
+    cg_textcolor(8);
+    cg_putsxy(2, 23, "-- key --");
+    cg_getkey();
 }
 
 void cleanupParty(void) {
@@ -81,9 +81,9 @@ void cleanupParty(void) {
 void dropFromParty(void) {
     static byte pm;
 
-    cclearxy(0, 22, 40);
-    cputsxy(2, 22, "Remove whom (0=cancel)");
-    cursor(1);
+    cg_clearxy(0, 22, 40);
+    cg_putsxy(2, 22, "Remove whom (0=cancel)");
+    cg_cursor(1);
     fgets(drbuf, 3, stdin);
     pm= atoi(drbuf);
     if (pm == 0)
@@ -115,7 +115,7 @@ void addToParty(void) {
 
     character *newPartyCharacter;
 
-    cclearxy(0, 22, 40);
+    cg_clearxy(0, 22, 40);
     slot= nextFreePartySlot();
     if (slot == -1) {
         flagError("no room in party");
@@ -125,8 +125,8 @@ void addToParty(void) {
     cg_titlec(COLOR_BROWN, COLOR_YELLOW, 0, "Add guild member");
 
     _listGuildMembers();
-    cputsxy(2, 22, "Add which guild member (0=cancel)?");
-    cursor(1);
+    cg_putsxy(2, 22, "Add which guild member (0=cancel)?");
+    cg_cursor(1);
     fgets(inbuf, 3, stdin);
     gmIndex= atoi(inbuf);
     if (gmIndex == 0) {
@@ -155,9 +155,9 @@ void purgeGuildMember(void) {
     static char cnum[5];
     static byte idx;
     cg_titlec(COLOR_ORANGE, 2, 0, "Purge guild member");
-    textcolor(COLOR_RED);
+    cg_textcolor(COLOR_RED);
     _listGuildMembers();
-    cputsxy(0, 22, "Purge which member (0=cancel)? ");
+    cg_putsxy(0, 22, "Purge which member (0=cancel)? ");
     fgets(cnum, 16, stdin);
     idx= atoi(cnum);
     if (idx == 0) {
@@ -235,7 +235,7 @@ void initGuildMem(void) {
     sizeBytes= GUILDSIZE * sizeof(character);
     guild= (character *)malloc(sizeBytes);
     if (guild == NULL) {
-        puts("???fatal: no memory for guild");
+        cg_puts("???fatal: no memory for guild");
         while(1);
     }
     bzero(guild, sizeBytes);

@@ -9,34 +9,33 @@
 #include "monster.h"
 
 #include <c64.h>
-#include <conio.h>
+//#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 /* ------------------------- opcodes ------------------------- */
-#define OPC_NOP 0x00    /* no operation                       */
-#define OPC_NSTAT 0x01  /* new status line                    */
-#define OPC_DISP 0x02   /* display text                       */
-#define OPC_WKEY 0x03   /* waitkey                            */
-#define OPC_YESNO 0x04  /* request y or n                     */
-#define OPC_IFREG 0x05  /* if register                        */
-#define OPC_IFPOS 0x06  /* if item in possession              */
-#define OPC_IADD 0x07   /* add item to character's inventory  */
-#define OPC_ALTER 0x08  /* alter map at coordinates           */
-#define OPC_REDRAW 0x09 /* redraw screen                      */
-#define OPC_ADDC 0x0a   /* add coins                          */
-#define OPC_ADDE 0x0b   /* add experience                     */
-#define OPC_SETREG 0x0c /* set register                       */
-#define OPC_CLRENC 0x0d /* clear encounter                    */
-#define OPC_ADDENC 0x0e /* add monsters to encounter row      */
-#define OPC_DOENC 0x0f  /* do encounter                       */
-#define OPC_ENTER 0x10  /* enter dungeon or wilderness        */
-#define OPC_ENTERC 0x11 /* enter city                         */
-#define OPC_RANDOMB                                                                        \
-    0x12 /* random branch */ /* ---------------------------------------------------------- \
-                              */
+#define OPC_NOP 0x00     /* no operation                       */
+#define OPC_NSTAT 0x01   /* new status line                    */
+#define OPC_DISP 0x02    /* display text                       */
+#define OPC_WKEY 0x03    /* waitkey                            */
+#define OPC_YESNO 0x04   /* request y or n                     */
+#define OPC_IFREG 0x05   /* if register                        */
+#define OPC_IFPOS 0x06   /* if item in possession              */
+#define OPC_IADD 0x07    /* add item to character's inventory  */
+#define OPC_ALTER 0x08   /* alter map at coordinates           */
+#define OPC_REDRAW 0x09  /* redraw screen                      */
+#define OPC_ADDC 0x0a    /* add coins                          */
+#define OPC_ADDE 0x0b    /* add experience                     */
+#define OPC_SETREG 0x0c  /* set register                       */
+#define OPC_CLRENC 0x0d  /* clear encounter                    */
+#define OPC_ADDENC 0x0e  /* add monsters to encounter row      */
+#define OPC_DOENC 0x0f   /* do encounter                       */
+#define OPC_ENTER 0x10   /* enter dungeon or wilderness        */
+#define OPC_ENTERC 0x11  /* enter city                         */
+#define OPC_RANDOMB 0x12 /* random branch                      */
+/* ----------------------------------------------------------  */
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
@@ -52,28 +51,28 @@ sign signs[]= {
 
     /* -- dungeon signs -- */
 
-    {0x20, 0, 0}, //  0  empty space
-    {0x5b, 0, 0}, //  1  diamond
-    {0x5c, 0, 1}, //  2  vertical door
-    {0x5d, 0, 1}, //  3  horizontal door
-    {0x5e, 0, 1}, //  4  filled space
+    {0x01, COLOR_GRAY3, 0}, //  0  empty space
+    {0x08, COLOR_GRAY3, 0}, //  1  diamond
+    {0x07, COLOR_GRAY3, 1}, //  2  vertical door
+    {0x06, COLOR_GRAY3, 1}, //  3  horizontal door
+    {0x05, COLOR_GRAY3, 1}, //  4  filled space
 
     /* -- outdoor signs -- */
 
-    {96, COLOR_GREEN, 0},   //  5  grass
-    {104, COLOR_YELLOW, 0}, //  6  sand
-    {108, COLOR_GRAY1, 0},  //  7  stone path
-    {98, COLOR_GREEN, 1},   //  8  trees1
-    {98, COLOR_GREEN, 1},   //  9  trees2
-    {110, COLOR_BLUE, 0},   // 10  water1
-    {110, COLOR_BLUE, 0},   // 11  water2
-    {100, COLOR_BROWN, 1},  // 12  hills
-    {102, COLOR_GRAY3, 1},  // 13  mountains
-    {112, COLOR_YELLOW, 0}, // 14  village
+    {14, COLOR_GREEN, 0},   //  5  grass
+    {24, COLOR_YELLOW, 0},  //  6  sand
+    {18, COLOR_GRAY1, 0},   //  7  stone path
+    {16, COLOR_GREEN, 1},   //  8  trees1
+    {16, COLOR_GREEN, 1},   //  9  trees2
+    {20, COLOR_BLUE, 0},    // 10  water1
+    {20, COLOR_BLUE, 0},    // 11  water2
+    {12, COLOR_BROWN, 1},   // 12  hills
+    {10, COLOR_GRAY3, 1},   // 13  mountains
+    {26, COLOR_YELLOW, 0},  // 14  village
     {112, COLOR_PURPLE, 0}, // 15  castle
     {112, COLOR_ORANGE, 0}, // 16  inn
     {114, COLOR_GRAY3, 0},  // 17  dungeon
-    {116, COLOR_BROWN, 0}   // 18 bridge
+    {22, COLOR_BROWN, 0}    // 18 bridge
 };
 
 byte isDungeonMode;
@@ -100,8 +99,8 @@ const byte mapWindowSizeY= 15;
 
 const byte scrollMargin= 4;
 const byte screenWidth= 40;
-const byte screenX= 2;
-const byte screenY= 2;
+const byte screenX= 1;
+const byte screenY= 1;
 
 int encounterWonOpcIdx;
 int encounterLostOpcIdx;
@@ -179,10 +178,7 @@ int performDisplayTextOpcode(opcode *anOpcode) {
 // 0x03: WAITKEY
 int performWaitkeyOpcode(opcode *anOpcode) {
     performDisplayTextOpcode(anOpcode);
-    while (kbhit()) {
-        cgetc();
-    }
-    registers[anOpcode->param3]= cgetc();
+    registers[anOpcode->param3]= cg_getkey();
     return 0;
 }
 
@@ -195,12 +191,12 @@ int performYesNoOpcode(opcode *anOpcode) {
     yesAddr= anOpcode->param1 + (256 * (anOpcode->param2));
     noAddr= anOpcode->param3 + (256 * (anOpcode->param4));
 
-    cursor(true);
+    cg_cursor(true);
     do {
-        inkey= cgetc();
+        inkey= cg_getkey();
     } while (inkey != 'y' && inkey != 'n');
-    cursor(false);
-    printf("%c\n", inkey);
+    cg_cursor(false);
+    cg_printf("%c\n", inkey);
     if (inkey == 'y') {
         registers[0]= true;
         if (anOpcode->id & 0x40) {
@@ -321,8 +317,8 @@ int performIAddOpcode(opcode *anOpcode) {
         registers[0]= true;
         registers[1]= charIdx;
         if (anOpcode->param7) {
-            cprintf("%s takes %s\r\n", party[charIdx]->name,
-                    nameOfInventoryItemWithID(anItemID));
+            cg_printf("%s takes %s\n", party[charIdx]->name,
+                      nameOfInventoryItemWithID(anItemID));
         }
         performOpcodeAtIndex(yesAddr);
         return 0;
@@ -370,13 +366,13 @@ int performAddCoinsOpcode(opcode *anOpcode) {
     if (opcodeID == 0x0a) {
         gPartyGold+= *coins;
         if (anOpcode->param7) {
-            printf("The party gets %d coins\n", *coins);
+            cg_printf("The party gets %d coins\n", *coins);
         }
 
     } else {
         gPartyExperience+= *coins;
         if (anOpcode->param7) {
-            printf("The party gets %d experience\n", *coins);
+            cg_printf("The party gets %d experience\n", *coins);
         }
     }
     return 0;
@@ -395,7 +391,7 @@ int performSetregOpcode(opcode *anOpcode) {
     value= anOpcode->param2;
 
     if (regNr > 16) {
-        printf("??invalid register nr %d... bailing out", regNr);
+        cg_printf("??invalid register nr %d... bailing out", regNr);
         while (1)
             ;
     }
@@ -424,16 +420,16 @@ int performDoencOpcode(opcode *anOpcode) {
 
     // save result opcode indices for later on
     // when re-entering dungeon module
-    puts("doenc!");
+    cg_puts("doenc!");
     encounterWonOpcIdx= anOpcode->param1 + (256 * (anOpcode->param2));
     encounterLostOpcIdx= anOpcode->param3 + (256 * (anOpcode->param4));
-    puts("prepare");
+    cg_puts("prepare");
     prepareForGameMode(gm_encounter);
     quitDungeon= true;
     /* cg_clearLower(5);
-    gotoxy(0, 19); */
+    cg_gotoxy(0, 19); */
     cg_clrscr();
-    cputs("An encounter!");
+    cg_puts("An encounter!");
     sleep(1);
     return 0;
 }
@@ -508,22 +504,22 @@ int performOpcode(opcode *anOpcode, int currentPC) {
                  // branching
 
 #ifdef DEBUG
-    xs= wherex();
-    ys= wherey();
-    gotoxy(0, 24);
-    printf("%04x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
-           anOpcode->param1, anOpcode->param2, anOpcode->param3,
-           anOpcode->param4, anOpcode->param5, anOpcode->param6,
-           anOpcode->param7); // DEBUG
+    xs= cg_wherex();
+    ys= cg_wherey();
+    cg_gotoxy(0, 24);
+    cg_printf("%04x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
+              anOpcode->param1, anOpcode->param2, anOpcode->param3,
+              anOpcode->param4, anOpcode->param5, anOpcode->param6,
+              anOpcode->param7); // DEBUG
     if (singleStepMode) {
-        gotoxy(28, 23);
-        cputs("-- step --");
-        cgetc();
-        gotoxy(28, 0);
-        cputs("          ");
+        cg_gotoxy(28, 23);
+        cg_puts("-- step --");
+        cg_cgetc();
+        cg_gotoxy(28, 0);
+        cg_puts("          ");
     }
-    gotoxy(0, 23);
-    gotoxy(xs, ys);
+    cg_gotoxy(0, 23);
+    cg_gotoxy(xs, ys);
 #endif
 
     opcodeID= (anOpcode->id) & 31; // we have 5-bit opcodes from 0x00 - 0x1f
@@ -665,52 +661,34 @@ void redrawAll() {
     }
 }
 
-/*
-void plotDungeonItem(dungeonItem *item, byte x, byte y, byte alternate) {
-
-    register byte *screenPtr; // working pointer to screen
-    register byte *colorPtr;
-    byte mapSign;
-    byte modifier;
-
-    mapSign= item->mapItem & 31;
-
-    modifier= 0;
-    colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
-
-    screenPtr= SCREEN + (screenWidth * screenY) + screenX;
-    screenPtr+= x + (y * screenWidth);
-    colorPtr+= x + (y * screenWidth);
-
-    if (mapSign >= 5) {
-        modifier= alternate ? 1 : 0;
-    }
-
-    *screenPtr= signs[mapSign].characterCode + modifier;
-    *colorPtr= signs[mapSign].colour;
-}
-*/
-
 void plotPlayer(byte x, byte y) {
-    register byte *screenPtr; // working pointer to screen
-    register byte *colorPtr;
+    himemPtr screenPtr;
+    himemPtr colorPtr;
 
-    colorPtr= COLOR_RAM + (screenWidth * screenY) + screenX;
+    colorPtr= COLBASE + (screenWidth * screenY * 2) + (screenX * 2);
+    screenPtr= SCREENBASE + (screenWidth * screenY * 2) + (screenX * 2);
 
-    screenPtr= SCREEN + (screenWidth * screenY) + screenX;
-    screenPtr+= x + (y * screenWidth);
-    colorPtr+= x + (y * screenWidth);
+    screenPtr+= x * 2 + (y * screenWidth * 2);
+    colorPtr+= x * 2 + (y * screenWidth * 2);
 
-    *screenPtr= 0x5f;
-    *colorPtr= isDungeonMode ? COLOR_BLUE : COLOR_WHITE;
+    lpoke(screenPtr, 0x5f);
+    lpoke(screenPtr + 1, 0);
+    lpoke(colorPtr + 1, COLOR_WHITE);
 }
 
-void clearStatus(void) { cg_clearLower(5); }
+void clearStatus(void) {
+    cg_setwin(1, 17, 37, 6);
+    cg_clrscr();
+    cg_setwin(0, 0, 40, 24);
+}
 
 void displayFeel(byte feelID) {
-    clearStatus();
-    gotoxy(0, 19);
+    cg_setwin(1, 17, 37, 6);
+    cg_clrscr();
+    cg_textcolor(COLOR_YELLOW);
     printFeelForIndex(feelID);
+    cg_textcolor(COLOR_GRAY2);
+    cg_setwin(0, 0, 40, 24);
 }
 
 // moves origin and redraws map if player is in scroll area
@@ -789,7 +767,7 @@ void look_bh(int x0, int y0, int x1, int y1) {
             continue;
         }
 
-        seenMap[x + (dungeonMapWidth * y)]= anItem.mapItem;
+        lpoke(seenMap + (x + (dungeonMapWidth * y)), anItem.mapItem);
 
         if (blocksView) {
             if (x != x0 || y != y0)
@@ -822,7 +800,8 @@ void look(int x, int y) {
                 mposY < desc->dungeonMapHeight) {
                 fetchDungeonItemAtPos(mposX, mposY, &anItem);
                 if (xdiff | ydiff) {
-                    seenMap[mposX + (dungeonMapWidth * mposY)]= anItem.mapItem;
+                    lpoke(seenMap + (mposX + (dungeonMapWidth * mposY)),
+                          anItem.mapItem);
                 }
             }
         }
@@ -974,11 +953,11 @@ void dungeonLoop() {
 
         if (!quitDungeon) {
 
-            while (!kbhit()) {
+            while (!cg_kbhit()) {
                 cg_stepColor();
             }
 
-            cmd= cgetc();
+            cmd= cg_getkey();
 
             if (cmd >= '1' && cmd <= '6' && cmd != 'l') {
                 inspectCharacter(cmd - '1');
@@ -1015,8 +994,8 @@ void dungeonLoop() {
 
         case 's':
             singleStepMode= !singleStepMode;
-            gotoxy(0, 0);
-            printf("single step mode %d   ", singleStepMode);
+            cg_gotoxy(0, 0);
+            cg_printf("single step mode %d   ", singleStepMode);
             break;
 #endif
 
@@ -1039,12 +1018,12 @@ void dungeonLoop() {
             // dItem= dungeonItemAtPos(mposX, mposY);
 
 #ifdef DEBUG
-            xs= wherex();
-            ys= wherey();
-            gotoxy(27, 24);
-            printf("%2d,%2d: %02x %02x", mposX, mposY, dItem.opcodeID,
-                   dItem.mapItem);
-            gotoxy(xs, ys);
+            xs= cg_wherex();
+            ys= cg_wherey();
+            cg_gotoxy(27, 24);
+            cg_printf("%2d,%2d: %02x %02x", mposX, mposY, dItem.opcodeID,
+                      dItem.mapItem);
+            cg_gotoxy(xs, ys);
 #endif
 
             if (dItem.mapItem & 32) { // check impassable flag
@@ -1072,38 +1051,17 @@ void printFeelForIndex(byte idx) {
     adr= desc->feelTbl[idx];
     do {
         current= lpeek(adr++);
-        cbm_k_bsout(current);
+        cg_putc(current);
     } while (current);
 }
 
-void setupOutdoorScreen(void) {
-    bgcolor(COLOR_BLACK);
-    bordercolor(COLOR_BLACK);
-    textcolor(COLOR_GRAY2);
-    cg_clrscr();
-    cg_block_raw(0, 0, 39, 24, 32, COLOR_GREEN);
-    revers(0);
-}
-
-void setupDungeonScreen(void) {
-
-    textcolor(COLOR_BLACK);
-    cg_clrscr();
-    bordercolor(COLOR_GRAY1);
-    bgcolor(COLOR_GRAY3);
-    cg_block_raw(screenX - 1, screenY - 1, screenX + mapWindowSizeX,
-                 screenY + mapWindowSizeY, 160, COLOR_GREEN);
-    cg_block_raw(screenX, screenY, screenX + mapWindowSizeX - 1,
-                 screenY + mapWindowSizeY - 1, 32, COLOR_BLACK);
-}
-
 void setupScreen() {
-
-    if (isDungeonMode) {
-        setupDungeonScreen();
-    } else {
-        setupOutdoorScreen();
-    }
+    cg_go16bit(0, 0);
+    cg_bgcolor(COLOR_BLACK);
+    cg_bordercolor(COLOR_BLACK);
+    cg_textcolor(COLOR_GRAY2);
+    cg_clrscr();
+    cg_borders(true);
 }
 
 void unloadDungeon(void) {
@@ -1113,7 +1071,6 @@ void unloadDungeon(void) {
             free(desc->feelTbl);
         if (desc->daemonTbl)
             free(desc->daemonTbl);
-        free(seenMap);
         free(desc);
         desc= NULL;
     }
@@ -1177,8 +1134,8 @@ void loadNewDungeon(void) {
     desc= loadMap(drbuf);
 
     if (!desc) {
-        puts("could not load dungeon ");
-        puts(mfile);
+        cg_puts("could not load dungeon ");
+        cg_puts(mfile);
         while (1)
             ;
     }
@@ -1189,11 +1146,11 @@ void loadNewDungeon(void) {
 void enterDungeonMode(byte reInitMap) {
 #ifdef DEBUG
     if (gCurrentGameMode == gm_dungeon) {
-        puts("entering dungeon mode");
+        cg_puts("entering dungeon mode");
     } else if (gCurrentGameMode == gm_outdoor) {
-        puts("entering outdoor mode");
+        cg_puts("entering outdoor mode");
     } else {
-        puts("??unknown game mode in dungeon!");
+        cg_puts("??unknown game mode in dungeon!");
         while (1)
             ;
     }
@@ -1211,15 +1168,18 @@ void enterDungeonMode(byte reInitMap) {
 
     quitDungeon= false;
     nstatOnceCounter= 0;
+    cg_resetPalette();
+
     dungeonLoop();
 }
 
 void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
-    register byte *screenPtr; // working pointer to screen
-    register byte *colorPtr;
-    register byte *bufPtr; // working pointer to line buffer
-    byte *seenMapPtr;
+    himemPtr screenPtr;
+    himemPtr colorPtr;
+    word charIdx;
+    himemPtr seenMapPtr;
+    himemPtr bufPtr;
     unsigned int offset;
     byte mapItem;
     byte xs, ys;
@@ -1230,32 +1190,39 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
     byte mapStride;
     byte modifier;
 
-    screenStride= screenWidth - mapWindowSizeX;
+    screenStride= (screenWidth - mapWindowSizeX) * 2;
     mapStride= dungeonMapWidth;
 
-    colorPtr= COLOR_RAM + (screenWidth * posY) + posX;
-    screenPtr= SCREEN + (screenWidth * posY) + posX;
+    colorPtr= COLBASE + (screenWidth * posY * 2) + posX * 2;
+    screenPtr= SCREENBASE + (screenWidth * posY * 2) + posX * 2;
     seenMapPtr= seenMap + (mapY * dungeonMapWidth) + mapX - 1;
 
     offset= 0;
 
     for (ys= 0; ys < mapWindowSizeY; ++ys) {
         bufPtr= seenMapPtr + offset;
-        for (xs= 0; xs < mapWindowSizeX; ++xs, ++screenPtr, ++colorPtr) {
+        for (xs= 0; xs < mapWindowSizeX; ++xs, screenPtr+= 2, colorPtr+= 2) {
             xpos= mapX + xs;
-            mapItem= *(++bufPtr);
+            mapItem= lpeek(++bufPtr);
+            // mapItem= *(++bufPtr);
             modifier= 0;
             if (mapItem != 255) {
                 mapItem&= 31;
                 if (mapItem >= 5) {
                     modifier= xpos % 2;
                 }
-                *colorPtr= signs[mapItem].colour;
-                *screenPtr= signs[mapItem].characterCode + modifier;
+                // lpoke(colorPtr + 1, signs[mapItem].colour);
+                charIdx= (EXTCHARBASE / 64) + signs[mapItem].characterCode +
+                         modifier;
+                lpoke(screenPtr, charIdx % 256);
+                lpoke(screenPtr + 1, charIdx / 256);
+                // lpoke(screenPtr, signs[mapItem].characterCode + modifier);
             } else {
-                *screenPtr= isDungeonMode ? 160 : 32;
-                // isDungeonMode ? *screenPtr=160 : screenPtr = 32;
-                // *screenPtr= 160;
+                lpoke(screenPtr, isDungeonMode ? 160 : 32);
+                lpoke(screenPtr + 1, 0);
+                lpoke(colorPtr + 1, COLOR_BLACK);
+                // lpoke(colorPtr + 1, isDungeonMode ? COLOR_GRAY1 :
+                // COLOR_BLACK);
             }
         }
         screenPtr+= screenStride;

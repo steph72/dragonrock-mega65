@@ -1,4 +1,4 @@
-#include <conio.h>
+//#include <conio.h>
 #include <c64.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -100,7 +100,7 @@ void dispInvFromIndex(byte idx) {
         if (itemIdx >= SHOP_INV_SIZE) {
             return;
         }
-        gotoxy(3, 3 + i);
+        cg_gotoxy(3, 3 + i);
         if (shopInventory[itemIdx]) {
             anItem= inventoryItemForID(shopInventory[itemIdx]);
             printf("%c %-10s %5u", 'A' + i, nameOfInventoryItem(anItem), anItem->price);
@@ -127,15 +127,15 @@ void sellItem(character *shopper) {
     sellQuit= false;
     do {
         cg_clearFromTo(3, 23);
-        gotoxy(1, 4);
-        puts("--- selling an item ---");
-        gotoxy(0, 23);
+        cg_gotoxy(1, 4);
+        cg_puts("--- selling an item ---");
+        cg_gotoxy(0, 23);
         displayInventoryAtRow(shopper, 7, 'A');
-        gotoxy(0, 20);
-        cputs("Sell which item (x to abort) ");
-        cursor(1);
+        cg_gotoxy(0, 20);
+        cg_puts("Sell which item (x to abort) ");
+        cg_cursor(1);
         slot= cg_getkey();
-        cursor(0);
+        cg_cursor(0);
         slot-= 'a';
         if (slot > INV_SIZE) {
             return;
@@ -145,25 +145,25 @@ void sellItem(character *shopper) {
         }
         anItem= inventoryItemForID(shopper->inventory[slot]);
         price= anItem->price;
-        gotoxy(0, 20);
-        printf("\nSell %s for %u coins (y/n)?", nameOfInventoryItem(anItem), price);
-        cursor(1);
+        cg_gotoxy(0, 20);
+        cg_printf("\nSell %s for %u coins (y/n)?", nameOfInventoryItem(anItem), price);
+        cg_cursor(1);
         do {
             val= cg_getkey();
         } while (val != 'y' && val != 'n');
-        cputc(val);
-        cursor(0);
+        cg_putc(val);
+        cg_cursor(0);
         if (val!='y') {
             return;
         }
         if (addItemIDToShopInventory(anItem->id)) {
             shopper->inventory[slot] = 0;
-            cursor(1);
-            cputs("\r\nSell another (y/n)? ");
+            cg_cursor(1);
+            cg_puts("\r\nSell another (y/n)? ");
             val=cg_getkey();
             sellQuit = (val=='n');
         } else {
-            puts("\nshop is full!\n--key--");
+            cg_puts("\nshop is full!\n--key--");
             cg_getkey();
             return;
         }
@@ -173,9 +173,9 @@ void sellItem(character *shopper) {
 void doArmory(void) {
     char cmd;
     character *shopper;
-    cursor(1);
-    cputsxy(0, 21, "Who wants to go shopping? ");
-    cmd= cgetc();
+    cg_cursor(1);
+    cg_putsxy(0, 21, "Who wants to go shopping? ");
+    cmd= cg_getkey();
     if (cmd < '1' || cmd > '6') {
         return;
     }
@@ -187,19 +187,17 @@ void doArmory(void) {
     shopper= party[cmd];
 
     do {
-        cursor(0);
+        cg_cursor(0);
         sprintf(drbuf, "%s Armory", gCities[gCurrentCityIndex]);
         cg_titlec(COLOR_BLUE, COLOR_GREEN, 0,
                   drbuf);
-        gotoxy(0, 19);
-        printf("%s coins: %d", shopper->name, shopper->gold);
-        puts("\n\nA)-L) buy item  S)ell item  eX)it shop");
+        cg_gotoxy(0, 19);
+        cg_printf("%s coins: %d", shopper->name, shopper->gold);
+        cg_puts("\n\nA)-L) buy item  S)ell item  eX)it shop");
         dispInvFromIndex(0);
-        gotoxy(0, 22);
-        cputs(">");
-        cursor(1);
-        cmd= cgetc();
-        cursor(0);
+        cg_cursor(1);
+        cmd= cg_getkeyP(0,22,">");
+        cg_cursor(0);
         if (cmd == 's') {
             sellItem(shopper);
         }
