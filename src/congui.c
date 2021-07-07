@@ -55,6 +55,11 @@ textwin currentWin;
 #define SCNPTR_2 (*(unsigned char *)(0xd062))
 #define SCNPTR_3 (*(unsigned char *)(0xd063))
 
+// special graphics characters
+#define H_COLUMN_END 4
+#define H_COLUMN_START 5
+
+
 byte is16BitModeEnabled;   // whether we're in full colour / extended attrs mode
 byte xc16, yc16;           // text cursor position
 byte textcolor16;          // text colour
@@ -73,7 +78,6 @@ byte cgi; // universal loop var
 byte rvsflag; // revers
 
 void scrollUp();
-
 
 void cg_init() {
     mega65_io_enable();
@@ -640,10 +644,17 @@ void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character,
 }
 
 void cg_center(byte x, byte y, byte width, char *text) {
-    static byte mid;
-    mid= width / 2;
-    gotoxy(x + (width / 2) - (strlen(text) / 2), y);
-    cputs(text);
+    static byte l;
+    l= strlen(text);
+    if (l >= width) {
+        return;
+    }
+    cg_gotoxy(-1 + x + width / 2 - l / 2, y);
+    cg_plotExtChar(
+        xc16 - 1, yc16,
+        H_COLUMN_END); // leave space for imprint effect (thx tayger!)
+    cg_puts(text);
+    cg_plotExtChar(xc16, yc16, H_COLUMN_START);
 }
 
 unsigned char nyblswap(unsigned char in) // oh why?!
@@ -704,7 +715,7 @@ char *cg_input(byte maxlen) {
 
 void cg_hlinexy(byte x0, byte y, byte x1, byte secondary) {
     static byte lineChar;
-    lineChar= secondary ? 9 : 0;
+    lineChar= secondary ? 6 : 0;
     for (cgi= x0; cgi <= x1; cgi++) {
         cg_plotExtChar(cgi, y, lineChar);
     }
@@ -714,7 +725,7 @@ void cg_vlinexy(byte x, byte y0, byte y1) {
     cg_plotExtChar(x, y0, 2);
     cg_plotExtChar(x, y1, 3);
     for (cgi= y0 + 1; cgi <= y1 - 1; cgi++) {
-        cg_plotExtChar(x, cgi, 4);
+        cg_plotExtChar(x, cgi, 1);
     }
 }
 

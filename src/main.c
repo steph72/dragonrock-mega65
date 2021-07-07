@@ -151,23 +151,18 @@ void debugDungeon(void) {
 
 int main() {
     static char choice;
+    char *mainMenu[]= {"Load saved game", drbuf, NULL};
 
     initEngine();
     cg_clrscr();
- 
+
     cg_borders(false);
-    cg_gotoxy(0, 2);
-    cg_putsxy(4, 11, "1 - load saved game");
-    cg_putsxy(4, 13, "2 - start in ");
-    cg_puts(gCities[0]);
 
-    gCurrentCityIndex= 1;
+    sprintf(drbuf, "Start in %s", gCities[3]);
+    choice= runMenu(mainMenu, 4, 11, 1);
+
+    gCurrentCityIndex= 3;
     prepareForGameMode(gm_city);
-
-    choice= cg_getkey();
-    if (strchr("12de", choice) == NULL) {
-        choice= '1';
-    }
 
     if (choice == 'd') {
         debugDungeon();
@@ -177,7 +172,7 @@ int main() {
         debugEncounter();
     }
 
-    if (choice == '1' && hasLoadedGame) {
+    if (choice == 0 && hasLoadedGame) {
         // determine last city from saved party
         gCurrentCityIndex= party[0]->city;
     } else {

@@ -110,7 +110,7 @@ void doGuild(void) {
         showCurrentParty(false);
 
         cg_textcolor(COLOR_PURPLE);
-        menuChoice= runMenu(guildMenu);
+        menuChoice= runBottomMenu(guildMenu);
 
         if (menuChoice >= 100) {
             inspectCharacter(menuChoice - 100);
@@ -172,13 +172,13 @@ void runCityMenu(void) {
         cg_displayDBMInfo(cityDBM,1,1);
         showCurrentParty(true);
         cg_gotoxy(3, 16);
-        cg_textcolor(COLOR_LIGHTBLUE);
+        cg_textcolor(COLOR_GRAY3);
         cg_revers(1);
-        cg_printf("%s (%d)", gCities[gCurrentCityIndex], gCurrentCityIndex + 1);
+        cg_center(0,16,18,gCities[gCurrentCityIndex]);
         cg_revers(0);
         cg_setwin(0, 0, 40, 25);
         cg_textcolor(COLOR_CYAN);
-        menuChoice= runMenu(cityMenu);
+        menuChoice= runBottomMenu(cityMenu);
         cmd= 0;
 
         if (menuChoice >= 100) {

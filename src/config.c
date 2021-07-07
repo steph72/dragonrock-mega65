@@ -24,7 +24,8 @@ char *gClasses[NUM_CLASSES]= {"Fighter", "Ranger", "Priest",
 char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH", "MO"};
 
 char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
-                            "Tia's Grove", "Modder",        "Foodim"};
+                            "Tia's Grove", "Modder",        "Foodim",
+                            "Splitwater"};
 
 cityCoordsT gCityCoords[NUM_CITIES]= {{33, 21, 15}, {0, 0, 0}, {0, 0, 0},
                                       {0, 0, 0},    {0, 0, 0}, {0, 0, 0}};

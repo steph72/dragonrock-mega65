@@ -7,8 +7,8 @@
 #define COLBASE 0xff80000l      // colours
 #define GRAPHBASE 0x40000l      // bitmap characters
 #define EXTCHARBASE 0x13000l    // extended characters for map
-#define SYSPAL 0x13800          // system palette
-#define PALBASE 0x14000l        // palettes for loaded images
+#define SYSPAL 0x14000          // system palette
+#define PALBASE 0x14300l        // palettes for loaded images
 #define SEENMAP_BASE 0x18000l   // seen map
 #define ITEM_BASE 0x8020000     // item table
 #define MONSTERS_BASE 0x8021000 // monster table

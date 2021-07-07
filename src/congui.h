@@ -71,6 +71,7 @@ byte cg_wherex();
 byte cg_wherey();
 void cg_setwin(byte x0, byte y0, byte width, byte height);
 void cg_cursor(byte onoff);
+void cg_center(byte x, byte y, byte width, char *text);
 unsigned char cg_cgetc(void);
 unsigned char cg_kbhit(void);
 

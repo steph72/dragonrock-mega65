@@ -6,7 +6,7 @@
 #define GUILDSIZE 36
 #define PARTYSIZE 6
 
-#define NUM_CITIES 6
+#define NUM_CITIES 7
 #define NUM_CLASSES 6
 #define NUM_RACES 5
 

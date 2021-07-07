@@ -4,7 +4,8 @@
 #include "types.h"
 #include "congui.h"
 
-byte runMenu(char **entries);
+#define runBottomMenu(A) runMenu(A,0,24,0)
 
+byte runMenu(char *entries[], byte x, byte y, byte vertical);
 
 #endif

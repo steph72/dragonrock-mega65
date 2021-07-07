@@ -6,9 +6,9 @@ char **_menuEntries;
 byte _menuEntriesCount;
 signed char _menuSelectedEntry;
 
-byte refreshMenuH(void) {
+byte refreshMenuH(byte x, byte y) {
     byte i;
-    cg_gotoxy(0, 24);
+    cg_gotoxy(x, y);
     for (i= 0; i < _menuEntriesCount; ++i) {
         cg_revers(_menuSelectedEntry == i);
         cg_puts(_menuEntries[i]);
@@ -17,7 +17,18 @@ byte refreshMenuH(void) {
     }
 }
 
-byte runMenu(char *entries[]) {
+byte refreshMenuV(byte x, byte y) {
+    byte i;
+    for (i= 0; i < _menuEntriesCount; ++i) {
+        cg_gotoxy(x, y + i);
+        cg_revers(_menuSelectedEntry == i);
+        cg_puts(_menuEntries[i]);
+        cg_revers(0);
+        cg_puts(" ");
+    }
+}
+
+byte runMenu(char *entries[], byte x, byte y, byte vertical) {
     byte quitMenu;
     char menuCmd;
 
@@ -31,12 +42,16 @@ byte runMenu(char *entries[]) {
     _menuEntriesCount--;
 
     while (!quitMenu) {
-        refreshMenuH();
+        if (vertical) {
+            refreshMenuV(x, y);
+        } else {
+            refreshMenuH(x, y);
+        }
 
         menuCmd= cg_getkey();
-        
-        if (menuCmd>='1' && menuCmd<='6') {
-            return 100+(menuCmd-'1');
+
+        if (menuCmd >= '1' && menuCmd <= '6') {
+            return 100 + (menuCmd - '1');
         }
 
         switch (menuCmd) {
