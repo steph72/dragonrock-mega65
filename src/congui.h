@@ -43,7 +43,7 @@ void cg_fatal(const char *format, ...);
 
 // --- borders, columns and titles ---
 
-void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t);
+void cg_titlec(byte tcol, byte splitScreen, char *t);
 void cg_borders(byte showSubwin);
 void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character, byte col);
 void cg_frame(byte x0, byte y0, byte x1, byte y1);
@@ -57,6 +57,7 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col);
 void cg_emptyBuffer(void);
 char cg_getkey(void);
 char cg_getkeyP(byte x, byte y, const char *prompt);
+char *cg_input(byte maxlen);
 
 // --- string and character output ---
 
@@ -73,7 +74,6 @@ void cg_setwin(byte x0, byte y0, byte width, byte height);
 void cg_cursor(byte onoff);
 void cg_center(byte x, byte y, byte width, char *text);
 unsigned char cg_cgetc(void);
-unsigned char cg_kbhit(void);
 
 // colour and palette handling
 

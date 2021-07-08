@@ -17,8 +17,6 @@
  */
 
 #include <6502.h>
-//#include <conio.h>
-#include <em.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -151,15 +149,15 @@ void debugDungeon(void) {
 
 int main() {
     static char choice;
+    char *test;
     char *mainMenu[]= {"Load saved game", drbuf, NULL};
 
     initEngine();
     cg_clrscr();
-
     cg_borders(false);
 
     sprintf(drbuf, "Start in %s", gCities[3]);
-    choice= runMenu(mainMenu, 4, 11, 1);
+    choice= runMenu(mainMenu, 4, 11, true, false);
 
     gCurrentCityIndex= 3;
     prepareForGameMode(gm_city);

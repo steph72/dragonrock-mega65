@@ -49,7 +49,7 @@ void _listGuildMembers(void) {
 }
 
 void listGuildMembers(void) {
-    cg_titlec(COLOR_LIGHTBLUE, COLOR_GREEN, 0,
+    cg_titlec(COLOR_GREEN, 0,
               "Guild Members");
     _listGuildMembers();
     cg_putsxy(0, 23, "-- key --");
@@ -122,7 +122,7 @@ void addToParty(void) {
         return;
     }
     cg_clrscr();
-    cg_titlec(COLOR_BROWN, COLOR_YELLOW, 0, "Add guild member");
+    cg_titlec(COLOR_YELLOW, 0, "Add guild member");
 
     _listGuildMembers();
     cg_putsxy(2, 22, "Add which guild member (0=cancel)?");
@@ -154,7 +154,7 @@ void addToParty(void) {
 void purgeGuildMember(void) {
     static char cnum[5];
     static byte idx;
-    cg_titlec(COLOR_ORANGE, 2, 0, "Purge guild member");
+    cg_titlec(COLOR_RED, 0, "Purge guild member");
     cg_textcolor(COLOR_RED);
     _listGuildMembers();
     cg_putsxy(0, 22, "Purge which member (0=cancel)? ");

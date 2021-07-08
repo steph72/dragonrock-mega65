@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 char **_menuEntries;
+long lastMenuChecksum;
+
 byte _menuEntriesCount;
 signed char _menuSelectedEntry;
 
@@ -28,18 +30,27 @@ byte refreshMenuV(byte x, byte y) {
     }
 }
 
-byte runMenu(char *entries[], byte x, byte y, byte vertical) {
+byte runMenu(char *entries[], byte x, byte y, byte vertical, byte enableNumberShortcuts) {
     byte quitMenu;
     char menuCmd;
+    long checksum;
+    char *menuEntry;
 
     _menuEntries= entries;
     _menuEntriesCount= 0;
-    _menuSelectedEntry= 0;
+    checksum= 0;
 
     quitMenu= false;
-    while (_menuEntries[_menuEntriesCount++])
-        ;
+    while (menuEntry= _menuEntries[_menuEntriesCount++]) {
+        checksum+= (long)menuEntry;
+    };
+
     _menuEntriesCount--;
+
+    if (checksum != lastMenuChecksum) {
+        _menuSelectedEntry= 0;
+        lastMenuChecksum= checksum;
+    }
 
     while (!quitMenu) {
         if (vertical) {
@@ -50,7 +61,7 @@ byte runMenu(char *entries[], byte x, byte y, byte vertical) {
 
         menuCmd= cg_getkey();
 
-        if (menuCmd >= '1' && menuCmd <= '6') {
+        if (menuCmd >= '1' && menuCmd <= '6' && enableNumberShortcuts) {
             return 100 + (menuCmd - '1');
         }
 

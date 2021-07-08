@@ -953,10 +953,6 @@ void dungeonLoop() {
 
         if (!quitDungeon) {
 
-            while (!cg_kbhit()) {
-                cg_stepColor();
-            }
-
             cmd= cg_getkey();
 
             if (cmd >= '1' && cmd <= '6' && cmd != 'l') {

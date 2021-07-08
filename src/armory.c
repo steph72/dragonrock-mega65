@@ -189,7 +189,7 @@ void doArmory(void) {
     do {
         cg_cursor(0);
         sprintf(drbuf, "%s Armory", gCities[gCurrentCityIndex]);
-        cg_titlec(COLOR_BLUE, COLOR_GREEN, 0,
+        cg_titlec(COLOR_GREEN, 0,
                   drbuf);
         cg_gotoxy(0, 19);
         cg_printf("%s coins: %d", shopper->name, shopper->gold);

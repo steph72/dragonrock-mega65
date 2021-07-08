@@ -59,6 +59,7 @@ textwin currentWin;
 #define H_COLUMN_END 4
 #define H_COLUMN_START 5
 
+#define CURSOR_CHARACTER 0x5f
 
 byte is16BitModeEnabled;   // whether we're in full colour / extended attrs mode
 byte xc16, yc16;           // text cursor position
@@ -73,9 +74,9 @@ himemPtr nextFreePalMem;
 dbmInfo *infoBlocks[MAX_DBM_BLOCKS]; // loaded dbm file info blocks
 byte infoBlockCount;                 // number of info blocks
 
-byte cgi; // universal loop var
-
+byte cgi;     // universal loop var
 byte rvsflag; // revers
+byte csrflag;
 
 void scrollUp();
 
@@ -162,64 +163,6 @@ himemPtr cg_allocPalMem(word size) {
         return adr;
     }
     return NULL;
-}
-
-void cg_test() {
-    word foo;
-    dbmInfo *info;
-    testMem();
-    cg_getkey();
-    /*
-
-    cg_freeGraphAreas();
-    cg_go16bit(0, 0);
-    cg_clrscr();
-    cg_displayDBMFile("drock.dbm", 0, 0);
-    cg_getkey();
-
-    cg_displayDBMFile("0.dbm", 1, 5);
-
-    cg_displayDBMFile("1.dbm", 1 + 5, 5);
-
-    cg_displayDBMFile("2.dbm", 1 + 10, 5);
-
-    cg_displayDBMFile("3.dbm", 1 + 15, 5);
-
-    cg_displayDBMFile("4.dbm", 1 + 20, 5);
-
-    cg_getkey();
-
-    info= cg_displayDBMFile("2.dbm", 1, 5);
-    cg_printf("%05lx ", info->baseAdr);
-    cg_displayDBMInfo(info, 12, 5);
-    cg_gotoxy(1, 1);
-    cg_printf("This is a test. nextFree = %05lx", nextFreeGraphMem);
-    cg_getkey();
-
-    cg_gotoxy(13, 18);
-    cg_puts("Outside!");
-    cg_setwin(25, 5, 15, 15);
-    cg_gotoxy(0, 0);
-    cg_puts("!1234567892\n3\n4\n");
-    cg_printf("Hello world %x %d\nThe quick brown Candor jumps\nover the lazy "
-              "Buba!\n",
-              1234, 5678);
-    cg_textcolor(COLOR_RED);
-    cg_printf("This should be red!");
-    for (foo= 0; foo < 5; ++foo) {
-        cg_getkey();
-        scrollUp();
-    }
-    cg_setwin(0, 0, 40, 25);
-    for (foo= 0; foo < 5; ++foo) {
-        cg_getkey();
-        scrollUp();
-    }
-    cg_go8bit();
-    cg_freeGraphAreas();
-    testMem();
-    cg_getkey();
-    */
 }
 
 char asciiToPetscii(byte c) {
@@ -346,7 +289,6 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
     byte *palette;
     word palsize;
     word imgsize;
-    word colAdr;
     word bytesRead;
     himemPtr bitmampAdr;
     himemPtr palAdr;
@@ -388,7 +330,7 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
     } else {
         palAdr= paletteAddress;
     }
-    lcopy(palette, palAdr, palsize);
+    lcopy((long)palette, palAdr, palsize);
     free(palette);
     imgsize= numColumns * numRows * 64;
 
@@ -491,13 +433,21 @@ void cr() {
     }
 }
 
+void __putc(byte x, byte y, byte c, byte exAttr) {
+    word adrOffset;
+    adrOffset= (x * 2) + (y * 2 * gScreenColumns);
+    lpoke(SCREENBASE + adrOffset, c);
+    lpoke(SCREENBASE + adrOffset + 1, 0);
+    lpoke(COLBASE + adrOffset + 1, textcolor16 | exAttr);
+    lpoke(COLBASE + adrOffset, 0);
+}
+
 byte cg_wherex() { return xc16; }
 
 byte cg_wherey() { return yc16; }
 
 void cg_putc(char c) {
     static char out;
-    word adrOffset;
     if (!c) {
         return;
     }
@@ -509,11 +459,7 @@ void cg_putc(char c) {
     if (rvsflag) {
         out|= 128;
     }
-    adrOffset= (xc16 * 2) + (yc16 * 2 * gScreenColumns);
-    lpoke(SCREENBASE + adrOffset, out);
-    lpoke(SCREENBASE + adrOffset + 1, 0);
-    lpoke(COLBASE + adrOffset + 1, textcolor16);
-    lpoke(COLBASE + adrOffset, 0);
+    __putc(xc16, yc16, out, 0);
     xc16++;
     if (xc16 > currentWin.x1) {
         yc16++;
@@ -522,6 +468,9 @@ void cg_putc(char c) {
             yc16= currentWin.y1;
             scrollUp();
         }
+    }
+    if (csrflag) {
+        __putc(xc16, yc16, CURSOR_CHARACTER, 16);
     }
 }
 
@@ -543,7 +492,8 @@ void cg_putcxy(byte x, byte y, char c) {
 }
 
 void cg_cursor(byte onoff) {
-    // TODO
+    csrflag= onoff;
+    __putc(xc16, yc16, (csrflag ? CURSOR_CHARACTER : 32), (csrflag ? 16 : 0));
 }
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
@@ -613,6 +563,31 @@ char cg_getkey(void) {
     return cgetc();
 }
 
+char *cg_input(byte maxlen) {
+    static byte len, ct;
+    char current;
+    char *ret;
+    len= 0;
+    ct=csrflag;
+    cg_cursor(1);
+    do {
+        current= cgetc();
+        if (current != '\n') {
+            if (len < maxlen) {
+                drbuf[len]= current;
+                drbuf[len + 1]= 0;
+                cg_putc(current);
+                ++len;
+            }
+        }
+    } while (current != '\n');
+    len++;
+    ret= (char *)malloc(len);
+    strncpy(ret, drbuf, len);
+    cg_cursor(ct);
+    return ret;
+}
+
 void cg_clearFromTo(byte start, byte end) {
     cg_block_raw(0, start, 40, end, 32, textcolor16);
 }
@@ -646,7 +621,9 @@ void cg_block_raw(byte x0, byte y0, byte x1, byte y1, byte character,
 void cg_center(byte x, byte y, byte width, char *text) {
     static byte l;
     l= strlen(text);
-    if (l >= width) {
+    if (l >= width - 2) {
+        cg_gotoxy(x, y);
+        cg_puts(text);
         return;
     }
     cg_gotoxy(-1 + x + width / 2 - l / 2, y);
@@ -690,7 +667,6 @@ void cg_stopColor(void) {
     POKE(0xd300U + 1, 15);
 }
 
-unsigned char cg_kbhit(void) { PEEK(0xD610U); }
 
 void cg_bordercolor(unsigned char c) { POKE(VIC_BASE + 0x20, c); }
 
@@ -706,11 +682,6 @@ char cg_getkeyP(byte x, byte y, const char *prompt) {
     }
     cg_stopColor();
     return cgetc();
-}
-
-char *cg_input(byte maxlen) {
-    // TODO
-    return 0;
 }
 
 void cg_hlinexy(byte x0, byte y, byte x1, byte secondary) {
@@ -745,13 +716,10 @@ void cg_borders(byte showSubwin) {
     }
 }
 
-void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
-    static byte xpos;
+void cg_titlec(byte tcol, byte splitScreen, char *t) {
     static byte splitPos= 12;
 
-    xpos= 20 - (strlen(t) / 2);
     cg_clrscr();
-    cg_textcolor(lcol);
     cg_borders(false);
     if (splitScreen) {
         if (splitScreen != true) {
@@ -759,10 +727,7 @@ void cg_titlec(byte lcol, byte tcol, byte splitScreen, char *t) {
         }
         cg_hlinexy(1, splitPos, 38, 1);
     }
-    cg_putsxy(xpos, 0, t);
-    cg_putcxy(xpos - 1, 0, 32);
-    cg_putcxy(xpos + strlen(t), 0, 32);
-
     cg_textcolor(tcol);
+    cg_center(0, 0, 40, t);
     cg_gotoxy(0, 3);
 }

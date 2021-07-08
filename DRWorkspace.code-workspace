@@ -29,7 +29,10 @@
 			"pce.h": "c",
 			"string.h": "c",
 			"congui.h": "c",
-			"cstddef": "c"
+			"cstddef": "c",
+			"menu.h": "c",
+			"stddef.h": "c",
+			"em.h": "c"
 		}
 	}
 }

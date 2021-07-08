@@ -106,11 +106,11 @@ void doGuild(void) {
 
     while (!quitGuild) {
         sprintf(drbuf, "%s Guild", gCities[gCurrentCityIndex]);
-        cg_titlec(COLOR_BROWN, COLOR_GREEN, 1, drbuf);
+        cg_titlec(COLOR_GREEN, 1, drbuf);
         showCurrentParty(false);
 
         cg_textcolor(COLOR_PURPLE);
-        menuChoice= runBottomMenu(guildMenu);
+        menuChoice= runBottomMenuN(guildMenu);
 
         if (menuChoice >= 100) {
             inspectCharacter(menuChoice - 100);
@@ -169,16 +169,16 @@ void runCityMenu(void) {
     while (!quitCity) {
         cg_clrscr();
         cg_borders(true);
-        cg_displayDBMInfo(cityDBM,1,1);
+        cg_displayDBMInfo(cityDBM, 1, 1);
         showCurrentParty(true);
         cg_gotoxy(3, 16);
         cg_textcolor(COLOR_GRAY3);
         cg_revers(1);
-        cg_center(0,16,18,gCities[gCurrentCityIndex]);
+        cg_center(0, 16, 18, gCities[gCurrentCityIndex]);
         cg_revers(0);
         cg_setwin(0, 0, 40, 25);
         cg_textcolor(COLOR_CYAN);
-        menuChoice= runBottomMenu(cityMenu);
+        menuChoice= runBottomMenuN(cityMenu);
         cmd= 0;
 
         if (menuChoice >= 100) {
@@ -225,7 +225,7 @@ void newGuildMember(byte city) {
     static signed char slot;
     static int tempHP;
     static int tempMP;
-    static char cname[17];  // one more, because cc65 somehow adds
+    char *cname;
     static character *newC; // the "cr" sign to the finished string...
 
     static char top; // screen top margin
@@ -233,7 +233,9 @@ void newGuildMember(byte city) {
     const char margin= 14;
     const char delSpaces= 40 - margin;
 
-    cg_titlec(COLOR_GREEN, COLOR_CYAN, 0, "New Guild Member");
+    char *menuEntries[10];
+
+    cg_titlec(COLOR_CYAN, 0, "New Guild Member");
 
     slot= nextFreeGuildSlot();
     if (slot == -1) {
@@ -250,13 +252,11 @@ void newGuildMember(byte city) {
 
     cg_putsxy(2, top, "      Race:");
     for (i= 0; i < NUM_RACES; i++) {
-        cg_gotoxy(margin, top + i);
-        cg_printf("%d - %s", i + 1, gRaces[i]);
+        menuEntries[i]= gRaces[i];
     }
-    cg_putsxy(margin, top + 1 + i, "Your choice: ");
-    do {
-        race= cg_getkey() - '1';
-    } while (race >= NUM_RACES);
+    menuEntries[i]= NULL;
+    race= runMenu(menuEntries, margin, top, true, false);
+
     for (i= top - 1; i < NUM_RACES + top + 3;
          cg_clearxy(margin, ++i, delSpaces))
         ;
@@ -266,13 +266,10 @@ void newGuildMember(byte city) {
 
     cg_putsxy(2, top, "     Class:");
     for (i= 0; i < NUM_CLASSES; i++) {
-        cg_gotoxy(margin, top + i);
-        cg_printf("%d - %s", i + 1, gClasses[i]);
+        menuEntries[i]= gClasses[i];
     }
-    cg_putsxy(margin, top + 1 + i, "Your choice:");
-    do {
-        class= cg_getkey() - '1';
-    } while (class >= NUM_CLASSES);
+    menuEntries[i]= NULL;
+    class= runMenu(menuEntries, margin, top, true, false);
     for (i= top - 1; i < NUM_CLASSES + top + 3;
          cg_clearxy(margin, ++i, delSpaces))
         ;
@@ -298,21 +295,25 @@ void newGuildMember(byte city) {
         cg_gotoxy(margin, top + i + 2);
         cg_printf("Magic points %2d", tempMP);
 
-        cg_putsxy(margin, top + i + 4, "k)eep, r)eroll or q)uit? ");
-        do {
-            c= cg_getkey();
-        } while (!strchr("rkq", c));
-    } while (c == 'r');
+        menuEntries[0]= "keep";
+        menuEntries[1]= "reroll";
+        menuEntries[2]= "quit";
+        menuEntries[3]= NULL;
 
-    if (c == 'q')
+        c= runBottomMenu(menuEntries);
+
+    } while (c == 1);
+
+    if (c == 2)
         return;
 
     top= top + i + 4;
     cg_clearxy(0, top, 40);
     cg_putsxy(18, top + 1, "---------------");
     cg_putsxy(2, top, "Character name: ");
-    fgets(cname, 17, stdin); // see above
-    cname[strlen(cname) - 1]= 0;
+    cname= cg_input(16);
+    // fgets(cname, 17, stdin); // see above
+    // cname[strlen(cname) - 1]= 0;
 
     // copy temp char to guild
     newC->city= city;
@@ -343,6 +344,7 @@ void newGuildMember(byte city) {
     newC->level= 1;
     newC->spriteID= 0x80 + newC->aRace;
     strcpy(newC->name, cname);
+    free(cname);
 }
 
 // clang-format off

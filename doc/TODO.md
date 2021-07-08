@@ -2,6 +2,12 @@
 
 cc65 V2.18 - Git de630a12
 
+## misc
+failsafe center
+center in title
+get rid of translation table
+
+
 ## city
 - DONE implement "you must assemble a party first"
 - implement armory
