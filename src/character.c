@@ -166,28 +166,29 @@ byte partyMemberCount(void) {
     return n;
 }
 
-void showCurrentParty(byte small) {
+void showCurrentParty(byte startX, byte startY, byte small) {
     static byte i, x, y;
     static character *c;
 
-    y= 2;
+    y= startY;
 
     if (small) {
         x= 18;
         cg_textcolor(COLOR_YELLOW);
-        cg_putsxy(18,1,"#");
-        cg_putsxy(20,1,"Name");
-        cg_putsxy(33,1,"Status");
+        cg_putsxy(18, 1, "#");
+        cg_putsxy(20, 1, "Name");
+        cg_putsxy(33, 1, "Status");
         cg_textcolor(COLOR_GRAY2);
-        cg_hlinexy(17,2,38,1);
-        cg_hlinexy(17,3+partyMemberCount(),38,1);
+        cg_hlinexy(17, 2, 38, 1);
+        cg_hlinexy(17, 3 + partyMemberCount(), 38, 1);
     } else {
-        x= 1;
-        cg_putsxy(17, 2, "MP");
-        cg_putsxy(25, 2, "HP");
-        cg_putsxy(3, 2, "Name");
-        cg_putsxy(1, 2, "#");
-        cg_putsxy(33, 2, "Status");
+        x= startX;
+        cg_textcolor(COLOR_YELLOW);
+        cg_putsxy(17, y, "MP");
+        cg_putsxy(25, y, "HP");
+        cg_putsxy(3, y, "Name");
+        cg_putsxy(1, y, "#");
+        cg_putsxy(33, y, "Status");
     }
 
     for (i= 0; i < PARTYSIZE; i++) {
@@ -198,7 +199,7 @@ void showCurrentParty(byte small) {
             if (c->status == asleep) {
                 cg_textcolor(COLOR_BLUE);
             }
-            if (c->aHP>=1) {
+            if (c->aHP >= 1) {
                 cg_textcolor(COLOR_GREEN);
             } else {
                 cg_textcolor(COLOR_RED);
@@ -433,7 +434,7 @@ void useOrEquipItem(character *ic) {
     case it_missile:
     case it_shield:
     case it_weapon:
-        if (equipmentSlot!=255) {
+        if (equipmentSlot != 255) {
             dispCharacterActionError("Already equipped item!");
             return;
         }
@@ -476,7 +477,7 @@ void inspectCharacter(byte idx) {
         spellLine= 0;
         ic= party[idx];
         cg_clrscr();
-        if (gCurrentGameMode==gm_dungeon) {
+        if (gCurrentGameMode == gm_dungeon) {
             cg_textcolor(0);
         } else {
             cg_textcolor(5);
@@ -490,7 +491,7 @@ void inspectCharacter(byte idx) {
             cg_putsxy(3, i + 2, ":");
             cg_gotoxy(5, i + 2);
             cg_printf("%2d %s", ic->attributes[i],
-                    bonusStrForAttribute(ic->attributes[i]));
+                      bonusStrForAttribute(ic->attributes[i]));
         }
         cg_gotoxy(0, i + 3);
         cg_printf(" HP: %d/%d\n", ic->aHP, ic->aMaxHP);

@@ -22,7 +22,7 @@ item* getWeapon(character *aCharacter);
 int getArmorClassForCharacter(character *aCharacter);
 int getHitDiceForCharacter(character *aCharacter);
 
-void showCurrentParty(byte small);
+void showCurrentParty(byte startX, byte startY, byte small);
 void displayInventoryAtRow(character *ic, byte row, char firstChar);
 void inspectCharacter(byte idx);
 

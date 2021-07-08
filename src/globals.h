@@ -4,7 +4,7 @@
 // memory allocation
 
 #define SCREENBASE 0x12000l     // 16 bit screen
-#define COLBASE 0xff80000l      // colours
+#define COLBASE 0xff84000l      // colours
 #define GRAPHBASE 0x40000l      // bitmap characters
 #define EXTCHARBASE 0x13000l    // extended characters for map
 #define SYSPAL 0x14000          // system palette

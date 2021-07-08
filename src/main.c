@@ -117,6 +117,7 @@ void initEngine(void) {
     gCurrentGameMode= gm_init;
     initVIC();
     cg_init();
+
     // cg_test();
 
     /*

@@ -19,6 +19,7 @@
 
 const char *invError= "INVERR (%d)";
 dbmInfo *cityDBM;
+dbmInfo *guildDBM;
 
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
@@ -75,17 +76,18 @@ void distributeSpoils(void) {
     cg_getkey();
 }
 
-void loadCityImage() {
+void loadCityImages() {
     sprintf(drbuf, "city%d.dbm", gCurrentCityIndex + 1);
     cityDBM= cg_loadDBM(drbuf, NULL, NULL);
+    guildDBM= cg_loadDBM("guild1.dbm", NULL, NULL);
 }
 
 void enterCityMode(void) {
     cg_go16bit(0, 0);
     cg_clrscr();
     cg_gotoxy(4, 12);
-    loadCityImage();
     cg_printf("Welcome to %s", gCities[gCurrentCityIndex]);
+    loadCityImages();
     initGuild();
     initArmory();
     if (gPartyExperience || gPartyGold) {
@@ -96,8 +98,15 @@ void enterCityMode(void) {
 }
 
 void doGuild(void) {
-    char *guildMenu[]= {"New",   "Purge",  "Add",  "Drop",
-                        "Train", "Spells", "Exit", NULL};
+    char *guildMenu[]= {"New guild member",
+                        "Purge guild member",
+                        "List guild members",
+                        "Add to party",
+                        "Drop from party",
+                        "Train",
+                        "Research spells",
+                        "Exit",
+                        NULL};
 
     static unsigned char quitGuild;
     static byte menuChoice;
@@ -105,9 +114,20 @@ void doGuild(void) {
     quitGuild= 0;
 
     while (!quitGuild) {
-        sprintf(drbuf, "%s Guild", gCities[gCurrentCityIndex]);
+        cg_clrscr();
+        cg_borders(true);
+        cg_textcolor(COLOR_GRAY2);
+        cg_displayDBMInfo(guildDBM, 1, 1);
+        sprintf(drbuf, "%s Adventurer's Guild", gCities[gCurrentCityIndex]);
+        cg_revers(1);
+        cg_center(0, 0, 40, drbuf);
+        cg_center(0, 16, 40, "Current party:");
+        cg_revers(0);
+        showCurrentParty(1, 17, false);
+        cg_textcolor(COLOR_ORANGE);
+        menuChoice= runMenu(guildMenu, 18, 2, true, false);
+        cg_getkey();
         cg_titlec(COLOR_GREEN, 1, drbuf);
-        showCurrentParty(false);
 
         cg_textcolor(COLOR_PURPLE);
         menuChoice= runBottomMenuN(guildMenu);
@@ -170,7 +190,7 @@ void runCityMenu(void) {
         cg_clrscr();
         cg_borders(true);
         cg_displayDBMInfo(cityDBM, 1, 1);
-        showCurrentParty(true);
+        showCurrentParty(0, 2, true);
         cg_gotoxy(3, 16);
         cg_textcolor(COLOR_GRAY3);
         cg_revers(1);

@@ -108,3 +108,6 @@ inn1
 https://www.flickr.com/photos/ergsart/22168848738/
 ostadeadriaen_tavern_scene_c_1665
 
+guild1
+https://commons.wikimedia.org/wiki/File:The_Merchant_Adventurers_Hall_The_Undercroft.jpg
+cc0

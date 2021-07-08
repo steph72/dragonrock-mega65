@@ -87,7 +87,7 @@ void cg_init() {
         infoBlocks[cgi]= NULL;
     }
     cg_freeGraphAreas();
-    cg_go16bit(0, 0);
+    cg_go16bit(0, 0);   
     cg_loadDBM("borders.dbm", 0x13000, SYSPAL);
     cg_resetPalette(); // assumes standard colours at 0x13800
     bgcolor(COLOR_BLACK);
@@ -185,24 +185,32 @@ void cg_go16bit(byte h640, byte v400) {
 
     if (h640) {
         VIC3CTRL|= 0x80; // enable H640
-        gScreenSize= 2000;
         gScreenColumns= 80;
     } else {
         VIC3CTRL&= 0x7f; // disable H640
-        gScreenSize= 1000;
         gScreenColumns= 40;
     }
 
     if (v400) {
         VIC3CTRL|= 0x08;
-        gScreenRows= 50;
-        gScreenSize*= 2;
+        gScreenRows= 56;
     } else {
-        gScreenRows= 25;
+        gScreenRows= 28;
         VIC3CTRL&= 0xf7;
     }
 
+    gScreenSize = gScreenRows*gScreenColumns;
+
     HOTREG&= 127; // disable hotreg
+    POKE(53320u,72);            // top border position
+    POKE(53326u,72);            // top text position
+    POKE(53371u,gScreenRows);    
+
+    // move colour RAM because of stupid C65 ROM himem usage
+    POKE(53348u,0x00);
+    POKE(53349u,0x40);
+
+
     CHRCOUNT= gScreenColumns;
     LINESTEP_LO= gScreenColumns * 2;
     LINESTEP_HI= 0;
@@ -302,6 +310,8 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
     }
 
     dbmfile= fopen(filename, "rb");
+
+
     if (!dbmfile) {
         cg_fatal("dbmfile not found: %s", filename);
     }
@@ -379,7 +389,6 @@ void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette) {
         r= lpeek(adr + colAdr);     //  palette[colAdr];
         g= lpeek(adr + colAdr + 1); // palette[colAdr + 1];
         b= lpeek(adr + colAdr + 2); // palette[colAdr + 2];
-        // if (cgi<16) cg_printf("%lx %x %x %x\n",adr+colAdr,r,g,b);
         POKE(0xd100u + cgi, r);
         POKE(0xd200u + cgi, g);
         POKE(0xd300u + cgi, b);
@@ -592,7 +601,7 @@ void cg_clearFromTo(byte start, byte end) {
     cg_block_raw(0, start, 40, end, 32, textcolor16);
 }
 
-void cg_clearLower(byte num) { cg_clearFromTo(24 - num, 24); }
+void cg_clearLower(byte num) { cg_clearFromTo(gScreenRows - num, gScreenRows); }
 
 void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     word bas;
@@ -708,7 +717,7 @@ void cg_frame(byte x0, byte y0, byte x1, byte y1) {
 }
 
 void cg_borders(byte showSubwin) {
-    cg_frame(0, 0, 39, 23);
+    cg_frame(0, 0, 39, 25);
     if (showSubwin) {
         cg_vlinexy(16, 1, 15);
         cg_vlinexy(0, 1, 15);
