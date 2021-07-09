@@ -12,7 +12,7 @@
 #define DLDEBUG
 #endif
 
-// #undef DLDEBUG
+#undef DLDEBUG
 
 const himemPtr externalDungeonAddr= 0x8000000;
 himemPtr seenMap;
@@ -75,12 +75,11 @@ dungeonDescriptor *loadMap(char *filename) {
     mega65_io_enable();
     currentExternalDungeonPtr= externalDungeonAddr;
 
+    
     infile= fopen(filename, "rb");
 
     if (!infile) {
-        cg_puts("file not found: ");
-        cg_puts(filename);
-        while(1);
+        cg_fatal("file not found: %s",filename);
     }
 
     fread(drbuf, 3, 1, infile);
