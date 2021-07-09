@@ -43,7 +43,6 @@
 
 typedef struct _sign {
     byte characterCode;
-    byte colour;
     byte blocksViewFlag;
 } sign;
 
@@ -51,28 +50,28 @@ sign signs[]= {
 
     /* -- dungeon signs -- */
 
-    {12, COLOR_GRAY3, 0}, //  0  empty space
-    {7, COLOR_GRAY3, 0}, //  1  diamond
-    {15, COLOR_GRAY3, 1}, //  2  vertical door
-    {14, COLOR_GRAY3, 1}, //  3  horizontal door
-    {13, COLOR_GRAY3, 1}, //  4  filled space
+    {12, 0}, //  0  empty space
+    {7, 0},  //  1  diamond
+    {15, 1}, //  2  vertical door
+    {14, 1}, //  3  horizontal door
+    {13, 1}, //  4  filled space
 
     /* -- outdoor signs -- */
 
-    {20, COLOR_GREEN, 0},   //  5  grass
-    {30, COLOR_YELLOW, 0},  //  6  sand
-    {24, COLOR_GRAY1, 0},   //  7  stone path
-    {22, COLOR_GREEN, 1},   //  8  trees1
-    {22, COLOR_GREEN, 1},   //  9  trees2
-    {26, COLOR_BLUE, 0},    // 10  water1
-    {26, COLOR_BLUE, 0},    // 11  water2
-    {18, COLOR_BROWN, 1},   // 12  hills
-    {16, COLOR_GRAY3, 1},   // 13  mountains
-    {32, COLOR_YELLOW, 0},  // 14  village
-    {112, COLOR_PURPLE, 0}, // 15  castle
-    {112, COLOR_ORANGE, 0}, // 16  inn
-    {114, COLOR_GRAY3, 0},  // 17  dungeon
-    {28, COLOR_BROWN, 0}    // 18 bridge
+    {20, 0},  //  5  grass
+    {30, 0},  //  6  sand
+    {24, 0},  //  7  stone path
+    {22, 1},  //  8  trees1
+    {22, 1},  //  9  trees2
+    {26, 0},  // 10  water1
+    {26, 0},  // 11  water2
+    {18, 1},  // 12  hills
+    {16, 1},  // 13  mountains
+    {32, 0},  // 14  village
+    {112, 0}, // 15  castle
+    {112, 0}, // 16  inn
+    {114, 0}, // 17  dungeon
+    {28, 0}   // 18 bridge
 };
 
 byte isDungeonMode;
@@ -654,7 +653,7 @@ void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 void redrawAll() {
     setupScreen();
     redrawMap();
-    showCurrentParty(0,2,true);
+    showCurrentParty(0, 2, true);
     plotPlayer(currentX, currentY);
     if (lastFeelIndex != 255) {
         displayFeel(lastFeelIndex);

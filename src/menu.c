@@ -52,6 +52,10 @@ byte runMenu(char *entries[], byte x, byte y, byte vertical, byte enableNumberSh
         lastMenuChecksum= checksum;
     }
 
+    if (!vertical) {
+        cg_block_raw(x,y,gScreenColumns-1,y,32,0);
+    }
+
     while (!quitMenu) {
         if (vertical) {
             refreshMenuV(x, y);

@@ -33,7 +33,10 @@ typedef struct _textwin {
 
 #define cg_clearxy(x0, y, x1) cg_line(y, x0, x1, 32, 0)
 
-// --- general & initializations --- 
+extern byte gScreenColumns;       // number of screen columns (in characters)
+extern byte gScreenRows;          // number of screen rows (in characters)
+
+// --- general & initializations --- d
 
 void cg_init(void);
 void cg_go16bit(byte h640, byte v400);
@@ -71,6 +74,7 @@ void cg_gotoxy(byte x, byte y);
 byte cg_wherex();
 byte cg_wherey();
 void cg_setwin(byte x0, byte y0, byte width, byte height);
+void cg_resetwin();
 void cg_cursor(byte onoff);
 void cg_center(byte x, byte y, byte width, char *text);
 unsigned char cg_cgetc(void);
@@ -89,6 +93,7 @@ void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette);
 
 
 void cg_clearLower(byte num);
+void cg_clearBottomLine();
 void cg_clearFromTo(byte start, byte end);
 
 void cg_stepColor(void);

@@ -55,6 +55,8 @@ textwin currentWin;
 #define SCNPTR_2 (*(unsigned char *)(0xd062))
 #define SCNPTR_3 (*(unsigned char *)(0xd063))
 
+#define COLOUR_RAM_OFFSET COLBASE - 0xff80000l
+
 // special graphics characters
 #define H_COLUMN_END 4
 #define H_COLUMN_START 5
@@ -81,13 +83,24 @@ byte csrflag;
 void scrollUp();
 
 void cg_init() {
+    byte i;
     mega65_io_enable();
     infoBlockCount= 0;
     for (cgi= 0; cgi < MAX_DBM_BLOCKS; ++cgi) {
         infoBlocks[cgi]= NULL;
     }
     cg_freeGraphAreas();
-    cg_go16bit(0, 0);   
+    cg_go16bit(0, 0);
+    /*
+    cg_gotoxy(10,0);
+    cg_printf("%d",gScreenRows);
+    for (i=1;i<=gScreenRows;++i) {
+        cg_gotoxy(0,i-1);
+        cg_printf("%d",i);
+        cg_getkey();
+    }
+    cg_getkey();
+    */
     cg_loadDBM("borders.dbm", 0x13000, SYSPAL);
     cg_resetPalette(); // assumes standard colours at 0x13800
     bgcolor(COLOR_BLACK);
@@ -99,6 +112,11 @@ void cg_init() {
     gPalDir= 1;
 }
 
+void cg_clearBottomLine() {
+    cg_resetwin();
+    cg_block_raw(0,gScreenRows-1,gScreenColumns-1,gScreenRows-1,32,0);
+    cg_gotoxy(0,gScreenRows-1);
+}
 void cg_revers(byte r) { rvsflag= r; }
 
 void cg_resetPalette() {
@@ -193,23 +211,22 @@ void cg_go16bit(byte h640, byte v400) {
 
     if (v400) {
         VIC3CTRL|= 0x08;
-        gScreenRows= 56;
+        gScreenRows= 27*2;
     } else {
-        gScreenRows= 28;
+        gScreenRows= 27;
         VIC3CTRL&= 0xf7;
     }
 
-    gScreenSize = gScreenRows*gScreenColumns;
+    gScreenSize= gScreenRows * gScreenColumns;
 
-    HOTREG&= 127; // disable hotreg
-    POKE(53320u,72);            // top border position
-    POKE(53326u,72);            // top text position
-    POKE(53371u,gScreenRows);    
+    HOTREG&= 127;     // disable hotreg
+    POKE(53320u, 72); // top border position
+    POKE(53326u, 72); // top text position
+    POKE(53371u, gScreenRows);
 
     // move colour RAM because of stupid C65 ROM himem usage
-    POKE(53348u,0x00);
-    POKE(53349u,0x40);
-
+    POKE(53348u, COLOUR_RAM_OFFSET & 0xff);
+    POKE(53349u, (COLOUR_RAM_OFFSET >> 8) & 0xff);
 
     CHRCOUNT= gScreenColumns;
     LINESTEP_LO= gScreenColumns * 2;
@@ -310,7 +327,6 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
     }
 
     dbmfile= fopen(filename, "rb");
-
 
     if (!dbmfile) {
         cg_fatal("dbmfile not found: %s", filename);
@@ -542,6 +558,10 @@ void cg_clrscr() {
     cg_gotoxy(0, 0);
 }
 
+void cg_resetwin() {
+    cg_setwin(0,0,gScreenColumns,gScreenRows);
+}
+
 void cg_setwin(byte x0, byte y0, byte width, byte height) {
     currentWin.x0= x0;
     currentWin.y0= y0;
@@ -577,7 +597,7 @@ char *cg_input(byte maxlen) {
     char current;
     char *ret;
     len= 0;
-    ct=csrflag;
+    ct= csrflag;
     cg_cursor(1);
     do {
         current= cgetc();
@@ -675,7 +695,6 @@ void cg_stopColor(void) {
     POKE(0xd200U + 1, 15);
     POKE(0xd300U + 1, 15);
 }
-
 
 void cg_bordercolor(unsigned char c) { POKE(VIC_BASE + 0x20, c); }
 

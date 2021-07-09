@@ -118,20 +118,14 @@ void doGuild(void) {
         cg_borders(true);
         cg_textcolor(COLOR_GRAY2);
         cg_displayDBMInfo(guildDBM, 1, 1);
-        sprintf(drbuf, "%s Adventurer's Guild", gCities[gCurrentCityIndex]);
+        sprintf(drbuf, "%s guild", gCities[gCurrentCityIndex]);
         cg_revers(1);
-        cg_center(0, 0, 40, drbuf);
-        cg_center(0, 16, 40, "Current party:");
+        cg_center(18, 0, 40-18, drbuf);
         cg_revers(0);
         showCurrentParty(1, 17, false);
         cg_textcolor(COLOR_ORANGE);
         menuChoice= runMenu(guildMenu, 18, 2, true, false);
-        cg_getkey();
-        cg_titlec(COLOR_GREEN, 1, drbuf);
-
-        cg_textcolor(COLOR_PURPLE);
-        menuChoice= runBottomMenuN(guildMenu);
-
+ 
         if (menuChoice >= 100) {
             inspectCharacter(menuChoice - 100);
         }
@@ -145,15 +139,15 @@ void doGuild(void) {
             purgeGuildMember();
             break;
 
-        case 2:
+        case 3:
             addToParty();
             break;
 
-        case 3:
+        case 4:
             dropFromParty();
             break;
 
-        case 6:
+        case 7:
             quitGuild= true;
             break;
 
@@ -190,13 +184,12 @@ void runCityMenu(void) {
         cg_clrscr();
         cg_borders(true);
         cg_displayDBMInfo(cityDBM, 1, 1);
-        showCurrentParty(0, 2, true);
+        showCurrentParty(1, 17, false);
         cg_gotoxy(3, 16);
         cg_textcolor(COLOR_GRAY3);
         cg_revers(1);
         cg_center(0, 16, 18, gCities[gCurrentCityIndex]);
         cg_revers(0);
-        cg_setwin(0, 0, 40, 25);
         cg_textcolor(COLOR_CYAN);
         menuChoice= runBottomMenuN(cityMenu);
         cmd= 0;
@@ -216,8 +209,7 @@ void runCityMenu(void) {
             break;
 
         case 5:
-            cg_clrscr();
-            cg_gotoxy(0, 23);
+            cg_clearBottomLine();
             cg_printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
             do {
                 cg_cursor(1);
