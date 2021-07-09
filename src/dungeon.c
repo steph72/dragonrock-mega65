@@ -859,12 +859,12 @@ void runDaemons(byte x, byte y) {
 
 void dungeonLoop() {
 
-    byte xs, ys;     // save x,y for debugging
-    byte oldX, oldY; // save x,y for impassable
+    static byte xs, ys;     // save x,y for debugging
+    static byte oldX, oldY; // save x,y for impassable
     signed char fov;
 
-    byte cmd;
-    byte performedImpassableOpcode;
+    static byte cmd;
+    static byte performedImpassableOpcode;
 
     dungeonItem dItem;
     dungeonItem currentItem;

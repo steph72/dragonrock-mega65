@@ -7,9 +7,11 @@ long lastMenuChecksum;
 
 byte _menuEntriesCount;
 signed char _menuSelectedEntry;
+static byte _mI;
+
+#define i _mI
 
 byte refreshMenuH(byte x, byte y) {
-    byte i;
     cg_gotoxy(x, y);
     for (i= 0; i < _menuEntriesCount; ++i) {
         cg_revers(_menuSelectedEntry == i);
@@ -20,7 +22,6 @@ byte refreshMenuH(byte x, byte y) {
 }
 
 byte refreshMenuV(byte x, byte y) {
-    byte i;
     for (i= 0; i < _menuEntriesCount; ++i) {
         cg_gotoxy(x, y + i);
         cg_revers(_menuSelectedEntry == i);
@@ -30,7 +31,10 @@ byte refreshMenuV(byte x, byte y) {
     }
 }
 
-byte runMenu(char *entries[], byte x, byte y, byte vertical, byte enableNumberShortcuts) {
+#undef i
+
+byte runMenu(char *entries[], byte x, byte y, byte vertical,
+             byte enableNumberShortcuts) {
     byte quitMenu;
     char menuCmd;
     long checksum;
@@ -53,7 +57,7 @@ byte runMenu(char *entries[], byte x, byte y, byte vertical, byte enableNumberSh
     }
 
     if (!vertical) {
-        cg_block_raw(x,y,gScreenColumns-1,y,32,0);
+        cg_block_raw(x, y, gScreenColumns - 1, y, 32, 0);
     }
 
     while (!quitMenu) {

@@ -26,4 +26,4 @@ extern cityCoordsT gCityCoords[NUM_CITIES];
 
 extern spell gSpells[];
 
-extern int gRaceModifiers[NUM_RACES][6];
+extern signed char gRaceModifiers[NUM_RACES][6];

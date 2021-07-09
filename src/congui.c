@@ -67,7 +67,6 @@ textwin currentWin;
 
 #define CURSOR_CHARACTER 0x5f
 
-byte is16BitModeEnabled;   // whether we're in full colour / extended attrs mode
 byte xc16, yc16;           // text cursor position
 byte textcolor16;          // text colour
 unsigned long gScreenSize; // screen size (in characters)
@@ -251,7 +250,6 @@ void cg_go16bit(byte h640, byte v400) {
     xc16= 0;
     yc16= 0;
     textcolor16= 5;
-    is16BitModeEnabled= true;
     currentWin.x0= 0;
     currentWin.x1= gScreenColumns - 1;
     currentWin.y0= 0;
@@ -275,7 +273,6 @@ void cg_go8bit() {
     VIC3CTRL&= 0x7f; // disable H640
     VIC3CTRL&= 0xf7; // disable V400
     cbm_k_bsout(14); // lowercase charset
-    is16BitModeEnabled= false;
     cg_resetPalette();
 }
 
@@ -340,13 +337,14 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
     dbmfile= fopen(filename, "rb");
 
     if (!dbmfile) {
-        cg_fatal("dbmfile not found: %s", filename);
+        cg_fatal("dbmnf %s", filename);
     }
     fread(drbuf, 1, 9, dbmfile);
-
-    if (0 != memcmp(drbuf, "dbmp", 4)) {
-        cg_fatal("not a dbm file: %s", filename);
-    }
+    /*
+        if (0 != memcmp(drbuf, "dbmp", 4)) {
+            cg_fatal("ndbm %s", filename);
+        }
+        */
     numRows= drbuf[5];
     numColumns= drbuf[6];
     dbmOptions= drbuf[7];
@@ -362,7 +360,7 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
     if (!paletteAddress) {
         palAdr= cg_allocPalMem(palsize);
         if (palAdr == NULL) {
-            cg_fatal("no palette memory");
+            cg_fatal("nopal");
         }
     } else {
         palAdr= paletteAddress;
@@ -373,13 +371,13 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
 
     fread(drbuf, 1, 3, dbmfile);
     if (0 != memcmp(drbuf, "img", 3)) {
-        cg_fatal("missing img entry in %s", filename);
+        cg_fatal("noimg %s", filename);
     }
 
     if (!address) {
         bitmampAdr= cg_allocGraphMem(imgsize);
         if (bitmampAdr == NULL) {
-            cg_fatal("no more graphics memory for %s", filename);
+            cg_fatal("nomem %s", filename);
         }
     } else {
         bitmampAdr= address;

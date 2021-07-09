@@ -111,7 +111,7 @@ void dispInvFromIndex(byte idx) {
 
 unsigned int salePrice(character *shopper, item *anItem) {
     unsigned long p;
-    int charBonus;
+    signed char charBonus;
 
     charBonus= bonusValueForAttribute(shopper->attributes[aCHR]);
     p= (anItem->price * (100UL + (10 * charBonus))) / 100UL;

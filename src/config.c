@@ -11,7 +11,7 @@ char *gAttributesS[]= {"STR", "INT", "WIS", "DEX", "CON", "CHR"};
 
 char *gStateDesc[]= {"deleted", "down", "asleep", "dead", "ok", "fled"};
 
-int gRaceModifiers[NUM_RACES][6]= {
+signed char gRaceModifiers[NUM_RACES][6]= {
     {0, 0, 0, 0, 0, 0},   // human
     {2, 0, 0, -1, 0, 0},  // dwarf
     {-1, 2, 0, 0, -1, 1}, // elf
