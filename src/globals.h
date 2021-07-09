@@ -19,7 +19,7 @@
     main
     ---- */
 
-extern char drbuf[]; // general purpose buffer
+extern char *drbuf; // general purpose buffer
 extern byte devmode; // devmode flag
 
 /*  ----------

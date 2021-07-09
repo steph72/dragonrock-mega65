@@ -19,6 +19,7 @@ byte numCityVisits;
 #pragma code-name(push, "OVERLAY2");    // "CITY" segment
 // clang-format on
 
+
 byte addItemIDToShopInventory(byte itemID) {
     byte i;
     for (i= 0; i < SHOP_INV_SIZE; ++i) {

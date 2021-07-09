@@ -76,7 +76,7 @@ sign signs[]= {
 
 byte isDungeonMode;
 
-static dungeonDescriptor *desc= NULL;
+dungeonDescriptor *desc= NULL;
 unsigned int dungeonMapWidth;
 byte lastFeelIndex;
 byte registers[16];
@@ -137,7 +137,7 @@ int performNopOrGotoOpcode(opcode *anOpcpode) {
 
 // 0x01: NSTAT / NSTAT_O
 int performDisplayFeelOpcode(opcode *anOpcode) {
-    byte feelIndex;
+    static byte feelIndex;
 
     feelIndex= anOpcode->param1;
 
@@ -390,9 +390,7 @@ int performSetregOpcode(opcode *anOpcode) {
     value= anOpcode->param2;
 
     if (regNr > 16) {
-        cg_printf("??invalid register nr %d... bailing out", regNr);
-        while (1)
-            ;
+        cg_fatal("invalid reg %d", regNr);
     }
 
     registers[regNr]= value;
@@ -1129,10 +1127,7 @@ void loadNewDungeon(void) {
     desc= loadMap(drbuf);
 
     if (!desc) {
-        cg_puts("could not load dungeon ");
-        cg_puts(mfile);
-        while (1)
-            ;
+        cg_fatal("load %s failed", mfile);
     }
 
     initLoadedDungeon();

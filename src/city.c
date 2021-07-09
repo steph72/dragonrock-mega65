@@ -36,7 +36,7 @@ void leaveCityMode(void) {
     gCurrentDungeonIndex= coords.mapNr | 128;
     gStartXPos= coords.x;
     gStartYPos= coords.y;
-
+    cg_freeGraphAreas();
     prepareForGameMode(gm_outdoor);
 }
 
@@ -120,12 +120,12 @@ void doGuild(void) {
         cg_displayDBMInfo(guildDBM, 1, 1);
         sprintf(drbuf, "%s guild", gCities[gCurrentCityIndex]);
         cg_revers(1);
-        cg_center(18, 0, 40-18, drbuf);
+        cg_center(18, 0, 40 - 18, drbuf);
         cg_revers(0);
         showCurrentParty(1, 17, false);
         cg_textcolor(COLOR_ORANGE);
         menuChoice= runMenu(guildMenu, 18, 2, true, false);
- 
+
         if (menuChoice >= 100) {
             inspectCharacter(menuChoice - 100);
         }
@@ -160,11 +160,9 @@ void doGuild(void) {
 void saveGame() {
     cg_clrscr();
     cg_borders(true);
-    cg_puts("\nPlease wait\nSaving economy...");
+    cg_puts("\nPlease wait...");
     saveArmory();
-    cg_puts("Saving guild...");
     saveGuild();
-    cg_puts("Saving party...");
     saveParty();
     cg_puts("\n\n...done.\n\n --key--");
     cg_getkey();
@@ -232,13 +230,13 @@ void newGuildMember(byte city) {
     static byte i, c; // loop and input temp vars
     static byte race;
     static byte class;
-    static attrT tempAttr[6];
+    attrT tempAttr[6];
     static attrT current;
     static signed char slot;
-    static int tempHP;
-    static int tempMP;
+    int tempHP;
+    int tempMP;
     char *cname;
-    static character *newC; // the "cr" sign to the finished string...
+    character *newC; // the "cr" sign to the finished string...
 
     static char top; // screen top margin
 

@@ -1,6 +1,12 @@
 ** memory map **
 
+7bcf
+
 BANK 0
+0x00400 - 0x004ff       universal buffer
+0x00500 - 0x0050f       DMA list 
+0x00510 - 0x005b0       text output buffer for congui.c
+
 0x00801 - 0x08fff       main program    36k
 0x09000 - 0x0cfff       overlays        16k
 

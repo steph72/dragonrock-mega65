@@ -5,8 +5,8 @@ cc65 V2.18 - Git de630a12
 ## misc
 DONE failsafe center
 DONE center in title
-get rid of translation table
-
+DONE use DMA for screen fills
+complete input routine
 
 ## city
 - DONE implement "you must assemble a party first"

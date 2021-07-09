@@ -39,7 +39,7 @@ void prepareForGameMode(gameModeT newGameMode) { gNextGameMode= newGameMode; }
 void popLastGameMode(void) { gNextGameMode= lastGameMode; }
 
 void loadModule(char *name) {
-    printf("lmod %s\n", name);
+    // printf("lmod %s\n", name);
     loadfile(name, (void *)0x9000, (void *)0x4000);
 }
 
@@ -87,9 +87,7 @@ void commitNewGameMode(void) {
         break;
 
     case gm_init:
-        cg_puts("??new gamemode is init");
-        while (1)
-            ;
+        cg_fatal("gm init");
         break;
 
     default:
@@ -142,9 +140,7 @@ unsigned char loadfile(char *name, void *addr, void *size) {
     (void)size;
 
     if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
-        cg_puts("Loading overlay file failed");
-        while (1)
-            ;
+        cg_fatal("ovl failed");
     }
     return 1;
 }

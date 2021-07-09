@@ -13,7 +13,7 @@
 
 character *guild;
 
-static FILE *outfile;
+FILE *outfile;
 
 void newGuildMember(byte city);
 void _listGuildMembers(void);
@@ -109,7 +109,7 @@ byte isInParty(byte guildIdx) {
 }
 
 void addToParty(void) {
-    static char inbuf[3];
+    char inbuf[3];
     signed char slot;
     unsigned char gmIndex;
 
@@ -213,7 +213,7 @@ void saveParty(void) {
 }
 
 byte loadGuild(void) {
-    static FILE *infile;
+    FILE *infile;
 
     infile= fopen("gdata", "r");
     if (!infile) {

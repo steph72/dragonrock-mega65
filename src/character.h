@@ -3,10 +3,11 @@
 
 #include "globals.h"
 
+
+
 byte loadParty(void);
 
 char *nameOfInventoryItem(item *anItem);
-char *nameOfInventoryItemWithID(itemT anItemID);
 item *inventoryItemForID(itemT anItemID);
 itemT addInventoryItem(itemT anItemID, character *aCharacter);
 byte hasInventoryItem(character *aCharacter, itemT anItemID);
@@ -28,5 +29,7 @@ void inspectCharacter(byte idx);
 
 item *whichItem(character *ic, byte *inventorySlot, byte *equipmentSlot);
 void useItem(character *ic);
+
+#define nameOfInventoryItemWithID(I) nameOfInventoryItem(inventoryItemForID(I))
 
 #endif

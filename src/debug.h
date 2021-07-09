@@ -1,5 +1,7 @@
+#include "types.h"
+
 #ifdef DEBUG
-void testMem(void);
+word testMem(void);
 #define MEMT testMem()
 #else
 #define MEMT

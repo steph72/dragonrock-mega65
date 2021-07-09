@@ -1,8 +1,9 @@
 #include "memory.h"
 #include <stdio.h>
 
-struct dmagic_dmalist dmalist;
-struct dmagic_dmalist_skip dmalist_skip;
+#define DMALIST (*(struct dmagic_dmalist*)0x500)
+
+// struct dmagic_dmalist dmalist;
 
 unsigned char dma_byte;
 
@@ -18,25 +19,10 @@ void do_dma(void) {
     // Now run DMA job (to and from anywhere, and list is in low 1MB)
     POKE(0xd702U, 0);
     POKE(0xd704U, 0x00); // List is in $00xxxxx
-    POKE(0xd701U, ((unsigned int)&dmalist) >> 8);
-    POKE(0xd705U, ((unsigned int)&dmalist) & 0xff); // triggers enhanced DMA
+    POKE(0xd701U, ((unsigned int)&DMALIST) >> 8);
+    POKE(0xd705U, ((unsigned int)&DMALIST) & 0xff); // triggers enhanced DMA
 }
 
-void do_dma_skip(void) {
-    //  unsigned char i;
-    mega65_io_enable();
-
-    //  for(i=0;i<24;i++)
-    //    printf("%02x ",PEEK(i+(unsigned int)&dmalist));
-    //  printf("\n");
-    //  while(1) continue;
-
-    // Now run DMA job (to and from anywhere, and list is in low 1MB)
-    POKE(0xd702U, 0);
-    POKE(0xd704U, 0x00); // List is in $00xxxxx
-    POKE(0xd701U, ((unsigned int)&dmalist_skip) >> 8);
-    POKE(0xd705U, ((unsigned int)&dmalist_skip) & 0xff); // triggers enhanced DMA
-}
 
 unsigned char lpeek(long address) {
     // Read the byte at <address> in 28-bit address space
@@ -44,20 +30,22 @@ unsigned char lpeek(long address) {
     // (separate DMA lists for peek, poke and copy should
     // save space, since most fields can stay initialised).
 
-    dmalist.option_0b= 0x0b;
-    dmalist.option_80= 0x80;
-    dmalist.source_mb= (address >> 20);
-    dmalist.option_81= 0x81;
-    dmalist.dest_mb= 0x00; // dma_byte lives in 1st MB
-    dmalist.end_of_options= 0x00;
-    dmalist.sub_cmd= 0x00;
+    DMALIST.option_0b= 0x0b;
+    DMALIST.option_80= 0x80;
+    DMALIST.source_mb= (address >> 20);
+    DMALIST.option_81= 0x81;
+    DMALIST.dest_mb= 0x00; // dma_byte lives in 1st MB
+    DMALIST.option_85= 0x85;
+    DMALIST.dest_skip= 1;
+    DMALIST.end_of_options= 0x00;
+    DMALIST.sub_cmd= 0x00;
 
-    dmalist.command= 0x00; // copy
-    dmalist.count= 1;
-    dmalist.source_addr= address & 0xffff;
-    dmalist.source_bank= (address >> 16) & 0x0f;
-    dmalist.dest_addr= (unsigned int)&dma_byte;
-    dmalist.dest_bank= 0;
+    DMALIST.command= 0x00; // copy
+    DMALIST.count= 1;
+    DMALIST.source_addr= address & 0xffff;
+    DMALIST.source_bank= (address >> 16) & 0x0f;
+    DMALIST.dest_addr= (unsigned int)&dma_byte;
+    DMALIST.dest_bank= 0;
 
     do_dma();
 
@@ -79,67 +67,73 @@ unsigned char lpeek_debounced(long address) {
 
 void lpoke(long address, unsigned char value) {
 
-    dmalist.option_0b= 0x0b;
-    dmalist.option_80= 0x80;
-    dmalist.source_mb= 0x00; // dma_byte lives in 1st MB
-    dmalist.option_81= 0x81;
-    dmalist.dest_mb= (address >> 20);
-    dmalist.end_of_options= 0x00;
-    dmalist.sub_cmd= 0x00;
+    DMALIST.option_0b= 0x0b;
+    DMALIST.option_80= 0x80;
+    DMALIST.source_mb= 0x00; // dma_byte lives in 1st MB
+    DMALIST.option_81= 0x81;
+    DMALIST.dest_mb= (address >> 20);
+    DMALIST.option_85= 0x85;
+    DMALIST.dest_skip= 1;
+    DMALIST.end_of_options= 0x00;
+    DMALIST.sub_cmd= 0x00;
 
     dma_byte= value;
-    dmalist.command= 0x00; // copy
-    dmalist.count= 1;
-    dmalist.source_addr= (unsigned int)&dma_byte;
-    dmalist.source_bank= 0;
-    dmalist.dest_addr= address & 0xffff;
-    dmalist.dest_bank= (address >> 16) & 0x0f;
+    DMALIST.command= 0x00; // copy
+    DMALIST.count= 1;
+    DMALIST.source_addr= (unsigned int)&dma_byte;
+    DMALIST.source_bank= 0;
+    DMALIST.dest_addr= address & 0xffff;
+    DMALIST.dest_bank= (address >> 16) & 0x0f;
 
     do_dma();
     return;
 }
 
 void lcopy(long source_address, long destination_address, unsigned int count) {
-    dmalist.option_0b= 0x0b;
-    dmalist.option_80= 0x80;
-    dmalist.source_mb= source_address >> 20;
-    dmalist.option_81= 0x81;
-    dmalist.dest_mb= (destination_address >> 20);
-    dmalist.end_of_options= 0x00;
-    dmalist.sub_cmd= 0x00;
+    DMALIST.option_0b= 0x0b;
+    DMALIST.option_80= 0x80;
+    DMALIST.source_mb= source_address >> 20;
+    DMALIST.option_81= 0x81;
+    DMALIST.dest_mb= (destination_address >> 20);
+    DMALIST.option_85= 0x85;
+    DMALIST.dest_skip= 1;
+    DMALIST.end_of_options= 0x00;
+    DMALIST.sub_cmd= 0x00;
 
-    dmalist.command= 0x00; // copy
-    dmalist.count= count;
-    dmalist.sub_cmd= 0;
-    dmalist.source_addr= source_address & 0xffff;
-    dmalist.source_bank= (source_address >> 16) & 0x0f;
+    DMALIST.command= 0x00; // copy
+    DMALIST.count= count;
+    DMALIST.sub_cmd= 0;
+    DMALIST.source_addr= source_address & 0xffff;
+    DMALIST.source_bank= (source_address >> 16) & 0x0f;
     if (source_address >= 0xd000 && source_address < 0xe000)
-        dmalist.source_bank|= 0x80;
-    dmalist.dest_addr= destination_address & 0xffff;
-    dmalist.dest_bank= (destination_address >> 16) & 0x0f;
+        DMALIST.source_bank|= 0x80;
+    DMALIST.dest_addr= destination_address & 0xffff;
+    DMALIST.dest_bank= (destination_address >> 16) & 0x0f;
     if (destination_address >= 0xd000 && destination_address < 0xe000)
-        dmalist.dest_bank|= 0x80;
+        DMALIST.dest_bank|= 0x80;
 
     do_dma();
     return;
 }
 
 void lfill(long destination_address, unsigned char value, unsigned int count) {
-    dmalist.option_0b= 0x0b;
-    dmalist.option_80= 0x80;
-    dmalist.source_mb= 0x00;
-    dmalist.option_81= 0x81;
-    dmalist.dest_mb= destination_address >> 20;
-    dmalist.end_of_options= 0x00;
+    DMALIST.option_0b= 0x0b;
+    DMALIST.option_80= 0x80;
+    DMALIST.source_mb= 0x00;
+    DMALIST.option_81= 0x81;
+    DMALIST.dest_mb= destination_address >> 20;
+    DMALIST.option_85= 0x85;
+    DMALIST.dest_skip= 1;
+    DMALIST.end_of_options= 0x00;
 
-    dmalist.command= 0x03; // fill
-    dmalist.sub_cmd= 0;
-    dmalist.count= count;
-    dmalist.source_addr= value;
-    dmalist.dest_addr= destination_address & 0xffff;
-    dmalist.dest_bank= (destination_address >> 16) & 0x0f;
+    DMALIST.command= 0x03; // fill
+    DMALIST.sub_cmd= 0;
+    DMALIST.count= count;
+    DMALIST.source_addr= value;
+    DMALIST.dest_addr= destination_address & 0xffff;
+    DMALIST.dest_bank= (destination_address >> 16) & 0x0f;
     if (destination_address >= 0xd000 && destination_address < 0xe000)
-        dmalist.dest_bank|= 0x80;
+        DMALIST.dest_bank|= 0x80;
 
     do_dma();
     return;
@@ -148,25 +142,25 @@ void lfill(long destination_address, unsigned char value, unsigned int count) {
 void lfill_skip(long destination_address, unsigned char value,
                 unsigned int count, unsigned char skip) {
 
-    dmalist_skip.option_0b= 0x0b;
-    dmalist_skip.option_80= 0x80;
-    dmalist_skip.source_mb= 0x00;
-    dmalist_skip.option_81= 0x81;
-    dmalist_skip.dest_mb= destination_address >> 20;
-    dmalist_skip.option_85= 0x85;
-    dmalist_skip.dest_skip=skip;
-    dmalist_skip.end_of_options= 0x00;
+    DMALIST.option_0b= 0x0b;
+    DMALIST.option_80= 0x80;
+    DMALIST.source_mb= 0x00;
+    DMALIST.option_81= 0x81;
+    DMALIST.dest_mb= destination_address >> 20;
+    DMALIST.option_85= 0x85;
+    DMALIST.dest_skip= skip;
+    DMALIST.end_of_options= 0x00;
 
-    dmalist_skip.command= 0x03; // fill
-    dmalist_skip.sub_cmd= 0;
-    dmalist_skip.count= count;
-    dmalist_skip.source_addr= value;
-    dmalist_skip.dest_addr= destination_address & 0xffff;
-    dmalist_skip.dest_bank= (destination_address >> 16) & 0x0f;
+    DMALIST.command= 0x03; // fill
+    DMALIST.sub_cmd= 0;
+    DMALIST.count= count;
+    DMALIST.source_addr= value;
+    DMALIST.dest_addr= destination_address & 0xffff;
+    DMALIST.dest_bank= (destination_address >> 16) & 0x0f;
     if (destination_address >= 0xd000 && destination_address < 0xe000)
-        dmalist_skip.dest_bank|= 0x80;
+        DMALIST.dest_bank|= 0x80;
 
-    do_dma_skip();
+    do_dma();
     return;
 }
 

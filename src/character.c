@@ -21,7 +21,7 @@ item tempItem;
 char tempItemDesc[32];
 
 item *inventoryItemForID(itemT anItemID) {
-    register byte i;
+    static byte i;
     himemPtr ext;
     for (i= 0; i < 255; i++) {
         ext= ITEM_BASE + ITEM_HEADER_SIZE + (sizeof(item) * i);
@@ -36,12 +36,8 @@ item *inventoryItemForID(itemT anItemID) {
 char *rawNameOfInventoryItem(item *anItem) {
     himemPtr ext;
     ext= ITEM_BASE + anItem->namePtr;
-    lcopy(ext, tempItemDesc, 32);
+    lcopy(ext, (long)tempItemDesc, 32);
     return tempItemDesc;
-}
-
-char *nameOfInventoryItemWithID(itemT anItemID) {
-    return nameOfInventoryItem(inventoryItemForID(anItemID));
 }
 
 char *nameOfInventoryItem(item *anItem) {
@@ -60,7 +56,7 @@ char *nameOfInventoryItem(item *anItem) {
 }
 
 byte hasInventoryItem(character *aCharacter, itemT anItemID) {
-    register byte i;
+    static byte i;
     for (i= 0; i < INV_SIZE; ++i) {
         if (aCharacter->inventory[i] == anItemID) {
             return true;
@@ -70,7 +66,7 @@ byte hasInventoryItem(character *aCharacter, itemT anItemID) {
 }
 
 byte nextFreeInventorySlot(character *aCharacter) {
-    register byte i;
+    static byte i;
     for (i= 0; i < INV_SIZE; ++i) {
         if (!aCharacter->inventory[i]) {
             return i;
@@ -80,7 +76,7 @@ byte nextFreeInventorySlot(character *aCharacter) {
 }
 
 byte addInventoryItem(byte anItemID, character *aCharacter) {
-    byte i;
+    static byte i;
     i= nextFreeInventorySlot(aCharacter);
     if (i != 0xff) {
         aCharacter->inventory[i]= anItemID;
@@ -91,7 +87,7 @@ byte addInventoryItem(byte anItemID, character *aCharacter) {
 
 void debugAddItem(character *aCharacter) {
     byte itemID;
-    cg_puts("DEBUG ADD ITEM: ");
+    cg_puts("ADD:");
     fgets(drbuf, 3, stdin);
     itemID= atoi(drbuf);
     cg_printf("added %d", addInventoryItem(itemID, aCharacter));
@@ -156,8 +152,8 @@ char *bonusStrForAttribute(attrT a) {
 }
 
 byte partyMemberCount(void) {
-    byte i;
-    byte n= 0;
+    static byte i;
+    static byte n= 0;
     for (i= 0; i < PARTYSIZE; ++i) {
         if (party[i]) {
             ++n;
@@ -168,7 +164,7 @@ byte partyMemberCount(void) {
 
 void showCurrentParty(byte startX, byte startY, byte small) {
     static byte i, x, y;
-    static character *c;
+    character *c;
 
     y= startY;
 
@@ -240,8 +236,8 @@ void more(char *filename) {
         fgets(drbuf, DRBUFSIZE, infile);
         ++line;
         fputs(drbuf, stdout);
-        if (line == 23) {
-            cg_gotoxy(28, 24);
+        if (line == gScreenRows - 2) {
+            cg_gotoxy(28, gScreenRows - 1);
             cg_puts("-- more --");
             cg_cursor(1);
             cg_getkey();
@@ -251,13 +247,13 @@ void more(char *filename) {
         }
     }
     fclose(infile);
-    cg_gotoxy(28, 24);
+    cg_gotoxy(28, gScreenRows - 1);
     cg_puts("-- key --");
     cg_getkey();
 }
 
 void useScroll(item *anItem) {
-    byte num;
+    static byte num;
     num= anItem->val1;
     sprintf(drbuf, "fmsg%02d", num);
     more(drbuf);
@@ -286,7 +282,7 @@ item *getEquippedItem(character *ic, byte itemIdxChar, byte *equipSlot) {
 
 item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
     item *anItem;
-    byte itemIdxChar;
+    static byte itemIdxChar;
 
     *equipSlot= 255;
     *inventorySlot= 255;
@@ -320,9 +316,9 @@ void dispCharacterActionError(char *msg) {
 void giveItem(character *ic) {
     character *destCharacter;
     item *anItem;
-    byte inventorySlot;
-    byte equipSlot;
-    byte memberIdx;
+    static byte inventorySlot;
+    static byte equipSlot;
+    static byte memberIdx;
 
     cg_clearLower(2);
     cg_gotoxy(0, 23);
@@ -349,8 +345,8 @@ void giveItem(character *ic) {
 
 void removeItem(character *ic) {
     item *anItem;
-    byte equipmentSlot;
-    byte inventorySlot;
+    static byte equipmentSlot;
+    static byte inventorySlot;
     cg_clearLower(2);
     cg_gotoxy(0, 23);
     cg_puts("remove ");
@@ -413,8 +409,8 @@ void equipItem(item *anItem, byte inventorySlot, character *ic) {
 
 void useOrEquipItem(character *ic) {
     item *anItem;
-    byte equipmentSlot;
-    byte inventorySlot;
+    static byte equipmentSlot;
+    static byte inventorySlot;
     cg_clearLower(2);
     cg_gotoxy(0, 23);
     cg_puts("use ");
@@ -447,7 +443,7 @@ void useOrEquipItem(character *ic) {
 }
 
 void displayInventoryAtRow(character *ic, byte row, char firstChar) {
-    byte i;
+    static byte i;
     for (i= 0; i < INV_SIZE; i++) {
         cg_gotoxy(20 * (i / (INV_SIZE / 2)), row + (i % (INV_SIZE / 2)));
         cg_revers(1);
@@ -460,11 +456,11 @@ void displayInventoryAtRow(character *ic, byte row, char firstChar) {
 
 void inspectCharacter(byte idx) {
     character *ic;
-    byte i;
-    byte quitInspect;
-    byte cmd;
+    static byte i;
+    static byte quitInspect;
+    static byte cmd;
 
-    byte spellLine;
+    static byte spellLine;
 
     if (party[idx] == NULL) {
         return;
@@ -582,7 +578,7 @@ void inspectCharacter(byte idx) {
 }
 
 byte loadParty(void) {
-    static FILE *infile;
+    FILE *infile;
     static byte i, count;
     character *newChar;
 

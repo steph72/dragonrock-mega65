@@ -8,9 +8,6 @@ char monsterNameBuf[32];
 
 monsterDef tempDef;
 
-
-
-
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
 // clang-format on
@@ -56,10 +53,6 @@ char *pluralNameForMonsterID(unsigned int id) {
     return monsterNameBuf;
 }
 
-char *pluralNameForMonster(monster *aMonster) {
-    return pluralNameForMonsterID(aMonster->monsterDefID);
-}
-
 // clang-format off
 #pragma code-name(pop);
 // clang-format on
@@ -77,11 +70,6 @@ monsterDef *monsterDefForID(unsigned int id) {
     }
     return NULL;
 }
-
-monsterDef *monsterDefForMonster(monster *aMonster) {
-    return monsterDefForID(aMonster->monsterDefID);
-}
-
 
 void _initMonsterRows(byte dealloc) {
     byte i, j;
@@ -108,7 +96,7 @@ void addMonster(monster *aMonster, byte row) {
             return;
         }
     }
-    cg_fatal("no more space for monsters");
+    cg_fatal("nms");
 }
 
 // clear monsters
@@ -126,9 +114,7 @@ monster *createMonster(unsigned int monsterID, byte level) {
     aDef= monsterDefForID(monsterID);
 
     if (aDef == NULL) {
-        printf("?invalid monster ID %d", monsterID);
-        while (1)
-            ;
+        cg_fatal("invm &d",monsterID);
     }
 
     newMonster= malloc(sizeof(monster));

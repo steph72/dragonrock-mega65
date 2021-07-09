@@ -32,9 +32,13 @@
 #include <string.h>
 #include <time.h>
 
+#ifdef DEBUG
+#include "debug.h"
+#endif
+
 static byte gPal;
 static signed char gPalDir;
-static clock_t lastPaletteTick;
+clock_t lastPaletteTick;
 
 textwin currentWin;
 
@@ -72,18 +76,17 @@ byte gScreenRows;          // number of screen rows (in characters)
 himemPtr
     nextFreeGraphMem; // location of next free graphics block in banks 4 & 5
 himemPtr nextFreePalMem;
-
-dbmInfo *infoBlocks[MAX_DBM_BLOCKS]; // loaded dbm file info blocks
-byte infoBlockCount;                 // number of info blocks
+byte infoBlockCount; // number of info blocks
 
 byte cgi;     // universal loop var
 byte rvsflag; // revers
 byte csrflag;
 
+dbmInfo **infoBlocks= (dbmInfo **)0x518; // loaded dbm file info blocks
+
 void scrollUp();
 
 void cg_init() {
-    byte i;
     mega65_io_enable();
     infoBlockCount= 0;
     for (cgi= 0; cgi < MAX_DBM_BLOCKS; ++cgi) {
@@ -152,6 +155,7 @@ void cg_freeGraphAreas(void) {
     }
     nextFreeGraphMem= GRAPHBASE;
     nextFreePalMem= PALBASE;
+    infoBlockCount= 0;
 }
 
 /*
@@ -201,6 +205,8 @@ char asciiToPetscii(byte c) {
 
 void cg_go16bit(byte h640, byte v400) {
     mega65_io_enable();
+    POKE(53297L, 96); // quit bitplane mode
+
     VIC4CTRL|= 0x04; // enable full colour for characters with high byte set
     VIC4CTRL|= 0x01; // enable 16 bit characters
 
@@ -256,7 +262,8 @@ void cg_go16bit(byte h640, byte v400) {
 
 void cg_go8bit() {
     mega65_io_enable();
-    SCNPTR_0= 0x00; // screen back to 0x800
+    POKE(53297L, 96); // quit bitplane mode
+    SCNPTR_0= 0x00;   // screen back to 0x800
     SCNPTR_1= 0x08;
     SCNPTR_2= 0x00;
     SCNPTR_3&= 0xF0;
@@ -503,11 +510,32 @@ void cg_putc(char c) {
     }
 }
 
-void cg_puts(const char *s) {
+void _debug_cg_puts(const char *s) {
     const char *current= s;
     while (*current) {
         cg_putc(*current++);
     }
+}
+
+void cg_puts(const char *s) {
+#ifdef DEBUG
+    byte x, y;
+    char out[16];
+#endif
+    const char *current= s;
+    while (*current) {
+        cg_putc(*current++);
+    }
+#ifdef DEBUG
+    x= xc16;
+    y= yc16;
+    xc16= 36;
+    yc16= 0;
+    sprintf(out, "%x", testMem());
+    _debug_cg_puts(out);
+    xc16= x;
+    yc16= y;
+#endif
 }
 
 void cg_putsxy(byte x, byte y, char *s) {

@@ -56,7 +56,7 @@
 #define DRE_BUILDNUM "-666"
 #endif
 
-char drbuf[DRBUFSIZE];
+char *drbuf;
 
 byte hasLoadedGame;
 byte devmode;
@@ -69,54 +69,53 @@ void loadSaved(void);
 const char *prompt=
     "DREngine/m65 v" DRE_VERSION " build " DRE_BUILDNUM "\n" DRE_DATE "\n\n";
 
-void initVIC() {
-    mega65_io_enable();
-    POKE(53297L, 96); // quit bitplane mode
-}
-
 void loadResources(void) {
     unsigned int readBytes;
-    printf("load items; ");
+    // printf("load items; ");
     readBytes= loadExt("items", ITEM_BASE);
-    printf("$%x bytes read\n", readBytes);
-    printf("load monsters; ");
+    // printf("$%x bytes read\n", readBytes);
+    // printf("load monsters; ");
     readBytes= loadExt("monsters", MONSTERS_BASE);
-    printf("$%x bytes read\n", readBytes);
+    // printf("$%x bytes read\n", readBytes);
 }
 
 void initEngine(void) {
     mega65_io_enable();
-    srand(DRE_BUILDNUM);
+
+    drbuf= (char *)malloc(DRBUFSIZE);
+
+    srand((unsigned int)DRE_BUILDNUM);
     puts("\n");       // cancel leftover quote mode from wrapper or whatever
     cbm_k_bsout(14);  // lowercase
     cbm_k_bsout(147); // clr
-    // puts(prompt);
-
+    puts(prompt);
     lcopy(0x5f000, (long)drbuf, 4);
     if (drbuf[0] == 0x53 && drbuf[1] == 0x4b) {
         devmode= true;
     } else if (drbuf[0] != 0x23 || drbuf[1] != 0x45) {
-        initVIC();
-        puts("Please BOOT the dragon rock disc to");
-        puts("correctly initialize the game.");
-        while (1)
-            ;
+        cg_fatal("Please BOOT the dragon rock disc to\n"
+                 "correctly initialize the game.");
     }
 
-    drbuf[0]= 0;
-    drbuf[1]= 0;
-    lcopy((long)drbuf, 0x5f000, 4);
-
+    lpoke (0x5f000,0);
+    lpoke (0x5f001,0);
+ 
     loadModules();
-    puts("init monster rows");
+    // puts("init monster rows");
     initMonsterRows();
     loadResources();
-    puts("init party");
+    // puts("init party");
     hasLoadedGame= loadParty();
     gLoadedDungeonIndex= 255;
     gCurrentGameMode= gm_init;
-    initVIC();
     cg_init();
+
+    // after graphics initialization, it's safe to free drbuf and using
+    // the old text screen instead, thus saving a few bytes...
+    // 798e-77c0
+
+    free(drbuf);
+    drbuf= (char *)0x400;
 
     // cg_test();
 
@@ -136,7 +135,6 @@ void debugEncounter(void) {
 }
 
 void debugDungeon(void) {
-
     gCurrentDungeonIndex= 0;
     gStartXPos= 15;
     gStartYPos= 1;
@@ -151,23 +149,24 @@ void debugDungeon(void) {
 int main() {
     static char choice;
     char *test;
-    char *mainMenu[]= {"Load saved game", drbuf, NULL};
+    char *mainMenu[]= {"Load saved game", NULL, NULL};
 
     initEngine();
     cg_clrscr();
     cg_borders(false);
 
     sprintf(drbuf, "Start in %s", gCities[3]);
-    choice= runMenu(mainMenu, 4, 11, true, false);
+    mainMenu[1]= drbuf;
+    choice= runMenu(mainMenu, 4, 11, true, true);
 
     gCurrentCityIndex= 3;
     prepareForGameMode(gm_city);
 
-    if (choice == 'd') {
+    if (choice == 100) {
         debugDungeon();
     }
 
-    if (choice == 'e') {
+    if (choice == 101) {
         debugEncounter();
     }
 

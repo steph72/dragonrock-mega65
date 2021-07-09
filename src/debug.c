@@ -3,9 +3,9 @@
 #include "types.h"
 #include "congui.h"
 
-void testMem() {
+word testMem() {
     byte *t;
-    t= (byte *)malloc(8);
-    cg_printf("memtop is $%x\n", t);
+    t= (byte *)malloc(0x100);
     free(t);
+    return (word)t;
 }

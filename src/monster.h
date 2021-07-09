@@ -11,15 +11,15 @@
 #define MONSTER_SLOTS 6
 #define MROSTER_SIZE 16
 
+#define monsterDefForMonster(A) monsterDefForID(A->monsterDefID)
+#define pluralNameForMonster(A) pluralNameForMonsterID(A->monsterDefID)
+
 monsterDef *monsterDefForID(unsigned int id);
 char *nameForMonsterDef(monsterDef *aDef);
 char *nameForMonsterID(unsigned int id);
 char *pluralNameForMonsterID(unsigned int id);
 char *nameForMonster(monster *aMonster);
-char *pluralNameForMonster(monster *aMonster);
-monsterDef *monsterDefForMonster(monster *aMonster);
 byte getNumberOfMonsterAttacks(monster *aMonster);
-
 
 void clearMonsters(void);
 void addNewMonster(byte monsterID, byte level, byte min, byte max, byte row);
