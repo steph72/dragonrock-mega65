@@ -634,6 +634,7 @@ void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
 
     // use DMAgic to fill FCM screens... PGS, I love you!
     lfill_skip(SCREENBASE + bas, character, width, 2);
+    lfill_skip(SCREENBASE + bas + 1, 0, width, 2);
     lfill_skip(COLBASE + bas, 0, width, 2);
     lfill_skip(COLBASE + bas + 1, col, width, 2);
 
