@@ -90,8 +90,12 @@ void cg_init() {
         infoBlocks[cgi]= NULL;
     }
     cg_freeGraphAreas();
+    bgcolor(COLOR_BLACK);
+    bordercolor(COLOR_BLACK);
     cg_go16bit(0, 0);
     /*
+    lfill_skip(SCREENBASE,65,40,2);
+    cgetc();
     cg_gotoxy(10,0);
     cg_printf("%d",gScreenRows);
     for (i=1;i<=gScreenRows;++i) {
@@ -103,8 +107,6 @@ void cg_init() {
     */
     cg_loadDBM("borders.dbm", 0x13000, SYSPAL);
     cg_resetPalette(); // assumes standard colours at 0x13800
-    bgcolor(COLOR_BLACK);
-    bordercolor(COLOR_BLACK);
     cg_textcolor(COLOR_GREEN);
     cg_clrscr();
     gPal= 0;
@@ -114,8 +116,9 @@ void cg_init() {
 
 void cg_clearBottomLine() {
     cg_resetwin();
-    cg_block_raw(0,gScreenRows-1,gScreenColumns-1,gScreenRows-1,32,0);
-    cg_gotoxy(0,gScreenRows-1);
+    cg_block_raw(0, gScreenRows - 1, gScreenColumns - 1, gScreenRows - 1, 32,
+                 0);
+    cg_gotoxy(0, gScreenRows - 1);
 }
 void cg_revers(byte r) { rvsflag= r; }
 
@@ -211,13 +214,15 @@ void cg_go16bit(byte h640, byte v400) {
 
     if (v400) {
         VIC3CTRL|= 0x08;
-        gScreenRows= 27*2;
+        gScreenRows= 27 * 2;
     } else {
         gScreenRows= 27;
         VIC3CTRL&= 0xf7;
     }
 
     gScreenSize= gScreenRows * gScreenColumns;
+    lfill_skip(SCREENBASE, 32, gScreenSize, 2);
+    lfill(COLBASE, 0, gScreenSize * 2);
 
     HOTREG&= 127;     // disable hotreg
     POKE(53320u, 72); // top border position
@@ -236,8 +241,7 @@ void cg_go16bit(byte h640, byte v400) {
     SCNPTR_1= (SCREENBASE >> 8) & 0xff;
     SCNPTR_2= (SCREENBASE >> 16) & 0xff;
     SCNPTR_3&= 0xF0 | ((SCREENBASE) << 24 & 0xff);
-    lfill(SCREENBASE, 0, gScreenSize * 2);
-    lfill(COLBASE, 0, gScreenSize * 2);
+
     xc16= 0;
     yc16= 0;
     textcolor16= 5;
@@ -558,9 +562,7 @@ void cg_clrscr() {
     cg_gotoxy(0, 0);
 }
 
-void cg_resetwin() {
-    cg_setwin(0,0,gScreenColumns,gScreenRows);
-}
+void cg_resetwin() { cg_setwin(0, 0, gScreenColumns, gScreenRows); }
 
 void cg_setwin(byte x0, byte y0, byte width, byte height) {
     currentWin.x0= x0;
@@ -625,17 +627,16 @@ void cg_clearLower(byte num) { cg_clearFromTo(gScreenRows - num, gScreenRows); }
 
 void cg_line(byte y, byte x0, byte x1, byte character, byte col) {
     word bas;
-    word bas2;
-    word i;
+    byte width;
 
+    width= x1 - x0 + 1;
     bas= x0 * 2 + (y * gScreenColumns * 2);
-    bas2= x1 * 2 + (y * gScreenColumns * 2);
-    for (i= bas; i <= bas2; i+= 2) {
-        lpoke(SCREENBASE + i, character);
-        lpoke(SCREENBASE + i + 1, 0);
-        lpoke(COLBASE + i, 0);
-        lpoke(COLBASE + i + 1, col);
-    }
+
+    // use DMAgic to fill FCM screens... PGS, I love you!
+    lfill_skip(SCREENBASE + bas, character, width, 2);
+    lfill_skip(COLBASE + bas, 0, width, 2);
+    lfill_skip(COLBASE + bas + 1, col, width, 2);
+
     return;
 }
 
