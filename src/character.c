@@ -12,13 +12,13 @@
 
 #define ITEM_HEADER_SIZE 0x08
 
-character *party[PARTYSIZE];
+character **party= (character **)0x5b0;
+char *tempItemDesc= (char *)0x5d0;
 
 long int gPartyGold;
 long int gPartyExperience;
 
 item tempItem;
-char tempItemDesc[32];
 
 item *inventoryItemForID(itemT anItemID) {
     static byte i;
@@ -153,7 +153,7 @@ char *bonusStrForAttribute(attrT a) {
 
 byte partyMemberCount(void) {
     static byte i;
-    static byte n= 0;
+    byte n= 0;
     for (i= 0; i < PARTYSIZE; ++i) {
         if (party[i]) {
             ++n;

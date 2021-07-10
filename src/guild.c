@@ -110,7 +110,7 @@ byte isInParty(byte guildIdx) {
 
 void addToParty(void) {
     char inbuf[3];
-    signed char slot;
+    static signed char slot;
     unsigned char gmIndex;
 
     character *newPartyCharacter;

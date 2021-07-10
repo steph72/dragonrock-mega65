@@ -194,34 +194,36 @@ void runCityMenu(void) {
 
         if (menuChoice >= 100) {
             inspectCharacter(menuChoice - 100);
-        }
+        } else {
 
-        switch (menuChoice) {
+            switch (menuChoice) {
 
-        case 0:
-            doGuild();
-            break;
+            case 0:
+                doGuild();
+                break;
 
-        case 1:
-            doArmory();
-            break;
+            case 1:
+                doArmory();
+                break;
 
-        case 5:
-            cg_clearBottomLine();
-            cg_printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
-            do {
-                cg_cursor(1);
-                cmd= cg_getkey();
-                cg_cursor(0);
-            } while (strchr("yn", cmd) == NULL);
-            if (cmd == 'y') {
-                quitCity= 1;
+            case 5:
+                cg_clearBottomLine();
+                cg_printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
+                do {
+                    cg_cursor(1);
+                    cmd= cg_getkey();
+                    cg_cursor(0);
+                } while (strchr("yn", cmd) == NULL);
+                if (cmd == 'y') {
+                    quitCity= 1;
+                }
+                cmd= 0;
+                break;
+
+            default:
+                cg_fatal("not implemented");
+                break;
             }
-            cmd= 0;
-            break;
-
-        default:
-            break;
         }
     }
 }

@@ -3,14 +3,12 @@
 
 // these may change...
 
-#define GUILDSIZE 36
+#define GUILDSIZE 24
 #define PARTYSIZE 6
 
 #define NUM_CITIES 7
 #define NUM_CLASSES 6
 #define NUM_RACES 5
-
-#define DR_GUILD_ID "**bkckkksk7t_dr**"
 
 extern char *gRaces[NUM_RACES];
 extern char *gRacesS[NUM_RACES];

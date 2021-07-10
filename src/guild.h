@@ -21,7 +21,6 @@ byte loadGuild(void);
 void saveGuild(void);
 void saveParty(void);
 
-extern character *party[PARTYSIZE];
 extern character *guild;
 
 #endif

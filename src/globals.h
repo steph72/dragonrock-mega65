@@ -40,7 +40,7 @@ extern encResult gEncounterResult; // result of last encounter
     character/party
     --------------- */
 
-extern character *party[PARTYSIZE]; // current adventuring party
+extern character **party; // current adventuring party
 extern long int gPartyGold;         // gold to be distributed when entering city
 extern long int gPartyExperience;   // xp to be distributed when entering city
 

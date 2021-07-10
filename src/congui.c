@@ -529,7 +529,7 @@ void cg_puts(const char *s) {
     y= yc16;
     xc16= 36;
     yc16= 0;
-    sprintf(out, "%x", testMem());
+    sprintf(out, "%x", _heapmaxavail());
     _debug_cg_puts(out);
     xc16= x;
     yc16= y;

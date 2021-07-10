@@ -649,6 +649,7 @@ void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void redrawAll() {
+    
     setupScreen();
     redrawMap();
     showCurrentParty(0, 2, true);
@@ -656,6 +657,7 @@ void redrawAll() {
     if (lastFeelIndex != 255) {
         displayFeel(lastFeelIndex);
     }
+    
 }
 
 void plotPlayer(byte x, byte y) {
