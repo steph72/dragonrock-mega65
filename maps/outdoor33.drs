@@ -1,7 +1,7 @@
 
 includemap "maps/outdoor33.drm"
 
-$ msgWaitkey," -- key -- "
+$ msgWaitkey,"-- key -- "
 
 
 ; ----------- main road --------------------------

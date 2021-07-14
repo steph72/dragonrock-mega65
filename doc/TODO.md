@@ -19,7 +19,7 @@ complete input routine
 
 ## dungeon
 - DONE sanitize filenames of maps and dungeons 
-- implement saving the map state
+- implement persistance
 - fix reload of current outdoor map
 - DONE put seenmap into attic
 
