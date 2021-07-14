@@ -41,8 +41,8 @@ static signed char gPalDir;
 clock_t lastPaletteTick;
 
 textwin currentWin;
-textwin *saveWin = 0x0600;
-byte winCount = 0;
+textwin *saveWin= 0x0600;
+byte winCount= 0;
 
 #define MAX_DBM_BLOCKS 16
 #define SHAPETBLSIZE 16
@@ -488,12 +488,17 @@ void cg_putc(char c) {
         cr();
         return;
     }
+    if (currentWin.xc >= currentWin.width) {
+        return;
+    }
     out= asciiToPetscii(c);
     if (rvsflag) {
         out|= 128;
     }
-    __putc(currentWin.xc+currentWin.x0, currentWin.yc+currentWin.y0, out, 0);
+    __putc(currentWin.xc + currentWin.x0, currentWin.yc + currentWin.y0, out,
+           0);
     currentWin.xc++;
+/*
     if (currentWin.xc >= currentWin.width) {
         currentWin.yc++;
         currentWin.xc= 0;
@@ -502,8 +507,11 @@ void cg_putc(char c) {
             scrollUp();
         }
     }
+    */
+
     if (csrflag) {
-        __putc(currentWin.xc+currentWin.x0, currentWin.yc+currentWin.y0, CURSOR_CHARACTER, 16);
+        __putc(currentWin.xc + currentWin.x0, currentWin.yc + currentWin.y0,
+               CURSOR_CHARACTER, 16);
     }
 }
 
@@ -524,8 +532,8 @@ void cg_puts(const char *s) {
     }
 #ifdef DEBUG
     cg_pushWin();
-    currentWin.x0=0;
-    currentWin.y0=0;
+    currentWin.x0= 0;
+    currentWin.y0= 0;
     currentWin.xc= 36;
     currentWin.yc= 0;
     sprintf(out, "%x", _heapmaxavail());
@@ -546,8 +554,8 @@ void cg_putcxy(byte x, byte y, char c) {
 
 void cg_cursor(byte onoff) {
     csrflag= onoff;
-    __putc(currentWin.xc+currentWin.x0, currentWin.yc+currentWin.y0, (csrflag ? CURSOR_CHARACTER : 32),
-           (csrflag ? 16 : 0));
+    __putc(currentWin.xc + currentWin.x0, currentWin.yc + currentWin.y0,
+           (csrflag ? CURSOR_CHARACTER : 32), (csrflag ? 16 : 0));
 }
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
