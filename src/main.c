@@ -154,6 +154,7 @@ int main() {
     initEngine();
     cg_clrscr();
     cg_borders(false);
+ 
 
     sprintf(drbuf, "Start in %s", gCities[3]);
     mainMenu[1]= drbuf;

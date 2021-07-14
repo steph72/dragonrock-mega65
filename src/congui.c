@@ -41,6 +41,8 @@ static signed char gPalDir;
 clock_t lastPaletteTick;
 
 textwin currentWin;
+textwin *saveWin = 0x0600;
+byte winCount = 0;
 
 #define MAX_DBM_BLOCKS 16
 #define SHAPETBLSIZE 16
@@ -67,7 +69,6 @@ textwin currentWin;
 
 #define CURSOR_CHARACTER 0x5f
 
-byte xc16, yc16;           // text cursor position
 byte textcolor16;          // text colour
 unsigned long gScreenSize; // screen size (in characters)
 byte gScreenColumns;       // number of screen columns (in characters)
@@ -95,18 +96,6 @@ void cg_init() {
     bgcolor(COLOR_BLACK);
     bordercolor(COLOR_BLACK);
     cg_go16bit(0, 0);
-    /*
-    lfill_skip(SCREENBASE,65,40,2);
-    cgetc();
-    cg_gotoxy(10,0);
-    cg_printf("%d",gScreenRows);
-    for (i=1;i<=gScreenRows;++i) {
-        cg_gotoxy(0,i-1);
-        cg_printf("%d",i);
-        cg_getkey();
-    }
-    cg_getkey();
-    */
     cg_loadDBM("borders.dbm", 0x13000, SYSPAL);
     cg_resetPalette(); // assumes standard colours at 0x13800
     cg_textcolor(COLOR_GREEN);
@@ -114,6 +103,16 @@ void cg_init() {
     gPal= 0;
     rvsflag= 0;
     gPalDir= 1;
+}
+
+void cg_pushWin() {
+    saveWin[++winCount]= currentWin;
+    cg_resetwin();
+}
+
+void cg_popWin() {
+    currentWin= saveWin[winCount--];
+    cg_gotoxy(currentWin.xc, currentWin.yc);
 }
 
 void cg_clearBottomLine() {
@@ -247,8 +246,8 @@ void cg_go16bit(byte h640, byte v400) {
     SCNPTR_2= (SCREENBASE >> 16) & 0xff;
     SCNPTR_3&= 0xF0 | ((SCREENBASE) << 24 & 0xff);
 
-    xc16= 0;
-    yc16= 0;
+    currentWin.xc= 0;
+    currentWin.yc= 0;
     textcolor16= 5;
     currentWin.x0= 0;
     currentWin.x1= gScreenColumns - 1;
@@ -459,10 +458,10 @@ void scrollUp() {
 }
 
 void cr() {
-    xc16= currentWin.x0;
-    yc16++;
-    if (yc16 > currentWin.y1) {
-        yc16= currentWin.y1;
+    currentWin.xc= 0;
+    currentWin.yc++;
+    if (currentWin.yc > currentWin.height) {
+        currentWin.yc= currentWin.height;
         scrollUp();
     }
 }
@@ -476,9 +475,9 @@ void __putc(byte x, byte y, byte c, byte exAttr) {
     lpoke(COLBASE + adrOffset, 0);
 }
 
-byte cg_wherex() { return xc16; }
+byte cg_wherex() { return currentWin.xc; }
 
-byte cg_wherey() { return yc16; }
+byte cg_wherey() { return currentWin.yc; }
 
 void cg_putc(char c) {
     static char out;
@@ -493,18 +492,18 @@ void cg_putc(char c) {
     if (rvsflag) {
         out|= 128;
     }
-    __putc(xc16, yc16, out, 0);
-    xc16++;
-    if (xc16 > currentWin.x1) {
-        yc16++;
-        xc16= currentWin.x0;
-        if (yc16 > currentWin.y1) {
-            yc16= currentWin.y1;
+    __putc(currentWin.xc+currentWin.x0, currentWin.yc+currentWin.y0, out, 0);
+    currentWin.xc++;
+    if (currentWin.xc >= currentWin.width) {
+        currentWin.yc++;
+        currentWin.xc= 0;
+        if (currentWin.yc > currentWin.height) {
+            currentWin.yc= currentWin.height;
             scrollUp();
         }
     }
     if (csrflag) {
-        __putc(xc16, yc16, CURSOR_CHARACTER, 16);
+        __putc(currentWin.xc+currentWin.x0, currentWin.yc+currentWin.y0, CURSOR_CHARACTER, 16);
     }
 }
 
@@ -517,7 +516,6 @@ void _debug_cg_puts(const char *s) {
 
 void cg_puts(const char *s) {
 #ifdef DEBUG
-    byte x, y;
     char out[16];
 #endif
     const char *current= s;
@@ -525,14 +523,14 @@ void cg_puts(const char *s) {
         cg_putc(*current++);
     }
 #ifdef DEBUG
-    x= xc16;
-    y= yc16;
-    xc16= 36;
-    yc16= 0;
+    cg_pushWin();
+    currentWin.x0=0;
+    currentWin.y0=0;
+    currentWin.xc= 36;
+    currentWin.yc= 0;
     sprintf(out, "%x", _heapmaxavail());
     _debug_cg_puts(out);
-    xc16= x;
-    yc16= y;
+    cg_popWin();
 #endif
 }
 
@@ -548,7 +546,8 @@ void cg_putcxy(byte x, byte y, char c) {
 
 void cg_cursor(byte onoff) {
     csrflag= onoff;
-    __putc(xc16, yc16, (csrflag ? CURSOR_CHARACTER : 32), (csrflag ? 16 : 0));
+    __putc(currentWin.xc+currentWin.x0, currentWin.yc+currentWin.y0, (csrflag ? CURSOR_CHARACTER : 32),
+           (csrflag ? 16 : 0));
 }
 
 void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
@@ -567,8 +566,8 @@ void box16(byte x0, byte y0, byte x1, byte y1, byte b, byte c) {
 void cg_textcolor(byte c) { textcolor16= c; }
 
 void cg_gotoxy(byte x, byte y) {
-    xc16= currentWin.x0 + x;
-    yc16= currentWin.y0 + y;
+    currentWin.xc= x;
+    currentWin.yc= y;
 }
 
 int cg_printf(const char *format, ...) {
@@ -597,6 +596,8 @@ void cg_setwin(byte x0, byte y0, byte width, byte height) {
     currentWin.y1= y0 + height - 1;
     currentWin.width= width;
     currentWin.height= height;
+    currentWin.xc= 0;
+    currentWin.yc= 0;
     cg_gotoxy(0, 0);
 }
 
@@ -630,11 +631,23 @@ char *cg_input(byte maxlen) {
     do {
         current= cgetc();
         if (current != '\n') {
-            if (len < maxlen) {
-                drbuf[len]= current;
-                drbuf[len + 1]= 0;
-                cg_putc(current);
-                ++len;
+            if (current >= 32) {
+                if (len < maxlen) {
+                    drbuf[len]= current;
+                    drbuf[len + 1]= 0;
+                    cg_putc(current);
+                    ++len;
+                }
+            } else if (current == 20) {
+                // del pressed
+                if (len > 0) {
+                    cg_cursor(0);
+                    cg_gotoxy(currentWin.xc - 1, currentWin.yc);
+                    cg_putc(' ');
+                    cg_gotoxy(currentWin.xc - 1, currentWin.yc);
+                    cg_cursor(1);
+                    --len;
+                }
             }
         }
     } while (current != '\n');
@@ -685,10 +698,10 @@ void cg_center(byte x, byte y, byte width, char *text) {
     }
     cg_gotoxy(-1 + x + width / 2 - l / 2, y);
     cg_plotExtChar(
-        xc16 - 1, yc16,
+        currentWin.xc - 1, currentWin.yc,
         H_COLUMN_END); // leave space for imprint effect (thx tayger!)
     cg_puts(text);
-    cg_plotExtChar(xc16, yc16, H_COLUMN_START);
+    cg_plotExtChar(currentWin.xc, currentWin.yc, H_COLUMN_START);
 }
 
 unsigned char nyblswap(unsigned char in) // oh why?!

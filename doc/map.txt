@@ -8,6 +8,7 @@ BANK 0
 0x00510 - 0x005af       text output buffer for congui.c
 0x005b0 - 0x005cf       party member pointers
 0x005d0 - 0x005ff       temp item strings
+0x00600                 window list
 
 0x00801 - 0x08fff       main program    36k
 0x09000 - 0x0cfff       overlays        16k

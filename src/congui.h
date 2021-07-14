@@ -23,6 +23,8 @@ typedef struct _shapeInfo {
 } shapeInfo;
 
 typedef struct _textwin {
+    byte xc;
+    byte yc;
     byte x0;
     byte y0;
     byte x1;
@@ -75,6 +77,8 @@ byte cg_wherex();
 byte cg_wherey();
 void cg_setwin(byte x0, byte y0, byte width, byte height);
 void cg_resetwin();
+void cg_pushWin();
+void cg_popWin();
 void cg_cursor(byte onoff);
 void cg_center(byte x, byte y, byte width, char *text);
 unsigned char cg_cgetc(void);

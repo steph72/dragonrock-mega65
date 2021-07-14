@@ -320,14 +320,11 @@ void newGuildMember(byte city) {
         return;
 
     top= top + i + 4;
-    cg_clearxy(0, top, 40);
-    cg_putsxy(18, top + 1, "---------------");
+    cg_clearxy(1, top, 38);
+    cg_putsxy(18, top + 1, "----------------");
     cg_putsxy(2, top, "Character name: ");
     cname= cg_input(16);
-    // fgets(cname, 17, stdin); // see above
-    // cname[strlen(cname) - 1]= 0;
 
-    // copy temp char to guild
     newC->city= city;
     newC->guildSlot= slot;
     newC->status= awake;

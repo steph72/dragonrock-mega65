@@ -101,6 +101,10 @@ const byte screenWidth= 40;
 const byte screenX= 1;
 const byte screenY= 1;
 
+byte dungeonCursorX= 0;
+byte dungeonCursorY= 0;
+byte isDungeonFullscreenMode= false;
+
 int encounterWonOpcIdx;
 int encounterLostOpcIdx;
 
@@ -124,6 +128,18 @@ void clearStatus(void);
 #ifdef DEBUG
 byte singleStepMode;
 #endif
+
+void enterFullscreen() {
+    cg_borders(false);
+    cg_setwin(1,1,gScreenColumns-2,gScreenRows-3);
+    isDungeonFullscreenMode = true;
+}
+
+void enterFrameScreen() {
+    cg_borders(true);
+    cg_setwin(1, 17, 37, 6);
+    isDungeonFullscreenMode = false;
+}
 
 // --------------------------------- opcodes ---------------------------------
 
@@ -151,6 +167,7 @@ int performDisplayFeelOpcode(opcode *anOpcode) {
     }
 
     displayFeel(anOpcode->param1);
+
     lastFeelIndex= feelIndex;
 
     return 0;
@@ -161,13 +178,18 @@ int performDisplayTextOpcode(opcode *anOpcode) {
 
     byte feelIndex= anOpcode->param1;
 
-    if (anOpcode->id & 0x20) {
+    cg_gotoxy(dungeonCursorX,dungeonCursorY);
+
+    if (anOpcode->id & 0x20) { // DISP_S: DISP in status area
         displayFeel(feelIndex);
         return 0;
     }
 
     if (anOpcode->param2 != 0) {
+        enterFullscreen();
         cg_clrscr();
+        dungeonCursorY=1;
+        dungeonCursorX=1;
     }
     printFeelForIndex(anOpcode->param1);
 
@@ -189,7 +211,7 @@ int performYesNoOpcode(opcode *anOpcode) {
 
     yesAddr= anOpcode->param1 + (256 * (anOpcode->param2));
     noAddr= anOpcode->param3 + (256 * (anOpcode->param4));
-
+    cg_gotoxy(cg_wherex(),cg_wherey());
     cg_cursor(true);
     do {
         inkey= cg_getkey();
@@ -493,17 +515,17 @@ void performOpcodeAtIndex(int idx) {
 
 int performOpcode(opcode *anOpcode, int currentPC) {
 
-    byte xs, ys; // x,y save
     byte opcodeID;
 
     int newPC;
     int rOpcIdx; // returned opcode index from singular opcodes, used for
                  // branching
 
+
+
 #ifdef DEBUG
-    xs= cg_wherex();
-    ys= cg_wherey();
-    cg_gotoxy(0, 24);
+    cg_pushWin();
+    cg_gotoxy(0, 26);
     cg_printf("%04x:%02x%02x%02x%02x%02x%02x%02x>%02x", currentPC, anOpcode->id,
               anOpcode->param1, anOpcode->param2, anOpcode->param3,
               anOpcode->param4, anOpcode->param5, anOpcode->param6,
@@ -515,9 +537,10 @@ int performOpcode(opcode *anOpcode, int currentPC) {
         cg_gotoxy(28, 0);
         cg_puts("          ");
     }
-    cg_gotoxy(0, 23);
-    cg_gotoxy(xs, ys);
+    cg_popWin();
 #endif
+
+
 
     opcodeID= (anOpcode->id) & 31; // we have 5-bit opcodes from 0x00 - 0x1f
 
@@ -649,7 +672,7 @@ void fetchOpcodeAtIndex(byte idx, opcode *anOpcode) {
 void redrawMap() { blitmap(offsetX, offsetY, screenX, screenY); }
 
 void redrawAll() {
-    
+
     setupScreen();
     redrawMap();
     showCurrentParty(0, 2, true);
@@ -657,7 +680,6 @@ void redrawAll() {
     if (lastFeelIndex != 255) {
         displayFeel(lastFeelIndex);
     }
-    
 }
 
 void plotPlayer(byte x, byte y) {
@@ -676,18 +698,17 @@ void plotPlayer(byte x, byte y) {
 }
 
 void clearStatus(void) {
-    cg_setwin(1, 17, 37, 6);
+    cg_setwin(1, 17, 38, 6);
     cg_clrscr();
-    cg_setwin(0, 0, 40, 24);
 }
 
 void displayFeel(byte feelID) {
-    cg_setwin(1, 17, 37, 6);
-    cg_clrscr();
+    clearStatus();
     cg_textcolor(COLOR_YELLOW);
     printFeelForIndex(feelID);
+    dungeonCursorX= cg_wherex();
+    dungeonCursorY= cg_wherey();
     cg_textcolor(COLOR_GRAY2);
-    cg_setwin(0, 0, 40, 24);
 }
 
 // moves origin and redraws map if player is in scroll area
@@ -860,10 +881,8 @@ void runDaemons(byte x, byte y) {
 }
 
 void dungeonLoop() {
-
-    static byte xs, ys;     // save x,y for debugging
     static byte oldX, oldY; // save x,y for impassable
-    signed char fov;
+    static signed char fov;
 
     static byte cmd;
     static byte performedImpassableOpcode;
@@ -1013,12 +1032,11 @@ void dungeonLoop() {
             // dItem= dungeonItemAtPos(mposX, mposY);
 
 #ifdef DEBUG
-            xs= cg_wherex();
-            ys= cg_wherey();
-            cg_gotoxy(27, 24);
+            cg_pushWin();
+            cg_gotoxy(27, 26);
             cg_printf("%2d,%2d: %02x %02x", mposX, mposY, dItem.opcodeID,
                       dItem.mapItem);
-            cg_gotoxy(xs, ys);
+            cg_popWin();
 #endif
 
             if (dItem.mapItem & 32) { // check impassable flag
@@ -1048,6 +1066,8 @@ void printFeelForIndex(byte idx) {
         current= lpeek(adr++);
         cg_putc(current);
     } while (current);
+    dungeonCursorY = cg_wherey();
+    dungeonCursorX = cg_wherex();
 }
 
 void setupScreen() {
@@ -1057,6 +1077,7 @@ void setupScreen() {
     cg_textcolor(COLOR_GRAY2);
     cg_clrscr();
     cg_borders(true);
+    isDungeonFullscreenMode = false;
 }
 
 void unloadDungeon(void) {
