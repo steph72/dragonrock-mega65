@@ -35,6 +35,9 @@ typedef struct _textwin {
 
 #define cg_clearxy(x0, y, x1) cg_line(y, x0, x1, 32, 0)
 
+#define cg_bordercolor(C)   POKE(0xd020u,C)
+#define cg_bgcolor(C)       POKE(0xd021u,C)
+
 extern byte gScreenColumns;       // number of screen columns (in characters)
 extern byte gScreenRows;          // number of screen rows (in characters)
 
@@ -63,6 +66,7 @@ void cg_emptyBuffer(void);
 char cg_getkey(void);
 char cg_getkeyP(byte x, byte y, const char *prompt);
 char *cg_input(byte maxlen);
+int cg_getnum(byte maxlen);
 
 // --- string and character output ---
 
@@ -71,7 +75,7 @@ void cg_putc(char c);
 void cg_puts(const char *s);
 void cg_putsxy(byte x, byte y, char *s);
 void cg_putcxy(byte x, byte y, char c);
-int cg_printf(const char *format, ...);
+void cg_printf(const char *format, ...);
 void cg_gotoxy(byte x, byte y);
 byte cg_wherex();
 byte cg_wherey();
@@ -85,26 +89,16 @@ unsigned char cg_cgetc(void);
 
 // colour and palette handling
 
-void cg_bordercolor(unsigned char c);
-void cg_bgcolor(unsigned char c);
+
 void cg_revers(byte r);
 void cg_textcolor(byte c);
 void cg_setPalette(byte num, byte red, byte green, byte blue);
 void cg_resetPalette();
 void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette);
 
-
-
-
 void cg_clearLower(byte num);
 void cg_clearBottomLine();
 void cg_clearFromTo(byte start, byte end);
-
-void cg_stepColor(void);
-void cg_stopColor(void);
-
-
-
 
 void cg_freeGraphAreas(void);
 void cg_addGraphicsRect(byte x0, byte y0, byte width, byte height,

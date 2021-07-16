@@ -17,13 +17,18 @@
 #include "dungeon.h"
 #include "menu.h"
 
+// clang-format off
+#pragma code-name(push, "OVERLAY2");
+#pragma rodata-name (push, "OVERLAY2")
+#pragma local-strings (push,on)
+// clang-format on
+
+
 const char *invError= "INVERR (%d)";
 dbmInfo *cityDBM;
 dbmInfo *guildDBM;
+dbmInfo *innDBM;
 
-// clang-format off
-#pragma code-name(push, "OVERLAY2");
-// clang-format on
 
 void runCityMenu(void);
 
@@ -79,6 +84,8 @@ void distributeSpoils(void) {
 void loadCityImages() {
     sprintf(drbuf, "city%d.dbm", gCurrentCityIndex + 1);
     cityDBM= cg_loadDBM(drbuf, NULL, NULL);
+    sprintf(drbuf, "inn%d.dbm", gCurrentCityIndex + 1);
+    innDBM= cg_loadDBM(drbuf, NULL, NULL);
     guildDBM= cg_loadDBM("guild1.dbm", NULL, NULL);
 }
 
@@ -95,6 +102,31 @@ void enterCityMode(void) {
     }
     runCityMenu();
     leaveCityMode();
+}
+
+void doInn(void) {
+    char *innMenu[]= {"Rest", "Save game", "Leave", NULL};
+
+    static unsigned char leaveInn;
+    static byte menuChoice;
+
+    leaveInn= 0;
+
+    while (!leaveInn) {
+        cg_clrscr();
+        cg_borders(true);
+        cg_textcolor(COLOR_GRAY2);
+        cg_displayDBMInfo(innDBM, 1, 1);
+        sprintf(drbuf, "%s inn", gCities[gCurrentCityIndex]);
+        cg_revers(1);
+        cg_center(18, 0, 40 - 18, drbuf);
+        cg_revers(0);
+        showCurrentParty(1, 17, false);
+        cg_textcolor(COLOR_ORANGE);
+        menuChoice= runMenu(innMenu, 18, 2, true, false);
+
+        leaveInn= menuChoice == 2;
+    }
 }
 
 void doGuild(void) {
@@ -204,6 +236,10 @@ void runCityMenu(void) {
 
             case 1:
                 doArmory();
+                break;
+
+            case 2:
+                doInn();
                 break;
 
             case 5:
@@ -358,4 +394,6 @@ void newGuildMember(byte city) {
 
 // clang-format off
 #pragma code-name(pop);
+#pragma rodata-name (pop)
+#pragma local-strings (pop)
 // clang-format on

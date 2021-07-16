@@ -32,7 +32,7 @@ CONFIG  :=
 # Additional C compiler flags and options.
 # Default: none
 CFLAGS += -DDEBUG
-CCFLAGS += -Osir
+#CFLAGS += -Osir
 #CFLAGS += --check-stack
 CFLAGS += --cpu 65C02
 CFLAGS += -DDRE_DATE="\"$(BUILDDATE)\""

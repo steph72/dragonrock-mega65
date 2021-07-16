@@ -11,6 +11,8 @@
 
 // clang-format off
 #pragma code-name(push, "OVERLAY3");
+#pragma rodata-name (push, "OVERLAY3")
+#pragma local-strings (push,on)
 // clang-format on
 
 static char *encounterActionNoun[]= {"Wait",
@@ -689,4 +691,6 @@ preCombatResult runPreCombat(void) {
 
 // clang-format off
 #pragma code-name(pop);
+#pragma rodata-name (pop)
+#pragma local-strings (pop)
 // clang-format on

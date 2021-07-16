@@ -6,14 +6,15 @@ cc65 V2.18 - Git de630a12
 DONE failsafe center
 DONE center in title
 DONE use DMA for screen fills
-refactor dungeon text output area concept
-complete input routine
+DONE refactor dungeon text output area concept
+fix input routine for empty input
 
 ## city
 - DONE implement "you must assemble a party first"
 - implement armory
 - implement inn
 - implement mystic
+- implement guild sync
 - finish guild
 
 

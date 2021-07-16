@@ -61,8 +61,6 @@ void commitNewGameMode(void) {
     lastGameMode= gCurrentGameMode;
     gCurrentGameMode= gNextGameMode;
 
-    cg_clrscr();
-
     switch (gNextGameMode) {
 
     case gm_dungeon:

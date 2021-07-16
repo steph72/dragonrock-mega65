@@ -39,6 +39,8 @@
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
+#pragma rodata-name (push, "OVERLAY1")
+#pragma local-strings (push,on)
 // clang-format on
 
 typedef struct _sign {
@@ -372,6 +374,8 @@ int performAlterOpcode(opcode *anOpcode) {
 
 // clang-format off
 #pragma code-name(pop);
+#pragma rodata-name (pop)
+#pragma local-strings (pop)
 // clang-format on
 
 // 0x0a: ADDC / ADDE / ADDC_V / ADDE_V
@@ -401,6 +405,8 @@ int performAddCoinsOpcode(opcode *anOpcode) {
 
 // clang-format off
 #pragma code-name(push, "OVERLAY1");
+#pragma rodata-name (push, "OVERLAY1")
+#pragma local-strings (push,on)
 // clang-format on
 
 // 0x0c: SETREG
@@ -1246,4 +1252,6 @@ void blitmap(byte mapX, byte mapY, byte posX, byte posY) {
 
 // clang-format off
 #pragma code-name(pop);
+#pragma rodata-name (pop)
+#pragma local-strings (pop)
 // clang-format on

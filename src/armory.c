@@ -17,6 +17,8 @@ byte numCityVisits;
 
 // clang-format off
 #pragma code-name(push, "OVERLAY2");    // "CITY" segment
+#pragma rodata-name (push, "OVERLAY2")
+#pragma local-strings (push,on)
 // clang-format on
 
 
@@ -207,4 +209,6 @@ void doArmory(void) {
 
 // clang-format off
 #pragma code-name(pop);    // "CITY" segment
+#pragma rodata-name (pop)
+#pragma local-strings (pop)
 // clang-format on

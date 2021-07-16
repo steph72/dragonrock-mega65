@@ -36,10 +36,6 @@
 #include "debug.h"
 #endif
 
-static byte gPal;
-static signed char gPalDir;
-clock_t lastPaletteTick;
-
 textwin currentWin;
 textwin *saveWin= 0x0600;
 byte winCount= 0;
@@ -70,7 +66,7 @@ byte winCount= 0;
 #define CURSOR_CHARACTER 0x5f
 
 byte textcolor16;          // text colour
-unsigned long gScreenSize; // screen size (in characters)
+word gScreenSize; // screen size (in characters)
 byte gScreenColumns;       // number of screen columns (in characters)
 byte gScreenRows;          // number of screen rows (in characters)
 himemPtr
@@ -80,7 +76,7 @@ byte infoBlockCount; // number of info blocks
 
 byte cgi;     // universal loop var
 byte rvsflag; // revers
-byte csrflag;
+byte csrflag; // cursor on/off
 
 dbmInfo **infoBlocks= (dbmInfo **)0x518; // loaded dbm file info blocks
 
@@ -97,12 +93,10 @@ void cg_init() {
     bordercolor(COLOR_BLACK);
     cg_go16bit(0, 0);
     cg_loadDBM("borders.dbm", 0x13000, SYSPAL);
-    cg_resetPalette(); // assumes standard colours at 0x13800
+    cg_resetPalette(); // assumes standard colours at 0x14000
     cg_textcolor(COLOR_GREEN);
     cg_clrscr();
-    gPal= 0;
     rvsflag= 0;
-    gPalDir= 1;
 }
 
 void cg_pushWin() {
@@ -354,8 +348,6 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
     palette= (byte *)malloc(palsize);
     fread(palette, 3, numColours, dbmfile);
 
-    mega65_io_enable();
-
     if (!paletteAddress) {
         palAdr= cg_allocPalMem(palsize);
         if (palAdr == NULL) {
@@ -384,7 +376,6 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
 
     bytesRead= readExt(dbmfile, bitmampAdr);
     fclose(dbmfile);
-    mega65_io_enable();
 
     if (info != NULL) {
         info->columns= numColumns;
@@ -402,7 +393,6 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
 void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette) {
 
     himemPtr cgi;
-    static byte r, g, b;
     himemPtr colAdr;
 
     for (cgi= 0; cgi < size; ++cgi) {
@@ -410,17 +400,13 @@ void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette) {
             continue;
         }
         colAdr= cgi * 3;
-        r= lpeek(adr + colAdr);     //  palette[colAdr];
-        g= lpeek(adr + colAdr + 1); // palette[colAdr + 1];
-        b= lpeek(adr + colAdr + 2); // palette[colAdr + 2];
-        POKE(0xd100u + cgi, r);
-        POKE(0xd200u + cgi, g);
-        POKE(0xd300u + cgi, b);
+        POKE(0xd100u+cgi, lpeek(adr + colAdr));     //  palette[colAdr];
+        POKE(0xd200u+cgi, lpeek(adr + colAdr + 1)); // palette[colAdr + 1];
+        POKE(0xd300u+cgi, lpeek(adr + colAdr + 2)); // palette[colAdr + 2];
     }
 }
 
 void cg_displayDBMInfo(dbmInfo *info, byte x0, byte y0) {
-    mega65_io_enable();
     cg_loadPalette(info->paletteAdr, info->paletteSize,
                    info->reservedSysPalette);
     cg_addGraphicsRect(x0, y0, info->columns, info->rows, info->baseAdr);
@@ -498,16 +484,16 @@ void cg_putc(char c) {
     __putc(currentWin.xc + currentWin.x0, currentWin.yc + currentWin.y0, out,
            0);
     currentWin.xc++;
-/*
-    if (currentWin.xc >= currentWin.width) {
-        currentWin.yc++;
-        currentWin.xc= 0;
-        if (currentWin.yc > currentWin.height) {
-            currentWin.yc= currentWin.height;
-            scrollUp();
+    /*
+        if (currentWin.xc >= currentWin.width) {
+            currentWin.yc++;
+            currentWin.xc= 0;
+            if (currentWin.yc > currentWin.height) {
+                currentWin.yc= currentWin.height;
+                scrollUp();
+            }
         }
-    }
-    */
+        */
 
     if (csrflag) {
         __putc(currentWin.xc + currentWin.x0, currentWin.yc + currentWin.y0,
@@ -578,7 +564,7 @@ void cg_gotoxy(byte x, byte y) {
     currentWin.yc= y;
 }
 
-int cg_printf(const char *format, ...) {
+void cg_printf(const char *format, ...) {
     int ret;
     char buf[160];
     va_list args;
@@ -586,7 +572,6 @@ int cg_printf(const char *format, ...) {
     vsprintf(buf, format, args);
     va_end(args);
     cg_puts(buf);
-    return ret;
 }
 
 void cg_clrscr() {
@@ -629,6 +614,15 @@ char cg_getkey(void) {
     return cgetc();
 }
 
+int cg_getnum(byte maxlen) {
+    int res;
+    char *inptr;
+    inptr= cg_input(maxlen);
+    res= atoi(inptr);
+    free(inptr);
+    return res;
+}
+
 char *cg_input(byte maxlen) {
     static byte len, ct;
     char current;
@@ -659,9 +653,12 @@ char *cg_input(byte maxlen) {
             }
         }
     } while (current != '\n');
-    len++;
-    ret= (char *)malloc(len);
-    strncpy(ret, drbuf, len);
+    ret= (char *)malloc(++len);
+    if (len == 1) {
+        *ret= 0;
+    } else {
+        strncpy(ret, drbuf, len);
+    }
     cg_cursor(ct);
     return ret;
 }
@@ -723,41 +720,11 @@ void cg_setPalette(byte num, byte red, byte green, byte blue) {
     POKE(0xd300U + num, nyblswap(blue));
 }
 
-void cg_stepColor(void) {
-    if ((clock() - lastPaletteTick) < 3) {
-        return;
-    }
-    lastPaletteTick= clock();
-    gPal+= gPalDir;
-    POKE(0xd100U + 1, gPal / 2);
-    POKE(0xd200U + 1, gPal);
-    POKE(0xd300U + 1, 15);
-    if (gPal == 15) {
-        gPalDir= -1;
-    } else if (gPal == 0) {
-        gPalDir= 1;
-    }
-}
-
-void cg_stopColor(void) {
-    POKE(0xd100U + 1, 15);
-    POKE(0xd200U + 1, 15);
-    POKE(0xd300U + 1, 15);
-}
-
-void cg_bordercolor(unsigned char c) { POKE(VIC_BASE + 0x20, c); }
-
-void cg_bgcolor(unsigned char c) { POKE(VIC_BASE + 0x21, c); }
-
 char cg_getkeyP(byte x, byte y, const char *prompt) {
     cg_emptyBuffer();
     gotoxy(x, y);
     textcolor(COLOR_WHITE);
     cputs(prompt);
-    while (!kbhit()) {
-        cg_stepColor();
-    }
-    cg_stopColor();
     return cgetc();
 }
 

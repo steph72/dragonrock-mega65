@@ -100,18 +100,6 @@ byte getNumberOfAttacks(character *aCharacter) {
     return 1;
 }
 
-item *getWeapon(character *aCharacter) {
-    return inventoryItemForID(aCharacter->weapon);
-}
-
-item *getArmor(character *aCharacter) {
-    return inventoryItemForID(aCharacter->armor);
-}
-
-item *getShield(character *aCharacter) {
-    return inventoryItemForID(aCharacter->shield);
-}
-
 int getHitDiceForCharacter(character *aCharacter) {
     item *weapon;
     if (aCharacter->weapon) {

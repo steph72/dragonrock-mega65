@@ -23,6 +23,8 @@ void flagError(char *e);
 
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
+#pragma rodata-name (push, "OVERLAY2")
+#pragma local-strings (push,on)
 // clang-format on
 
 void _listGuildMembers(void) {
@@ -58,11 +60,10 @@ void listGuildMembers(void) {
 
 void flagError(char *e) {
     cg_textcolor(2);
-    cg_cursor(0);
-    cg_clearxy(0, 22, 40);
-    cg_putsxy(2, 22, e);
+    cg_clearxy(0, 26, 40);
+    cg_putsxy(0, 26, e);
     cg_textcolor(8);
-    cg_putsxy(2, 23, "-- key --");
+    cg_putsxy(35, 26, "-key-");
     cg_getkey();
 }
 
@@ -81,11 +82,9 @@ void cleanupParty(void) {
 void dropFromParty(void) {
     static byte pm;
 
-    cg_clearxy(0, 22, 40);
-    cg_putsxy(2, 22, "Remove whom (0=cancel)");
-    cg_cursor(1);
-    fgets(drbuf, 3, stdin);
-    pm= atoi(drbuf);
+    cg_clearxy(0, 26, 40);
+    cg_putsxy(2, 26, "Remove whom (0=cancel)");
+    pm = cg_getnum(2);
     if (pm == 0)
         return;
     --pm;
@@ -109,13 +108,12 @@ byte isInParty(byte guildIdx) {
 }
 
 void addToParty(void) {
-    char inbuf[3];
     static signed char slot;
     unsigned char gmIndex;
 
     character *newPartyCharacter;
 
-    cg_clearxy(0, 22, 40);
+    cg_clearxy(0, 26, 40);
     slot= nextFreePartySlot();
     if (slot == -1) {
         flagError("no room in party");
@@ -125,10 +123,8 @@ void addToParty(void) {
     cg_titlec(COLOR_YELLOW, 0, "Add guild member");
 
     _listGuildMembers();
-    cg_putsxy(2, 22, "Add which guild member (0=cancel)?");
-    cg_cursor(1);
-    fgets(inbuf, 3, stdin);
-    gmIndex= atoi(inbuf);
+    cg_putsxy(0, 26, "Add which guild member (0=cancel)?");
+    gmIndex = cg_getnum(2);
     if (gmIndex == 0) {
         return;
     }
@@ -152,14 +148,12 @@ void addToParty(void) {
 }
 
 void purgeGuildMember(void) {
-    static char cnum[5];
     static byte idx;
     cg_titlec(COLOR_RED, 0, "Purge guild member");
     cg_textcolor(COLOR_RED);
     _listGuildMembers();
-    cg_putsxy(0, 22, "Purge which member (0=cancel)? ");
-    fgets(cnum, 16, stdin);
-    idx= atoi(cnum);
+    cg_putsxy(0, 26, "Purge which member (0=cancel)? ");
+    idx = cg_getnum(2);
     if (idx == 0) {
         return;
     }
@@ -235,12 +229,13 @@ void initGuildMem(void) {
     sizeBytes= GUILDSIZE * sizeof(character);
     guild= (character *)malloc(sizeBytes);
     if (guild == NULL) {
-        cg_puts("???fatal: no memory for guild");
-        while(1);
+        cg_fatal("no guild mem");
     }
     bzero(guild, sizeBytes);
 }
 
 // clang-format off
-#pragma code-name(pop);
+#pragma code-name(pop)
+#pragma rodata-name(pop)
+#pragma local-strings(pop)
 // clang-format on

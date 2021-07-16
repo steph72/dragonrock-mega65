@@ -31,5 +31,8 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipmentSlot);
 void useItem(character *ic);
 
 #define nameOfInventoryItemWithID(I) nameOfInventoryItem(inventoryItemForID(I))
+#define getWeapon(aCharacter)   inventoryItemForID(aCharacter->weapon)
+#define getArmor(aCharacter)    inventoryItemForID(aCharacter->armor)
+#define getShield(aCharacter)   inventoryItemForID(aCharacter->shield)
 
 #endif

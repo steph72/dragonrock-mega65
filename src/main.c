@@ -81,9 +81,7 @@ void loadResources(void) {
 
 void initEngine(void) {
     mega65_io_enable();
-
     drbuf= (char *)malloc(DRBUFSIZE);
-
     srand((unsigned int)DRE_BUILDNUM);
     puts("\n");       // cancel leftover quote mode from wrapper or whatever
     cbm_k_bsout(14);  // lowercase
@@ -152,9 +150,7 @@ int main() {
     char *mainMenu[]= {"Load saved game", NULL, NULL};
 
     initEngine();
-    cg_clrscr();
     cg_borders(false);
- 
 
     sprintf(drbuf, "Start in %s", gCities[3]);
     mainMenu[1]= drbuf;
