@@ -211,6 +211,7 @@ void runCityMenu(void) {
     quitCity= 0;
 
     while (!quitCity) {
+        cg_resetwin();
         cg_clrscr();
         cg_borders(true);
         cg_displayDBMInfo(cityDBM, 1, 1);
@@ -244,6 +245,7 @@ void runCityMenu(void) {
 
             case 5:
                 cg_clearBottomLine();
+                cg_gotoxy(0,gScreenRows-1);
                 cg_printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
                 do {
                     cg_cursor(1);

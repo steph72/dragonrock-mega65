@@ -19,8 +19,6 @@ void newGuildMember(byte city);
 void _listGuildMembers(void);
 void listGuildMembers(void);
 
-void flagError(char *e);
-
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
 #pragma rodata-name (push, "OVERLAY2")
@@ -58,15 +56,6 @@ void listGuildMembers(void) {
     cg_getkey();
 }
 
-void flagError(char *e) {
-    cg_textcolor(2);
-    cg_clearxy(0, 26, 40);
-    cg_putsxy(0, 26, e);
-    cg_textcolor(8);
-    cg_putsxy(35, 26, "-key-");
-    cg_getkey();
-}
-
 void cleanupParty(void) {
     byte i;
     for (i= 0; i < PARTYSIZE - 1; ++i) {
@@ -89,7 +78,7 @@ void dropFromParty(void) {
         return;
     --pm;
     if (pm >= PARTYSIZE) {
-        flagError("You wish!");
+        cg_displayErrorStatus("You wish!");
         return;
     }
     free(party[pm]);
@@ -116,7 +105,7 @@ void addToParty(void) {
     cg_clearxy(0, 26, 40);
     slot= nextFreePartySlot();
     if (slot == -1) {
-        flagError("no room in party");
+        cg_displayErrorStatus("no room in party");
         return;
     }
     cg_clrscr();
@@ -130,15 +119,15 @@ void addToParty(void) {
     }
     --gmIndex;
     if (gmIndex >= GUILDSIZE) {
-        flagError("What is it with you?!");
+        cg_displayErrorStatus("What is it with you?!");
         return;
     }
     if (guild[gmIndex].status == deleted) {
-        flagError("nobody there");
+        cg_displayErrorStatus("nobody there");
         return;
     }
     if (isInParty(gmIndex)) {
-        flagError("already in party");
+        cg_displayErrorStatus("already in party");
         return;
     }
 
@@ -159,11 +148,11 @@ void purgeGuildMember(void) {
     }
     idx--;
     if (idx >= GUILDSIZE) {
-        flagError("Are you working in QA?");
+        cg_displayErrorStatus("Are you working in QA?");
         return;
     }
     if (isInParty(idx)) {
-        flagError("Member is currently in the party!");
+        cg_displayErrorStatus("Member is currently in the party!");
         return;
     }
     guild[idx].status= deleted;

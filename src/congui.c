@@ -37,7 +37,7 @@
 #endif
 
 textwin currentWin;
-textwin *saveWin= 0x0600;
+textwin *saveWin= (textwin *)0x0600;
 byte winCount= 0;
 
 #define MAX_DBM_BLOCKS 16
@@ -65,10 +65,10 @@ byte winCount= 0;
 
 #define CURSOR_CHARACTER 0x5f
 
-byte textcolor16;          // text colour
-word gScreenSize; // screen size (in characters)
-byte gScreenColumns;       // number of screen columns (in characters)
-byte gScreenRows;          // number of screen rows (in characters)
+byte textcolor16;    // text colour
+word gScreenSize;    // screen size (in characters)
+byte gScreenColumns; // number of screen columns (in characters)
+byte gScreenRows;    // number of screen rows (in characters)
 himemPtr
     nextFreeGraphMem; // location of next free graphics block in banks 4 & 5
 himemPtr nextFreePalMem;
@@ -76,6 +76,7 @@ byte infoBlockCount; // number of info blocks
 
 byte cgi;     // universal loop var
 byte rvsflag; // revers
+byte flashflag;
 byte csrflag; // cursor on/off
 
 dbmInfo **infoBlocks= (dbmInfo **)0x518; // loaded dbm file info blocks
@@ -110,12 +111,30 @@ void cg_popWin() {
 }
 
 void cg_clearBottomLine() {
-    cg_resetwin();
+    cg_pushWin();
     cg_block_raw(0, gScreenRows - 1, gScreenColumns - 1, gScreenRows - 1, 32,
                  0);
-    cg_gotoxy(0, gScreenRows - 1);
+    cg_popWin();
 }
+
+void cg_displayErrorStatus(char *msg) {
+    cg_clearBottomLine();
+    cg_pushWin();
+    cg_gotoxy(0, gScreenRows - 1);
+    cg_textcolor(COLOR_YELLOW);
+    cg_puts(msg);
+    cg_textcolor(COLOR_RED);
+    cg_flash(1);
+    cg_gotoxy(gScreenColumns - 7, gScreenRows - 1);
+    cg_puts("--key--");
+    cg_flash(0);
+    cg_getkey();
+    cg_popWin();
+}
+
 void cg_revers(byte r) { rvsflag= r; }
+
+void cg_flash(byte f) { flashflag= f; }
 
 void cg_resetPalette() {
     mega65_io_enable();
@@ -400,9 +419,9 @@ void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette) {
             continue;
         }
         colAdr= cgi * 3;
-        POKE(0xd100u+cgi, lpeek(adr + colAdr));     //  palette[colAdr];
-        POKE(0xd200u+cgi, lpeek(adr + colAdr + 1)); // palette[colAdr + 1];
-        POKE(0xd300u+cgi, lpeek(adr + colAdr + 2)); // palette[colAdr + 2];
+        POKE(0xd100u + cgi, lpeek(adr + colAdr));     //  palette[colAdr];
+        POKE(0xd200u + cgi, lpeek(adr + colAdr + 1)); // palette[colAdr + 1];
+        POKE(0xd300u + cgi, lpeek(adr + colAdr + 2)); // palette[colAdr + 2];
     }
 }
 
@@ -466,6 +485,7 @@ byte cg_wherex() { return currentWin.xc; }
 byte cg_wherey() { return currentWin.yc; }
 
 void cg_putc(char c) {
+    static byte extAttr;
     static char out;
     if (!c) {
         return;
@@ -474,15 +494,17 @@ void cg_putc(char c) {
         cr();
         return;
     }
+    extAttr = 0;
     if (currentWin.xc >= currentWin.width) {
         return;
     }
+    extAttr|= (flashflag == false ? 0 : 16);
+    extAttr|= (rvsflag == false ? 0 : 32);
+
     out= asciiToPetscii(c);
-    if (rvsflag) {
-        out|= 128;
-    }
+ 
     __putc(currentWin.xc + currentWin.x0, currentWin.yc + currentWin.y0, out,
-           0);
+           extAttr);
     currentWin.xc++;
     /*
         if (currentWin.xc >= currentWin.width) {
@@ -565,7 +587,6 @@ void cg_gotoxy(byte x, byte y) {
 }
 
 void cg_printf(const char *format, ...) {
-    int ret;
     char buf[160];
     va_list args;
     va_start(args, format);

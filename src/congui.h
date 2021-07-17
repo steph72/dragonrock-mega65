@@ -91,13 +91,16 @@ unsigned char cg_cgetc(void);
 
 
 void cg_revers(byte r);
+void cg_flash(byte f);
 void cg_textcolor(byte c);
 void cg_setPalette(byte num, byte red, byte green, byte blue);
 void cg_resetPalette();
 void cg_loadPalette(himemPtr adr, byte size, byte reservedSysPalette);
 
+// status line stuff
 void cg_clearLower(byte num);
 void cg_clearBottomLine();
+void cg_displayErrorStatus(char *msg);
 void cg_clearFromTo(byte start, byte end);
 
 void cg_freeGraphAreas(void);

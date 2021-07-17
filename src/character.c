@@ -8,6 +8,7 @@
 #include "congui.h"
 #include "globals.h"
 #include "memory.h"
+#include "menu.h"
 #include "spell.h"
 
 #define ITEM_HEADER_SIZE 0x08
@@ -208,10 +209,7 @@ void showCurrentParty(byte startX, byte startY, byte small) {
 
 void useSpecial(item *anItem) {
     if (anItem->id == 0) {
-        cg_clearLower(2);
-        cg_gotoxy(0, 23);
-        cg_puts("\r\nCurious. Nothing happens.\n--key--");
-        cg_getkey();
+        cg_displayErrorStatus("Curious. Nothing happens");
     }
 }
 
@@ -291,16 +289,6 @@ item *whichItem(character *ic, byte *inventorySlot, byte *equipSlot) {
     return anItem;
 }
 
-void dispCharacterActionError(char *msg) {
-    cg_clearLower(2);
-    cg_gotoxy(0, 23);
-    cg_textcolor(COLOR_LIGHTRED);
-    cg_puts(msg);
-    cg_puts("\n--key--");
-    cg_textcolor(COLOR_WHITE);
-    cg_getkey();
-}
-
 void giveItem(character *ic) {
     character *destCharacter;
     item *anItem;
@@ -308,23 +296,27 @@ void giveItem(character *ic) {
     static byte equipSlot;
     static byte memberIdx;
 
-    cg_clearLower(2);
-    cg_gotoxy(0, 23);
+    cg_clearBottomLine();
+    cg_gotoxy(0, gScreenRows - 1);
     cg_puts("give ");
     anItem= whichItem(ic, &inventorySlot, &equipSlot);
     if (inventorySlot == 255) {
-        dispCharacterActionError("unequip item first!");
+        cg_displayErrorStatus("unequip item first!");
         return;
     }
-    cg_puts("\r\nto party member #");
+    cg_clearBottomLine();
+    cg_gotoxy(0, gScreenRows - 1);
+    cg_puts("to party member #");
+    cg_cursor(1);
     memberIdx= cg_getkey() - '1';
+    cg_cursor(0);
     if (memberIdx > 6 || party[memberIdx] == NULL) {
-        dispCharacterActionError("...to whom?!");
+        cg_displayErrorStatus("...to whom?!");
         return;
     }
     destCharacter= party[memberIdx];
     if (!addInventoryItem(ic->inventory[inventorySlot], destCharacter)) {
-        dispCharacterActionError("no space in inventory!");
+        cg_displayErrorStatus("no space in inventory!");
         return;
     }
     ic->inventory[inventorySlot]= 0;
@@ -335,14 +327,14 @@ void removeItem(character *ic) {
     item *anItem;
     static byte equipmentSlot;
     static byte inventorySlot;
-    cg_clearLower(2);
-    cg_gotoxy(0, 23);
-    cg_puts("remove ");
+    cg_clearBottomLine();
+    cg_gotoxy(0, gScreenRows-1);
+    cg_puts("unequip ");
     anItem= whichItem(ic, &inventorySlot, &equipmentSlot);
-    cg_clearLower(2);
+    cg_clearBottomLine();
     cg_gotoxy(0, 23);
     if (equipmentSlot == 255) {
-        dispCharacterActionError("not equipped item!");
+        cg_displayErrorStatus("not equipped item!");
         return;
     }
     addInventoryItem(anItem->id, ic);
@@ -399,8 +391,9 @@ void useOrEquipItem(character *ic) {
     item *anItem;
     static byte equipmentSlot;
     static byte inventorySlot;
-    cg_clearLower(2);
-    cg_gotoxy(0, 23);
+    cg_pushWin();
+    cg_clearLower(1);
+    cg_gotoxy(0, gScreenRows - 1);
     cg_puts("use ");
     anItem= whichItem(ic, &inventorySlot, &equipmentSlot);
 
@@ -419,15 +412,17 @@ void useOrEquipItem(character *ic) {
     case it_shield:
     case it_weapon:
         if (equipmentSlot != 255) {
-            dispCharacterActionError("Already equipped item!");
-            return;
+            cg_displayErrorStatus("Already equipped item!");
+        } else {
+            equipItem(anItem, inventorySlot, ic);
         }
-        equipItem(anItem, inventorySlot, ic);
         break;
 
     default:
         break;
     }
+    cg_popWin();
+    return;
 }
 
 void displayInventoryAtRow(character *ic, byte row, char firstChar) {
@@ -447,8 +442,9 @@ void inspectCharacter(byte idx) {
     static byte i;
     static byte quitInspect;
     static byte cmd;
-
     static byte spellLine;
+
+    char *inspectMenu[]= {"Use/equip", "Unequip", "Give", "Exit", NULL};
 
     if (party[idx] == NULL) {
         return;
@@ -458,14 +454,17 @@ void inspectCharacter(byte idx) {
 
     while (!quitInspect) {
 
+        cg_borders(0);
+        cg_setwin(1, 1, 38, 24);
+
         spellLine= 0;
         ic= party[idx];
         cg_clrscr();
-        if (gCurrentGameMode == gm_dungeon) {
-            cg_textcolor(0);
-        } else {
-            cg_textcolor(5);
-        }
+        cg_hlinexy(1, 2, 38, 1);
+        cg_hlinexy(1, 14, 38, 1);
+
+        cg_textcolor(5);
+   
         cg_revers(1);
         cg_puts(ic->name);
         cg_revers(0);
@@ -501,17 +500,17 @@ void inspectCharacter(byte idx) {
         cg_printf(" XP: %d", ic->xp);
         cg_gotoxy(13, 5);
         cg_printf("Cns: %d", ic->gold);
-        cg_gotoxy(16, 10);
+        cg_gotoxy(13, 9);
         cg_revers(1);
         cg_putc('A');
         cg_revers(0);
         cg_printf(" Weapon: %s", nameOfInventoryItemWithID(ic->weapon));
-        cg_gotoxy(16, 11);
+        cg_gotoxy(13, 10);
         cg_revers(1);
         cg_putc('B');
         cg_revers(0);
         cg_printf("  Armor: %s", nameOfInventoryItemWithID(ic->armor));
-        cg_gotoxy(16, 12);
+        cg_gotoxy(13, 11);
         cg_revers(1);
         cg_putc('C');
         cg_revers(0);
@@ -519,36 +518,32 @@ void inspectCharacter(byte idx) {
         cg_gotoxy(0, 14);
         cg_puts("Inventory:");
         displayInventoryAtRow(ic, 16, 'D');
-        cg_gotoxy(0, 23);
-        cg_puts("u)se/ready r)emove g)ive ex)it\n>");
-        cg_cursor(1);
-        cmd= cg_getkey();
-        cg_cursor(0);
+        cg_resetwin();
 
-        if (cmd >= '1' && cmd <= '6') {
-            i= cmd - '1';
+        cg_textcolor(COLOR_PURPLE);
+        cmd= runBottomMenuN(inspectMenu);
+
+        if (cmd >= 100) {
+            i= cmd - 100;
             if (party[i] != NULL) {
                 idx= i;
             }
         }
 
         switch (cmd) {
-        case 'x':
-        case '\n':
-        case '\r':
-        case ' ':
+        case 3:
             quitInspect= true;
             break;
 
-        case 'u':
+        case 0:
             useOrEquipItem(ic);
             break;
 
-        case 'r':
+        case 1:
             removeItem(ic);
             break;
 
-        case 'g':
+        case 2:
             giveItem(ic);
             break;
 
@@ -557,7 +552,6 @@ void inspectCharacter(byte idx) {
             debugAddItem(ic);
             break;
 #endif
-
         default:
             break;
         }
