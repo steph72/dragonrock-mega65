@@ -3,11 +3,12 @@
 cc65 V2.18 - Git de630a12
 
 ## misc
+make game config universal & live in himem
 DONE failsafe center
 DONE center in title
 DONE use DMA for screen fills
 DONE refactor dungeon text output area concept
-fix input routine for empty input
+DONE fix input routine for empty input
 
 ## city
 - DONE implement "you must assemble a party first"

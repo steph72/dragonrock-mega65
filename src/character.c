@@ -305,6 +305,8 @@ void giveItem(character *ic) {
         return;
     }
     cg_clearBottomLine();
+    cg_block_raw(1, 15, 38, 24, 32, 5);
+    showCurrentParty(1, 16, 0);
     cg_gotoxy(0, gScreenRows - 1);
     cg_puts("to party member #");
     cg_cursor(1);
@@ -328,7 +330,7 @@ void removeItem(character *ic) {
     static byte equipmentSlot;
     static byte inventorySlot;
     cg_clearBottomLine();
-    cg_gotoxy(0, gScreenRows-1);
+    cg_gotoxy(0, gScreenRows - 1);
     cg_puts("unequip ");
     anItem= whichItem(ic, &inventorySlot, &equipmentSlot);
     cg_clearBottomLine();
@@ -464,7 +466,7 @@ void inspectCharacter(byte idx) {
         cg_hlinexy(1, 14, 38, 1);
 
         cg_textcolor(5);
-   
+
         cg_revers(1);
         cg_puts(ic->name);
         cg_revers(0);
