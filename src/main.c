@@ -41,6 +41,7 @@
 #include "dispatcher.h"
 #include "memory.h"
 
+#include "city.h"
 #include "menu.h"
 #include "utils.h"
 
@@ -58,6 +59,10 @@
 
 char *drbuf;
 
+himemPtr itemBase;
+himemPtr monstersBase;
+himemPtr citiesBase;
+
 byte hasLoadedGame;
 byte devmode;
 
@@ -71,12 +76,21 @@ const char *prompt=
 
 void loadResources(void) {
     unsigned int readBytes;
-    // printf("load items; ");
-    readBytes= loadExt("items", ITEM_BASE);
-    // printf("$%x bytes read\n", readBytes);
-    // printf("load monsters; ");
-    readBytes= loadExt("monsters", MONSTERS_BASE);
-    // printf("$%x bytes read\n", readBytes);
+    himemPtr configTop;
+
+    itemBase= CFG_STORAGE_BASE;
+    readBytes= loadExt("items", itemBase);
+
+    monstersBase= itemBase + readBytes;
+    readBytes= loadExt("monsters", monstersBase);
+
+    citiesBase= monstersBase + readBytes;
+    readBytes= loadExt("cities", citiesBase);
+
+    configTop= citiesBase + readBytes;
+    if (configTop>=SEENMAP_BASE) {
+        cg_fatal("config too large: %lx",configTop);
+    }
 }
 
 void initEngine(void) {
@@ -95,9 +109,9 @@ void initEngine(void) {
                  "correctly initialize the game.");
     }
 
-    lpoke (0x5f000,0);
-    lpoke (0x5f001,0);
- 
+    lpoke(0x5f000, 0);
+    lpoke(0x5f001, 0);
+
     loadModules();
     // puts("init monster rows");
     initMonsterRows();
@@ -107,7 +121,7 @@ void initEngine(void) {
     gLoadedDungeonIndex= 255;
     gCurrentGameMode= gm_init;
     cg_init();
-
+  
     // after graphics initialization, it's safe to free drbuf and using
     // the old text screen instead, thus saving a few bytes...
     // 798e-77c0
@@ -152,11 +166,11 @@ int main() {
     initEngine();
     cg_borders(false);
 
-    sprintf(drbuf, "Start in %s", gCities[3]);
+    sprintf(drbuf, "Start in %s", getNameForCityID(0));
     mainMenu[1]= drbuf;
     choice= runMenu(mainMenu, 4, 11, true, true);
 
-    gCurrentCityIndex= 3;
+    gCurrentCityIndex= 0;
     prepareForGameMode(gm_city);
 
     if (choice == 100) {

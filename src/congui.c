@@ -271,6 +271,7 @@ void cg_go16bit(byte h640, byte v400) {
 }
 
 void cg_go8bit() {
+    byte t;
     mega65_io_enable();
     POKE(53297L, 96); // quit bitplane mode
     SCNPTR_0= 0x00;   // screen back to 0x800
@@ -285,7 +286,9 @@ void cg_go8bit() {
     VIC3CTRL&= 0x7f; // disable H640
     VIC3CTRL&= 0xf7; // disable V400
     cbm_k_bsout(14); // lowercase charset
-    cg_resetPalette();
+    cg_setPalette(0,0,0,0);
+    cg_setPalette(1,255,255,255);
+    cg_setPalette(2,255,0,0);
 }
 
 void cg_plotExtChar(byte x, byte y, byte c) {

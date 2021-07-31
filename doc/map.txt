@@ -26,11 +26,7 @@ ATTIC RAM
 0801.0000 - 0801.3fff   dungeon code                    16k
 0801.4000 - 0801.7fff   city code                       16k
 0801.8000 - 0801.bfff   encounter code                  16k
-
 0802.0000 - 0802.0fff   items                            4k
-
-
-
 
 ** dragon rock map format **
 

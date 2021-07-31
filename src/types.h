@@ -133,8 +133,10 @@ typedef struct _cityCoords {
     byte mapNr;
     byte x;
     byte y;
+    himemPtr cityName;
+    himemPtr innName;
+    himemPtr armoryOwnerName;
 } cityCoordsT;
-
 
 // --------------- spells ------------------
 
@@ -174,6 +176,16 @@ typedef struct _opcode {
     byte param6;
     byte param7;
 } opcode;
+
+typedef struct _cityDef {
+    byte id;                     // 0
+    byte mapNr;                  // 1
+    byte x;                      // 2
+    byte y;                      // 3
+    unsigned int cityNamePtr;    // 4+5
+    unsigned int innNamePtr;     // 6+7
+    unsigned int armoryOwnerPtr; // 8+9
+} cityDef;
 
 typedef struct _monsterDef {
     unsigned int id;             // 0-1

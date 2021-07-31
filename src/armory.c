@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "character.h"
 #include "congui.h"
+#include "city.h"
 
 #define SHOP_INV_SIZE 32
 #define ITEMS_PER_PAGE 12
@@ -191,7 +192,7 @@ void doArmory(void) {
 
     do {
         cg_cursor(0);
-        sprintf(drbuf, "%s Armory", gCities[gCurrentCityIndex]);
+        sprintf(drbuf, "%s Armory", getNameForCityID(gCurrentCityIndex));
         cg_titlec(COLOR_GREEN, 0,
                   drbuf);
         cg_gotoxy(0, 19);

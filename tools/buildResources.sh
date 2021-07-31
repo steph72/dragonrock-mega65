@@ -7,8 +7,8 @@ rm gamedata/*
 tools/buildCharset.sh
 tools/buildMaps.sh
 
-python3 tools/genItems.py gamedata-src/items.yaml  gamedata/items
-python3 tools/genMonsters.py gamedata-src/monsters.yaml  gamedata/monsters
+python3 tools/genItems.py gamedata-src/items.yaml gamedata/items
+python3 tools/genMonsters.py gamedata-src/monsters.yaml gamedata/monsters gamedata/cities 
 
 # copy ui images with palette
 for filename in images-src/ui/*.png; do
