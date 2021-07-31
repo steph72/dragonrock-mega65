@@ -17,11 +17,7 @@ extern char *gClassesS[NUM_CLASSES];
 extern char *gAttributes[NUM_ATTRS];
 extern char *gAttributesS[NUM_ATTRS];
 
-extern char *gCities[NUM_CITIES];
 extern char *gStateDesc[];
-
-extern cityCoordsT gCityCoords[NUM_CITIES];
-
 extern spell gSpells[];
 
 extern signed char gRaceModifiers[NUM_RACES][6];

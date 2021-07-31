@@ -25,12 +25,12 @@ byte getNumberOfMonsterAttacks(monster *aMonster) {
 }
 
 char *nameForMonsterDef(monsterDef *aDef) {
-    lcopy((long)MONSTERS_BASE + (aDef->namePtr), (long)monsterNameBuf, 32);
+    lcopy((long)monstersBase + (aDef->namePtr), (long)monsterNameBuf, 32);
     return monsterNameBuf;
 }
 
 char *pluralNameForMonsterDef(monsterDef *aDef) {
-    lcopy((long)MONSTERS_BASE + (aDef->pluralnamePtr), (long)monsterNameBuf, 32);
+    lcopy((long)monstersBase + (aDef->pluralnamePtr), (long)monsterNameBuf, 32);
     return monsterNameBuf;
 }
 
@@ -62,7 +62,7 @@ char *pluralNameForMonsterID(unsigned int id) {
 monsterDef *monsterDefForID(unsigned int id) {
     unsigned int i;
     for (i= 0; i < 512; ++i) {
-        lcopy((long)MONSTERS_BASE + 8 + (sizeof(monsterDef) * i),
+        lcopy((long)monstersBase + 8 + (sizeof(monsterDef) * i),
               (long)&tempDef, sizeof(monsterDef));
         if (tempDef.id == id) {
             return &tempDef;

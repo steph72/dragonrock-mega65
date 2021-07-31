@@ -1,17 +1,19 @@
 #include "config.h"
 #include "types.h"
 
+#ifndef DR_GLOBALS
+#define DR_GLOBALS
+
 // memory allocation
 
-#define SCREENBASE 0x12000l     // 16 bit screen
-#define COLBASE 0xff80800l      // colours
-#define GRAPHBASE 0x40000l      // bitmap characters
-#define EXTCHARBASE 0x13000l    // extended characters for map
-#define SYSPAL 0x14000          // system palette
-#define PALBASE 0x14300l        // palettes for loaded images
-#define SEENMAP_BASE 0x18000l   // seen map
-#define ITEM_BASE 0x8020000     // item table
-#define MONSTERS_BASE 0x8021000 // monster table
+#define SCREENBASE 0x12000l       // 16 bit screen
+#define EXTCHARBASE 0x13000l      // extended characters for map
+#define SYSPAL 0x14000            // system palette
+#define PALBASE 0x14300l          // palettes for loaded images
+#define CFG_STORAGE_BASE 0x16000l // base address for high memory storage
+#define SEENMAP_BASE 0x18000l     // seen map
+#define COLBASE 0xff80800l        // colours
+#define GRAPHBASE 0x40000l        // bitmap characters
 
 #define DRBUFSIZE 0xff
 
@@ -19,8 +21,12 @@
     main
     ---- */
 
-extern char *drbuf; // general purpose buffer
+extern char *drbuf;  // general purpose buffer
 extern byte devmode; // devmode flag
+
+extern himemPtr itemBase;
+extern himemPtr monstersBase;
+extern himemPtr citiesBase;
 
 /*  ----------
     dispatcher
@@ -40,12 +46,14 @@ extern encResult gEncounterResult; // result of last encounter
     character/party
     --------------- */
 
-extern character **party; // current adventuring party
-extern long int gPartyGold;         // gold to be distributed when entering city
-extern long int gPartyExperience;   // xp to be distributed when entering city
+extern character **party;         // current adventuring party
+extern long int gPartyGold;       // gold to be distributed when entering city
+extern long int gPartyExperience; // xp to be distributed when entering city
 
 /*  -------
     dungeon
     ------- */
 
-extern himemPtr seenMap;  // map of seen spaces in dungeon
+extern himemPtr seenMap; // map of seen spaces in dungeon
+
+#endif

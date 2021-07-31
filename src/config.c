@@ -23,13 +23,6 @@ char *gClasses[NUM_CLASSES]= {"Fighter", "Ranger", "Priest",
                               "Wizard",  "Thief",  "Monk"};
 char *gClassesS[NUM_CLASSES]= {"FG", "RG", "PR", "WZ", "TH", "MO"};
 
-char *gCities[NUM_CITIES]= {"Foxhome",     "King's Winter", "Dohlem",
-                            "Tia's Grove", "Modder",        "Foodim",
-                            "Splitwater"};
-
-cityCoordsT gCityCoords[NUM_CITIES]= {{33, 21, 15}, {0, 0, 0}, {0, 0, 0},
-                                      {0, 0, 0},    {0, 0, 0}, {0, 0, 0}};
-
 // spells
 // name, spellLevel, minLevel, mpNeeded, minVal, maxVal
 
@@ -48,3 +41,4 @@ spell gSpells[]= {
     /*  8 */ {"Fireflash", 4, 8, 16, 6, 15}, // fireflash 4
 
 };
+

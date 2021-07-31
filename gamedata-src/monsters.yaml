@@ -1,5 +1,65 @@
 ---
   
+  cities:
+
+      - cityName: "Foxhome"
+        innName: "Tia's Paws"
+        armoryOwnerName: "Ulfric Fodor"
+        id: 0x00
+        mapNr: 33
+        x: 21
+        y: 15
+
+      - cityName: "King's Winter"
+        innName: "The Happy Drunk"
+        armoryOwnerName: "Arnold Hompart"
+        id: 0x01
+        mapNr: 33
+        x: 21
+        y: 15
+
+      - cityName: "Dohlem"
+        innName: "The Happy Drunk"
+        armoryOwnerName: "Arnold Hompart"
+        id: 0x02
+        mapNr: 33
+        x: 21
+        y: 15
+
+      - cityName: "Tia's Grove"
+        innName: "The Happy Drunk"
+        armoryOwnerName: "Arnold Hompart"
+        id: 0x03
+        mapNr: 33
+        x: 21
+        y: 15
+
+      - cityName: "Modder"
+        innName: "The Happy Drunk"
+        armoryOwnerName: "Arnold Hompart"
+        id: 0x04
+        mapNr: 33
+        x: 21
+        y: 15
+
+      - cityName: "Foodim"
+        innName: "The Happy Drunk"
+        armoryOwnerName: "Arnold Hompart"
+        id: 0x05
+        mapNr: 33
+        x: 21
+        y: 15
+
+      - cityName: "Splitwater"
+        innName: "The Happy Drunk"
+        armoryOwnerName: "Arnold Hompart"
+        id: 0x06
+        mapNr: 33
+        x: 21
+        y: 15
+
+# -----------------------------------------------------------------------------
+  
   monsters:
 
       - id: 0x00

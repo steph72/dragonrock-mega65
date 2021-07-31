@@ -7,6 +7,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "city.h"
+
 #include "armory.h"
 #include "character.h"
 #include "congui.h"
@@ -15,7 +17,44 @@
 #include "utils.h"
 
 #include "dungeon.h"
+#include "memory.h"
 #include "menu.h"
+
+#define CDESC_SIZE 20
+
+char cityDescBuf[CDESC_SIZE];
+
+cityDef *getCityDef(byte cityID) {
+    static cityDef def;
+    byte i;
+    for (i= 0; i < 255; ++i) {
+        lcopy((long)citiesBase + 8 + (sizeof(cityDef) * i), (long)&def,
+              sizeof(cityDef));
+        if (def.id == cityID) {
+            return &def;
+        }
+    }
+    cg_fatal("no city def for ID %d", cityID);
+    return NULL;
+}
+
+char *getNameForCityDef(cityDef *def) {
+    lcopy((long)(citiesBase + (def->cityNamePtr)), (long)cityDescBuf,
+          CDESC_SIZE);
+    return cityDescBuf;
+}
+
+char *getInnNameForCityDef(cityDef *def) {
+    lcopy((long)(citiesBase + (def->innNamePtr)), (long)cityDescBuf,
+          CDESC_SIZE);
+    return cityDescBuf;
+}
+
+char *getArmorerNameForCityDef(cityDef *def) {
+    lcopy((long)(citiesBase + (def->armoryOwnerPtr)), (long)cityDescBuf,
+          CDESC_SIZE);
+    return cityDescBuf;
+}
 
 // clang-format off
 #pragma code-name(push, "OVERLAY2");
@@ -23,24 +62,21 @@
 #pragma local-strings (push,on)
 // clang-format on
 
-
 const char *invError= "INVERR (%d)";
 dbmInfo *cityDBM;
 dbmInfo *guildDBM;
 dbmInfo *innDBM;
 
-
 void runCityMenu(void);
 
 void leaveCityMode(void) {
-    cityCoordsT coords;
-
-    coords= gCityCoords[gCurrentCityIndex];
+    cityDef *def;
     free(guild);
     releaseArmory();
-    gCurrentDungeonIndex= coords.mapNr | 128;
-    gStartXPos= coords.x;
-    gStartYPos= coords.y;
+    def= getCityDef(gCurrentCityIndex);
+    gCurrentDungeonIndex= def->mapNr | 128;
+    gStartXPos= def->x;
+    gStartYPos= def->y;
     cg_freeGraphAreas();
     prepareForGameMode(gm_outdoor);
 }
@@ -93,7 +129,7 @@ void enterCityMode(void) {
     cg_go16bit(0, 0);
     cg_clrscr();
     cg_gotoxy(4, 12);
-    cg_printf("Welcome to %s", gCities[gCurrentCityIndex]);
+    cg_printf("Welcome to %s", getNameForCityID(gCurrentCityIndex));
     loadCityImages();
     initGuild();
     initArmory();
@@ -117,7 +153,7 @@ void doInn(void) {
         cg_borders(true);
         cg_textcolor(COLOR_GRAY2);
         cg_displayDBMInfo(innDBM, 1, 1);
-        sprintf(drbuf, "%s inn", gCities[gCurrentCityIndex]);
+        sprintf(drbuf, getInnNameForCityID(gCurrentCityIndex));
         cg_revers(1);
         cg_center(18, 0, 40 - 18, drbuf);
         cg_revers(0);
@@ -150,7 +186,7 @@ void doGuild(void) {
         cg_borders(true);
         cg_textcolor(COLOR_GRAY2);
         cg_displayDBMInfo(guildDBM, 1, 1);
-        sprintf(drbuf, "%s guild", gCities[gCurrentCityIndex]);
+        sprintf(drbuf, "%s guild", getNameForCityID(gCurrentCityIndex));
         cg_revers(1);
         cg_center(18, 0, 40 - 18, drbuf);
         cg_revers(0);
@@ -219,7 +255,7 @@ void runCityMenu(void) {
         cg_gotoxy(3, 16);
         cg_textcolor(COLOR_GRAY3);
         cg_revers(1);
-        cg_center(0, 16, 18, gCities[gCurrentCityIndex]);
+        cg_center(0, 16, 18, getNameForCityID(gCurrentCityIndex));
         cg_revers(0);
         cg_textcolor(COLOR_CYAN);
         menuChoice= runBottomMenuN(cityMenu);
@@ -245,8 +281,9 @@ void runCityMenu(void) {
 
             case 5:
                 cg_clearBottomLine();
-                cg_gotoxy(0,gScreenRows-1);
-                cg_printf("Really leave %s (y/n)?", gCities[gCurrentCityIndex]);
+                cg_gotoxy(0, gScreenRows - 1);
+                cg_printf("Really leave %s (y/n)?",
+                          getNameForCityID(gCurrentCityIndex));
                 do {
                     cg_cursor(1);
                     cmd= cg_getkey();

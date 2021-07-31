@@ -25,7 +25,7 @@ item *inventoryItemForID(itemT anItemID) {
     static byte i;
     himemPtr ext;
     for (i= 0; i < 255; i++) {
-        ext= ITEM_BASE + ITEM_HEADER_SIZE + (sizeof(item) * i);
+        ext= itemBase + ITEM_HEADER_SIZE + (sizeof(item) * i);
         lcopy(ext, (long)&tempItem, sizeof(item));
         if (tempItem.id == anItemID) {
             return &tempItem;
@@ -36,7 +36,7 @@ item *inventoryItemForID(itemT anItemID) {
 
 char *rawNameOfInventoryItem(item *anItem) {
     himemPtr ext;
-    ext= ITEM_BASE + anItem->namePtr;
+    ext= itemBase + anItem->namePtr;
     lcopy(ext, (long)tempItemDesc, 32);
     return tempItemDesc;
 }
