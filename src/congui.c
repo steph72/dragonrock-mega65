@@ -286,9 +286,9 @@ void cg_go8bit() {
     VIC3CTRL&= 0x7f; // disable H640
     VIC3CTRL&= 0xf7; // disable V400
     cbm_k_bsout(14); // lowercase charset
-    cg_setPalette(0,0,0,0);
-    cg_setPalette(1,255,255,255);
-    cg_setPalette(2,255,0,0);
+    cg_setPalette(0, 0, 0, 0);
+    cg_setPalette(1, 255, 255, 255);
+    cg_setPalette(2, 255, 0, 0);
 }
 
 void cg_plotExtChar(byte x, byte y, byte c) {
@@ -396,7 +396,7 @@ dbmInfo *cg_loadDBM(char *filename, himemPtr address, himemPtr paletteAddress) {
         bitmampAdr= address;
     }
 
-    bytesRead= readExt(dbmfile, bitmampAdr);
+    bytesRead= readExt(dbmfile, bitmampAdr, false);
     fclose(dbmfile);
 
     if (info != NULL) {
@@ -468,9 +468,9 @@ void scrollUp() {
 void cr() {
     currentWin.xc= 0;
     currentWin.yc++;
-    if (currentWin.yc > currentWin.height) {
-        currentWin.yc= currentWin.height;
+    if (currentWin.yc > currentWin.height-1) {
         scrollUp();
+        currentWin.yc= currentWin.height-1;
     }
 }
 
@@ -497,7 +497,7 @@ void cg_putc(char c) {
         cr();
         return;
     }
-    extAttr = 0;
+    extAttr= 0;
     if (currentWin.xc >= currentWin.width) {
         return;
     }
@@ -505,7 +505,7 @@ void cg_putc(char c) {
     extAttr|= (rvsflag == false ? 0 : 32);
 
     out= asciiToPetscii(c);
- 
+
     __putc(currentWin.xc + currentWin.x0, currentWin.yc + currentWin.y0, out,
            extAttr);
     currentWin.xc++;

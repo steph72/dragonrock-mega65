@@ -1,10 +1,11 @@
 #include "globals.h"
 #include "memory.h"
 #include "types.h"
+#include "congui.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-unsigned int readExt(FILE *inFile, himemPtr addr) {
+unsigned int readExt(FILE *inFile, himemPtr addr, byte skipCBMAddressBytes) {
 
     unsigned int readBytes;
     unsigned int overallRead;
@@ -12,6 +13,10 @@ unsigned int readExt(FILE *inFile, himemPtr addr) {
 
     insertPos= addr;
     overallRead= 0;
+
+    if (skipCBMAddressBytes) {
+        fread(drbuf, 1, 2, inFile);
+    }
 
     do {
         readBytes= fread(drbuf, 1, DRBUFSIZE, inFile);
@@ -25,14 +30,18 @@ unsigned int readExt(FILE *inFile, himemPtr addr) {
     return overallRead;
 }
 
-unsigned int loadExt(char *filename, himemPtr addr) {
+unsigned int loadExt(char *filename, himemPtr addr, byte skipCBMAddressBytes) {
 
     FILE *inFile;
     word readBytes;
 
     inFile= fopen(filename, "r");
-    readBytes = readExt(inFile,addr);
+    readBytes= readExt(inFile, addr, skipCBMAddressBytes);
     fclose(inFile);
+
+    if (readBytes==0) {
+        cg_fatal("0 bytes from %s",filename);
+    }
 
     return readBytes;
 }

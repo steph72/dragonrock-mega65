@@ -32,7 +32,8 @@
 			"cstddef": "c",
 			"menu.h": "c",
 			"stddef.h": "c",
-			"em.h": "c"
+			"em.h": "c",
+			"istream": "c"
 		}
 	}
 }

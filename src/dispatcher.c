@@ -5,20 +5,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "globals.h"
 #include "city.h"
 #include "dungeon.h"
 #include "encounter.h"
 #include "guild.h"
 #include "memory.h"
+#include "utils.h"
 #include <c64.h>
 
 extern unsigned int _OVERLAY1_LOAD__[], _OVERLAY1_SIZE__[];
 extern unsigned int _OVERLAY2_LOAD__[], _OVERLAY2_SIZE__[];
 extern unsigned int _OVERLAY3_LOAD__[], _OVERLAY3_SIZE__[];
-
-#define ATTIC_DUNGEON 0x8010000
-#define ATTIC_CITY 0x8014000
-#define ATTIC_ENCOUNTER 0x8018000
 
 gameModeT gCurrentGameMode;
 gameModeT gNextGameMode;
@@ -32,24 +30,14 @@ byte gCurrentCityIndex;
 
 encResult gEncounterResult;
 
-unsigned char loadfile(char *name, void *addr, void *size);
-
 void prepareForGameMode(gameModeT newGameMode) { gNextGameMode= newGameMode; }
 
 void popLastGameMode(void) { gNextGameMode= lastGameMode; }
 
-void loadModule(char *name) {
-    // printf("lmod %s\n", name);
-    loadfile(name, (void *)0x9000, (void *)0x4000);
-}
-
 void loadModules(void) {
-    loadModule("dungeon");
-    lcopy(0x9000, ATTIC_DUNGEON, 0x4000);
-    loadModule("city");
-    lcopy(0x9000, ATTIC_CITY, 0x4000);
-    loadModule("encounter");
-    lcopy(0x9000, ATTIC_ENCOUNTER, 0x4000);
+    loadExt("dungeon", ATTIC_DUNGEON_CODE, true);
+    loadExt("city", ATTIC_CITY_CODE, true);
+    loadExt("encounter", ATTIC_ENCOUNTER_CODE, true);
 }
 
 void commitNewGameMode(void) {
@@ -67,20 +55,20 @@ void commitNewGameMode(void) {
     case gm_outdoor:
         if (lastGameMode != gm_dungeon && lastGameMode != gm_outdoor) {
             cg_bordercolor(COLOR_BLUE);
-            lcopy(ATTIC_DUNGEON, (long)_OVERLAY1_LOAD__,
+            lcopy(ATTIC_DUNGEON_CODE, (long)_OVERLAY1_LOAD__,
                   (unsigned int)_OVERLAY1_SIZE__);
         }
         break;
 
     case gm_city:
         // bordercolor(COLOR_GREEN);
-        lcopy(ATTIC_CITY, (long)_OVERLAY2_LOAD__,
+        lcopy(ATTIC_CITY_CODE, (long)_OVERLAY2_LOAD__,
               (unsigned int)_OVERLAY2_SIZE__);
         break;
 
     case gm_encounter:
         cg_bordercolor(COLOR_RED);
-        lcopy(ATTIC_ENCOUNTER, (long)_OVERLAY3_LOAD__,
+        lcopy(ATTIC_ENCOUNTER_CODE, (long)_OVERLAY3_LOAD__,
               (unsigned int)_OVERLAY3_SIZE__);
         break;
 
@@ -130,15 +118,4 @@ void mainDispatchLoop(void) {
         commitNewGameMode();
         enterCurrentGameMode();
     }
-}
-
-unsigned char loadfile(char *name, void *addr, void *size) {
-    /* Avoid compiler warnings about unused parameters. */
-    (void)addr;
-    (void)size;
-
-    if (cbm_load(name, getcurrentdevice(), NULL) == 0) {
-        cg_fatal("ovl failed");
-    }
-    return 1;
 }

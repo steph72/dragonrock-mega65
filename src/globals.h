@@ -6,14 +6,19 @@
 
 // memory allocation
 
-#define SCREENBASE 0x12000l       // 16 bit screen
-#define EXTCHARBASE 0x13000l      // extended characters for map
-#define SYSPAL 0x14000            // system palette
-#define PALBASE 0x14300l          // palettes for loaded images
-#define CFG_STORAGE_BASE 0x16000l // base address for high memory storage
-#define SEENMAP_BASE 0x18000l     // seen map
-#define COLBASE 0xff80800l        // colours
-#define GRAPHBASE 0x40000l        // bitmap characters
+#define SCREENBASE 0x12000l            // 16 bit screen
+#define EXTCHARBASE 0x13000l           // extended characters for map
+#define SYSPAL 0x14000                 // system palette
+#define PALBASE 0x14300l               // palettes for loaded images
+#define CFG_STORAGE_BASE 0x16000l      // base address for high memory storage
+#define SEENMAP_BASE 0x18000l          // seen map
+#define GRAPHBASE 0x40000l             // bitmap characters
+#define ATTIC_DUNGEON_DATA 0x8000000   // dungeon data (64K)
+#define ATTIC_DUNGEON_CODE 0x8010000   // dungeon code overlay (16K, copied when needed)
+#define ATTIC_CITY_CODE 0x8014000      // city code (16K)
+#define ATTIC_ENCOUNTER_CODE 0x8018000 // encounter code (16K)
+
+#define COLBASE 0xff80800l // colours
 
 #define DRBUFSIZE 0xff
 

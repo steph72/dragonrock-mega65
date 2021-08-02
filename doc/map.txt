@@ -15,7 +15,10 @@ BANK 0
 
 BANK 1
 0x12000 - 0x12fff       16 bit screen   
-0x13000 - 0x17fff       extended charset
+0x13000 - 0x13fff       map and borders charset
+0x14000 - 0x142ff       system palette
+0x14300 - 0x15fff       palettes for loaded images
+0x16000 - 0x17fff       game configuration
 0x18000 - 0x1f000       seenmap
 
 BANK 4,5:

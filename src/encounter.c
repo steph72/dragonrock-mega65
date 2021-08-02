@@ -213,7 +213,7 @@ void updateMonsterStatus(monster *aMonster) {
     // TODO: sleep/charmed/etc
     if (aMonster->hp <= 0) {
         aMonster->status= dead;
-        printf("%s dies.\n", nameForMonster(aMonster));
+        cg_printf("%s dies.\n", nameForMonster(aMonster));
     }
 }
 
@@ -221,13 +221,13 @@ void updateCharacterStatus(character *aChar) {
     if (aChar->aHP == 0 ||
         (aChar->aHP < 0 &&
          aChar->aHP >= bonusValueForAttribute(aChar->attributes[aCON]))) {
-        printf("\n%s goes down.\n", aChar->name);
+        cg_printf("\n%s goes down.\n", aChar->name);
         aChar->status= down;
         return;
     }
 
     if (aChar->aHP < 0) {
-        printf("\n%s dies!\n", aChar->name);
+        cg_printf("\n%s dies!\n", aChar->name);
         aChar->status= dead;
     }
 }
@@ -264,7 +264,8 @@ void monsterAttackSingleCharacter(monster *aMonster, character *aChar,
     isCriticalFailure= (hitRoll == 1);
     hitRoll+= def->hitModifier[attackTypeIndex];
     acHit= 20 - hitRoll;
-    printf("%s attacks %s\nand ", nameForMonsterID(aMonster->monsterDefID),
+    cg_textcolor(COLOR_CYAN);
+    cg_printf("%s attacks %s\nand ", nameForMonsterID(aMonster->monsterDefID),
            aChar->name);
     // printf("(roll %d, AC %d, dest AC %d)\n", hitRoll,
     // acHit,destinationAC);
@@ -275,21 +276,21 @@ void monsterAttackSingleCharacter(monster *aMonster, character *aChar,
 
     if (acHit > destinationAC) {
         if (isCriticalFailure) {
-            printf("critically misses,\ngetting hurt for %d points of "
+            cg_printf("critically misses,\ngetting hurt for %d points of "
                    "damage.",
                    damage);
             aMonster->hp-= damage;
             updateMonsterStatus(aMonster);
         } else {
-            printf("misses.");
+            cg_printf("misses.");
         }
     } else {
         if (isCritical) {
             damage*= 2;
-            printf("critically hits for\n%d points of %sdamage.", damage,
+            cg_printf("critically hits for\n%d points of %sdamage.", damage,
                    damageType);
         } else {
-            printf("hits for %d points of %sdamage.", damage, damageType);
+           cg_printf("hits for %d points of %sdamage.", damage, damageType);
         }
         aChar->aHP-= damage;
         updateCharacterStatus(aChar);
@@ -315,7 +316,7 @@ encResult doMonsterTurn(monster *aMonster) {
         }
         aChar= getRandomCharacter();
         monsterAttackSingleCharacter(aMonster, aChar, i);
-        printf("\n\n");
+        cg_printf("\n\n");
     }
     return encFight;
 }
@@ -341,7 +342,7 @@ encResult doCharacterTurn(character *aChar) {
         return encFled;
     }
     def= monsterDefForMonster(destMonster);
-    printf("%s %s %s\n", aChar->name,
+    cg_printf("%s %s %s\n", aChar->name,
            encounterActionVerb[aChar->currentEncounterCommand],
            nameForMonster(destMonster));
 
@@ -407,7 +408,7 @@ void queryPartyActions() {
             cg_puts(aChar->name);
             cg_putc(',');
             cg_textcolor(COLOR_GRAY2);
-            cg_puts(" will you");
+            cg_puts(" will you\n");
             if (hasMissile) {
                 aChar->currentEncounterCommand=
                     getCharacterCommandForRangedCombat();
@@ -431,6 +432,7 @@ void queryPartyActions() {
         cg_puts("Is this ok (y/n)?");
         cg_cursor(1);
         choice= cg_getkey();
+        cg_cursor(0);
         if (choice != 'n') {
             break;
         }
@@ -544,7 +546,7 @@ void setupCombatScreen(void) {
 
 // ------------------ courage handling  ---------------------
 
-unsigned int mc, pc;
+unsigned int monsterCourage, playerCourage;
 
 unsigned int partyCourage() {
     byte i;
@@ -583,24 +585,24 @@ unsigned int monstersCourage() {
 }
 
 void updateCourage() {
-    mc= monstersCourage() + drand(50 * getMonsterCount());
-    pc= partyCourage();
-    cg_gotoxy(0, 22);
-    cg_printf("pCourage, mCourage: %d, %d ", pc, mc);
+    monsterCourage= monstersCourage() + drand(50 * getMonsterCount());
+    playerCourage= partyCourage();
+    cg_gotoxy(0, 24);
+    cg_printf("pCourage, mCourage: %d, %d ", playerCourage, monsterCourage);
 }
 
 preCombatResult checkGreet() {
     if (combatStarted) {
         return preCombatResultNoResponse;
     }
-    if (mc < pc) {
+    if (monsterCourage < playerCourage) {
         return preCombatResultGreet;
     }
     return preCombatResultBeginFight;
 }
 
 preCombatResult checkThreaten() {
-    if (mc < pc) {
+    if (monsterCourage < playerCourage) {
         return preCombatResultSurrender;
     }
     return combatStarted ? preCombatResultNoResponse
@@ -608,7 +610,7 @@ preCombatResult checkThreaten() {
 }
 
 preCombatResult checkBegForMercy() {
-    if (abs(mc - pc) < 10) {
+    if (abs(monsterCourage - playerCourage) < 10) {
         return preCombatResultMercy;
     }
     return combatStarted ? preCombatResultNoResponse

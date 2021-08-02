@@ -79,13 +79,13 @@ void loadResources(void) {
     himemPtr configTop;
 
     itemBase= CFG_STORAGE_BASE;
-    readBytes= loadExt("items", itemBase);
+    readBytes= loadExt("items", itemBase, false);
 
     monstersBase= itemBase + readBytes;
-    readBytes= loadExt("monsters", monstersBase);
+    readBytes= loadExt("monsters", monstersBase, false);
 
     citiesBase= monstersBase + readBytes;
-    readBytes= loadExt("cities", citiesBase);
+    readBytes= loadExt("cities", citiesBase, false);
 
     configTop= citiesBase + readBytes;
     if (configTop>=SEENMAP_BASE) {
@@ -124,17 +124,10 @@ void initEngine(void) {
   
     // after graphics initialization, it's safe to free drbuf and using
     // the old text screen instead, thus saving a few bytes...
-    // 798e-77c0
 
     free(drbuf);
     drbuf= (char *)0x400;
 
-    // cg_test();
-
-    /*
-    gPartyExperience= 1000;
-    gPartyGold= 1000;
-    */
 }
 
 void debugEncounter(void) {
@@ -160,6 +153,7 @@ void debugDungeon(void) {
 
 int main() {
     static char choice;
+    byte i;
     char *test;
     char *mainMenu[]= {"Load saved game", NULL, NULL};
 

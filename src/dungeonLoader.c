@@ -14,7 +14,7 @@
 
 #undef DLDEBUG
 
-const himemPtr externalDungeonAddr= 0x8000000;
+const himemPtr externalDungeonAddr= ATTIC_DUNGEON_DATA;
 himemPtr seenMap;
 
 // clang-format off
