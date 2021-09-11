@@ -131,6 +131,28 @@ def reduceMonster(aMonster):
     return i
 
 
+def reduceSpells(aSpell):
+    global ids
+    global names
+    i = aSpell
+
+    spellID = i["id"]
+    if spellID in ids:
+        print("Error: Duplicate spell ID in", i)
+        exit(1)
+        
+
+def toSpells(data):
+    global ids
+    global names
+    ids = []
+    names = []
+    spells = []
+
+    spells.extend(map(reduceSpells,data))
+
+
+
 def toCities(data):
     global ids
     global names
@@ -237,23 +259,18 @@ def toMonsters(data):
         outbytes.append(i["xpValue"]//256)
 
     outbytes.extend(descbytes)
-
-    # print(offsets)
-    # print(descbytes)
-    # print(outbytes)
-
     return outbytes
 
 
-print("DragonRock monster builder v0.1, (w) Stephan Kleinert, 2021/06")
+print("DragonRock gamedata builder v0.1, (w) Stephan Kleinert, 2021/06")
 
-if len(sys.argv) < 4:
-    print("usage: "+sys.argv[0]+" infile monsterfile cityfile")
+if len(sys.argv) < 3:
+    print("usage: "+sys.argv[0]+" infile configDir")
     exit(1)
 
 srcFilename = sys.argv[1]
-monsterFilename = sys.argv[2]
-cityFilename = sys.argv[3]
+configDir = sys.argv[2]
+
 
 configDict = read(srcFilename)
 if "monsters" in configDict:
@@ -268,12 +285,18 @@ else:
     print("?no city node found in configuration file")
     exit(1)
 
-outfile = open(monsterFilename, "wb")
+if "spells" in configDict:
+    spellData = toSpells(configDict["spells"])
+else:
+    print("?no spells node found in configuration file")
+    exit(1)
+
+outfile = open(configDir+"/monsters", "wb")
 outfile.write(monsterData)
 print("Monster file written successfully.")
 outfile.close()
 
-outfile = open(cityFilename,"wb")
+outfile = open(configDir+"/cities","wb")
 outfile.write(cityData)
 print("City file written successfully.")
 outfile.close()

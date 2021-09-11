@@ -140,6 +140,14 @@ typedef struct _cityCoords {
 
 // --------------- spells ------------------
 
+typedef enum _damageType {
+    damageTypeMind,
+    damageTypeFrost,
+    damageTypeFire,
+    damageTypeHealth,
+    damageTypeSpecial
+} damageType;
+
 typedef struct _spell {
     char *name;
     byte spellLevel;
@@ -147,6 +155,7 @@ typedef struct _spell {
     byte mpNeeded;
     byte minDmg;
     byte maxDmg;
+    damageType dType;
 } spell;
 
 // -------------- equipment ----------------

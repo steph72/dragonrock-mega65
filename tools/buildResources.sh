@@ -2,13 +2,13 @@
 
 set -e
 
-rm gamedata/*
+rm -rf gamedata/*
 
 tools/buildCharset.sh
 tools/buildMaps.sh
 
 python3 tools/genItems.py gamedata-src/items.yaml gamedata/items
-python3 tools/genMonsters.py gamedata-src/monsters.yaml gamedata/monsters gamedata/cities 
+python3 tools/genMonsters.py gamedata-src/monsters.yaml gamedata
 
 # copy ui images with palette
 for filename in images-src/ui/*.png; do
