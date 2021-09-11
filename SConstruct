@@ -3,7 +3,7 @@ import os
 env = Environment(
     ENV={'PATH': os.environ['PATH']},
     CPPPATH='mega65-libc/cc65/include',
-    CC='cl65 -Oris --cpu 65c02')
+    CC='cl65 -Or --cpu 65c02')
 
 test = env.Program('bin/drock.c64', [
     Glob("src/*.c"),
