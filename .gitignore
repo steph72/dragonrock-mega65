@@ -5,6 +5,7 @@ bin/*
 disc/*
 
 .vscode/c_cpp_properties.json
+gamedata/*
 manual/manual.aux
 manual/manual.dvi
 manual/manual.fdb_latexmk
