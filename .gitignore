@@ -4,7 +4,7 @@ gamedata/
 .sconsign.dblite
 .vscode/ipch/*
 disc/*
-dr_env/
+dr_venv/
 
 .vscode/c_cpp_properties.json
 gamedata/*

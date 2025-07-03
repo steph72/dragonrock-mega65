@@ -1,0 +1,3 @@
+pyparsing>=3.0.0
+PyYAML>=6.0
+pypng>=0.20220715.0
