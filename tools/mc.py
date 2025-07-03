@@ -230,8 +230,8 @@ class mapCompiler:
 
     def buildStringsAndCoords(self, p_table):
         for i in p_table:
-            line = i[0]
-            src = i[1]
+            line = i["lineNum"]
+            src = i["parseResult"]
             if (src.metaCmd == "$"):
                 self.gStringMapping[src.tMsgLabel] = len(self.gStrings)
                 self.gStrings.append(src.tMessage)
@@ -278,11 +278,14 @@ class mapCompiler:
         self.gLinePosMapping = {}
         opcodes = [(-1, [0, 0, 0, 0, 0, 0, 0, 0])]
 
-        def checkString(aLabel, pline):
-            if self.gStringMapping.get(aLabel) is None:
+        def getStringIndexForLineWithTMsg(pline):
+            aLabel = pline["tMsgLabel"]
+            stringMapping = self.gStringMapping.get(aLabel)
+            if stringMapping is None:
                 print("error: can't find string \""+aLabel +
-                      "\" at line "+str(pline.lineNum))
+                      "\" at line "+str(pline["lineNum"]))
                 exit(3)
+            return stringMapping
 
         # -------------- opcode factory --------------
 
@@ -291,12 +294,13 @@ class mapCompiler:
 
         def opCreate_GOTO(pline):
             opc = [0xc0, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = "__DRLABEL__"+pline.tOpcLabel
+            opc[1] = "__DRLABEL__"+pline["tOpcLabel"]
             return opc
 
         def opCreate_NSTAT(pline):
-            checkString(pline.tMsgLabel, pline)
-            return [1, self.gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
+            stringIndex = getStringIndexForLineWithTMsg(pline)
+            print (stringIndex)
+            return [1, stringIndex, 0, 0, 0, 0, 0, 0]
 
         def opCreate_NSTAT_O(pline):
             opc = opCreate_NSTAT(pline)
@@ -304,9 +308,9 @@ class mapCompiler:
             return opc
 
         def opCreate_DISP(pline):
-            checkString(pline.tMsgLabel, pline)
-            opc = [2, self.gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
-            if (pline.tClrFlag == True):
+            stringIndex = getStringIndexForLineWithTMsg(pline)
+            opc = [2, stringIndex, 0, 0, 0, 0, 0, 0]
+            if "tClrFlag" in pline and (pline["tClrFlag"] == True):
                 opc[2] = 1
             return opc
 
@@ -316,20 +320,20 @@ class mapCompiler:
             return opc
 
         def opCreate_WKEY(pline):
-            checkString(pline.tMsgLabel, pline)
-            opc = [3, self.gStringMapping[pline.tMsgLabel], 0, 0, 0, 0, 0, 0]
-            if (pline.tClrFlag == True):
+            stringIndex = getStringIndexForLineWithTMsg(pline)
+            opc = [3, stringIndex, 0, 0, 0, 0, 0, 0]
+            if "tClrFlag" in pline and (pline["tClrFlag"] == True):
                 opc[2] = 1
-            if (pline.tRegIndex):
-                opc[3] = int(pline.tRegIndex)
+            if "tRegIndex" in pline and (pline["tRegIndex"]):
+                opc[3] = int(pline["tRegIndex"])
             return opc
 
         def opCreate_YESNO(pline):
             opc = [4, 0, 0, 0, 0, 0, 0, 0]
-            if (pline.tTrueOpcLabel):
-                opc[1] = "__DRLABEL__"+pline.tTrueOpcLabel
-            if (pline.tFalseOpcLabel):
-                opc[3] = "__DRLABEL__"+pline.tFalseOpcLabel
+            if ("tTrueOpcLabel" in pline):
+                opc[1] = "__DRLABEL__"+pline["tTrueOpcLabel"]
+            if ("tFalseOpcLabel" in pline):
+                opc[3] = "__DRLABEL__"+pline["tFalseOpcLabel"]
             return opc
 
         def opCreate_YESNO_B(pline):
@@ -338,12 +342,12 @@ class mapCompiler:
             return opc
 
         def opCreate_IFREG(pline):
-            opc = [5, int(pline.tRegIndex), int(
-                pline.tRegValue), 0, 0, 0, 0, 0]
-            if (pline.tTrueOpcLabel):
-                opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
-            if (pline.tFalseOpcLabel):
-                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
+            opc = [5, int(pline["tRegIndex"]), int(
+                pline["tRegValue"]), 0, 0, 0, 0, 0]
+            if ("tTrueOpcLabel" in pline):
+                opc[3] = "__DRLABEL__"+pline["tTrueOpcLabel"]
+            if ("tFalseOpcLabel" in pline):
+                opc[5] = "__DRLABEL__"+pline["tFalseOpcLabel"]
             return opc
 
         def opCreate_IFREG_B(pline):
@@ -352,19 +356,19 @@ class mapCompiler:
             return opc
 
         def opCreate_IFPOS(pline):
-            opc = [6, int(pline.tItemID), int(pline.tRegIndex), 0, 0, 0, 0, 0]
-            if (pline.tTrueOpcLabel):
-                opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
-            if (pline.tFalseOpcLabel):
-                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
+            opc = [6, int(pline["tItemID"]), int(pline["tRegIndex"]), 0, 0, 0, 0, 0]
+            if ("tTrueOpcLabel" in pline):
+                opc[3] = "__DRLABEL__"+pline["tTrueOpcLabel"]
+            if ("tFalseOpcLabel" in pline):
+                opc[5] = "__DRLABEL__"+pline["tFalseOpcLabel"]
             return opc
 
         def opCreate_IADD(pline):
-            opc = [7, int(pline.tItemID), int(pline.tCharID), 0, 0, 0, 0, 0]
-            if (pline.tTrueOpcLabel):
-                opc[3] = "__DRLABEL__"+pline.tTrueOpcLabel
-            if (pline.tFalseOpcLabel):
-                opc[5] = "__DRLABEL__"+pline.tFalseOpcLabel
+            opc = [7, int(pline["tItemID"]), int(pline["tCharID"]), 0, 0, 0, 0, 0]
+            if "tTrueOpcLabel" in pline:
+                opc[3] = "__DRLABEL__"+pline["tTrueOpcLabel"]
+            if "tFalseOpcLabel" in pline:
+                opc[5] = "__DRLABEL__"+pline["tFalseOpcLabel"]
             return opc
 
         def opCreate_IADD_V(pline):
@@ -374,15 +378,15 @@ class mapCompiler:
 
         def opCreate_ALTER(pline):
             opc = [8, 0, 0, 0, 0, 0, 0, 0]
-            coords = self.gCoordsMapping.get(pline.tCoordsLabel)
+            coords = self.gCoordsMapping.get(pline["tCoordsLabel"])
             if not coords:
                 print("error: cannot find coordinate mapping for",
-                      pline.tCoordsLabel)
+                      pline["tCoordsLabel"])
                 return ""
             opc[1] = coords[0]
             opc[2] = coords[1]
-            opc[3] = "__DRLABEL__"+pline.tOpcLabel
-            opc[4] = int(pline.tDungeonItemID)
+            opc[3] = "__DRLABEL__"+pline["tOpcLabel"]
+            opc[4] = int(pline["tDungeonItemID"])
             return opc
 
         def opCreate_REDRAW(pline):
@@ -390,8 +394,8 @@ class mapCompiler:
 
         def opCreate_ADDC(pline):
             opc = [0xa, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tCoinsValue) % 255
-            opc[2] = int(pline.tCoinsValue)//255
+            opc[1] = int(pline["tCoinsValue"]) % 255
+            opc[2] = int(pline["tCoinsValue"])//255
             return opc
 
         def opCreate_ADDC_V(pline):
@@ -401,8 +405,8 @@ class mapCompiler:
 
         def opCreate_ADDE(pline):
             opc = [0x0b, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tExpValue) % 255
-            opc[2] = int(pline.tExpValue)//255
+            opc[1] = int(pline["tExpValue"]) % 255
+            opc[2] = int(pline["tExpValue"])//255
             return opc
 
         def opCreate_ADDE_V(pline):
@@ -411,8 +415,8 @@ class mapCompiler:
             return opc
 
         def opCreate_SETREG(pline):
-            opc = [0x0c, int(pline.tRegIndex), int(
-                pline.tRegValue), 0, 0, 0, 0, 0]
+            opc = [0x0c, int(pline["tRegIndex"]), int(
+                pline["tRegValue"]), 0, 0, 0, 0, 0]
             return opc
 
         def opCreate_CLRENC(pline):
@@ -421,66 +425,68 @@ class mapCompiler:
 
         def opCreate_ADDENC(pline):
             opc = [0x0e, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tMonsterID)
-            opc[2] = int(pline.tMonsterLevel)
-            opc[3] = int(pline.tMonsterMinCount)
-            opc[4] = int(pline.tMonsterMaxCount)
-            opc[5] = int(pline.tMonsterRow)
+            opc[1] = int(pline["tMonsterID"])
+            opc[2] = int(pline["tMonsterLevel"])
+            opc[3] = int(pline["tMonsterMinCount"])
+            opc[4] = int(pline["tMonsterMaxCount"])
+            opc[5] = int(pline["tMonsterRow"])
             return opc
 
         def opCreate_ADDENC1(pline):
-            opc = opCreate_ADDENC0(pline)
+            opc = opCreate_ADDENC(pline)
             opc[0] = 0x8e
             return opc
 
         def opCreate_GOENC(pline):
             opc = [0x0f, 0, 0, 0, 0, 0, 0, 0]
-            if (pline.tWinOpcLabel):
-                opc[1] = "__DRLABEL__"+pline.tWinOpcLabel
-            if (pline.tLoseOpcLabel):
-                opc[3] = "__DRLABEL__"+pline.tLoseOpcLabel
+            if "tWinOpcLabel" in pline:
+                opc[1] = "__DRLABEL__"+pline["tWinOpcLabel"]
+            if "tLoseOpcLabel" in pline:
+                opc[3] = "__DRLABEL__"+pline["tLoseOpcLabel"]
             return opc
 
         def opCreate_ENTER_W(pline):
             opc = [0x10, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tMapID)
-            opc[2] = int(pline.tXValue)
-            opc[3] = int(pline.tYValue)
+            opc[1] = int(pline["tMapID"])
+            opc[2] = int(pline["tXValue"])
+            opc[3] = int(pline["tYValue"])
             return opc
 
         def opCreate_ENTER_D(pline):
             opc = [0x30, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tMapID)
-            opc[2] = int(pline.tXValue)
-            opc[3] = int(pline.tYValue)
+            opc[1] = int(pline["tMapID"])
+            opc[2] = int(pline["tXValue"])
+            opc[3] = int(pline["tYValue"])
             return opc
 
         def opCreate_ENTER_C(pline):
             opc = [0x11, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tCityID)
+            opc[1] = int(pline["tCityID"])
             return opc
 
         def opCreate_RANDOM_B(pline):
             opc = [0x52, 0, 0, 0, 0, 0, 0, 0]
-            opc[1] = int(pline.tRandomChance) % 256
-            opc[2] = int(pline.tRandomChance)//256
-            opc[3] = "__DRLABEL__"+pline.tRandomBranchLabel
+            opc[1] = int(pline["tRandomChance"]) % 256
+            opc[2] = int(pline["tRandomChance"])//256
+            opc[3] = "__DRLABEL__"+pline["tRandomBranchLabel"]
             return opc
 
         lastOpcodeIndex = 0
         lastOpcode = []
 
         for i in p_table:
-            lineNum = i[0]
-            src = i[1]
-            if src.metaCmd == "---":
+            lineNum = i["lineNum"]
+            src = i["parseResult"].as_dict()
+            print (src)
+            if "metaCmd" in src and src["metaCmd"] == "---":
                 lastOpcode[0] = lastOpcode[0] | 128  # set stop flag
                 lastOpcode = []
-            if not src.opcode:
+            if not "opcode" in src:
                 continue
 
-            src.lineNum = lineNum
-            opCreateFunc = "opCreate_"+src.opcode     # construct building function name
+            print(src)
+            src["lineNum"] = lineNum
+            opCreateFunc = "opCreate_"+src["opcode"]     # construct building function name
             newOpcode = locals()[opCreateFunc](src)   # ...and call it.
             if (newOpcode == ""):
                 print("aborted in line", lineNum)
@@ -713,11 +719,15 @@ class mapCompiler:
                 print("parse error at line "+str(lineNum)+":")
                 print(e)
                 exit(5)
-            p_table.append((lineNum, a))
+            # p_table.append((lineNum, a))
+            p_table.append({
+                "lineNum": lineNum,
+                "parseResult": a
+            })
 
-        # print("========== p_table ==========")
-        # pp.pprint.pprint(p_table)
-        # print("======== p_table end ========")
+        print("========== p_table ==========")
+        pp.pprint.pprint(p_table)
+        print("======== p_table end ========")
         self.buildStringsAndCoords(p_table)
         return self.buildOpcodes(p_table)
 
