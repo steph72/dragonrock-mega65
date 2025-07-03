@@ -3,6 +3,9 @@ bin/*
 .sconsign.dblite
 .vscode/ipch/*
 disc/*
+dr_env/
+*.o
+
 
 .vscode/c_cpp_properties.json
 gamedata/*
