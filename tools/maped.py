@@ -58,7 +58,7 @@ class mapEditor():
         self.map = []
         self.feels = [""]
         self.routines = [[0, 0, 0, 0, 0, 0, 0, 0]]
-        self.copyMapElement = 0
+        self.copyMapElement = None
 
         for y in range(self.mapWidth):
             self.map.append([])
@@ -93,45 +93,42 @@ class mapEditor():
         self.setupEmptyMap()
 
     def resizeWindows(self):
+        try:
+            height,width = self.stdscr.getmaxyx()
+            self.rawMapWinHeight = height-4
+            self.rawMapWinWidth = width
 
-        height,width = self.stdscr.getmaxyx()
-        self.rawMapWinHeight = height-4
-        self.rawMapWinWidth = width
+            if self.rawMapWinHeight > self.mapHeight+2:
+                self.rawMapWinHeight = self.mapHeight+2
 
-        if self.rawMapWinHeight > self.mapHeight+2:
-            self.rawMapWinHeight = self.mapHeight+2
+            if self.rawMapWinWidth > self.mapWidth+2:
+                self.rawMapWinWidth = self.mapWidth+2
 
-        if self.rawMapWinWidth > self.mapWidth+2:
-            self.rawMapWinWidth = self.mapWidth+2
+            self.kMapWinWidth = self.rawMapWinWidth-2
+            self.kMapWinHeight = self.rawMapWinHeight-2
 
-        self.kMapWinWidth = self.rawMapWinWidth-2
-        self.kMapWinHeight = self.rawMapWinHeight-2
+            self.mapwin = self.stdscr.subwin(
+               self.rawMapWinHeight, self.rawMapWinWidth, 1, 0)
 
-        self.mapwin = self.stdscr.subwin(
-           self.rawMapWinHeight, self.rawMapWinWidth, 1, 0)
+            self.topwin = self.stdscr.subwin(
+                1, width, 0, 0
+            )
 
-        self.topwin = self.stdscr.subwin(
-            1, width,0,0
-        )
+            self.bottomwin = self.stdscr.subwin(
+                3, width, self.rawMapWinHeight+1, 0
+            )
+            
+            self.mapwin.keypad(True)
 
-        self.bottomwin = self.stdscr.subwin(
-            3, width, self.rawMapWinHeight+1,0
-        )
-        
-
-        self.mapwin.keypad(True)
-
-
-#        self.helpwin = self.stdscr.subwin(
-#            self.kMapWinHeight+2, 0, 3, self.kMapWinWidth+4)
-
-#        except:
-#            curses.curs_set(0)
-#            self.stdscr.addstr("No room for UI. Aborting.\n"
-#                               "Please provide a screen with at least 80x24 characters.\n\n"
-#                               "- press any key -")
-#            self.stdscr.getch()
-#            exit(127)
+            self.helpwin = self.stdscr.subwin(
+                self.kMapWinHeight+2, 0, 3, self.kMapWinWidth+4)
+        except Exception as e:
+            curses.curs_set(0)
+            self.stdscr.addstr("No room for UI. Aborting.\n"
+                               "Please provide a screen with at least 80x24 characters.\n\n"
+                               "- press any key -")
+            self.stdscr.getch()
+            exit(127)
 
 
     def refreshStatus(self):
@@ -259,7 +256,7 @@ class mapEditor():
         self.copyMapElement = deepcopy(self.getCurrentMapEntry())
 
     def pasteElem(self):
-        if self.copyMapElement != 0:
+        if self.copyMapElement is not None:
             self.getCurrentMapEntry().mapElementID = self.copyMapElement.mapElementID
             self.getCurrentMapEntry().initiallyVisible = self.copyMapElement.initiallyVisible
             self.getCurrentMapEntry().impassable = self.copyMapElement.impassable
@@ -278,16 +275,22 @@ class mapEditor():
             pass
 
     def loadMap(self):
-        loadFilename = self.currentFilename
-        infile = open(loadFilename, "br")
-        mdata = pickle.load(infile)
-        self.mapWidth = mdata["width"]
-        self.mapHeight = mdata["height"]
-        self.startX = mdata["startX"]
-        self.startY = mdata["startY"]
-        self.map = mdata["map"]
-        self.resizeWindows()
-        infile.close()
+        try:
+            loadFilename = self.currentFilename
+            infile = open(loadFilename, "br")
+            mdata = pickle.load(infile)
+            self.mapWidth = mdata["width"]
+            self.mapHeight = mdata["height"]
+            self.startX = mdata["startX"]
+            self.startY = mdata["startY"]
+            self.map = mdata["map"]
+            self.resizeWindows()
+            infile.close()
+        except Exception as e:
+            self.bottomwin.clear()
+            self.bottomwin.addstr(0, 0, f"Error loading map: {str(e)}")
+            self.bottomwin.refresh()
+            self.bottomwin.getch()
 
     def loadOrCreateMap(self):
         if (os.path.exists(self.currentFilename)):
@@ -312,7 +315,7 @@ class mapEditor():
         outfile = open(saveFilename, "bw")
         pickle.dump(mdata, outfile)
         outfile.close()
-        self.bottomwin.clwar()
+        self.bottomwin.clear()
         self.bottomwin.addstr(0, 0,
                            "\nfile saved.\n- press any key -")
         self.bottomwin.refresh()
@@ -406,7 +409,7 @@ class mapEditor():
         self.stdscr.erase()
         self.mapwin.border()
         self.mapwin.addstr(0, 1, "Map")
-        #self.showHelp()
+        self.showHelp()
 
     def showHelp(self):
         self.helpwin.erase()
