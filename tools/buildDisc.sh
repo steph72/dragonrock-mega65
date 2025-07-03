@@ -9,6 +9,7 @@ fi
 
 /bin/sh tools/buildResources.sh
 
+# wrap main into c65-side loader called "main"
 cat cbm/wrapper.prg bin/drmain > bin/main
 
 c1541 <<EOF
