@@ -1,5 +1,10 @@
 {
     "python.formatting.provider": "autopep8",
     "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true
+    "python.linting.pylintEnabled": true,
+    "files.associations": {
+        "conio.h": "c",
+        "unistd.h": "c",
+        "c64.h": "c"
+    }
 }

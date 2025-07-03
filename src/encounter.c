@@ -156,7 +156,7 @@ void showParty() {
         cg_puts(drbuf);
         cg_gotoxy(33, 1 + i);
         if (aChar->status == down) {
-            cg_textcolor(COLOR_VIOLET);
+            cg_textcolor(COLOR_PURPLE);
             cg_printf("down");
         } else if (aChar->status == dead) {
             cg_textcolor(COLOR_RED);

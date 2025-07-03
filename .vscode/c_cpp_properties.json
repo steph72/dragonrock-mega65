@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "~/local/share/cc65/include/**",
+                "/home/lemon/devel/cc65/include/**",
                 "/usr/share/cc65/include/**",
                 "/usr/local/share/cc65/include/**"
             ],

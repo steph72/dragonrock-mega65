@@ -758,9 +758,9 @@ class mapCompiler:
         
         self.buildDaemons()
 
-        # pp.pprint.pprint (self.opcodeBytes())
-        # pp.pprint.pprint (self.feelsBytes())
-        # pp.pprint.pprint (self.mapBytes())
+        pp.pprint.pprint (self.opcodeBytes())
+        pp.pprint.pprint (self.feelsBytes())
+        pp.pprint.pprint (self.mapBytes())
 
 
 ##################

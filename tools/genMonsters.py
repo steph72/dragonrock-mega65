@@ -288,8 +288,10 @@ else:
 if "spells" in configDict:
     spellData = toSpells(configDict["spells"])
 else:
-    print("?no spells node found in configuration file")
-    exit(1)
+#    print("?no spells node found in configuration file")
+#    exit(1)
+    pass
+#TODO
 
 outfile = open(configDir+"/monsters", "wb")
 outfile.write(monsterData)
