@@ -1,11 +1,10 @@
-obj/*
-bin/*
+obj/
+bin/
+gamedata/
 .sconsign.dblite
 .vscode/ipch/*
 disc/*
 dr_env/
-*.o
-
 
 .vscode/c_cpp_properties.json
 gamedata/*

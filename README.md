@@ -1,56 +1,97 @@
-# dragonrock-mega65
-A role playing game for the MEGA65.
+# DragonRock
 
-I got the idea for "Dragon Rock" upon realizing that there are hardly any native role playing
-games for the Commodore TED series of computers (c16, c116, plus/4). Since I always had soft 
-spot for the underdogs and also always wanted to implement a classic CRPG, I decided to fill this gap.
+A classic Computer Role-Playing Game (CRPG) for the MEGA65 computer.
 
-But once I had begun implementing DRs advanced features (such as a compiled dungeon description
-language and a bytecode interpreter along with it), I realized that the poor old TEDs would have
-a hard time processing all the stuff, and the project slowed down and finally was put on hold.
+![City View](screenshots/cityNew.png)
 
-Then along came the amazing MEGA65 re-imagination of Commodore's last 8-bit-machine, and I knew,
-the platform to complete "Dragon Rock" was finally there (actually, some 20 years ago, I was the
-owner of one of the fabled C65 prototypes, there are even still some demos by yours truly 
-floating around on the 'net, so developing for the MEGA65 felt like coming home to me... but that's
-a different story).
+## Overview
 
-Gameplay-wise "Dragon Rock" is modelled after "Phantasie" (my favourite crpg series on 8-bit 
-computers, because it's simple and challenging at the same time). It's still very much work
-in progress and contributions are of course welcome (oh well, who am I kidding ;-)).
+DragonRock is an immersive fantasy role-playing game developed specifically for the MEGA65 computer. Taking inspiration from classic CRPGs of the 8-bit era, DragonRock offers adventurers a world filled with cities to explore, dungeons to conquer, and monsters to battle.
 
-Here's some screenshots of what's in there by now:
+## Features
 
-<img src="screenshots/createNew.png" width="384"/><br/>
+- Create and develop your own party of adventurers
+- Explore cities with shops, guilds, and inns
+- Journey through the wilderness on the overworld map
+- Delve into dangerous dungeons filled with traps, puzzles, and treasures
+- Battle monsters in turn-based combat
+- Find and equip various weapons, armor, and magical items
+- Cast powerful spells to defeat your enemies
 
-Character creation in a guild
+## Screenshots
 
-<img src="screenshots/cityNew.png" width="384"/><br/>
+![Character Creation](screenshots/createNew.png)
+*Character creation in the guild*
 
-City main menu
+![Outdoor View](screenshots/outdoor.png)
+*Exploring the outdoor wilderness*
 
-<img src="screenshots/outdoor.png" width="384"/><br/>
+![Dungeon View](screenshots/dungeon1.jpg)
+*Venturing through a dungeon*
 
-Outdoor view
+![Character Details](screenshots/characterDisplay.jpg)
+*Character inventory and stats*
 
-![Screen4](screenshots/dungeon1.jpg)
+## Development Tools
 
-Dungeon view
+DragonRock comes with custom development tools to create and extend the game world:
 
-![Screen5](screenshots/characterDisplay.jpg)
+![Map Editor](screenshots/mapEditor.png)
+*The DragonRock map editor*
 
-Character detail in the dungeon. Hubuk has collected the 'rusty key', which...
+![Map Compiler](screenshots/mapCompiler.png)
+*Map compiler that translates map scripts into game bytecode*
 
-![Screen6](screenshots/dungeon2.jpg)
+## System Requirements
 
-...opened this door ;-)
+- MEGA65 computer or compatible emulator
+- Storage device for game data (SD card recommended)
 
-![Screen7](screenshots/mapEditor.png)
+## Building From Source
 
-Of course, "Dragon Rock" comes with its own map editor...
+### Requirements
 
-![Screen8](screenshots/mapCompiler.png)
+- CC65 Compiler Suite
+- SCons build system
+- Python 3.6 or later
+- Git
 
-...and map compiler, which translates a 'mapscript' file into bytecode, which then
-gets interpreted by the main binary on the MEGA65.
+### Build Commands
 
+```
+# Compile the game only
+scons
+# or
+scons compile
+
+# Compile and build the disc image
+scons build
+
+# Clean all build artifacts
+scons clean
+```
+
+### Directory Structure
+
+- `src/` - Source code files
+- `obj/` - Compiled object files (created during build)
+- `bin/` - Binary output files
+- `gamedata/` - Game resources and data files
+- `disc/` - Disc image files
+- `tools/` - Development and build tools
+- `maps/` - Game maps and level data
+- `graphics/` - Graphic resources
+- `gamedata-src/` - Source files for game data
+
+## Contributing
+
+Contributions to DragonRock are welcome! Whether it's bug fixes, new features, or content additions, feel free to fork the repository and submit a pull request.
+
+## License
+
+[Insert license information here]
+
+## Acknowledgments
+
+- Thanks to the MEGA65 team for creating an amazing platform
+- All contributors and testers who have helped shape the game
