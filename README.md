@@ -2,31 +2,15 @@
 
 A CRPG for the MEGA65 computer.
 
-![City View](screenshots/cityNew.png)
-
 ## Overview
 
 DragonRock is an immersive fantasy role-playing game developed specifically for the MEGA65 computer. Taking inspiration from classic CRPGs of the 8-bit era, DragonRock offers adventurers a world filled with cities to explore, dungeons to conquer, and monsters to battle.
-
-
-## Development Tools
-
-DragonRock comes with custom development tools to create and extend the game world:
-
-### tools/maped.py
-A map editor for dungeon and outoors maps
-
-### tools/mc
-A map compiler.
-The game content is scripted in a simple language called DRScript. The map compiler converts DRScript into bytecode which can be used in the game.
-
-### tools/png2dbm.py
-A PNG to DBM converter for displaying ingame graphics as super extended colour mode images
 
 ## System Requirements
 
 - MEGA65 computer or compatible emulator
 - Storage device for game data (SD card recommended)
+
 
 ## Building From Source
 
@@ -35,9 +19,32 @@ A PNG to DBM converter for displaying ingame graphics as super extended colour m
 - CC65 Compiler Suite
 - Python 3.6 or later
 - Git
+- LaTeX (for building the game manual)
 
-### Build Commands
+### Setup
 
+1. clone the project: 
+```
+git clone https://github.com/steph72/dragonrock-mega65.git
+```
+
+2. install the project submodules: 
+```
+git submodule update --init
+```
+
+3. setup the python environment & requirements. Don't worry – there's a script for that ;-) 
+```
+./setupPythonEnvironment.sh
+```
+
+That's it, you're ready to go
+
+### Building
+
+DragonRock uses the scons build system because it is so very much nicer and more flexible than Makefiles. Scons is installed alongside with the python environment. 
+
+#### Compile the game only:
 ```
 # Compile the game only
 scons
@@ -50,6 +57,29 @@ scons build
 # Clean all build artifacts
 scons clean
 ```
+
+
+
+## Development Tools
+
+DragonRock comes with custom development tools to create and extend the game world. These are described in detail in the doc folder.
+
+### tools/maped.py
+A map editor for dungeon and outoors maps
+
+### tools/mc
+A map compiler.
+The game content is scripted in a simple language called DRScript. The map compiler converts DRScript into bytecode which can be used in the game.
+
+### tools/png2dbm.py
+A PNG to DBM converter for displaying ingame graphics as super extended colour mode images
+
+
+
+
+### Build Commands
+
+
 
 ### Directory Structure
 

@@ -18,6 +18,7 @@ REQUIREMENTS_FILE="requirements.txt"
 echo -e "${BLUE}DragonRock Python Environment Setup${NC}"
 echo "----------------------------------------"
 
+
 # Check if Python is installed
 if ! command -v python3 &> /dev/null; then
     echo -e "${RED}Error: Python 3 is not installed or not in PATH${NC}"
@@ -94,3 +95,4 @@ echo -e "${YELLOW}source $ENV_DIR/bin/activate${NC}"
 echo
 echo "When finished, you can deactivate the environment by typing:"
 echo -e "${YELLOW}deactivate${NC}"
+
