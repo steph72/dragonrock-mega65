@@ -65,6 +65,7 @@ gets interpreted by the main binary on the MEGA65.
 - CC65 Compiler Suite, version 2.19 or later
 - Python 3.6 or later
 - Git
+- c1541 from VICE (for building the disc image)
 - LaTeX (for building the game manual)
 
 ### Setup
