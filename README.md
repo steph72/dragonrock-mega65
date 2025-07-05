@@ -1,10 +1,47 @@
 # DragonRock
 
-A CRPG for the MEGA65 computer.
+A role playing game for the MEGA65.
+
+I got the idea for "Dragon Rock" upon realizing that there are hardly any native role playing games for the Commodore TED series of computers (c16, c116, plus/4). Since I always had soft spot for the underdogs and also always wanted to implement a classic CRPG, I decided to fill this gap.
+
+But once I had begun implementing DRs advanced features (such as a compiled dungeon description language and a bytecode interpreter along with it), I realized that the poor old TEDs would have a hard time processing all the stuff, and the project slowed down and finally was put on hold.
+
+Then along came the amazing MEGA65 re-imagination of Commodore's last 8-bit-machine, and I knew, the platform to complete "Dragon Rock" was finally there (actually, some 20 years ago, I was the owner of one of the fabled C65 prototypes, there are even still some demos by yours truly floating around on the 'net, so developing for the MEGA65 felt like coming home to me... but that's a different story).
+
+Gameplay-wise "Dragon Rock" is modelled after "Phantasie" (my favourite crpg series on 8-bit computers, because it's simple and challenging at the same time). It's still very much work in progress and contributions are of course welcome (oh well, who am I kidding ;-)).
+
+"Dragon Rock" features 
+
+- scripted, dynamic dungeons (dungeons are laid out in a map editor and an accompanying DungeonScript. The build tools then convert the map and the script into bytecode which the actual game uses)
+
+- a map editor
+
+- full colour graphics (at the moment for cities, special encounters and buildings)
+
+- an easy to use menu system
+
+
+Here's some screenshots of what's in there by now:
+
+![Screen1](screenshots/dr0.png =384x)
+Loading screen
+
+![Screen2](screenshots/dr1.png =384x)
+Home, sweet home
+
+![Screen3](screenshots/dr2.png =384x)
+Creating a character
+
+![Screen4](screenshots/dr3.png =384x)
+Outdoor map view
+
+![Screen4](screenshots/dr4.png =384x)
+A dungeon
+
+![Screen4](screenshots/dr5.png =384x)
+Visiting the guild
 
 ## Overview
-
-DragonRock is an immersive fantasy role-playing game developed specifically for the MEGA65 computer. Taking inspiration from classic CRPGs of the 8-bit era, DragonRock offers adventurers a world filled with cities to explore, dungeons to conquer, and monsters to battle.
 
 ## System Requirements
 
@@ -38,7 +75,12 @@ git submodule update --init
 ./setupPythonEnvironment.sh
 ```
 
-That's it, you're ready to go
+4. activate the python environment
+```
+source dr_venv/bin/activate
+```
+
+That's it, you're ready to go!
 
 ### Building
 
@@ -57,7 +99,6 @@ scons build
 # Clean all build artifacts
 scons clean
 ```
-
 
 
 ## Development Tools
@@ -98,10 +139,6 @@ When building Dragon Rock, the artifacts are placed in the following folders:
 ## Contributing
 
 Contributions to DragonRock are welcome! Whether it's bug fixes, new features, or content additions, feel free to fork the repository and submit a pull request.
-
-## License
-
-TODO
 
 
 ## Acknowledgments

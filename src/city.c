@@ -242,7 +242,7 @@ void runCityMenu(void) {
     static byte menuChoice;
     static unsigned char quitCity;
     char *cityMenu[]= {"Guild",  "Armory", "Inn", "Bank",
-                       "Mystic", "Leave",  NULL};
+                       "Mystic", "Save", "Leave",  NULL};
 
     quitCity= 0;
 
@@ -280,6 +280,10 @@ void runCityMenu(void) {
                 break;
 
             case 5:
+                saveGame();
+                break;
+
+            case 6:
                 cg_clearBottomLine();
                 cg_gotoxy(0, gScreenRows - 1);
                 cg_printf("Really leave %s (y/n)?",
@@ -294,6 +298,7 @@ void runCityMenu(void) {
                 }
                 cmd= 0;
                 break;
+            
 
             default:
                 cg_fatal("not implemented");
