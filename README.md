@@ -23,23 +23,32 @@ Gameplay-wise "Dragon Rock" is modelled after "Phantasie" (my favourite crpg ser
 
 Here's some screenshots of what's in there by now:
 
-![Screen1](screenshots/dr0.png =384x)
-Loading screen
+<img src="screenshots/dr0.png" width="384"/><br/>Loading screen
 
-![Screen2](screenshots/dr1.png =384x)
+<img src="screenshots/dr1.png" width="384"/><br/>
 Home, sweet home
 
-![Screen3](screenshots/dr2.png =384x)
+<img src="screenshots/dr2.png" width="384"/><br/>
 Creating a character
 
-![Screen4](screenshots/dr3.png =384x)
+<img src="screenshots/dr3.png" width="384"/><br/>
 Outdoor map view
 
-![Screen4](screenshots/dr4.png =384x)
+<img src="screenshots/dr4.png" width="384"/><br/>
 A dungeon
 
-![Screen4](screenshots/dr5.png =384x)
+<img src="screenshots/dr5.png" width="384"/><br/>
 Visiting the guild
+
+
+![Screen7](screenshots/mapEditor.png)
+
+Of course, "Dragon Rock" comes with its own map editor...
+
+![Screen8](screenshots/mapCompiler.png)
+
+...and map compiler, which translates a 'DungeonScript' file into bytecode, which then
+gets interpreted by the main binary on the MEGA65.
 
 ## Overview
 
