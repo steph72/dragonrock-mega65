@@ -62,7 +62,7 @@ gets interpreted by the main binary on the MEGA65.
 
 ### Requirements
 
-- CC65 Compiler Suite
+- CC65 Compiler Suite, version 2.19 or later
 - Python 3.6 or later
 - Git
 - LaTeX (for building the game manual)
